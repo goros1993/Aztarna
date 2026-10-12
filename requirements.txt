@@ -1,0 +1,2 @@
+python-docx>=1.2,<2
+ruamel.yaml>=0.18,<0.20

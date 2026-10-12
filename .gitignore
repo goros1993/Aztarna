@@ -1,0 +1,22 @@
+# Entornos Python
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.py[cod]
+
+# Resultados generados localmente
+/salida/
+/importacion/
+/exportacion/
+inventario.txt
+
+# Documentos de trabajo: mantener el DOCX original fuera del repositorio
+*.docx
+
+# Herramientas y sistema operativo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
