@@ -20,6 +20,13 @@ evitar subir documentos de trabajo o datos derivados accidentalmente.
 
 Se necesita Python 3.10 o posterior y pip.
 
+El editor de escritorio usa Tkinter, que no se instala mediante pip. En Ubuntu
+instala el módulo del sistema con:
+
+```bash
+sudo apt-get install python3-tk
+```
+
 Linux/macOS:
 
 ```bash
@@ -34,7 +41,16 @@ Windows (PowerShell):
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+python -m tkinter
+python editor_yaml.py
 ```
+
+El instalador oficial de Python para Windows normalmente incluye Tkinter
+(opción **Tcl/Tk and IDLE**); no se añade con `pip` ni aparece en
+`requirements.txt`. `python -m tkinter` debe abrir una ventana de prueba. Si
+falla, modifica o repara la instalación de Python y asegúrate de incluir
+**Tcl/Tk and IDLE**. Cuando funcione, `python editor_yaml.py` abre el editor de
+escritorio sin iniciar un servidor.
 
 ## Importación inicial: DOCX a YAML
 
@@ -145,37 +161,67 @@ Consejos para crear una prueba:
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.
 
-## Editor visual local
+## Editor de escritorio local
 
-Para crear, buscar y editar pruebas mediante formularios en el navegador,
-inicia el editor desde la carpeta del proyecto:
+Para crear, buscar y editar pruebas con formularios, ejecuta desde la carpeta
+del proyecto:
 
 ```bash
-streamlit run editor_yaml.py --server.address 127.0.0.1
+python editor_yaml.py
 ```
 
-Abre la dirección local que muestra Streamlit (normalmente
-`http://127.0.0.1:8501`) y selecciona la carpeta de YAML, por defecto
-`ejemplos/yaml`. Cuando tengas una importación revisada, selecciona su carpeta,
-por ejemplo `salida/yaml`. El editor modifica directamente el archivo YAML del capítulo;
-no mantiene una base de datos paralela. Desde la barra lateral puedes elegir
-capítulo y buscar por ID o texto. La pestaña **Crear prueba** permite colocar
-la prueba al final del capítulo o bajo una sección existente.
+El editor abre una ventana de escritorio; no inicia un servidor ni requiere
+Streamlit. Necesita Python con Tkinter instalado (en Ubuntu se proporciona con
+`python3-tk`) y las dependencias de `requirements.txt`. La carpeta inicial es
+`ejemplos/yaml`; puedes seleccionar otra con **Examinar**, por ejemplo la
+carpeta de una importación revisada. El editor modifica directamente el archivo
+YAML del capítulo y no mantiene una base de datos paralela. En la lista lateral
+puedes filtrar por ID o texto. La pestaña **Crear prueba** permite añadirla al
+final del capítulo o bajo una sección existente.
+El panel lateral refleja la jerarquía de secciones del YAML; puedes desplegar o
+plegar cada rama y seleccionar pruebas desde su sección. Al crear una prueba,
+puedes elegir insertarla justo después de la prueba seleccionada, al final del
+capítulo o dentro de una sección existente; el nivel de encabezado se calcula
+según la ubicación. Para crear una sección sin añadir una prueba, selecciona una
+prueba en el navegador, abre la pestaña **Nueva sección**, escribe el nombre y
+créala. Se insertará justo después de la prueba seleccionada. Después aparecerá
+en la lista de ubicaciones disponibles al crear pruebas.
+Al seleccionar una sección se abre su pantalla de edición: permite cambiar el
+nombre y el `contexto`, una lista YAML que puede contener texto o mapas con
+`texto` e `imagenes`. También permite añadir imágenes al contexto y ver sus
+miniaturas. Las vistas previas se actualizan al editar el YAML del contexto y
+las rutas relativas se resuelven desde la carpeta seleccionada de YAML; si un
+archivo no existe o no se puede mostrar, el editor lo indica.
+
+Las pruebas y secciones se pueden borrar desde sus respectivas pantallas, con
+confirmación. Al borrar una prueba solo se elimina esa prueba. Al borrar una
+sección desaparece su encabezado, pero su contexto se conserva como texto y las
+pruebas y subsecciones descendientes se mantienen, promocionadas un nivel.
 
 El repositorio incluye datos ficticios para probar la aplicación antes de
 importar el documento real. Estos ejemplos no contienen información del
-documento original. Guarda una copia si quieres practicar cambios sin modificar
-los ejemplos versionados.
+documento original y están registrados en `ejemplos/yaml/indice.yaml`:
 
-Las listas se editan como listas YAML en campos separados. En **Campos
-adicionales** se puede conservar información específica de una variante. Las
-imágenes cargadas desde el formulario se copian a `imagenes/` y se asocian a
-la prueba; para asociar una imagen a un paso concreto, se puede usar un mapa
-de lista como `{texto: "Paso", imagenes: ["imagenes/archivo.png"]}`.
+- `01_ejemplo_basico.yaml`: pruebas sencillas y jerarquía de secciones.
+- `02_ejemplo_adicionales.yaml`: contexto de prueba y campos adicionales.
+- `03_ejemplo_secciones_imagenes.yaml`: secciones anidadas, imágenes en el
+  contexto de sección, de prueba y de pasos, y una prueba con todos los campos.
+- `04_ejemplo_edicion_variantes.yaml`: varias pruebas bajo secciones para
+  practicar búsqueda, creación, edición y borrado.
 
-El editor local está pensado para un usuario de confianza en el mismo equipo.
-No lo expongas a una red pública. Haz copias de seguridad de los YAML antes de
-ediciones masivas. Las pruebas existentes no se eliminan desde la interfaz.
+Las imágenes ficticias usadas por el tercer capítulo están en
+`ejemplos/yaml/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
+una copia si quieres conservar los originales.
+
+Las listas de las pruebas se editan como listas YAML en campos separados. En
+**Campos adicionales** se puede conservar información específica de una
+variante. Las imágenes seleccionadas desde el formulario se copian a
+`imagenes/` y se asocian a la prueba o al contexto de la sección. Para asociar
+una imagen a un paso concreto, se puede usar un mapa de lista como
+`{texto: "Paso", imagenes: ["imagenes/archivo.png"]}`.
+
+El editor está pensado para un usuario de confianza en el mismo equipo. Haz
+copias de seguridad de los YAML antes de ediciones masivas.
 
 ## Generar un DOCX desde los YAML
 
@@ -210,12 +256,13 @@ Word original.
 Ejecuta las pruebas con las dependencias instaladas:
 
 ```bash
-python -m unittest -v test_conversion.py
+python -m unittest discover -v
 ```
 
-Las pruebas cubren la lectura de formatos estándar y alternativos, el texto
-contextual, la extracción/exportación de imágenes PNG y la inclusión de EMF,
-además de las funciones de inserción y guardado usadas por el editor visual.
+Las pruebas cubren la conversión Word/YAML, la extracción y exportación de
+imágenes, y las funciones del editor como navegación jerárquica, edición,
+inserción y borrado. También comprueban que los capítulos de ejemplo se cargan
+y que sus referencias a imágenes existen.
 
 ## Trabajo pendiente
 

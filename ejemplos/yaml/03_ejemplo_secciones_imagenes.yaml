@@ -1,0 +1,103 @@
+capitulo: Ejemplo de secciones e imágenes
+contenido:
+- seccion: Acceso a la plataforma
+  nivel: 2
+  contexto:
+  - Escenario ficticio para probar el contexto compartido por una sección.
+  - texto: Diagrama general del flujo de acceso.
+    imagenes:
+    - imagenes/diagrama_acceso.png
+- seccion: Inicio de sesión
+  nivel: 3
+  contexto:
+  - texto: Estado inicial del panel de pruebas.
+    imagenes:
+    - imagenes/panel_estado.png
+- prueba:
+    nombre: Inicio de sesión correcto
+    nivel: 4
+    id: DEMO-ACCESO-001
+    titulo: Un usuario válido puede iniciar sesión
+    descripcion: Comprueba un acceso correcto desde el portal ficticio.
+    componente: Servicio de identidad
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - texto: El usuario de prueba está registrado.
+      imagenes:
+      - imagenes/panel_estado.png
+    pasos:
+    - texto: Introducir un nombre de usuario y una contraseña válidos.
+    - texto: Confirmar el acceso y comprobar el panel principal.
+      imagenes:
+      - imagenes/panel_estado.png
+    situacion_final:
+    - El panel principal muestra la cuenta del usuario.
+    automatizable: si
+    criticidad: alta
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-LOGIN-01
+    fecha: ''
+    version: '1.0'
+    contexto:
+    - La cuenta y los datos usados son ficticios.
+    - texto: El flujo esperado se representa en el diagrama de la sección.
+      imagenes:
+      - imagenes/diagrama_acceso.png
+    campos_adicionales:
+      Resultado esperado: Se crea una sesión válida y se muestra el panel.
+      Tipo de cuenta: Usuario estándar de demostración
+    imagenes:
+    - imagenes/panel_estado.png
+- prueba:
+    nombre: Rechazo de contraseña incorrecta
+    nivel: 4
+    id: DEMO-ACCESO-002
+    titulo: Una contraseña incorrecta no inicia sesión
+    descripcion: Comprueba el mensaje de error sin exponer información sensible.
+    componente: Servicio de identidad
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - Existe una cuenta ficticia activa.
+    pasos:
+    - Introducir una contraseña incorrecta.
+    - Confirmar que el acceso se rechaza.
+    situacion_final:
+    - La sesión no se crea y se presenta un mensaje genérico.
+    automatizable: medio
+    criticidad: media
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-LOGIN-02
+    fecha: ''
+    version: '1.0'
+    contexto: []
+    campos_adicionales: {}
+    imagenes: []
+- seccion: Recuperación de acceso
+  nivel: 2
+  contexto:
+  - texto: Pantalla ficticia utilizada para las pruebas de recuperación.
+    imagenes:
+    - imagenes/panel_estado.png
+- prueba:
+    nombre: Solicitud de enlace de recuperación
+    nivel: 3
+    id: DEMO-ACCESO-003
+    titulo: Se puede solicitar un enlace de recuperación
+    descripcion: Muestra un tercer caso bajo una sección de nivel superior.
+    componente: Servicio de identidad
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - El usuario está en la pantalla de recuperación.
+    pasos:
+    - Solicitar un enlace para la cuenta ficticia.
+    situacion_final:
+    - La aplicación confirma la recepción de la solicitud.
+    automatizable: no
+    criticidad: baja
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-LOGIN-03
+    fecha: ''
+    version: '1.0'
+    contexto: []
+    campos_adicionales: {}
+    imagenes: []

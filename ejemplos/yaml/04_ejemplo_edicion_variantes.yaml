@@ -1,0 +1,116 @@
+capitulo: Ejemplo de edición y variantes
+contenido:
+- seccion: Búsqueda de registros
+  nivel: 2
+  contexto:
+  - Muestra varias pruebas editables bajo una misma sección.
+- prueba:
+    nombre: Buscar un registro existente
+    nivel: 3
+    id: DEMO-BUSQUEDA-001
+    titulo: La búsqueda devuelve el registro coincidente
+    descripcion: Comprueba una búsqueda por un identificador ficticio.
+    componente: Módulo de búsqueda
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - Hay registros ficticios cargados.
+    pasos:
+    - Introducir el identificador DEMO-42.
+    - Ejecutar la búsqueda.
+    situacion_final:
+    - Se muestra el registro DEMO-42.
+    automatizable: si
+    criticidad: media
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-SEARCH-01
+    fecha: '2026-10-01'
+    version: '1.0'
+    contexto:
+    - Los registros no corresponden a personas reales.
+    campos_adicionales:
+      Datos de prueba:
+      - Identificador: DEMO-42
+      - Estado: activo
+      Etiqueta: Muestra para editar campos adicionales
+    imagenes: []
+- seccion: Variantes de datos
+  nivel: 3
+  contexto:
+  - Sirve para probar la jerarquía plegable y la edición de secciones.
+- prueba:
+    nombre: Búsqueda sin coincidencias
+    nivel: 4
+    id: DEMO-BUSQUEDA-002
+    titulo: La búsqueda informa cuando no hay coincidencias
+    descripcion: Comprueba el estado vacío con un identificador no existente.
+    componente: Módulo de búsqueda
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - Hay registros ficticios cargados.
+    pasos:
+    - Buscar el identificador DEMO-NO-EXISTE.
+    situacion_final:
+    - Se muestra un mensaje de que no hay resultados.
+    automatizable: corto
+    criticidad: baja
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-SEARCH-02
+    fecha: ''
+    version: '1.0'
+    contexto:
+    - texto: Este caso incluye una nota de contexto sin imagen.
+    campos_adicionales:
+      Resultado esperado: Lista vacía y mensaje informativo.
+    imagenes: []
+- prueba:
+    nombre: Búsqueda con campo opcional vacío
+    nivel: 4
+    id: DEMO-BUSQUEDA-003
+    titulo: Se puede buscar aunque no se indique un filtro opcional
+    descripcion: Ejemplo breve para editar campos vacíos y listas YAML.
+    componente: Módulo de búsqueda
+    plataforma: Aplicación web de demostración
+    situacion_inicial: []
+    pasos:
+    - Abrir el formulario de búsqueda.
+    - Ejecutar la búsqueda sin completar el filtro opcional.
+    situacion_final:
+    - La aplicación aplica sus criterios predeterminados.
+    automatizable: ''
+    criticidad: ''
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-SEARCH-03
+    fecha: ''
+    version: '1.0'
+    contexto: []
+    campos_adicionales: {}
+    imagenes: []
+- seccion: Resultados y exportación
+  nivel: 2
+  contexto:
+  - Permite probar la creación de otra sección independiente.
+- prueba:
+    nombre: Exportar resultados
+    nivel: 3
+    id: DEMO-EXPORT-001
+    titulo: Los resultados se exportan con sus datos principales
+    descripcion: Caso ficticio adicional para probar búsqueda, selección y borrado.
+    componente: Módulo de exportación
+    plataforma: Aplicación web de demostración
+    situacion_inicial:
+    - Hay resultados ficticios visibles.
+    pasos:
+    - Seleccionar un resultado.
+    - Exportar los datos a un archivo local.
+    situacion_final:
+    - El archivo contiene el resultado seleccionado.
+    automatizable: largo
+    criticidad: media
+    entorno: Entorno local de demostración
+    referencia: DEMO-REQ-EXPORT-01
+    fecha: ''
+    version: '1.0'
+    contexto: []
+    campos_adicionales:
+      Formato de salida: CSV
+    imagenes: []

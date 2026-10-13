@@ -25,8 +25,30 @@ contenido:
     criticidad: media
     entorno: Simulador
     referencia: DEMO-REQ-001
-    fecha: ""
-    version: "1.0"
+    fecha: ''
+    version: '1.0'
+- seccion: asdfasdf
+  nivel: 3
+- prueba:
+    id: dddddd
+    titulo: ''
+    componente: ''
+    plataforma: ''
+    criticidad: ''
+    entorno: ''
+    referencia: ''
+    fecha: ''
+    version: ''
+    automatizable: ''
+    nombre: asdf
+    nivel: 4
+    situacion_inicial: []
+    pasos: []
+    situacion_final: []
+    contexto: []
+    campos_adicionales: {}
+    imagenes: []
+    descripcion: ''
 - prueba:
     nombre: Llamada desde piso
     nivel: 3
@@ -45,5 +67,5 @@ contenido:
     criticidad: baja
     entorno: Simulador
     referencia: DEMO-REQ-002
-    fecha: ""
-    version: "1.0"
+    fecha: ''
+    version: '1.0'
