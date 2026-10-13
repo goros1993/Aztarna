@@ -145,6 +145,38 @@ Consejos para crear una prueba:
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.
 
+## Editor visual local
+
+Para crear, buscar y editar pruebas mediante formularios en el navegador,
+inicia el editor desde la carpeta del proyecto:
+
+```bash
+streamlit run editor_yaml.py --server.address 127.0.0.1
+```
+
+Abre la dirección local que muestra Streamlit (normalmente
+`http://127.0.0.1:8501`) y selecciona la carpeta de YAML, por defecto
+`ejemplos/yaml`. Cuando tengas una importación revisada, selecciona su carpeta,
+por ejemplo `salida/yaml`. El editor modifica directamente el archivo YAML del capítulo;
+no mantiene una base de datos paralela. Desde la barra lateral puedes elegir
+capítulo y buscar por ID o texto. La pestaña **Crear prueba** permite colocar
+la prueba al final del capítulo o bajo una sección existente.
+
+El repositorio incluye datos ficticios para probar la aplicación antes de
+importar el documento real. Estos ejemplos no contienen información del
+documento original. Guarda una copia si quieres practicar cambios sin modificar
+los ejemplos versionados.
+
+Las listas se editan como listas YAML en campos separados. En **Campos
+adicionales** se puede conservar información específica de una variante. Las
+imágenes cargadas desde el formulario se copian a `imagenes/` y se asocian a
+la prueba; para asociar una imagen a un paso concreto, se puede usar un mapa
+de lista como `{texto: "Paso", imagenes: ["imagenes/archivo.png"]}`.
+
+El editor local está pensado para un usuario de confianza en el mismo equipo.
+No lo expongas a una red pública. Haz copias de seguridad de los YAML antes de
+ediciones masivas. Las pruebas existentes no se eliminan desde la interfaz.
+
 ## Generar un DOCX desde los YAML
 
 Con el índice y los capítulos dentro de la misma carpeta:
@@ -182,7 +214,8 @@ python -m unittest -v test_conversion.py
 ```
 
 Las pruebas cubren la lectura de formatos estándar y alternativos, el texto
-contextual, la extracción/exportación de imágenes PNG y la inclusión de EMF.
+contextual, la extracción/exportación de imágenes PNG y la inclusión de EMF,
+además de las funciones de inserción y guardado usadas por el editor visual.
 
 ## Trabajo pendiente
 

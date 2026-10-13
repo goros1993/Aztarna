@@ -1,0 +1,30 @@
+capitulo: Ejemplo con campos adicionales
+contenido:
+- seccion: Comunicación
+  nivel: 2
+- prueba:
+    nombre: Mensaje de diagnóstico
+    nivel: 3
+    id: DEMO-COMMS-001
+    titulo: El mensaje de diagnóstico se procesa correctamente
+    descripcion: Datos ficticios para comprobar campos adicionales y contexto.
+    componente: Bus de pruebas
+    plataforma: Simulador local
+    situacion_inicial:
+    - El controlador de prueba está encendido.
+    pasos:
+    - Enviar un mensaje de diagnóstico de prueba.
+    situacion_final:
+    - El controlador registra el mensaje recibido.
+    automatizable: medio
+    criticidad: media
+    entorno: Simulador
+    referencia: DEMO-REQ-003
+    fecha: ""
+    version: "1.0"
+    contexto:
+    - "Este texto contextual solo existe para demostrar la vista del editor."
+    campos_adicionales:
+      Resultado esperado: El mensaje aparece en el registro de eventos.
+      Requisito(s): DEMO-SPEC-003
+    imagenes: []

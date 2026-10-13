@@ -1,0 +1,49 @@
+capitulo: Ejemplo básico
+contenido:
+- seccion: Operaciones normales
+  nivel: 2
+  contexto:
+  - Datos ficticios para probar el editor local.
+- prueba:
+    nombre: Llamada desde cabina
+    nivel: 3
+    id: DEMO-LLAMADA-001
+    titulo: La llamada desde cabina se atiende
+    descripcion: Comprobar que una llamada de cabina llega al piso seleccionado.
+    componente: Controlador de prueba
+    plataforma: Simulador local
+    situacion_inicial:
+    - El ascensor está parado en la planta baja.
+    - No hay llamadas pendientes.
+    pasos:
+    - Pulsar el botón de llamada de la planta 2.
+    - Esperar a que la cabina llegue a la planta 2.
+    situacion_final:
+    - La llamada queda registrada.
+    - La cabina se detiene en la planta 2.
+    automatizable: si
+    criticidad: media
+    entorno: Simulador
+    referencia: DEMO-REQ-001
+    fecha: ""
+    version: "1.0"
+- prueba:
+    nombre: Llamada desde piso
+    nivel: 3
+    id: DEMO-LLAMADA-002
+    titulo: La llamada desde piso queda registrada
+    descripcion: Verificar el registro de una llamada desde el piso.
+    componente: Controlador de prueba
+    plataforma: Simulador local
+    situacion_inicial:
+    - La cabina está parada en otra planta.
+    pasos:
+    - Pulsar el botón de llamada hacia arriba.
+    situacion_final:
+    - El indicador confirma la llamada.
+    automatizable: no
+    criticidad: baja
+    entorno: Simulador
+    referencia: DEMO-REQ-002
+    fecha: ""
+    version: "1.0"
