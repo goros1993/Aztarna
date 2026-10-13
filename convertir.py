@@ -9,6 +9,10 @@ Uso:
 
 Requisitos:
     pip install python-docx ruamel.yaml
+
+Editor de escritorio adicional:
+    pip install Pillow
+    # Tkinter proviene del sistema (python3-tk en Ubuntu)
 """
 import argparse
 import mimetypes

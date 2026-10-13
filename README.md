@@ -251,6 +251,45 @@ esos avisos deben revisarse. Las imágenes EMF se incrustan directamente. El
 aspecto del documento generado no pretende reproducir exactamente la plantilla
 Word original.
 
+## Clasificación de tablas no prueba (propuesta)
+
+La validación inicial del DOCX debe separar tablas de prueba de tablas
+informativas antes de convertirlas al esquema estándar. Una estrategia
+práctica y auditable es:
+
+1. Extraer las etiquetas normalizadas de cada tabla con el mismo criterio que
+   `convertir.py` (`norm`, `CAMPOS` y `SECCIONES`).
+2. Calcular una puntuación para cada tabla:
+   - proporción de etiquetas reconocidas;
+   - presencia de una fila inicial con identificador y título;
+   - presencia de al menos una sección reconocida (`Situación inicial`, `Pasos`
+     o `Situación final`);
+   - número de campos requeridos presentes.
+3. Clasificar la tabla:
+   - **prueba estándar**: el parser puede extraer ID, identificador de título
+     y una o más secciones;
+   - **variante de prueba**: gran parte de las etiquetas coincide, pero faltan
+     campos o aparecen etiquetas desconocidas; se importa con avisos;
+   - **tabla informativa**: no tiene identificador de prueba ni secciones
+     reconocidas, o sus etiquetas no coinciden con `CAMPOS`/`SECCIONES`;
+   - **revisar manualmente**: casos intermedios, con coincidencia parcial o
+     etiquetas ambiguas.
+4. Conservar las tablas no prueba sin forzarlas al esquema de pruebas, por
+   ejemplo como una entrada separada en el YAML:
+
+   ```yaml
+   - tabla_informativa:
+       tipo: texto_libre
+       titulo: Notas de instalación
+       filas:
+         - ["Columna", "Valor"]
+         - ["Observación", "Texto original preservado"]
+       motivo_clasificacion: "Sin ID de prueba ni secciones reconocidas"
+   ```
+
+5. Mantener siempre un aviso por tabla clasificada como informativa o dudosa, y
+   comparar conteos con el documento original antes de aceptar la importación.
+
 ## Pruebas automatizadas
 
 Ejecuta las pruebas con las dependencias instaladas:
@@ -294,22 +333,47 @@ y que sus referencias a imágenes existen.
 - Añadir una comprobación de generación completa del DOCX y una inspección
   visual de capítulos, tablas, saltos de página e imágenes.
 
-## Crear el repositorio en GitHub
+## Siguientes pasos de importación
 
-Este directorio todavía no es un repositorio Git. Después de crear un
-repositorio vacío en GitHub, revisa que solo vayan a subirse código y
-documentación no confidenciales:
+Cuando haya demasiadas tablas o estructuras distintas, conviene seguir esta
+secuencia antes de declarar como oficiales los YAML:
+
+1. Ejecutar `python inventario.py "<docx>"` y guardar su salida para agrupar
+   tablas por estructura.
+2. Ejecutar la importación inicial con `python convertir.py "<docx>" -o importacion`
+   y revisar `importacion/avisos.txt` agrupando los avisos por tipo e ID.
+3. Identificar, en una muestra de 2 o 3 tablas de cada formato, cuáles son:
+   - pruebas estándar,
+   - variantes de prueba,
+   - tablas informativas,
+   - casos dudosos que requieren revisión manual.
+4. Preservar las tablas no prueba sin forzarlas al esquema de pruebas,
+   manteniendo su contenido original en YAML y un motivo de clasificación.
+5. Añadir una validación automática de los YAML: sintaxis, IDs, campos
+   obligatorios, niveles, imágenes referenciadas, secciones y conteos.
+6. Auditar que todas las tablas y el contexto del DOCX original tengan una
+   representación equivalente en YAML.
+
+Una vez importadas y validadas todas las tablas, los YAML serán la única fuente
+de verdad. A partir de ese momento no se debe volver a importar el DOCX
+original; las correcciones y ampliaciones se harán editando los YAML y
+regenerando el DOCX cuando sea necesario.
+
+## Publicación del repositorio
+
+El proyecto ya es un repositorio Git. Antes de publicar o actualizar el
+repositorio remoto, revisa `git status` y el contenido staged para asegurarte
+de que solo subes código y documentación no confidenciales:
 
 ```bash
-git init
-git add .gitignore README.md requirements.txt convertir.py yaml_a_docx.py test_conversion.py
 git status
-git commit -m "Add Word and YAML conversion tools"
-git branch -M main
-git remote add origin https://github.com/OWNER/REPOSITORY.git
-git push -u origin main
+git add .gitignore README.md requirements.txt convertir.py yaml_a_docx.py editor_yaml.py inventario.py test_conversion.py test_editor_yaml.py
+git status
+git commit -m "Update Word and YAML validation tools"
+git push
 ```
 
-Sustituye `OWNER/REPOSITORY` por los datos del repositorio creado. Antes de
-confirmar el commit, revisa `git status` y el contenido staged; no añadas el
-DOCX original, los resultados generados, imágenes o YAML confidenciales.
+No añadas el DOCX original, los resultados generados, imágenes privadas o
+YAML confidenciales. Los archivos generados aparecen ignorados en
+`.gitignore`; además, `inventario.txt` y las carpetas `salida/`, `importacion/`
+y `exportacion/` son de uso local.
