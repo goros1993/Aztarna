@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Núcleo de datos y edición de los YAML de pruebas.
 
-Este módulo no depende de ninguna interfaz gráfica: lo usan tanto el editor
-web (editor_api.py) como el editor antiguo de Tkinter (editor_yaml.py).
+Este módulo no depende de ninguna interfaz gráfica: lo usa la API del editor
+web (editor_api.py).
 """
 from __future__ import annotations
 
@@ -16,25 +16,6 @@ from typing import Any
 from ruamel.yaml import YAML
 
 
-TEST_FIELDS = (
-    "id",
-    "titulo",
-    "descripcion",
-    "componente",
-    "plataforma",
-    "situacion_inicial",
-    "pasos",
-    "situacion_final",
-    "automatizable",
-    "criticidad",
-    "entorno",
-    "referencia",
-    "fecha",
-    "version",
-    "contexto",
-    "campos_adicionales",
-    "imagenes",
-)
 LIST_FIELDS = ("situacion_inicial", "pasos", "situacion_final", "contexto")
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
@@ -50,29 +31,6 @@ def yaml_to_string(value: Any) -> str:
     buffer = StringIO()
     roundtrip_yaml().dump(value, buffer)
     return buffer.getvalue()
-
-
-def context_image_paths(context: Any) -> list[str]:
-    paths: list[str] = []
-
-    def collect(value: Any) -> None:
-        if isinstance(value, dict):
-            for key, child in value.items():
-                if key == "imagenes":
-                    image_values = child if isinstance(child, list) else [child]
-                    paths.extend(
-                        image.strip()
-                        for image in image_values
-                        if isinstance(image, str) and image.strip()
-                    )
-                else:
-                    collect(child)
-        elif isinstance(value, list):
-            for item in value:
-                collect(item)
-
-    collect(context)
-    return paths
 
 
 def read_chapters(yaml_dir: Path) -> list[dict[str, Any]]:
@@ -178,26 +136,6 @@ def navigation_entries(
             or (kind == "section" and index in matching_heading_ids)
         )
     ]
-
-
-def make_test_from_form(values: dict[str, Any]) -> dict[str, Any]:
-    test = dict(values["fields"])
-    test["nombre"] = values["nombre"].strip()
-    test["nivel"] = int(values["nivel"])
-    for field in LIST_FIELDS:
-        parsed = roundtrip_yaml().load(values[field]) or []
-        if not isinstance(parsed, list):
-            raise ValueError(f"'{field}' debe ser una lista YAML.")
-        test[field] = parsed
-    extras = roundtrip_yaml().load(values["campos_adicionales"]) or {}
-    if not isinstance(extras, dict) or any(not isinstance(key, str) for key in extras):
-        raise ValueError("'campos_adicionales' debe ser un mapa YAML con claves de texto.")
-    test["campos_adicionales"] = extras
-    test["imagenes"] = [line.strip() for line in values["imagenes"].splitlines() if line.strip()]
-    for field in ("id", "titulo", "descripcion", "componente", "plataforma",
-                  "automatizable", "criticidad", "entorno", "referencia", "fecha", "version"):
-        test[field] = str(test.get(field, "") or "").strip()
-    return test
 
 
 def find_duplicate_id(chapters: list[dict[str, Any]], test_id: str,
@@ -414,16 +352,6 @@ def delete_section(chapter: dict[str, Any], section_index: int) -> None:
     contents[section_index:section_index + 1] = context_nodes
 
 
-def make_section_from_form(name: str, context_yaml: str) -> dict[str, Any]:
-    section_name = name.strip()
-    if not section_name:
-        raise ValueError("El nombre de la sección es obligatorio.")
-    context = roundtrip_yaml().load(context_yaml) or []
-    if not isinstance(context, list):
-        raise ValueError("'contexto' debe ser una lista YAML.")
-    return {"seccion": section_name, "contexto": context}
-
-
 def save_chapter(chapter: dict[str, Any]) -> None:
     path: Path = chapter["path"]
     temp_path = None
@@ -492,25 +420,4 @@ DEFAULT_TEST: dict[str, Any] = {
     "contexto": [],
     "campos_adicionales": {},
     "imagenes": [],
-}
-
-TEXT_FIELDS = {
-    "nombre": "Nombre / encabezado",
-    "id": "ID *",
-    "titulo": "Título",
-    "componente": "Componente",
-    "plataforma": "Plataforma",
-    "criticidad": "Criticidad",
-    "entorno": "Entorno",
-    "referencia": "Referencia",
-    "fecha": "Fecha",
-    "version": "Versión",
-}
-
-YAML_FIELDS = {
-    "situacion_inicial": "Situación inicial (YAML)",
-    "pasos": "Pasos (YAML)",
-    "situacion_final": "Situación final (YAML)",
-    "contexto": "Contexto de la prueba (YAML)",
-    "campos_adicionales": "Campos adicionales (YAML)",
 }

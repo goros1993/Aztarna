@@ -14,7 +14,6 @@ import argparse
 import re
 import struct
 from pathlib import Path
-from zipfile import ZipFile
 
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -24,7 +23,6 @@ from docx.oxml.ns import nsdecls
 from docx.oxml.ns import qn
 from docx.oxml.shape import CT_Inline
 from docx.opc.constants import CONTENT_TYPE, RELATIONSHIP_TYPE
-from docx.opc.packuri import PackURI
 from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML

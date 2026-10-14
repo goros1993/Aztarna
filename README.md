@@ -1,7 +1,21 @@
 # Validación: Word y YAML
 
-Herramientas para importar la información de un documento Word a YAML y
-generar un DOCX de lectura a partir de los YAML.
+Herramientas para importar la información de un documento Word a YAML, editar
+las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML.
+
+| Archivo | Para qué sirve |
+|---|---|
+| `convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
+| `inventario.py` | Agrupa las tablas del DOCX por estructura antes de importar. |
+| `editor_web.py` | Editor de pruebas (ventana local con pywebview). |
+| `editor_api.py`, `web/` | API en Python e interfaz HTML del editor. |
+| `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
+| `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
+| `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
+| `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
+| `test_*.py` | Pruebas automatizadas. |
+
+El trabajo pendiente y las propuestas están en [PENDIENTE.md](PENDIENTE.md).
 
 ## Fuente de verdad y flujo de trabajo
 
@@ -20,13 +34,6 @@ evitar subir documentos de trabajo o datos derivados accidentalmente.
 
 Se necesita Python 3.10 o posterior y pip.
 
-El editor de escritorio usa Tkinter, que no se instala mediante pip. En Ubuntu
-instala el módulo del sistema con:
-
-```bash
-sudo apt-get install python3-tk
-```
-
 Linux/macOS:
 
 ```bash
@@ -41,16 +48,12 @@ Windows (PowerShell):
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-python -m tkinter
-python editor_yaml.py
 ```
 
-El instalador oficial de Python para Windows normalmente incluye Tkinter
-(opción **Tcl/Tk and IDLE**); no se añade con `pip` ni aparece en
-`requirements.txt`. `python -m tkinter` debe abrir una ventana de prueba. Si
-falla, modifica o repara la instalación de Python y asegúrate de incluir
-**Tcl/Tk and IDLE**. Cuando funcione, `python editor_yaml.py` abre el editor de
-escritorio sin iniciar un servidor.
+En Linux, pywebview usa WebKitGTK a través de PyGObject (en Ubuntu, los paquetes
+`python3-gi` y `gir1.2-webkit2-4.1`; si el entorno virtual no los ve, créalo con
+`--system-site-packages`). En Windows usa WebView2, que viene con Windows 11 y
+con Windows 10 actualizado.
 
 ## Importación inicial: DOCX a YAML
 
@@ -105,6 +108,63 @@ cópiala o muévela a una ubicación de datos mantenida por el equipo. Las
 carpetas de importación/exportación están ignoradas por Git; los YAML que se
 quieran versionar deben guardarse en una carpeta de datos aprobada y excluir
 los documentos o contenidos confidenciales.
+
+## Editor de pruebas
+
+```bash
+python editor_web.py                 # última carpeta usada, o ejemplos/yaml
+python editor_web.py ruta/a/yaml     # otra carpeta
+python editor_web.py --depurar       # con herramientas de desarrollo
+```
+
+Abre una ventana local: no inicia ningún servidor ni abre el navegador. El
+editor modifica directamente los YAML de la carpeta (no hay base de datos
+aparte) y conserva sus comentarios y su formato.
+
+- Un único formulario para pruebas y secciones, con las listas (situación
+  inicial, pasos, situación final, contexto) como filas editables: añadir,
+  quitar, reordenar (Alt+↑/↓) y sangrar. Los pasos van numerados.
+- Imágenes por elemento con miniatura: botón de añadir, pegar con Ctrl+V o
+  soltar archivos. Se copian a `imagenes/`. Los EMF no tienen vista previa fuera
+  de Windows, pero se conservan.
+- Formato en línea (negrita, cursiva, colores, resaltado) que se ve mientras se
+  escribe, sin marcas a la vista. Los botones alternan: volver a pulsar
+  resaltado sobre un texto resaltado lo quita; sin selección, el formato se
+  aplica a lo siguiente que se escriba. Ctrl+Z / Ctrl+Y deshacen y rehacen
+  texto y formato. Se guarda con las marcas que entiende `yaml_a_docx.py`
+  (`**negrita**`, `[[rojo|…]]`, `[[res:amarillo|…]]`…).
+- Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
+  ajustan solos.
+- Vista YAML con resaltado y errores señalados en la línea exacta.
+- Panel de validación (IDs duplicados, imágenes que faltan, pruebas sin título
+  o sin pasos, saltos de nivel) y botón **Exportar DOCX**.
+- Recuerda la última carpeta abierta.
+- Al borrar una prueba solo se elimina esa prueba. Al borrar una sección
+  desaparece su encabezado, pero su contexto se conserva como texto y sus
+  pruebas y subsecciones se mantienen, subidas un nivel.
+- Si se cierra la ventana con cambios sin guardar, pregunta si guardar, salir
+  sin guardar o seguir editando.
+
+El editor está pensado para un usuario de confianza en el mismo equipo. Haz
+copias de seguridad de los YAML antes de ediciones masivas.
+
+`web/vendor/yaml-editor.js` es un bundle precompilado de CodeMirror 6 (licencia
+MIT) para la vista YAML; no hace falta Node para usar el editor. Toda la
+comunicación con Python pasa por `window.pywebview.api`; las pruebas de la API
+están en `test_editor_api.py`.
+
+En Linux, al cerrar el editor Ubuntu puede registrar un fallo de
+`WebKitWebProcess` («corrupted double-linked list»). Es un error de la propia
+WebKitGTK al apagarse, cuando el editor ya ha terminado: no se pierde nada.
+
+### Generar el .exe de Windows
+
+En un Windows con Python 3.10 o posterior, ejecuta `construir_exe.bat`. Crea un
+entorno limpio, instala `requirements.txt` y PyInstaller, y deja
+`dist\EditorPruebas.exe` (un solo archivo, sin consola). PyInstaller no compila
+de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
+incluyen en el .exe: en el primer arranque pide una carpeta y después la
+recuerda.
 
 ## Edición de pruebas en YAML
 
@@ -161,94 +221,20 @@ Consejos para crear una prueba:
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.
 
-## Editor web local (recomendado)
+### Formato en línea
 
-Es la interfaz nueva: HTML dentro de una ventana nativa (pywebview), con la
-misma lógica de ruamel.yaml que el editor de Tkinter, así que los comentarios y
-el formato de los YAML se conservan.
+Los textos admiten estas marcas, que el editor muestra ya aplicadas y el
+exportador convierte en formato de Word:
 
-```bash
-python -m pip install -r requirements.txt
-python editor_web.py                 # última carpeta usada, o ejemplos/yaml
-python editor_web.py ruta/a/yaml     # otra carpeta
-```
+| Marca | Resultado |
+|---|---|
+| `**texto**` | negrita |
+| `*texto*` | cursiva |
+| `[[rojo\|texto]]`, `[[azul\|…]]`, `[[verde\|…]]` | color de texto |
+| `[[#7030A0\|texto]]` | color hexadecimal |
+| `[[res:amarillo\|texto]]`, `[[res:verde\|…]]`, `[[res:cian\|…]]` | resaltado |
 
-No inicia ningún servidor ni abre el navegador. En Windows usa WebView2, que
-viene con Windows 11 y con Windows 10 actualizado.
-
-Qué ofrece respecto al editor de Tkinter:
-
-- Un único formulario para pruebas y secciones, con las listas (situación
-  inicial, pasos, situación final, contexto) como filas editables: añadir,
-  quitar, reordenar (Alt+↑/↓) y sangrar. Los pasos van numerados.
-- Imágenes por elemento con miniatura: botón de añadir, pegar con Ctrl+V o
-  soltar archivos. Se copian a `imagenes/`. Los EMF no tienen vista previa fuera
-  de Windows, pero se conservan.
-- Formato en línea (negrita, cursiva, colores, resaltado) que se ve mientras se
-  escribe, sin marcas a la vista. Los botones alternan: volver a pulsar
-  resaltado sobre un texto resaltado lo quita; sin selección, el formato se
-  aplica a lo siguiente que se escriba. Ctrl+Z / Ctrl+Y deshacen y rehacen
-  texto y formato. Se guarda con las marcas que entiende `yaml_a_docx.py`
-  (`**negrita**`, `[[rojo|…]]`, `[[res:amarillo|…]]`…).
-- Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
-  ajustan solos.
-- Vista YAML con resaltado y errores señalados en la línea exacta.
-- Panel de validación (IDs duplicados, imágenes que faltan, pruebas sin título
-  o sin pasos, saltos de nivel) y botón **Exportar DOCX**.
-- Recuerda la última carpeta abierta.
-
-`web/vendor/yaml-editor.js` es un bundle precompilado de CodeMirror 6 (licencia
-MIT) para la vista YAML; no hace falta Node para usar el editor.
-
-### Generar el .exe de Windows
-
-En un Windows con Python 3.10 o posterior, ejecuta `construir_exe.bat`. Crea un
-entorno limpio, instala `requirements.txt` y PyInstaller, y deja
-`dist\EditorPruebas.exe` (un solo archivo, sin consola). PyInstaller no compila
-de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
-incluyen en el .exe: en el primer arranque pide una carpeta y después la
-recuerda.
-
-Se prueba la interfaz sin pywebview (por ejemplo con un navegador) porque toda
-la comunicación pasa por `window.pywebview.api`; las pruebas de la API están en
-`test_editor_api.py`.
-
-## Editor de escritorio local (Tkinter, anterior)
-
-Para crear, buscar y editar pruebas con formularios, ejecuta desde la carpeta
-del proyecto:
-
-```bash
-python editor_yaml.py
-```
-
-El editor abre una ventana de escritorio; no inicia un servidor ni requiere
-Streamlit. Necesita Python con Tkinter instalado (en Ubuntu se proporciona con
-`python3-tk`) y las dependencias de `requirements.txt`. La carpeta inicial es
-`ejemplos/yaml`; puedes seleccionar otra con **Examinar**, por ejemplo la
-carpeta de una importación revisada. El editor modifica directamente el archivo
-YAML del capítulo y no mantiene una base de datos paralela. En la lista lateral
-puedes filtrar por ID o texto. La pestaña **Crear prueba** permite añadirla al
-final del capítulo o bajo una sección existente.
-El panel lateral refleja la jerarquía de secciones del YAML; puedes desplegar o
-plegar cada rama y seleccionar pruebas desde su sección. Al crear una prueba,
-puedes elegir insertarla justo después de la prueba seleccionada, al final del
-capítulo o dentro de una sección existente; el nivel de encabezado se calcula
-según la ubicación. Para crear una sección sin añadir una prueba, selecciona una
-prueba en el navegador, abre la pestaña **Nueva sección**, escribe el nombre y
-créala. Se insertará justo después de la prueba seleccionada. Después aparecerá
-en la lista de ubicaciones disponibles al crear pruebas.
-Al seleccionar una sección se abre su pantalla de edición: permite cambiar el
-nombre y el `contexto`, una lista YAML que puede contener texto o mapas con
-`texto` e `imagenes`. También permite añadir imágenes al contexto y ver sus
-miniaturas. Las vistas previas se actualizan al editar el YAML del contexto y
-las rutas relativas se resuelven desde la carpeta seleccionada de YAML; si un
-archivo no existe o no se puede mostrar, el editor lo indica.
-
-Las pruebas y secciones se pueden borrar desde sus respectivas pantallas, con
-confirmación. Al borrar una prueba solo se elimina esa prueba. Al borrar una
-sección desaparece su encabezado, pero su contexto se conserva como texto y las
-pruebas y subsecciones descendientes se mantienen, promocionadas un nivel.
+## Ejemplos
 
 El repositorio incluye datos ficticios para probar la aplicación antes de
 importar el documento real. Estos ejemplos no contienen información del
@@ -273,16 +259,6 @@ Los ejemplos validan sin errores ni avisos y llevan comentarios YAML que el
 editor conserva al guardar. Las imágenes son sintéticas y están en
 `ejemplos/yaml/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
 una copia si quieres conservar los originales.
-
-Las listas de las pruebas se editan como listas YAML en campos separados. En
-**Campos adicionales** se puede conservar información específica de una
-variante. Las imágenes seleccionadas desde el formulario se copian a
-`imagenes/` y se asocian a la prueba o al contexto de la sección. Para asociar
-una imagen a un paso concreto, se puede usar un mapa de lista como
-`{texto: "Paso", imagenes: ["imagenes/archivo.png"]}`.
-
-El editor está pensado para un usuario de confianza en el mismo equipo. Haz
-copias de seguridad de los YAML antes de ediciones masivas.
 
 ## Generar un DOCX desde los YAML
 
@@ -312,45 +288,6 @@ esos avisos deben revisarse. Las imágenes EMF se incrustan directamente. El
 aspecto del documento generado no pretende reproducir exactamente la plantilla
 Word original.
 
-## Clasificación de tablas no prueba (propuesta)
-
-La validación inicial del DOCX debe separar tablas de prueba de tablas
-informativas antes de convertirlas al esquema estándar. Una estrategia
-práctica y auditable es:
-
-1. Extraer las etiquetas normalizadas de cada tabla con el mismo criterio que
-   `convertir.py` (`norm`, `CAMPOS` y `SECCIONES`).
-2. Calcular una puntuación para cada tabla:
-   - proporción de etiquetas reconocidas;
-   - presencia de una fila inicial con identificador y título;
-   - presencia de al menos una sección reconocida (`Situación inicial`, `Pasos`
-     o `Situación final`);
-   - número de campos requeridos presentes.
-3. Clasificar la tabla:
-   - **prueba estándar**: el parser puede extraer ID, identificador de título
-     y una o más secciones;
-   - **variante de prueba**: gran parte de las etiquetas coincide, pero faltan
-     campos o aparecen etiquetas desconocidas; se importa con avisos;
-   - **tabla informativa**: no tiene identificador de prueba ni secciones
-     reconocidas, o sus etiquetas no coinciden con `CAMPOS`/`SECCIONES`;
-   - **revisar manualmente**: casos intermedios, con coincidencia parcial o
-     etiquetas ambiguas.
-4. Conservar las tablas no prueba sin forzarlas al esquema de pruebas, por
-   ejemplo como una entrada separada en el YAML:
-
-   ```yaml
-   - tabla_informativa:
-       tipo: texto_libre
-       titulo: Notas de instalación
-       filas:
-         - ["Columna", "Valor"]
-         - ["Observación", "Texto original preservado"]
-       motivo_clasificacion: "Sin ID de prueba ni secciones reconocidas"
-   ```
-
-5. Mantener siempre un aviso por tabla clasificada como informativa o dudosa, y
-   comparar conteos con el documento original antes de aceptar la importación.
-
 ## Pruebas automatizadas
 
 Ejecuta las pruebas con las dependencias instaladas:
@@ -359,85 +296,29 @@ Ejecuta las pruebas con las dependencias instaladas:
 python -m unittest discover -v
 ```
 
-Las pruebas cubren la conversión Word/YAML, la extracción y exportación de
-imágenes, y las funciones del editor como navegación jerárquica, edición,
-inserción y borrado. También comprueban que los capítulos de ejemplo se cargan
-y que sus referencias a imágenes existen.
-
-## Trabajo pendiente
-
-### Sobre el documento original
-
-- Hacer una copia controlada del DOCX y agrupar sus tablas por estructura.
-- Identificar las tablas que no son pruebas y decidir cómo representarlas sin
-  forzarlas al esquema de pruebas.
-- Evaluar la normalización de los formularios repetidos a una plantilla común,
-  preservando todos los datos y campos con significado.
-- Probar cualquier transformación sobre unas pocas tablas de cada formato
-  antes de aplicarla al documento completo.
-- Mantener el documento original privado; compartir solo ejemplos
-  anonimizados cuando haga falta definir nuevas reglas.
-
-### Para declarar los YAML como datos oficiales
-
-- Añadir un clasificador explícito para tablas de prueba frente a tablas
-  informativas y preservar las tablas no reconocidas sin pérdida.
-- Añadir una validación de esquema para campos, tipos, imágenes referenciadas,
-  orden y unicidad de IDs.
-- Auditar la primera importación: comparar conteos, revisar muestras de cada
-  variante y resolver todos los casos de posible pérdida o clasificación
-  incorrecta.
-- Decidir qué campos adicionales pasan a formar parte del esquema común y
-  documentar los campos opcionales.
-- Elegir qué datos pueden versionarse en Git y cuáles deben permanecer en un
-  repositorio privado o almacenamiento aprobado por el equipo.
-- Añadir una comprobación de generación completa del DOCX y una inspección
-  visual de capítulos, tablas, saltos de página e imágenes.
-
-## Siguientes pasos de importación
-
-Cuando haya demasiadas tablas o estructuras distintas, conviene seguir esta
-secuencia antes de declarar como oficiales los YAML:
-
-1. Ejecutar `python inventario.py "<docx>"` y guardar su salida para agrupar
-   tablas por estructura.
-2. Ejecutar la importación inicial con `python convertir.py "<docx>" -o importacion`
-   y revisar `importacion/avisos.txt` agrupando los avisos por tipo e ID.
-3. Identificar, en una muestra de 2 o 3 tablas de cada formato, cuáles son:
-   - pruebas estándar,
-   - variantes de prueba,
-   - tablas informativas,
-   - casos dudosos que requieren revisión manual.
-4. Preservar las tablas no prueba sin forzarlas al esquema de pruebas,
-   manteniendo su contenido original en YAML y un motivo de clasificación.
-5. Añadir una validación automática de los YAML: sintaxis, IDs, campos
-   obligatorios, niveles, imágenes referenciadas, secciones y conteos.
-6. Auditar que todas las tablas y el contexto del DOCX original tengan una
-   representación equivalente en YAML.
-
-Una vez importadas y validadas todas las tablas, los YAML serán la única fuente
-de verdad. A partir de ese momento no se debe volver a importar el DOCX
-original; las correcciones y ampliaciones se harán editando los YAML y
-regenerando el DOCX cuando sea necesario.
+Cubren la conversión Word/YAML, la extracción y exportación de imágenes, las
+funciones del núcleo (navegación jerárquica, inserción, movimiento y borrado),
+la API del editor (edición, validación, imágenes, exportación y cierre) y que
+los capítulos de ejemplo validan sin errores.
 
 ## Publicación del repositorio
 
-El proyecto ya es un repositorio Git. Antes de publicar o actualizar el
-repositorio remoto, revisa `git status` y el contenido staged para asegurarte
-de que solo subes código y documentación no confidenciales:
+Antes de publicar o actualizar el repositorio remoto, revisa `git status` y el
+contenido preparado para asegurarte de que solo subes código y documentación no
+confidenciales:
 
 ```bash
 git status
-git add .gitignore README.md requirements.txt construir_exe.bat \
-  convertir.py yaml_a_docx.py inventario.py \
-  editor_core.py editor_yaml.py editor_api.py editor_web.py web/ \
-  test_conversion.py test_editor_yaml.py test_editor_api.py ejemplos/
+git add .gitignore README.md PENDIENTE.md requirements.txt construir_exe.bat \
+  convertir.py inventario.py yaml_a_docx.py \
+  editor_core.py editor_api.py editor_web.py web/ \
+  test_conversion.py test_editor_core.py test_editor_api.py ejemplos/
 git status
-git commit -m "Update Word and YAML validation tools"
+git commit -m "Descripción del cambio"
 git push
 ```
 
 No añadas el DOCX original, los resultados generados, imágenes privadas o
 YAML confidenciales. Los archivos generados aparecen ignorados en
-`.gitignore`; además, `inventario.txt` y las carpetas `salida/`, `importacion/`
-y `exportacion/` son de uso local.
+`.gitignore`; además, `inventario.txt` y las carpetas `salida/`, `importacion/`,
+`exportacion/`, `build/` y `dist/` son de uso local.

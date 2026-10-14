@@ -4,87 +4,19 @@ import unittest
 
 from ruamel.yaml import YAML
 
-import editor_core as editor_yaml  # el núcleo no depende de Tkinter
+import editor_api
+import editor_core
 
 
-class EditorYamlTests(unittest.TestCase):
+class EditorCoreTests(unittest.TestCase):
     def test_nivel_none_se_normaliza_sin_romper_el_formulario(self):
-        self.assertEqual(editor_yaml.normalize_level(None), 3)
-        self.assertEqual(editor_yaml.normalize_level(None, 4), 4)
-        self.assertEqual(editor_yaml.normalize_level(12), 6)
-
-    def test_make_test_from_form_parsea_listas_y_campos_adicionales(self):
-        test = editor_yaml.make_test_from_form({
-            "fields": {"id": "NUEVA", "titulo": "Título"},
-            "nombre": "Encabezado",
-            "nivel": 4,
-            "situacion_inicial": "- sistema preparado",
-            "pasos": "- ejecutar\n- comprobar",
-            "situacion_final": "- sistema estable",
-            "contexto": "- texto: Nota\n  nivel: 2",
-            "campos_adicionales": "origen: formulario",
-            "imagenes": "imagenes/a.png\nimagenes/b.png",
-        })
-
-        self.assertEqual(test["id"], "NUEVA")
-        self.assertEqual(test["nivel"], 4)
-        self.assertEqual(test["situacion_inicial"], ["sistema preparado"])
-        self.assertEqual(test["pasos"], ["ejecutar", "comprobar"])
-        self.assertEqual(test["contexto"], [{"texto": "Nota", "nivel": 2}])
-        self.assertEqual(test["campos_adicionales"], {"origen": "formulario"})
-        self.assertEqual(test["imagenes"], ["imagenes/a.png", "imagenes/b.png"])
-
-    def test_make_test_from_form_rechaza_una_lista_no_valida(self):
-        with self.assertRaisesRegex(ValueError, "debe ser una lista YAML"):
-            editor_yaml.make_test_from_form({
-                "fields": {"id": "NUEVA"},
-                "nombre": "",
-                "nivel": 3,
-                "situacion_inicial": "no es lista",
-                "pasos": "[]",
-                "situacion_final": "[]",
-                "contexto": "[]",
-                "campos_adicionales": "{}",
-                "imagenes": "",
-            })
-
-    def test_make_section_from_form_preserves_text_and_images_in_context(self):
-        section = editor_yaml.make_section_from_form(
-            "  Nueva sección  ",
-            '- "Texto contextual"\n'
-            '- texto: Captura\n'
-            '  imagenes:\n'
-            '  - imagenes/captura.png\n',
-        )
-
-        self.assertEqual(section["seccion"], "Nueva sección")
-        self.assertEqual(
-            section["contexto"],
-            [
-                "Texto contextual",
-                {"texto": "Captura", "imagenes": ["imagenes/captura.png"]},
-            ],
-        )
-
-    def test_make_section_from_form_rejects_non_list_context(self):
-        with self.assertRaisesRegex(ValueError, "debe ser una lista YAML"):
-            editor_yaml.make_section_from_form("Sección", "texto: valor")
-
-    def test_context_image_paths_finds_paths_in_section_context(self):
-        self.assertEqual(
-            editor_yaml.context_image_paths([
-                {"texto": "", "imagenes": ["imagenes/imagen_006.png"]},
-                {
-                    "texto": "Otra imagen",
-                    "detalle": {"imagenes": "imagenes/imagen_007.jpg"},
-                },
-            ]),
-            ["imagenes/imagen_006.png", "imagenes/imagen_007.jpg"],
-        )
+        self.assertEqual(editor_core.normalize_level(None), 3)
+        self.assertEqual(editor_core.normalize_level(None, 4), 4)
+        self.assertEqual(editor_core.normalize_level(12), 6)
 
     def test_ejemplos_indexados_cargan_y_tienen_todas_sus_imagenes(self):
         yaml_dir = Path(__file__).parent / "ejemplos" / "yaml"
-        chapters = editor_yaml.read_chapters(yaml_dir)
+        chapters = editor_core.read_chapters(yaml_dir)
 
         self.assertIn(
             "Ejemplo de secciones e imágenes",
@@ -96,7 +28,7 @@ class EditorYamlTests(unittest.TestCase):
         )
         for chapter in chapters:
             for element in chapter["data"]["contenido"]:
-                image_paths = editor_yaml.context_image_paths(element)
+                image_paths = editor_api._image_values(element)
                 for image_path in image_paths:
                     self.assertTrue(
                         (yaml_dir / image_path).is_file(),
@@ -117,7 +49,7 @@ class EditorYamlTests(unittest.TestCase):
             }
         }
 
-        entries = editor_yaml.navigation_entries(chapter)
+        entries = editor_core.navigation_entries(chapter)
 
         self.assertEqual(
             [(kind, index, parent) for kind, index, _label, parent, _level in entries],
@@ -145,7 +77,7 @@ class EditorYamlTests(unittest.TestCase):
             }
         }
 
-        entries = editor_yaml.navigation_entries(chapter, "preparación")
+        entries = editor_core.navigation_entries(chapter, "preparación")
 
         self.assertEqual(
             [(kind, index) for kind, index, _label, _parent, _level in entries],
@@ -168,11 +100,11 @@ class EditorYamlTests(unittest.TestCase):
                 "  nivel: 2\n",
                 encoding="utf-8",
             )
-            chapter = editor_yaml.read_chapters(yaml_dir)[0]
+            chapter = editor_core.read_chapters(yaml_dir)[0]
             new_test = {"id": "NUEVA", "nombre": "Prueba nueva", "nivel": 3}
 
-            editor_yaml.insert_test(chapter, new_test, 0)
-            editor_yaml.save_chapter(chapter)
+            editor_core.insert_test(chapter, new_test, 0)
+            editor_core.save_chapter(chapter)
 
             loaded = YAML().load(chapter_path)
             contents = loaded["contenido"]
@@ -194,7 +126,7 @@ class EditorYamlTests(unittest.TestCase):
             },
         }
 
-        editor_yaml.insert_test(
+        editor_core.insert_test(
             chapter,
             {"id": "NUEVA"},
             heading_index=None,
@@ -216,7 +148,7 @@ class EditorYamlTests(unittest.TestCase):
         }
 
         with self.assertRaisesRegex(ValueError, "ya no corresponde a una prueba"):
-            editor_yaml.insert_test(
+            editor_core.insert_test(
                 chapter,
                 {"id": "NUEVA"},
                 heading_index=None,
@@ -233,14 +165,14 @@ class EditorYamlTests(unittest.TestCase):
                 ]
             },
         }
-        editor_yaml.insert_section_after_test(chapter, "Grupo nuevo", 1)
+        editor_core.insert_section_after_test(chapter, "Grupo nuevo", 1)
 
         contents = chapter["data"]["contenido"]
         self.assertEqual(contents[1]["prueba"]["id"], "EXISTENTE")
         self.assertEqual(contents[2], {"seccion": "Grupo nuevo", "nivel": 3})
-        self.assertEqual(len(editor_yaml.tests_in_chapter(chapter)), 1)
+        self.assertEqual(len(editor_core.tests_in_chapter(chapter)), 1)
 
-        editor_yaml.insert_test(
+        editor_core.insert_test(
             chapter,
             {"id": "NUEVA", "nivel": 4},
             heading_index=2,
@@ -249,7 +181,7 @@ class EditorYamlTests(unittest.TestCase):
             [
                 (kind, index, parent)
                 for kind, index, _label, parent, _level
-                in editor_yaml.navigation_entries(chapter)
+                in editor_core.navigation_entries(chapter)
             ],
             [
                 ("section", 0, None),
@@ -270,7 +202,7 @@ class EditorYamlTests(unittest.TestCase):
         }
 
         with self.assertRaisesRegex(ValueError, "nivel 6"):
-            editor_yaml.insert_section_after_test(chapter, "Grupo nuevo", 0)
+            editor_core.insert_section_after_test(chapter, "Grupo nuevo", 0)
 
     def test_borrar_prueba_elimina_solo_esa_prueba(self):
         chapter = {
@@ -284,10 +216,10 @@ class EditorYamlTests(unittest.TestCase):
             },
         }
 
-        editor_yaml.delete_test(chapter, 1)
+        editor_core.delete_test(chapter, 1)
 
         self.assertEqual(
-            [test["id"] for _, test in editor_yaml.tests_in_chapter(chapter)],
+            [test["id"] for _, test in editor_core.tests_in_chapter(chapter)],
             ["B"],
         )
 
@@ -313,7 +245,7 @@ class EditorYamlTests(unittest.TestCase):
             },
         }
 
-        editor_yaml.delete_section(chapter, 1)
+        editor_core.delete_section(chapter, 1)
 
         contents = chapter["data"]["contenido"]
         self.assertEqual(
@@ -340,11 +272,11 @@ class EditorYamlTests(unittest.TestCase):
             }
         ]
 
-        error = editor_yaml.find_duplicate_id(chapters, "DUPLICADO")
+        error = editor_core.find_duplicate_id(chapters, "DUPLICADO")
 
         self.assertIn("ya existe", error)
         self.assertIsNone(
-            editor_yaml.find_duplicate_id(
+            editor_core.find_duplicate_id(
                 chapters,
                 "DUPLICADO",
                 (Path("capitulo.yaml"), 0),

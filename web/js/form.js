@@ -9,7 +9,6 @@ const AUTOMATIZABLE = ["", "si", "no", "corto", "medio", "largo", "hecho"];
 /** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"seccion", indice, valores, cambios, nivel, vista}. */
 let F = null;
 const formularioActual = () => F;
-function descartarFormulario() { F = null; }
 
 const principal = () => $("#principal");
 function mostrar(nodo) { principal().replaceChildren(nodo); principal().scrollTop = 0; }
