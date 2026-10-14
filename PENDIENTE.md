@@ -120,6 +120,13 @@ mantiene el equipo de automatización y contienen el detalle técnico
 - **Aplazada:** hoy son unas 400 pruebas y 80 keywords; reescribir los pasos
   en un lenguaje controlado es demasiado trabajo por ahora. Mientras tanto,
   el enlace es la etiqueta `id:` y la cobertura avisa de lo que falta.
+- *Hecho (primer paso, sin reescribir nada):* el editor propone las keywords
+  de Robot (`.robot`, `.resource` y librerías de Python) al escribir
+  situaciones y pasos, y marca los pasos que ya son una keyword. Así las
+  pruebas nuevas nacen con el vocabulario de Robot. Siguientes pasos
+  posibles: contar en la cobertura cuántos pasos de cada prueba son keywords
+  (las candidatas a generarse solas), y avisar de pasos casi iguales a una
+  keyword.
 
 ## Varias formas de ejecutar y validación de una versión de SW
 

@@ -401,7 +401,7 @@ const BOTONES_FORMATO = [
 /**
  * Campo de texto con formato que se ve mientras se escribe.
  * `alCambiar(texto)` recibe el texto con marcas. Devuelve el contenedor; el área
- * editable (`.editable`) lleva `controlFormato` con `valor`, `alFinal()`, `deshacer()`…
+ * editable (`.editable`) lleva `controlFormato` con `valor`, `alFinal()`, `reemplazar()`, `deshacer()`…
  */
 function editorFormato({ valor = "", alCambiar = () => {}, id, etiqueta, onkeydown, onpaste } = {}) {
   let caracteres = marcasACaracteres(valor);
@@ -580,6 +580,12 @@ function editorFormato({ valor = "", alCambiar = () => {}, id, etiqueta, onkeydo
   area.controlFormato = {
     get valor() { return historia[pos].texto; },
     alFinal() { area.focus(); ponerSeleccion(area, caracteres.length); },
+    /** Sustituye todo el texto (se deshace con Ctrl+Z) y deja seleccionado [a, b]. */
+    reemplazar(texto, a = null, b = a) {
+      const nuevos = marcasACaracteres(texto);
+      area.focus();
+      aplicar(nuevos, [a ?? nuevos.length, b ?? a ?? nuevos.length], "otro");
+    },
     alMoverCursor() {
       const sel = seleccionEn(area);
       if (pendiente && (!sel || sel[0] !== pendienteEn || sel[1] !== pendienteEn)) pendiente = null;

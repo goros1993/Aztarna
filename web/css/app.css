@@ -566,6 +566,24 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 /* ---- Robot Framework ---- */
 .marca-robot { flex: none; display: inline-flex; color: var(--accent); opacity: 0.85; }
 .marca-robot .ico { width: 14px; height: 14px; }
+/* keywords de Robot al escribir los pasos */
+.elemento .contenido { position: relative; }
+.editable.con-keyword { padding-right: 28px; }
+.paso-kw { position: absolute; top: 7px; right: 7px; color: var(--accent); display: inline-flex; pointer-events: auto; cursor: help; }
+.paso-kw .ico { width: 16px; height: 16px; }
+.sugerencias-kw {
+  position: absolute; z-index: 30; left: calc(var(--nivel, 0) * 22px); right: 0; margin-top: 2px;
+  max-height: 300px; overflow-y: auto; background: var(--paper);
+  border: 1px solid var(--rule-strong); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); padding: 4px;
+}
+.sugerencias-kw .kw { padding: 6px 8px; border-radius: 4px; cursor: pointer; }
+.sugerencias-kw .kw.activa, .sugerencias-kw .kw:hover { background: var(--accent-soft); }
+.sugerencias-kw .kw-linea { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.sugerencias-kw .kw-nombre { font-weight: 600; }
+.sugerencias-kw .arg, .sugerencias-kw .kw-args { font: 12.5px var(--mono); color: var(--syn-value); }
+.sugerencias-kw .kw-args { color: var(--ink-3); }
+.sugerencias-kw .kw-doc { font-size: 12.5px; color: var(--ink-2); margin-top: 1px; }
+.sugerencias-kw .kw-origen { font: 11.5px var(--mono); color: var(--ink-3); margin-top: 1px; }
 .tests-robot { margin: 0; padding: 0; list-style: none; font-size: 13.5px; }
 .tests-robot li { padding: 3px 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
 .tests-robot .nombre-robot { font-weight: 600; }

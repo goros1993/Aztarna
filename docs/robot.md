@@ -110,6 +110,47 @@ Con la carpeta configurada, el editor lee las etiquetas `id:` de los `.robot`
 - al crear una campaña permite filtrar por **Automatización: con / sin test
   de Robot**.
 
+## Escribir los pasos con las keywords
+
+Para que las pruebas nuevas se escriban igual que los tests de Robot, el
+editor propone las keywords existentes al escribir *Situación inicial*,
+*Pasos* y *Situación final*, y marca con un robot los pasos que ya son una
+keyword.
+
+De dónde salen (sin ejecutar nada, leyendo los archivos):
+
+- la sección *Keywords* de los `.robot` y `.resource` de la carpeta de tests
+  (con `[Arguments]` y la primera línea de `[Documentation]`);
+- las librerías de Python: las funciones decoradas con `@keyword` y, si algún
+  `.robot` o `.resource` importa el archivo con `Library`, sus funciones
+  públicas (o los métodos de la clase que se llama como el archivo). Se
+  respetan `ROBOT_AUTO_KEYWORDS = False`, `@library` y `@not_keyword`;
+- **Otras carpetas con keywords** (en la configuración de Robot): librerías o
+  `.resource` que no están dentro de la carpeta de tests. Varias, separadas
+  por `;`.
+
+Las más usadas en los tests aparecen primero. Al elegir una, el paso se
+escribe con la sintaxis de Robot:
+
+| Keyword | Paso escrito |
+|---|---|
+| `Registrar una llamada de piso en ${planta}` (argumento incrustado) | `Registrar una llamada de piso en ${planta}` con `${planta}` seleccionado para escribir el valor |
+| `Comprobar la alarma` con `[Arguments]  ${codigo}  ${timeout}=5 s` | `Comprobar la alarma    codigo=` (solo los obligatorios, con nombre) |
+
+Un paso se considera keyword si su primera celda (hasta dos espacios
+seguidos) coincide con el nombre como lo compara Robot (sin mayúsculas,
+espacios ni guiones bajos), ignorando un punto final y los prefijos
+*Given/When/Then/And/But*; las keywords con argumentos incrustados se
+reconocen con cualquier valor (`Esperar al menos 1 s.` es `Esperar al
+menos ${tiempo}`).
+
+Las keywords con **argumentos incrustados** son las que mejor sirven a la
+vez de paso manual y de paso de Robot: se leen como una frase
+(`Llevar la cabina a P2 y esperar a que cierre puertas`). Ver
+`ejemplos/robot/banco.resource` y `ejemplos/robot/banco_hil.py`. Es el
+primer paso de la propuesta de pasos ejecutables (ver
+[PENDIENTE.md](../PENDIENTE.md)).
+
 ## Ejecutar Robot desde una campaña
 
 **Ejecutar Robot…** (en el resumen de la campaña) lanza Robot solo con los
@@ -144,6 +185,7 @@ y 7 (y anteriores desde la 4).
 
 `ejemplos/robot/regresion_demo.robot` es una suite ficticia que muestra todos
 los casos (OK, NO OK, SKIP, un test para dos pruebas, dos tests para la misma
-prueba, un test sin `id:` y un ID que no existe). Sus resultados ya generados
-están en `ejemplos/robot/resultados/output.xml`; se pueden importar en la
+prueba, un test sin `id:` y un ID que no existe). `banco.resource` y
+`banco_hil.py` son keywords de ejemplo (Robot y Python) que coinciden con
+pasos de las pruebas de ejemplo. Sus resultados ya generados están en `ejemplos/robot/resultados/output.xml`; se pueden importar en la
 campaña de ejemplo `ejemplos/ejecuciones/regresion_v2.3`.

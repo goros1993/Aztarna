@@ -346,6 +346,8 @@ let filaArrastrada = null;
 
 function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
   const filas = F.valores[clave];
+  const conKeywords = clave !== "contexto" && hayKeywords();
+  if (conKeywords) ayuda = (ayuda ? ayuda + " " : "") + "Al escribir se proponen las keywords de Robot.";
   const lista = h("ol", { class: "lista" + (numerada ? " numerada" : "") });
   const nuevaFila = (nivel = 0) => ({ texto: "", imagenes: [], nivel, forma: "str", extra: {} });
 
@@ -367,11 +369,13 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
   const sangria = (i, d) => { filas[i].nivel = Math.min(Math.max(filas[i].nivel + d, 0), 4); tocar(clave); pintar(i); };
 
   function crearFila(fila, i) {
+    let sugerencias = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
-      alCambiar: (texto) => { fila.texto = texto; tocar(clave); },
+      alCambiar: (texto) => { fila.texto = texto; tocar(clave); if (sugerencias) sugerencias.actualizar(texto); },
       onkeydown: (e) => {
         if (e.isComposing) return;
+        if (sugerencias && sugerencias.tecla(e)) return;
         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertar(i + 1); }
         else if (e.key === "Backspace" && !fila.texto && !fila.imagenes.length && filas.length) { e.preventDefault(); quitar(i); }
         else if (e.altKey && e.key === "ArrowUp") { e.preventDefault(); mover(i, -1); }
@@ -383,9 +387,11 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
       ? h("div", { class: "imagenes" }, fila.imagenes.map((ruta, k) => miniatura(ruta, () => { fila.imagenes.splice(k, 1); tocar(clave); pintar(i); })))
       : null;
     const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
+    const contenido = h("div", { class: "contenido" }, editor, miniaturas);
+    if (conKeywords) sugerencias = sugerenciasKeywords(editor.querySelector(".editable"), contenido, fila.texto);
     const li = h("li", { class: "elemento", style: { "--nivel": String(fila.nivel) } },
       asa,
-      h("div", { class: "contenido" }, editor, miniaturas),
+      contenido,
       h("div", { class: "herramientas" },
         botonIcono("image", "Añadir imagen", () => elegirImagenes(fila.imagenes, () => { tocar(clave); pintar(i); })),
         botonIcono("outdent", "Quitar sangría", () => sangria(i, -1)),

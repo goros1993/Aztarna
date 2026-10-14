@@ -332,6 +332,16 @@ class EditorEjecucionApi(EditorApi):
             return None
         return robot_core.cobertura(self._chapters, robot_core.escanear_suites(suites))
 
+    def _keywords(self) -> dict[str, Any] | None:
+        """Keywords de Robot de la carpeta de suites y de las carpetas de keywords configuradas."""
+        config = self._robot_config()
+        carpetas = [c.strip() for c in re.split(r"[;\n]", config.get("keywords", "")) if c.strip()]
+        if config.get("suites"):
+            carpetas.insert(0, config["suites"])
+        if not carpetas:
+            return None
+        return robot_core.escanear_keywords([Path(c).expanduser() for c in carpetas])
+
     def _ids_robot(self, filtro: Any) -> set[str] | None:
         """IDs con test de Robot, solo si el filtro lo necesita."""
         if not isinstance(filtro, dict) or not filtro.get("robot"):
@@ -361,16 +371,19 @@ class EditorEjecucionApi(EditorApi):
     def robot_guardar_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """Guarda la configuración de Robot de esta carpeta de pruebas y devuelve la cobertura."""
         base = self._require_dir()
-        limpia = {k: str(config.get(k) or "").strip() for k in ("suites", "comando", "argumentos")}
+        limpia = {k: str(config.get(k) or "").strip() for k in ("suites", "comando", "argumentos", "keywords")}
         if limpia["suites"] and not Path(limpia["suites"]).expanduser().exists():
             raise ValueError(f"No existe la carpeta de tests de Robot: {limpia['suites']}")
+        for carpeta in re.split(r"[;\n]", limpia["keywords"]):
+            if carpeta.strip() and not Path(carpeta.strip()).expanduser().exists():
+                raise ValueError(f"No existe la carpeta de keywords: {carpeta.strip()}")
         todas = dict(ajustes.leer().get("robot") or {})
         if any(limpia.values()):
             todas[str(base)] = {k: v for k, v in limpia.items() if v}
         else:
             todas.pop(str(base), None)
         ajustes.guardar({"robot": todas})
-        return {"cobertura": self._cobertura()}
+        return {"cobertura": self._cobertura(), "keywords": self._keywords()}
 
     @respuesta
     def robot_elegir_carpeta(self) -> dict[str, Any]:
@@ -396,6 +409,12 @@ class EditorEjecucionApi(EditorApi):
         """Qué pruebas tienen test de Robot (None si no está configurado)."""
         self._require_dir()
         return self._cobertura()
+
+    @respuesta
+    def robot_keywords(self) -> dict[str, Any] | None:
+        """Keywords de Robot para proponerlas al escribir los pasos (None si no está configurado)."""
+        self._require_dir()
+        return self._keywords()
 
     @respuesta
     def validar(self) -> dict[str, Any]:

@@ -172,6 +172,49 @@ class EscaneoTests(unittest.TestCase):
         self.assertEqual(c["hecho_sin_robot"], ["DEMO-DIAG-001"])
         self.assertEqual(c["sin_id"][0]["nombre"], "Diagnóstico del bus sin enlazar")
 
+    def test_keywords_del_ejemplo(self):
+        datos = rc.escanear_keywords([RAIZ / "ejemplos" / "robot"])
+        self.assertEqual(datos["errores"], [])
+        kws = {k["nombre"]: k for k in datos["keywords"]}
+        self.assertEqual([a["nombre"] for a in kws["Simular Viaje"]["argumentos"]], ["origen", "destino"])
+        self.assertEqual(kws["Comprobar Desnivel"]["usos"], 2)
+        self.assertEqual(kws["Comprobar la alarma"]["argumentos"][1], {"nombre": "timeout", "obligatorio": False, "defecto": "5 s"})
+        self.assertEqual(kws["Llevar la cabina a ${planta} y esperar a que cierre puertas"]["archivo"], "banco.resource")
+        # Python: el argumento incrustado no se repite en la lista; las privadas no son keywords.
+        registrar = kws["Registrar una llamada de piso en ${planta}"]
+        self.assertEqual((registrar["origen"], registrar["argumentos"]), ("python", []))
+        self.assertEqual([a["nombre"] for a in kws["Leer Trama Can"]["argumentos"]], ["identificador", "byte", "timeout"])
+        self.assertFalse(any("Conectar" in n for n in kws))
+
+    def test_keywords_de_python_solo_si_es_libreria(self):
+        self.escribir("tests/a.robot", (
+            "*** Settings ***\nLibrary    ../lib/banco.py\nLibrary    paquete.Equipo\n\n"
+            "*** Test Cases ***\nUno\n    ${x}=    Leer Valor    1\n    FOR    ${i}    IN    1    2\n"
+            "        Leer valor    ${i}\n    END\n    banco.Leer_Valor    2\n"
+        ))
+        self.escribir("lib/banco.py", 'def leer_valor(canal, *resto, modo="a", **otros):\n    """Lee.\n\n    Más."""\n\ndef _privada():\n    pass\n')
+        self.escribir("lib/utilidades.py", (
+            "from robot.api.deco import keyword, not_keyword\n"
+            "def ayuda():\n    pass\n"
+            "@keyword('Abrir el relé ${n}')\ndef abrir(n):\n    pass\n"
+        ))
+        self.escribir("lib/paquete/Equipo.py", (
+            "class Equipo:\n    ROBOT_AUTO_KEYWORDS = True\n"
+            "    def __init__(self):\n        pass\n    def encender(self, voltios=24):\n        pass\n"
+            "    @not_keyword\n    def interna(self):\n        pass\n"
+            "class Otra:\n    def nada(self):\n        pass\n"
+        ))
+        self.escribir("lib/sin_auto.py", "ROBOT_AUTO_KEYWORDS = False\ndef escondida():\n    pass\n")
+        self.escribir("lib/roto.py", "def (:\n")
+        datos = rc.escanear_keywords([self.dir / "tests", self.dir / "lib"])
+        kws = {k["nombre"]: k for k in datos["keywords"]}
+        self.assertEqual(sorted(kws), ["Abrir el relé ${n}", "Encender", "Leer Valor"])
+        self.assertEqual(kws["Leer Valor"]["usos"], 3)
+        self.assertEqual(kws["Leer Valor"]["doc"], "Lee.")
+        self.assertEqual([a["nombre"] for a in kws["Leer Valor"]["argumentos"]], ["canal", "*resto", "modo", "**otros"])
+        self.assertEqual(kws["Encender"]["archivo"], "paquete/Equipo.py")
+        self.assertTrue(any("roto.py" in e for e in datos["errores"]))
+
     def test_preparar_ejecucion(self):
         args = rc.preparar_ejecucion(self.dir / "salida", self.dir / "suites", ["DEMO-ANDEN-1"], ["--loglevel", "DEBUG"])
         texto = (self.dir / "salida" / "argumentos.txt").read_text()
@@ -238,6 +281,18 @@ class LanzarTests(unittest.TestCase):
         avisos = [p["mensaje"] for p in self.api.validar()["datos"]["problemas"]]
         self.assertTrue(any("DEMO-DIAG-001" in m for m in avisos))
         self.assertEqual(self.api.robot_comprobar(self.comando)["datos"]["version"], "Robot Framework 7.0 (falso)")
+
+    def test_keywords_de_la_configuracion(self):
+        self.assertIsNone(self.api.robot_keywords()["datos"])
+        (self.tmp / "libs").mkdir()
+        (self.tmp / "libs" / "extra.resource").write_text("*** Keywords ***\nPulsar el botón ${n}\n    Log    ${n}\n", encoding="utf-8")
+        self.assertFalse(self.api.robot_guardar_config({"suites": str(self.tmp / "robot"), "keywords": str(self.tmp / "no")})["ok"])
+        r = self.api.robot_guardar_config({"suites": str(self.tmp / "robot"), "keywords": str(self.tmp / "libs")})
+        self.assertTrue(r["ok"], r.get("error"))
+        nombres = [k["nombre"] for k in r["datos"]["keywords"]["keywords"]]
+        self.assertIn("Pulsar el botón ${n}", nombres)
+        self.assertIn("Simular Viaje", nombres)
+        self.assertEqual(self.api.robot_keywords()["datos"]["keywords"][0]["nombre"], nombres[0])
 
     def test_filtro_con_y_sin_robot(self):
         self.configurar()

@@ -11,6 +11,7 @@ OK; si todos SKIP -> No aplica. Los tests NOT RUN no cuentan.
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 import shutil
@@ -391,6 +392,246 @@ def cobertura(capitulos: list[dict[str, Any]], escaneo: dict[str, Any]) -> dict[
         "hecho_sin_robot": hecho_sin_robot,
         "errores": escaneo["errores"],
     }
+
+
+# ----------------------------------------------------------------------
+# Keywords: para proponerlas al escribir los pasos de las pruebas
+# ----------------------------------------------------------------------
+_ARGUMENTO_INCRUSTADO = re.compile(r"\$\{([^}:]+)(?::[^}]*)?\}")
+_CONTROL = {"for", "end", "if", "else", "else if", "while", "try", "except", "finally",
+            "return", "break", "continue", "in", "in range", "in enumerate", "in zip", "var"}
+_CARPETAS_IGNORADAS = {"venv", ".venv", "env", "site-packages", "node_modules", "__pycache__", "build", "dist"}
+
+
+def normalizar_keyword(nombre: str) -> str:
+    """Como compara Robot los nombres: sin mayúsculas, espacios ni guiones bajos."""
+    return re.sub(r"[\s_]+", "", nombre).lower()
+
+
+def _argumento_robot(celda: str) -> dict[str, Any] | None:
+    m = re.match(r"^([$@&])\{([^}]+)\}(?:=(.*))?$", celda.strip())
+    if not m:
+        return None
+    tipo = {"$": "", "@": "*", "&": "**"}[m.group(1)]
+    return {"nombre": tipo + m.group(2), "obligatorio": not tipo and m.group(3) is None,
+            "defecto": m.group(3)}
+
+
+def leer_keywords_robot(ruta: Path) -> dict[str, Any]:
+    """Keywords de un .robot o .resource y las llamadas a keywords que hace."""
+    texto = ruta.read_text(encoding="utf-8-sig", errors="replace")
+    seccion, keywords, llamadas, librerias = "", [], [], []
+    actual: dict[str, Any] | None = None
+    ultimo_ajuste = ""
+    for numero, linea in enumerate(texto.splitlines(), start=1):
+        primera = linea.strip().strip("|").strip()
+        cabecera = _SECCION.match(primera) if primera.startswith("*") else None
+        if cabecera:
+            seccion = cabecera.group(1).strip().lower()
+            actual, ultimo_ajuste = None, ""
+            continue
+        if not linea.strip() or linea.lstrip().startswith("#"):
+            continue
+        celdas = _celdas(linea)
+        if seccion in ("settings", "setting"):
+            if len(celdas) > 1 and celdas[0].lower() == "library":
+                librerias.append(celdas[1])
+            continue
+        if seccion not in ("keywords", "keyword", "test cases", "test case", "tasks", "task"):
+            continue
+        if not linea[0].isspace() and celdas and celdas[0]:
+            actual = None
+            if seccion.startswith("keyword"):
+                actual = {"nombre": celdas[0], "argumentos": [], "doc": "", "archivo": ruta, "linea": numero}
+                keywords.append(actual)
+            ultimo_ajuste = ""
+            celdas = ["", *celdas[1:]]
+        resto = celdas[1:]
+        while resto and not resto[0]:
+            resto = resto[1:]
+        if not resto:
+            continue
+        clave = resto[0].lower()
+        if clave == "..." and ultimo_ajuste:
+            resto = [ultimo_ajuste, *resto[1:]]
+            clave = ultimo_ajuste
+        if clave == "[arguments]" and actual is not None:
+            actual["argumentos"].extend(a for a in map(_argumento_robot, resto[1:]) if a)
+            ultimo_ajuste = clave
+        elif clave == "[documentation]" and actual is not None:
+            if not actual["doc"]:
+                actual["doc"] = " ".join(resto[1:]).strip()
+            ultimo_ajuste = clave
+        elif clave.startswith("["):
+            ultimo_ajuste = clave if clave in ("[tags]",) else ""
+        else:
+            ultimo_ajuste = ""
+            # Llamada a una keyword: se saltan las asignaciones (${x}=) y las estructuras de control.
+            while resto and re.match(r"^[$@&]\{[^}]+\}\s*=?$", resto[0]):
+                resto = resto[1:]
+            if resto and resto[0].lower() not in _CONTROL and resto[0] != "...":
+                llamadas.append(resto[0])
+    return {"keywords": keywords, "llamadas": llamadas, "librerias": librerias}
+
+
+def _nombre_python(nombre: str) -> str:
+    """leer_trama_can -> Leer Trama Can (Robot ignora mayúsculas y guiones bajos)."""
+    return " ".join(p[:1].upper() + p[1:] for p in nombre.split("_") if p)
+
+
+def _decorador(nodo: Any, nombres: tuple[str, ...]) -> Any:
+    for d in nodo.decorator_list:
+        destino = d.func if isinstance(d, ast.Call) else d
+        nombre = destino.attr if isinstance(destino, ast.Attribute) else getattr(destino, "id", "")
+        if nombre in nombres:
+            return d
+    return None
+
+
+def _nombre_decorado(decorador: Any) -> str | None:
+    if not isinstance(decorador, ast.Call):
+        return None
+    for valor in [*decorador.args[:1], *(k.value for k in decorador.keywords if k.arg == "name")]:
+        if isinstance(valor, ast.Constant) and isinstance(valor.value, str):
+            return valor.value
+    return None
+
+
+def _auto_keywords(cuerpo: list[Any]) -> bool:
+    for nodo in cuerpo:
+        if isinstance(nodo, ast.Assign) and any(getattr(t, "id", "") == "ROBOT_AUTO_KEYWORDS" for t in nodo.targets):
+            return not (isinstance(nodo.value, ast.Constant) and nodo.value.value is False)
+    return True
+
+
+def leer_keywords_python(ruta: Path, es_libreria: bool = True) -> list[dict[str, Any]]:
+    """Keywords de una librería de Python, leyendo el código sin importarlo.
+
+    Siempre se toman las funciones decoradas con @keyword. Si el archivo es una
+    librería (algún .robot lo importa con Library), también las funciones
+    públicas del módulo y los métodos públicos de la clase que se llama como
+    el archivo o que tiene ajustes de librería (ROBOT_LIBRARY_… o @library).
+    Se respetan ROBOT_AUTO_KEYWORDS = False, @library y @not_keyword.
+    """
+    arbol = ast.parse(ruta.read_text(encoding="utf-8-sig", errors="replace"), filename=str(ruta))
+    keywords = []
+
+    def añadir(funcion: Any, auto: bool) -> None:
+        if _decorador(funcion, ("not_keyword",)):
+            return
+        decorador = _decorador(funcion, ("keyword",))
+        if decorador is None and (not auto or funcion.name.startswith("_")):
+            return
+        a = funcion.args
+        posicionales = [*a.posonlyargs, *a.args]
+        if posicionales and posicionales[0].arg in ("self", "cls"):
+            posicionales = posicionales[1:]
+        sin_defecto = len(posicionales) - len(a.defaults)
+        argumentos = [{"nombre": p.arg, "obligatorio": i < sin_defecto,
+                       "defecto": None if i < sin_defecto else ast.unparse(a.defaults[i - sin_defecto])}
+                      for i, p in enumerate(posicionales)]
+        if a.vararg:
+            argumentos.append({"nombre": "*" + a.vararg.arg, "obligatorio": False, "defecto": None})
+        argumentos += [{"nombre": p.arg, "obligatorio": d is None, "defecto": None if d is None else ast.unparse(d)}
+                       for p, d in zip(a.kwonlyargs, a.kw_defaults)]
+        if a.kwarg:
+            argumentos.append({"nombre": "**" + a.kwarg.arg, "obligatorio": False, "defecto": None})
+        doc = (ast.get_docstring(funcion) or "").strip().splitlines()
+        keywords.append({
+            "nombre": _nombre_decorado(decorador) or _nombre_python(funcion.name),
+            "argumentos": argumentos, "doc": doc[0] if doc else "", "archivo": ruta, "linea": funcion.lineno,
+        })
+
+    auto_modulo = es_libreria and _auto_keywords(arbol.body)
+    funciones = (ast.FunctionDef, ast.AsyncFunctionDef)
+    for nodo in arbol.body:
+        if isinstance(nodo, funciones):
+            añadir(nodo, auto_modulo)
+        elif isinstance(nodo, ast.ClassDef) and not nodo.name.startswith("_"):
+            decorada = _decorador(nodo, ("library",))
+            clase_libreria = nodo.name == ruta.stem or decorada is not None or any(
+                isinstance(n, ast.Assign) and any(getattr(t, "id", "").startswith("ROBOT_LIBRARY_") for t in n.targets)
+                for n in nodo.body)
+            auto = es_libreria and clase_libreria and _auto_keywords(nodo.body)
+            if decorada is not None:                # @library: solo las decoradas, salvo auto_keywords=True
+                auto = auto and any(k.arg == "auto_keywords" and getattr(k.value, "value", False) is True
+                                    for k in getattr(decorada, "keywords", []))
+            for metodo in nodo.body:
+                if isinstance(metodo, funciones) and not metodo.name.startswith("_"):
+                    añadir(metodo, auto)
+    return keywords
+
+
+def _patron_keyword(nombre: str) -> re.Pattern[str] | None:
+    """Expresión que reconoce una keyword con argumentos incrustados (${planta})."""
+    if "${" not in nombre:
+        return None
+    partes, inicio = [], 0
+    for m in _ARGUMENTO_INCRUSTADO.finditer(nombre):
+        partes.append(re.escape(nombre[inicio:m.start()]))
+        partes.append("(.+?)")
+        inicio = m.end()
+    partes.append(re.escape(nombre[inicio:]))
+    return re.compile("^" + "".join(partes) + "$", re.IGNORECASE)
+
+
+def escanear_keywords(carpetas: list[str | Path]) -> dict[str, Any]:
+    """Keywords de los .robot, .resource y librerías de Python de unas carpetas."""
+    keywords: list[dict[str, Any]] = []
+    llamadas: list[str] = []
+    errores: list[str] = []
+    librerias: set[str] = set()
+    archivos: list[tuple[Path, Path]] = []
+    vistos: set[Path] = set()
+    for carpeta in map(Path, carpetas):
+        if not carpeta.exists():
+            errores.append(f"No existe: {carpeta}")
+            continue
+        base = carpeta if carpeta.is_dir() else carpeta.parent
+        encontrados = [carpeta] if carpeta.is_file() else sorted(
+            a for a in carpeta.rglob("*")
+            if a.suffix.lower() in (".robot", ".resource", ".py")
+            and not any(p.startswith(".") or p in _CARPETAS_IGNORADAS for p in a.relative_to(carpeta).parts[:-1]))
+        for archivo in encontrados:
+            if archivo.resolve() not in vistos and archivo.name != "__init__.py" and archivo.name != "progreso_editor.py":
+                vistos.add(archivo.resolve())
+                archivos.append((archivo, base))
+    # Primero los .robot/.resource: dicen qué archivos de Python son librerías.
+    archivos.sort(key=lambda a: a[0].suffix.lower() == ".py")
+    for archivo, base in archivos:
+        try:
+            if archivo.suffix.lower() == ".py":
+                propias = leer_keywords_python(archivo, archivo.stem in librerias)
+                origen = "python"
+            else:
+                leido = leer_keywords_robot(archivo)
+                propias, origen = leido["keywords"], "robot"
+                llamadas.extend(leido["llamadas"])
+                for nombre in leido["librerias"]:
+                    nombre = nombre.replace("\\", "/")
+                    # «lib/banco.py» -> banco; «paquete.modulo» y «paquete.modulo.Clase» -> modulo, Clase
+                    partes = [Path(nombre).stem] if nombre.lower().endswith(".py") else nombre.split(".")[-2:]
+                    librerias.update(partes)
+        except (OSError, SyntaxError, ValueError) as error:
+            errores.append(f"{archivo}: {error}")
+            continue
+        for kw in propias:
+            kw["origen"] = origen
+            kw["archivo"] = kw["archivo"].relative_to(base).as_posix() if base in kw["archivo"].parents else kw["archivo"].name
+        keywords.extend(propias)
+    # Cuántas veces se usa cada keyword (para ordenar las sugerencias).
+    usos: dict[str, int] = {}
+    for llamada in llamadas:
+        usos[normalizar_keyword(llamada)] = usos.get(normalizar_keyword(llamada), 0) + 1
+    for kw in keywords:
+        incrustados = {m.group(1).strip() for m in _ARGUMENTO_INCRUSTADO.finditer(kw["nombre"])}
+        kw["argumentos"] = [a for a in kw["argumentos"] if a["nombre"] not in incrustados]
+        clave = normalizar_keyword(kw["nombre"])
+        patron = _patron_keyword(kw["nombre"])
+        kw["usos"] = sum(n for c, n in usos.items() if c == clave or c.endswith("." + clave)) + (
+            sum(1 for llamada in llamadas if patron.match(llamada)) if patron else 0)
+    keywords.sort(key=lambda k: (k["nombre"].lower(), k["archivo"]))
+    return {"keywords": keywords, "errores": errores}
 
 
 # ----------------------------------------------------------------------

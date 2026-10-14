@@ -16,6 +16,7 @@ const S = {
   modo: leerLocal("modo") === "ejecucion" ? "ejecucion" : "edicion",
   campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
   cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
+  keywords: null,       // keywords de Robot que se proponen al escribir los pasos
   filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
 };
 

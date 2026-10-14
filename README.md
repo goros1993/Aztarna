@@ -254,7 +254,9 @@ capturas como evidencias. Con la carpeta de tests de Robot configurada (botón
 *Robot*), el editor marca qué pruebas tienen test automático, avisa de las
 `automatizable: hecho` sin test, permite filtrar campañas por automatización
 y lanza Robot desde la campaña (*Ejecutar Robot…*) con el avance en vivo.
-Detalles en [docs/robot.md](docs/robot.md).
+Al escribir situaciones y pasos propone las keywords de Robot (de los
+`.robot`, `.resource` y librerías de Python) y marca los pasos que ya son una
+keyword. Detalles en [docs/robot.md](docs/robot.md).
 
 Para probarlo: modo Ejecución → *Abrir campaña…* →
 `ejemplos/ejecuciones/regresion_v2.3`. Al abrir una campaña se abre también

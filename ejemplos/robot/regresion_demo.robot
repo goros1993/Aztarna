@@ -6,6 +6,8 @@ Documentation     Tests automáticos de ejemplo (ficticios) del controlador DEMO
 ...               para que el ejemplo se pueda ejecutar en cualquier PC:
 ...               robot --outputdir resultados ejemplos/robot
 Library           OperatingSystem
+Library           banco_hil.py
+Resource          banco.resource
 
 
 *** Variables ***

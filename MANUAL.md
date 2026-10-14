@@ -149,6 +149,35 @@ Cada elemento es una fila. Los pasos se numeran solos.
   o soltar el archivo encima de la fila. La imagen se copia a la carpeta
   `imagenes/` de las pruebas y aparece en miniatura; haz clic para verla en
   grande o en la × para quitarla.
+- **Keywords de Robot:** si está configurado Robot (ver
+  [5.7](#57-pruebas-automáticas-robot-framework)), al escribir una
+  situación o un paso se proponen las keywords de Robot que encajan con lo
+  escrito. Ver [más abajo](#escribir-los-pasos-con-las-keywords-de-robot).
+
+#### Escribir los pasos con las keywords de Robot
+
+Si en el botón **Robot** está configurada la carpeta de los tests de Robot,
+el editor conoce sus keywords (las de los `.robot`, los `.resource` y las
+librerías de Python). Al escribir en *Situación inicial*, *Pasos* o
+*Situación final* aparece una lista con las que encajan con lo escrito, con
+sus argumentos, su descripción y dónde están:
+
+![Keywords propuestas al escribir un paso](docs/manual/23_keywords_sugerencias.png)
+
+- **↑ / ↓** para moverse por la lista, **Intro** o **Tab** para elegir,
+  **Esc** para cerrarla y seguir escribiendo a mano.
+- Al elegir, el paso queda escrito como en Robot y el cursor se coloca donde
+  hay que poner el dato: en `Registrar una llamada de piso en ${planta}`
+  queda seleccionado `${planta}` (escribe `P3` encima); en
+  `Comprobar la alarma    codigo=` el cursor queda tras `codigo=`.
+- Los pasos que ya son una keyword llevan un **robot** a la derecha (pasa el
+  ratón por encima para ver cuál y dónde está).
+
+![Pasos escritos con keywords](docs/manual/24_keywords_pasos.png)
+
+No es obligatorio: un paso puede seguir siendo texto libre. Pero si las
+pruebas nuevas se escriben con las keywords, el tester y Robot hacen
+exactamente los mismos pasos, y será más fácil automatizarlas.
 
 ### 4.4 Crear pruebas y secciones
 
@@ -320,7 +349,9 @@ escribe los tests de Robot tiene los detalles en
 **Configurar Robot.** El botón **Robot** de la barra superior indica dónde
 están los tests de Robot de este PC y cómo se ejecuta Robot (el comando que
 usarías en la consola; *Comprobar* verifica que funciona). Se configura una
-vez por PC y carpeta de pruebas.
+vez por PC y carpeta de pruebas. Si las librerías de keywords (Python o
+`.resource`) están fuera de la carpeta de tests, añádelas en *Otras carpetas
+con keywords* para que se propongan al escribir los pasos.
 
 ![Configuración de Robot](docs/manual/20_config_robot.png)
 
@@ -390,6 +421,7 @@ observaciones, incidencia, evidencias e intentos anteriores.
 | Ctrl+B / Ctrl+I | Texto | Negrita / cursiva |
 | Ctrl+Z / Ctrl+Y | Texto | Deshacer / rehacer |
 | Intro / Mayús+Intro | Lista | Fila nueva / salto de línea |
+| ↑ / ↓, Intro o Tab, Esc | Lista de keywords | Moverse, elegir, cerrar |
 | Retroceso | Fila vacía | Borrar la fila |
 | Alt+↑ / Alt+↓ | Lista | Mover la fila |
 | Ctrl+V | Lista o evidencias | Pegar una captura |
