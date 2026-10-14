@@ -1,0 +1,403 @@
+# Manual de usuario: Editor de pruebas
+
+Este manual explica cómo usar el **Editor de pruebas** para mantener las
+pruebas y para apuntar sus resultados cuando se ejecutan. No hace falta saber
+programar ni conocer el formato de los archivos.
+
+## Contenido
+
+1. [Qué es y cómo se organiza](#1-qué-es-y-cómo-se-organiza)
+2. [Abrir el editor](#2-abrir-el-editor)
+3. [La ventana](#3-la-ventana)
+4. [Editar pruebas (modo Edición)](#4-editar-pruebas-modo-edición)
+5. [Ejecutar pruebas (modo Ejecución)](#5-ejecutar-pruebas-modo-ejecución)
+6. [Atajos de teclado](#6-atajos-de-teclado)
+7. [Preguntas frecuentes y problemas](#7-preguntas-frecuentes-y-problemas)
+
+---
+
+## 1. Qué es y cómo se organiza
+
+El editor trabaja con dos cosas distintas:
+
+- **Las pruebas.** Qué hay que probar: título, situación inicial, pasos,
+  situación final, imágenes… Están en una **carpeta de pruebas** que mantiene
+  el equipo, organizada en **capítulos**, y dentro de cada capítulo en
+  **secciones** (que pueden tener subsecciones).
+- **Las campañas de ejecución.** Una campaña es una tanda de pruebas que se
+  pasan sobre una versión concreta (por ejemplo, «Regresión v2.3»). Guarda
+  qué pruebas entran y el resultado de cada una. Cada persona guarda sus
+  campañas donde quiera en su PC.
+
+Por eso el editor tiene dos modos, que se eligen arriba a la izquierda:
+
+| Modo | Para qué |
+|---|---|
+| **Edición** | Crear, cambiar, mover y borrar pruebas. |
+| **Ejecución** | Pasar las pruebas de una campaña y apuntar el resultado. En este modo las pruebas no se pueden cambiar. |
+
+Los resultados **nunca** se escriben en las pruebas: se guardan en la carpeta
+de la campaña.
+
+> **El ID de cada prueba es su «DNI».** Cada prueba tiene un identificador
+> (por ejemplo `DEMO-LLAM-001`) que debe ser **único** y **no cambiar**. Las
+> campañas reconocen cada prueba por su ID: si se cambia, para ellas pasa a
+> ser otra prueba. El editor no deja repetir un ID y pide confirmación antes
+> de cambiarlo.
+
+---
+
+## 2. Abrir el editor
+
+- **Windows:** abre `EditorPruebas.exe`. La primera vez pide la carpeta de
+  pruebas (la que contiene el archivo `indice.yaml`); después la recuerda.
+- **Linux:** desde la carpeta del proyecto, `python editor_web.py`.
+
+Para cambiar de carpeta de pruebas, pulsa el botón de la carpeta en la barra
+superior.
+
+El editor usa el tema claro u oscuro de tu sistema. Para cambiarlo:
+en Windows, *Configuración → Personalización → Colores → Modo de aplicación*;
+en Ubuntu, *Configuración → Apariencia*.
+
+---
+
+## 3. La ventana
+
+![Ventana del editor en modo Edición](docs/manual/01_ventana_edicion.png)
+
+- **Barra superior:** modo (Edición / Ejecución), carpeta de pruebas,
+  capítulo, *Recargar* (vuelve a leer los archivos del disco) y *Exportar
+  DOCX*.
+- **Panel izquierdo:** buscador (por ID o texto) y el **árbol** del capítulo
+  con sus secciones y pruebas. Las secciones se pliegan y despliegan con la
+  flecha. El ancho del panel se ajusta arrastrando su borde.
+- **Zona central:** la prueba o sección seleccionada.
+- **Barra inferior:** resultado de la validación (errores y avisos) y el
+  aviso de *Cambios sin guardar*.
+
+---
+
+## 4. Editar pruebas (modo Edición)
+
+### 4.1 Editar una prueba
+
+Selecciona la prueba en el árbol. A la izquierda de su título aparece una
+placa con su ID y el **nivel** de título que tendrá en el documento.
+
+- **Datos de la prueba:** ID, encabezado en el documento, título, componente,
+  plataforma, entorno, criticidad, automatizable, referencia, fecha y versión.
+- **Etiquetas:** palabras para agrupar pruebas (`regresion`, `smoke`,
+  `seguridad`…). Escribe y pulsa **Intro** o una **coma** para añadir; la
+  **×** quita. Te propone las que ya existen en otras pruebas. Son el criterio
+  principal para elegir qué pruebas entran en una campaña, así que conviene
+  usar siempre los mismos nombres.
+- **Descripción** y las listas de **Contexto**, **Situación inicial**,
+  **Pasos** y **Situación final** (ver 4.3).
+- **Campos adicionales:** información propia de la prueba (por ejemplo,
+  «Resultado esperado»). Cada campo tiene un nombre y un valor; los que son
+  listas se escriben con un elemento por línea.
+- **Imágenes de la prueba:** se añaden al final de su tabla en el documento.
+
+Pulsa **Guardar** (o **Ctrl+S**). Mientras haya cambios sin guardar verás
+*Sin guardar* junto al título; si intentas ir a otra prueba o cerrar la
+ventana, el editor pregunta si quieres guardarlos.
+
+Otros botones de la cabecera:
+
+- **Duplicar:** abre una prueba nueva con los mismos datos, justo después de
+  esta y con el ID vacío para que le pongas uno nuevo.
+- **Borrar:** pide confirmación. Al borrar una **sección**, sus pruebas no se
+  borran: suben un nivel.
+- **Formulario / YAML:** ver 4.6.
+
+### 4.2 Dar formato al texto
+
+![Barra de formato](docs/manual/02_formato.png)
+
+Al escribir en la descripción o en una lista aparece la **barra de formato**.
+El formato se ve directamente mientras escribes:
+
+| Botón | Hace |
+|---|---|
+| **N** | Negrita (Ctrl+B) |
+| *K* | Cursiva (Ctrl+I) |
+| **A** roja / azul / verde | Color del texto |
+| **ab** amarillo / verde / cian | Resaltado |
+| ⌫ | Quita todo el formato |
+
+- Con texto seleccionado, el botón aplica el formato; si todo lo seleccionado
+  ya lo tenía, **lo quita** (pulsar resaltado amarillo sobre un texto
+  amarillo lo deja sin resaltar).
+- Sin selección, el formato se aplica a lo que escribas a continuación.
+- El botón del formato activo aparece marcado.
+- **Ctrl+Z** deshace y **Ctrl+Y** rehace (texto y formato).
+
+### 4.3 Listas: pasos, situaciones y contexto
+
+![Lista de pasos con una imagen](docs/manual/03_listas.png)
+
+Cada elemento es una fila. Los pasos se numeran solos.
+
+- **Intro** crea una fila nueva debajo; **Mayús+Intro** hace un salto de
+  línea dentro de la misma fila.
+- **Retroceso** en una fila vacía la borra.
+- **Alt+↑ / Alt+↓** mueve la fila; también se puede arrastrar por el asa (⠿).
+- Los botones de sangría convierten una fila en **subpunto** de la anterior.
+- **Imágenes de una fila:** botón de imagen, pegar una captura con **Ctrl+V**
+  o soltar el archivo encima de la fila. La imagen se copia a la carpeta
+  `imagenes/` de las pruebas y aparece en miniatura; haz clic para verla en
+  grande o en la × para quitarla.
+
+### 4.4 Crear pruebas y secciones
+
+![Nueva prueba](docs/manual/04_nueva_prueba.png)
+
+Usa **+ Prueba** o **+ Sección** del panel izquierdo. Elige **dónde** crearla:
+justo después de la prueba seleccionada, dentro de una sección (al final) o
+al final del capítulo. El nivel de título se calcula solo. Rellena los datos
+y pulsa **Crear prueba** (o **Crear sección**).
+
+### 4.5 Reordenar
+
+Arrastra pruebas y secciones en el árbol. Al soltar sobre una sección, según
+la posición, el elemento queda **antes**, **dentro** (al final) o **después**
+de ella. Una sección se mueve con todo su contenido y los niveles se ajustan
+solos.
+
+### 4.6 Vista YAML
+
+![Vista YAML](docs/manual/05_vista_yaml.png)
+
+El botón **YAML** muestra la prueba tal como está guardada en el archivo, por
+si hace falta un cambio que el formulario no permite. Si hay un error, se
+señala la línea. **Aplicar YAML** guarda; **Descartar** vuelve al formulario
+sin cambios. En el uso normal no hace falta.
+
+### 4.7 Validación
+
+![Panel de validación con errores](docs/manual/06_validacion.png)
+
+El editor revisa las pruebas en segundo plano. La barra inferior muestra el
+número de errores y avisos; al pulsarla se abre la lista (de este capítulo o
+de todos). Haz clic en un problema para ir a la prueba. En el árbol, las
+pruebas con problemas llevan un punto rojo (error) o ámbar (aviso).
+
+Revisa: IDs repetidos o vacíos, imágenes que no existen, pruebas sin título o
+sin pasos, niveles de título fuera de rango.
+
+### 4.8 Exportar a Word
+
+![Exportar DOCX](docs/manual/07_exportar.png)
+
+**Exportar DOCX** genera un documento de Word con todos los capítulos, en el
+orden del índice, con títulos numerados y una tabla por prueba. Puedes indicar
+el número del primer título (por ejemplo, 8 si el documento original empezaba
+en el capítulo 8). El documento es una copia para leer o compartir: los
+cambios se hacen siempre en el editor.
+
+---
+
+## 5. Ejecutar pruebas (modo Ejecución)
+
+### 5.1 Los resultados posibles
+
+| Resultado | Significa | Tecla |
+|---|---|---|
+| **OK** | Se ejecutó y el resultado es el esperado. | 1 |
+| **NO OK** | Se ejecutó y el producto no se comporta como se espera. | 2 |
+| **Bloqueada** | No se pudo ejecutar por algo ajeno al producto: banco averiado, falta hardware, depende de otra prueba que falló… | 3 |
+| **No aplica** | No aplica a esta versión o configuración. | 4 |
+| **Pendiente** | Aún sin ejecutar. | 0 |
+
+El porcentaje de OK se calcula sobre las pruebas que aplican.
+
+### 5.2 Crear una campaña
+
+![Modo Ejecución sin campaña](docs/manual/08_ejecucion_inicio.png)
+
+Pasa a **Ejecución** y pulsa **Nueva campaña** (o el botón de la campaña en
+la barra superior).
+
+![Nueva campaña](docs/manual/09_nueva_campana.png)
+
+1. Escribe el **nombre** y, si quieres, qué se prueba (la versión), el
+   entorno y el responsable.
+2. Marca **qué pruebas entran**: etiquetas, criticidad, automatizable,
+   plataforma, entorno, componente o capítulos. Dentro de un grupo basta con
+   cumplir una opción; entre grupos, hay que cumplirlas todas. Sin marcar nada
+   entran todas. Debajo ves la lista de pruebas que entrarán.
+3. Pulsa **Elegir carpeta y crear…** y elige dónde guardarla. Se crea una
+   subcarpeta con la fecha y el nombre (por ejemplo
+   `2026-11-03_Regresión_v2.4`).
+
+La lista de pruebas queda fijada al crearla. Si después alguien etiqueta otra
+prueba, entra con **Resincronizar** (en el resumen).
+
+### 5.3 Abrir una campaña
+
+Botón de la campaña → **Abrir campaña…** o una de las **recientes**. Al
+entrar en el modo Ejecución se abre la última que usaste. Al abrir una
+campaña se abre también su carpeta de pruebas.
+
+Si la carpeta de pruebas se ha movido (o la campaña viene de otro PC), el
+editor lo avisa y te pide que indiques dónde está; lo recuerda para la
+próxima vez.
+
+### 5.4 El resumen
+
+![Resumen de la campaña](docs/manual/10_resumen_campana.png)
+
+Se ve al abrir la campaña, al pulsar **Resumen** o cuando no hay ninguna
+prueba seleccionada:
+
+- avance y totales por resultado;
+- desglose por capítulo y por criticidad;
+- **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
+  cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
+  ir a ellas);
+- botones **Siguiente pendiente**, **Generar informe…** y **Cerrar
+  campaña…**.
+
+### 5.5 Pasar una prueba
+
+![Pasar una prueba](docs/manual/11_pasar_prueba.png)
+
+El árbol muestra solo las pruebas de la campaña, con un punto de color según
+su resultado (vacío = pendiente). El desplegable de encima filtra (por
+ejemplo, *Pendientes* o *NO OK*) y el selector de capítulo indica cuántas
+quedan en cada uno.
+
+A la izquierda está la prueba en solo lectura; a la derecha, su resultado:
+
+1. Elige el resultado con los botones o con las teclas **1 a 4**.
+2. Escribe las **observaciones** (necesarias en NO OK y Bloqueada), la
+   **incidencia** (por ejemplo `BUG-123`) y comprueba el **ejecutor** (se
+   recuerda para la próxima vez).
+3. Añade **evidencias**: pega una captura con **Ctrl+V**, suelta archivos en
+   el panel o pulsa **Añadir**. Se admiten imágenes y también logs u otros
+   archivos (se abren con su programa al hacer clic).
+4. **Guardar y siguiente** (**Ctrl+Intro**) guarda y salta a la siguiente
+   prueba pendiente. **Guardar** (**Ctrl+S**) guarda sin moverse.
+
+Si una prueba se editó después de ejecutarla, el panel avisa por si hay que
+repetirla. *Volver a pendiente* deshace el último resultado.
+
+### 5.6 Repetir una prueba
+
+![Historial de intentos](docs/manual/12_historial.png)
+
+Si una prueba falla, se corrige y se vuelve a pasar, apunta el nuevo
+resultado normalmente. El anterior **no se pierde**: queda en el
+**Historial** con sus observaciones, incidencia y evidencias, y aparecerá en
+el informe («NO OK con BUG-123; OK tras corregirlo»).
+
+### 5.7 Cerrar la campaña
+
+![Cerrar la campaña](docs/manual/13_cerrar_campana.png)
+
+Cuando no quede ninguna pendiente (ejecútalas o márcalas como *No aplica*),
+pulsa **Cerrar campaña…**. Al cerrarla:
+
+- se guarda dentro de la campaña una **copia de sus pruebas tal como están**,
+  con sus imágenes. El informe y la revisión usarán siempre esa copia aunque
+  las pruebas cambien después;
+- los resultados ya **no se pueden cambiar**.
+
+![Campaña cerrada](docs/manual/15_campana_cerrada.png)
+
+Una campaña cerrada se sigue pudiendo abrir para consultarla. La barra
+superior indica *Pruebas congeladas (solo lectura)*: para volver a editar las
+pruebas, abre su carpeta de pruebas con el botón de la carpeta.
+
+### 5.8 Generar el informe
+
+![Generar el informe](docs/manual/14_informe_dialogo.png)
+
+**Generar informe…** crea un documento de Word, y opcionalmente un **PDF**
+(hace falta tener instalado LibreOffice o Microsoft Word). Con la campaña
+todavía abierta, el informe sale marcado como **BORRADOR**.
+
+| Primera página: resumen | Cada prueba con su resultado |
+|---|---|
+| ![Resumen del informe](docs/manual/16_informe_resumen.png) | ![Pruebas en el informe](docs/manual/17_informe_pruebas.png) |
+
+El informe empieza con los datos de la campaña, el criterio de selección, los
+totales, el desglose por capítulo y la lista de pruebas NO OK y bloqueadas.
+Después vienen las pruebas con el mismo aspecto que el documento de pruebas
+y, debajo de cada tabla, el resultado en color con fecha y ejecutor,
+observaciones, incidencia, evidencias e intentos anteriores.
+
+---
+
+## 6. Atajos de teclado
+
+| Atajo | Dónde | Hace |
+|---|---|---|
+| Ctrl+S | Siempre | Guardar |
+| Ctrl+F | Siempre | Ir al buscador |
+| ↑ / ↓ | Árbol | Prueba anterior / siguiente |
+| ← / → | Árbol | Plegar / desplegar sección |
+| Ctrl+B / Ctrl+I | Texto | Negrita / cursiva |
+| Ctrl+Z / Ctrl+Y | Texto | Deshacer / rehacer |
+| Intro / Mayús+Intro | Lista | Fila nueva / salto de línea |
+| Retroceso | Fila vacía | Borrar la fila |
+| Alt+↑ / Alt+↓ | Lista | Mover la fila |
+| Ctrl+V | Lista o evidencias | Pegar una captura |
+| 1, 2, 3, 4, 0 | Ejecución | OK, NO OK, Bloqueada, No aplica, Pendiente |
+| Ctrl+Intro | Ejecución | Guardar y siguiente pendiente |
+
+---
+
+## 7. Preguntas frecuentes y problemas
+
+**¿Dónde se guarda lo que hago?**
+Las pruebas, en su carpeta de pruebas (un archivo por capítulo, y las
+imágenes en `imagenes/`). Las campañas, en la carpeta que elegiste al
+crearlas (`campaña.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
+`pruebas_congeladas/`). El editor no guarda nada en otro sitio.
+
+**«… ha cambiado en el disco desde que se cargó».**
+Otra persona o programa modificó el archivo mientras lo tenías abierto. El
+editor lo vuelve a leer para no pisar esos cambios: revisa la prueba y repite
+tu cambio.
+
+**«El ID … ya existe».**
+Cada prueba necesita un ID distinto. Usa otro (por ejemplo, el siguiente
+número libre).
+
+**Una imagen dice «Sin vista previa».**
+Las imágenes EMF (diagramas de Word) no tienen miniatura fuera de Windows,
+pero se conservan y salen bien en el documento y en el informe.
+
+**No me deja crear la campaña.**
+O ninguna prueba cumple el criterio elegido, o hay IDs repetidos o vacíos
+(revisa la validación en el modo Edición).
+
+**No me deja cerrar la campaña.**
+Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
+
+**La opción de PDF no está disponible.**
+Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se
+genera igualmente.
+
+**No puedo editar las pruebas.**
+Probablemente estás viendo las *pruebas congeladas* de una campaña cerrada
+(lo indica la barra superior). Abre la carpeta de pruebas con el botón de la
+carpeta.
+
+**El editor no arranca en Windows.**
+Necesita *WebView2*, que viene con Windows 11 y con Windows 10 actualizado.
+Si falta, instálalo desde la web de Microsoft («WebView2 Runtime»).
+
+**En Ubuntu aparece un aviso de error del sistema al cerrar.**
+Es un fallo conocido de un componente de Ubuntu (WebKitGTK) al apagarse,
+cuando el editor ya ha terminado. No se pierde nada.
+
+**Buenas costumbres**
+
+- No cambies el ID de una prueba que ya se ha ejecutado en alguna campaña.
+- Usa siempre las mismas etiquetas (mejor elegirlas de las que propone).
+- Escribe observaciones en todo NO OK y Bloqueada: es lo que leerá quien
+  reciba el informe.
+- Haz copia de seguridad de la carpeta de pruebas antes de cambios grandes.

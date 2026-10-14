@@ -18,7 +18,9 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
 | `test_*.py` | Pruebas automatizadas. |
 
-El trabajo pendiente y las propuestas están en [PENDIENTE.md](PENDIENTE.md).
+El manual para quien usa el editor (sin detalles técnicos) está en
+[MANUAL.md](MANUAL.md). El trabajo pendiente y las propuestas están en
+[PENDIENTE.md](PENDIENTE.md).
 
 ## Fuente de verdad y flujo de trabajo
 
@@ -393,7 +395,7 @@ confidenciales:
 
 ```bash
 git status
-git add .gitignore README.md PENDIENTE.md requirements.txt construir_exe.bat \
+git add .gitignore README.md MANUAL.md PENDIENTE.md docs/ requirements.txt construir_exe.bat \
   convertir.py inventario.py yaml_a_docx.py \
   editor_core.py editor_api.py editor_web.py web/ \
   ejecucion_core.py ejecucion_api.py informe_docx.py \

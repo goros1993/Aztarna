@@ -358,7 +358,7 @@ async function cerrarCampana() {
       h("ul", {},
         h("li", { text: "Se guarda una copia de sus pruebas tal como están ahora (con sus imágenes) dentro de la carpeta de la campaña. El informe y la revisión usarán esa copia aunque las pruebas cambien después." }),
         h("li", { text: "Los resultados ya no se podrán cambiar." })),
-      h("p", { text: `Resultado: ${t.ok} OK, ${t.no_ok} NO OK, ${t.bloqueada} bloqueadas, ${t.no_aplica} no aplican.` })),
+      h("p", { text: `Resultado: ${t.ok} OK, ${t.no_ok} NO OK, ${plural(t.bloqueada, "bloqueada", "bloqueadas")}, ${plural(t.no_aplica, "no aplica", "no aplican")}.` })),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cerrar campaña", valor: "si", tipo: "primary" }],
   });
   if (r !== "si") return;
