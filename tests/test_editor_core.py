@@ -15,7 +15,7 @@ class EditorCoreTests(unittest.TestCase):
         self.assertEqual(editor_core.normalize_level(12), 6)
 
     def test_ejemplos_indexados_cargan_y_tienen_todas_sus_imagenes(self):
-        yaml_dir = Path(__file__).parent / "ejemplos" / "yaml"
+        yaml_dir = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
         chapters = editor_core.read_chapters(yaml_dir)
 
         self.assertIn(

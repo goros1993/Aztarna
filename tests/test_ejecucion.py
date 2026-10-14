@@ -15,7 +15,7 @@ from ejecucion_api import EditorEjecucionApi
 import informe_docx
 from docx import Document
 
-EJEMPLOS = Path(__file__).parent / "ejemplos" / "yaml"
+EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
 
 
 class CampañaBase(unittest.TestCase):
@@ -363,7 +363,7 @@ class ApiTests(CampañaBase):
         self.assertIsNone(ok(self, otra.campana_abrir(str(self.carpeta)))["carpeta_pruebas"])
 
     def test_la_campaña_de_ejemplo_abre_sin_avisos(self):
-        ejemplo = Path(__file__).parent / "ejemplos" / "ejecuciones" / "regresion_v2.3"
+        ejemplo = Path(__file__).resolve().parent.parent / "ejemplos" / "ejecuciones" / "regresion_v2.3"
         estado = ok(self, EditorEjecucionApi().campana_abrir(str(ejemplo)))
         self.assertEqual(estado["resumen"]["total"], 10)
         self.assertEqual(estado["resumen"]["problemas"], [],

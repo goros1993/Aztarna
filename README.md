@@ -19,7 +19,7 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
 | `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
 | `ejemplos/robot/` | Suite de Robot de ejemplo y sus resultados. |
-| `test_*.py` | Pruebas automatizadas. |
+| `tests/` | Pruebas automatizadas (`python -m unittest`). |
 
 El manual para quien usa el editor (sin detalles técnicos) está en
 [MANUAL.md](MANUAL.md). El trabajo pendiente y las propuestas están en
@@ -159,7 +159,7 @@ copias de seguridad de los YAML antes de ediciones masivas.
 `web/vendor/yaml-editor.js` es un bundle precompilado de CodeMirror 6 (licencia
 MIT) para la vista YAML; no hace falta Node para usar el editor. Toda la
 comunicación con Python pasa por `window.pywebview.api`; las pruebas de la API
-están en `test_editor_api.py`.
+están en `tests/test_editor_api.py`.
 
 En Linux, al cerrar el editor Ubuntu puede registrar un fallo de
 `WebKitWebProcess` («corrupted double-linked list»). Es un error de la propia
@@ -390,7 +390,8 @@ Word original.
 
 ## Pruebas automatizadas
 
-Ejecuta las pruebas con las dependencias instaladas:
+Las pruebas están en `tests/`. Ejecútalas desde la raíz del repositorio, con
+las dependencias instaladas:
 
 ```bash
 python -m unittest discover -v
@@ -414,7 +415,7 @@ git add .gitignore README.md MANUAL.md PENDIENTE.md docs/ requirements.txt const
   convertir.py inventario.py yaml_a_docx.py \
   editor_core.py editor_api.py editor_web.py web/ \
   ejecucion_core.py ejecucion_api.py informe_docx.py robot_core.py importar_robot.py ajustes.py \
-  test_conversion.py test_editor_core.py test_editor_api.py test_ejecucion.py test_robot.py ejemplos/
+  tests/ ejemplos/
 git status
 git commit -m "Descripción del cambio"
 git push

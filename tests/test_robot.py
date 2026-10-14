@@ -14,7 +14,7 @@ import robot_core as rc
 from editor_core import read_chapters
 from ejecucion_api import EditorEjecucionApi
 
-RAIZ = Path(__file__).parent
+RAIZ = Path(__file__).resolve().parent.parent
 SALIDA_RF7 = RAIZ / "ejemplos" / "robot" / "resultados" / "output.xml"
 SALIDA_RF6 = RAIZ / "ejemplos" / "robot" / "resultados_rf6" / "output.xml"
 

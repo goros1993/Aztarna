@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 import editor_api
 from editor_core import element_level, move_block
 
-EJEMPLOS = Path(__file__).parent / "ejemplos" / "yaml"
+EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
 
 CAPITULO = """\
 capitulo: Demo  # comentario del capítulo
@@ -312,7 +312,7 @@ class MensajesYamlTests(ApiBase):
 
     def test_ventana_permite_seleccionar_texto(self):
         # pywebview deshabilita la selección de texto salvo que se pida (text_select=True).
-        self.assertIn("text_select=True", (Path(__file__).parent / "editor_web.py").read_text(encoding="utf-8"))
+        self.assertIn("text_select=True", (Path(__file__).resolve().parent.parent / "editor_web.py").read_text(encoding="utf-8"))
 
 
 class AjustesTests(ApiBase):
