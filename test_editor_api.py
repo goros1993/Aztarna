@@ -351,5 +351,48 @@ class AjustesTests(ApiBase):
         self.assertEqual(datos["capitulos"], [])
 
 
+class VentanaFalsa:
+    def __init__(self):
+        self.js = []
+        self.destruida = False
+
+    def evaluate_js(self, codigo):
+        self.js.append(codigo)
+
+    def destroy(self):
+        self.destruida = True
+
+
+class CierreTests(unittest.TestCase):
+    """Al cerrar con cambios sin guardar, la página pregunta antes de salir."""
+
+    def setUp(self):
+        self.api = editor_api.EditorApi()
+        self.ventana = VentanaFalsa()
+        self.api._window = self.ventana
+
+    def test_sin_cambios_se_cierra(self):
+        self.assertTrue(self.api._al_cerrar_ventana())
+        self.assertEqual(self.ventana.js, [])
+
+    def test_con_cambios_cancela_y_pregunta(self):
+        ok(self, self.api.marcar_cambios(True))
+        self.assertFalse(self.api._al_cerrar_ventana())
+        time.sleep(0.1)  # la pregunta se lanza en otro hilo
+        self.assertEqual(self.ventana.js, ["pedirCierre()"])
+
+    def test_tras_guardar_o_descartar_se_cierra(self):
+        ok(self, self.api.marcar_cambios(True))
+        ok(self, self.api.marcar_cambios(False))
+        self.assertTrue(self.api._al_cerrar_ventana())
+
+    def test_cerrar_destruye_la_ventana_aunque_haya_cambios(self):
+        ok(self, self.api.marcar_cambios(True))
+        ok(self, self.api.cerrar())
+        time.sleep(0.4)
+        self.assertTrue(self.ventana.destruida)
+        self.assertTrue(self.api._al_cerrar_ventana())  # el cierre ya está aceptado
+
+
 if __name__ == "__main__":
     unittest.main()

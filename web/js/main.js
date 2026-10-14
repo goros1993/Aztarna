@@ -16,7 +16,9 @@ const S = {
 };
 
 function setDirty(valor) {
+  const antes = S.dirty;
   S.dirty = Boolean(valor);
+  if (S.dirty !== antes) api.marcar_cambios(S.dirty).catch(() => {});   // para avisar al cerrar la ventana
   const barra = $("#estado-guardado");
   if (barra) barra.hidden = !S.dirty;
   const cab = $("#cab-sin-guardar");
@@ -24,20 +26,32 @@ function setDirty(valor) {
 }
 
 /** Si hay cambios sin guardar, pregunta qué hacer. Devuelve true si se puede continuar. */
-async function guardia() {
+async function guardia(salir = false) {
   if (!S.dirty) return true;
   const r = await dialogo({
     titulo: "Hay cambios sin guardar",
-    cuerpo: "Si continúas, perderás los cambios que no hayas guardado.",
+    cuerpo: salir
+      ? "¿Quieres guardar los cambios antes de salir? Si sales sin guardar, se perderán."
+      : "Si continúas, perderás los cambios que no hayas guardado.",
     botones: [
       { texto: "Seguir editando", valor: "quedar", tipo: "ghost" },
-      { texto: "Descartar cambios", valor: "descartar", tipo: "peligro" },
-      { texto: "Guardar y continuar", valor: "guardar", tipo: "primary" },
+      { texto: salir ? "Salir sin guardar" : "Descartar cambios", valor: "descartar", tipo: "peligro" },
+      { texto: salir ? "Guardar y salir" : "Guardar y continuar", valor: "guardar", tipo: "primary" },
     ],
   });
   if (r === "guardar") return await guardarActual();
   if (r === "descartar") { setDirty(false); return true; }
   return false;
+}
+
+/** Python la llama al cerrar la ventana con cambios pendientes (ver EditorApi._al_cerrar_ventana). */
+let preguntandoCierre = false;
+async function pedirCierre() {
+  if (preguntandoCierre) return;            // ya hay un diálogo abierto
+  preguntandoCierre = true;
+  try {
+    if (await guardia(true)) await api.cerrar();
+  } catch (err) { fallo(err); } finally { preguntandoCierre = false; }
 }
 
 /* ---- carga de datos ---- */

@@ -249,6 +249,8 @@ class EditorApi:
         self._thumbs: dict[tuple[str, int, int, int], dict[str, Any]] = {}
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
         self._al_cargar: Callable[[Path], None] | None = None   # p. ej. recordar la carpeta
+        self._sin_guardar = False      # la interfaz avisa cuando hay cambios pendientes
+        self._cierre_aceptado = False
 
     # --- estado ------------------------------------------------------
     def _require_chapter(self, capitulo: int) -> dict[str, Any]:
@@ -775,6 +777,41 @@ class EditorApi:
             "resumen": lines[-1] if lines else "",
             "avisos": [line for line in lines if line.startswith("AVISO")],
         }
+
+    # --- cierre de la ventana -----------------------------------------------------
+    @respuesta
+    def marcar_cambios(self, pendientes: bool) -> dict[str, Any]:
+        """La interfaz indica si hay cambios sin guardar (para avisar al cerrar)."""
+        self._sin_guardar = bool(pendientes)
+        return {}
+
+    @respuesta
+    def cerrar(self) -> dict[str, Any]:
+        """Cierra la ventana después de que la interfaz haya resuelto los cambios pendientes."""
+        self._cierre_aceptado = True
+        if self._window is not None:
+            # Se cierra un poco después para que esta respuesta llegue antes a la página.
+            threading.Timer(0.2, self._window.destroy).start()
+        return {}
+
+    def _al_cerrar_ventana(self) -> bool:
+        """Manejador de `closing`: con cambios sin guardar cancela el cierre (False)
+        y la página pregunta qué hacer; si se sale, la página llama a `cerrar`.
+
+        Se ejecuta en el hilo de la interfaz gráfica, así que no espera a la página.
+        """
+        if self._cierre_aceptado or not self._sin_guardar or self._window is None:
+            return True
+        window = self._window
+
+        def preguntar() -> None:
+            try:
+                window.evaluate_js("pedirCierre()")
+            except Exception:  # noqa: BLE001 - si la página no responde, no se bloquea el cierre
+                self._sin_guardar = False
+
+        threading.Thread(target=preguntar, daemon=True).start()
+        return False
 
     @respuesta
     def mostrar_en_carpeta(self, ruta: str) -> dict[str, Any]:

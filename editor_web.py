@@ -95,6 +95,7 @@ def main() -> None:
         text_select=True,    # sin esto pywebview impide seleccionar y copiar texto (IDs, mensajes)
     )
     api._window = ventana
+    ventana.events.closing += api._al_cerrar_ventana   # pregunta si hay cambios sin guardar
     webview.start(debug=args.depurar)
 
 
