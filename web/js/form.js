@@ -97,6 +97,7 @@ function valoresDePrueba(el = {}) {
   for (const k of LISTAS) v[k] = aLista(el[k]).map(filaDesde);
   v.campos_adicionales = extrasDesde(el.campos_adicionales);
   v.imagenes = aLista(el.imagenes).map(String);
+  v.etiquetas = aLista(el.etiquetas).map(String);
   return v;
 }
 
@@ -104,13 +105,13 @@ function serializar(clave) {
   const v = F.valores[clave];
   if (LISTAS.includes(clave)) return filasAPlano(v);
   if (clave === "campos_adicionales") return extrasAPlano(v);
-  if (clave === "imagenes") return [...v];
+  if (clave === "imagenes" || clave === "etiquetas") return [...v];
   return v;
 }
 
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
-    ? [...CAMPOS_TEXTO, ...LISTAS, "campos_adicionales", "imagenes"]
+    ? [...CAMPOS_TEXTO, ...LISTAS, "campos_adicionales", "imagenes", "etiquetas"]
     : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
 }
@@ -201,6 +202,46 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
   });
   return h("div", { class: "campo" + (ancho ? " ancho" : "") + (completo ? " completo" : "") },
     h("label", { for: id, text: etiqueta }), input);
+}
+
+/** Etiquetas como fichas: Enter o coma añade, Retroceso en vacío quita la última. */
+function campoEtiquetas() {
+  const etiquetas = F.valores.etiquetas;
+  const fichas = h("div", { class: "fichas" });
+  const sugerencias = h("datalist", { id: "sugerencias-etiquetas" });
+  const entrada = h("input", {
+    id: "f-etiquetas", type: "text", autocomplete: "off", list: "sugerencias-etiquetas",
+    placeholder: "Añadir etiqueta…", "aria-label": "Añadir etiqueta",
+    onkeydown: (e) => {
+      if ((e.key === "Enter" || e.key === ",") && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
+      else if (e.key === "Enter") e.preventDefault();
+      else if (e.key === "Backspace" && !entrada.value && etiquetas.length) { etiquetas.pop(); tocar("etiquetas"); pintar(); }
+    },
+    oninput: () => { if (entrada.value.includes(",")) añadir(entrada.value); },
+    onchange: () => { if (entrada.value.trim()) añadir(entrada.value); },   // al elegir una sugerencia
+  });
+  function añadir(texto) {
+    for (const parte of texto.split(",").map((t) => t.trim()).filter(Boolean)) {
+      if (!etiquetas.includes(parte)) etiquetas.push(parte);
+    }
+    entrada.value = "";
+    tocar("etiquetas");
+    pintar();
+  }
+  function pintar() {
+    fichas.replaceChildren(...etiquetas.map((t, i) => h("span", { class: "ficha" }, t,
+      h("button", {
+        type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar etiqueta ${t}`,
+        onclick: () => { etiquetas.splice(i, 1); tocar("etiquetas"); pintar(); entrada.focus(); },
+      }, "×"))), entrada);
+  }
+  pintar();
+  api.etiquetas().then((lista) => {
+    sugerencias.replaceChildren(...lista.map((t) => h("option", { value: t })));
+  }, () => {});
+  return h("div", { class: "campo completo" },
+    h("label", { for: "f-etiquetas", text: "Etiquetas" }), fichas, sugerencias,
+    h("span", { class: "ayuda", text: "Sirven para elegir qué pruebas entran en una campaña de ejecución." }));
 }
 
 function campoSelect(clave, etiqueta, opciones) {
@@ -518,6 +559,7 @@ function cuerpoPrueba(ubicacion) {
       campoTexto("referencia", "Referencia"),
       campoTexto("fecha", "Fecha"),
       campoTexto("version", "Versión"),
+      campoEtiquetas(),
       campoArea("descripcion", "Descripción"))));
   cont.append(
     editorLista("contexto", "Contexto", { ayuda: "Texto que aparece antes de la tabla de la prueba." }),

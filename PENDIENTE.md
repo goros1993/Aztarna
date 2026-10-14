@@ -3,6 +3,56 @@
 Planificación y propuestas. El uso de las herramientas está en el
 [README](README.md).
 
+## Campañas de ejecución
+
+Objetivo: apuntar los resultados de las pruebas sin tocar los YAML de pruebas,
+ver el avance y generar un entregable al terminar.
+
+Cada campaña es una carpeta que cada usuario elige en su PC, con
+`campaña.yaml` (datos, criterio de selección y lista congelada de pruebas con
+la huella de su contenido), `resultados.yaml` (un resultado por prueba, con
+observaciones, incidencia, evidencias e historial de intentos) y `evidencias/`.
+
+Estados: **Pendiente** (aún sin ejecutar), **OK**, **NO OK** (se ejecutó y el
+producto falla), **Bloqueada** (no se pudo ejecutar por algo ajeno al
+producto: banco caído, falta hardware, depende de otra prueba que falló) y
+**No aplica**. El porcentaje de OK se calcula sobre las pruebas que aplican.
+
+Hecho:
+
+- Fase 1: núcleo (`ejecucion_core.py`): selección por etiquetas, criticidad,
+  automatizable, plataforma, entorno, componente, capítulo e IDs; creación con
+  lista congelada; resultados con historial; huella para detectar pruebas
+  cambiadas después de ejecutarse; resincronizar; cerrar; resumen y avisos.
+- Fase 2: campo `etiquetas` en el editor (fichas con sugerencias) y en los
+  ejemplos.
+
+Siguiente:
+
+- Fase 3: modo «Ejecución» en el editor: crear o abrir campaña (con vista
+  previa de la selección), árbol con el estado de cada prueba, ficha en solo
+  lectura con panel de resultado (estado, observaciones, incidencia,
+  evidencias) y «Guardar y siguiente pendiente».
+- Fase 4: panel de resumen (avance, totales por estado, desglose por capítulo y
+  criticidad, fallos y bloqueos) y validación de la campaña.
+- Fase 5: cerrar campaña y generar el entregable: DOCX/PDF con el mismo
+  aspecto que `yaml_a_docx.py`, con un resumen al principio (datos de la
+  campaña, totales, criterio de selección) y el resultado de cada prueba.
+
+Para más adelante:
+
+- **Varias personas en la misma campaña.** Ahora cada campaña vive en el PC de
+  quien la ejecuta. Si varias personas reparten una campaña, habrá que fusionar
+  sus resultados. Opciones a valorar: un archivo de resultados por persona (o
+  por prueba) que se combinan al abrir la campaña; una función «Importar
+  resultados de otra copia» que una registros y avise de conflictos (la misma
+  prueba con resultados distintos, resuelta por fecha o eligiendo a mano); o
+  una carpeta compartida con bloqueo. Las huellas y el historial de intentos
+  ya guardan lo necesario para detectar esos conflictos.
+- Comparar campañas («nuevos fallos respecto a la versión anterior»).
+- Importar resultados de pruebas automáticas (por ejemplo, JUnit XML) para las
+  pruebas con `automatizable: si`.
+
 ## Siguientes pasos de importación
 
 Cuando haya demasiadas tablas o estructuras distintas, conviene seguir esta

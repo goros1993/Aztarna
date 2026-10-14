@@ -35,6 +35,9 @@ contenido:
     referencia: DEMO-REQ-CAN-01
     fecha: '2026-09-18'
     version: '2.0'
+    etiquetas:
+    - regresion
+    - comunicaciones
     contexto:
     - Esta prueba solo afecta a la trama de estado; las de diagnóstico se validan en la sección siguiente.
     campos_adicionales:
@@ -67,6 +70,10 @@ contenido:
     referencia: DEMO-REQ-CAN-03
     fecha: '2026-09-18'
     version: '1.0'
+    etiquetas:
+    - regresion
+    - comunicaciones
+    - seguridad
     campos_adicionales:
       Tiempo máximo de detección: 500 ms
       Datos de prueba:
@@ -101,6 +108,8 @@ contenido:
     referencia: DEMO-REQ-DIAG-01
     fecha: '2026-09-25'
     version: '1.0'
+    etiquetas:
+    - comunicaciones
     contexto:
     - Mensajes con formato [[#7030A0|en morado]], [[res:verde|resaltado verde]] y [[res:cian|resaltado cian]], para ver todas las marcas en la vista previa y en el DOCX.
     campos_adicionales:

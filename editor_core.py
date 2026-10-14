@@ -417,6 +417,7 @@ DEFAULT_TEST: dict[str, Any] = {
     "referencia": "",
     "fecha": "",
     "version": "",
+    "etiquetas": [],
     "contexto": [],
     "campos_adicionales": {},
     "imagenes": [],

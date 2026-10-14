@@ -41,6 +41,10 @@ contenido:
     referencia: DEMO-REQ-LLAM-01
     fecha: '2026-09-15'
     version: '1.2'
+    etiquetas:
+    - smoke
+    - regresion
+    - llamadas
 - prueba:
     nombre: Llamada desde piso
     nivel: 3
@@ -62,6 +66,9 @@ contenido:
     referencia: DEMO-REQ-LLAM-02
     fecha: '2026-09-15'
     version: '1.0'
+    etiquetas:
+    - regresion
+    - llamadas
 - seccion: Llamadas simultáneas
   nivel: 3
   contexto:
@@ -97,6 +104,9 @@ contenido:
     referencia: DEMO-REQ-LLAM-05
     fecha: '2026-09-20'
     version: '1.0'
+    etiquetas:
+    - regresion
+    - llamadas
 - seccion: Nivelación
   nivel: 2
 - prueba:
@@ -121,3 +131,6 @@ contenido:
     referencia: DEMO-REQ-NIV-01
     fecha: '2026-09-22'
     version: '1.1'
+    etiquetas:
+    - smoke
+    - regresion

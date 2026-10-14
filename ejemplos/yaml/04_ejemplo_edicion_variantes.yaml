@@ -35,6 +35,9 @@ contenido:
     referencia: DEMO-REQ-MANT-01
     fecha: '2026-10-02'
     version: '1.0'
+    etiquetas:
+    - regresion
+    - mantenimiento
     contexto:
     - El paso 2 usa la clave antigua «imagen» en lugar de «imagenes»; el editor la muestra igual.
     campos_adicionales:
@@ -84,6 +87,8 @@ contenido:
     referencia: DEMO-REQ-VAR-01
     fecha: '2026-10-05'
     version: '1.0'
+    etiquetas:
+    - resistencia
     campos_adicionales:
       Duración estimada: 8 h
       Ciclos: '1000'
@@ -111,6 +116,9 @@ contenido:
     referencia: DEMO-REQ-VAR-02
     fecha: '2026-10-05'
     version: '0.9'
+    etiquetas:
+    - seguridad
+    - manual
     campos_adicionales:
       Resultado esperado: Las puertas pueden abrirse manualmente desde el exterior.
       Equipo autor: Equipo de seguridad (ficticio)

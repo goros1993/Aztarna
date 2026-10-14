@@ -92,6 +92,12 @@ class ApiTests(ApiBase):
         ok(self, self.api.guardar_prueba(0, 1, {"criticidad": "", "contexto": []}))
         self.assertNotIn("criticidad", (self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
 
+    def test_guardar_etiquetas_limpias_y_proponerlas(self):
+        ok(self, self.api.guardar_prueba(0, 1, {"etiquetas": [" smoke ", "regresion", "smoke", ""]}))
+        self.assertEqual(list(self.contenido()[1]["prueba"]["etiquetas"]), ["smoke", "regresion"])
+        self.assertEqual(ok(self, self.api.etiquetas()), ["regresion", "smoke"])
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"etiquetas": "smoke"})["ok"])
+
     def test_guardar_listas_con_imagenes(self):
         pasos = [{"texto": "uno", "imagenes": ["imagenes/a.png"]}, "dos", ""]
         ok(self, self.api.guardar_prueba(0, 1, {"pasos": pasos}))

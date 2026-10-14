@@ -201,6 +201,22 @@ def _clean_extras(extras: Any) -> dict[str, Any]:
     return cleaned
 
 
+def _clean_tags(tags: Any) -> list[str]:
+    """Etiquetas: lista de textos sin espacios a los lados ni repetidas."""
+    if tags is None:
+        return []
+    if not isinstance(tags, list):
+        raise ValueError("'etiquetas' debe ser una lista.")
+    cleaned: list[str] = []
+    for tag in tags:
+        if isinstance(tag, (dict, list)):
+            raise ValueError("Cada etiqueta debe ser un texto.")
+        text = str(tag).strip()
+        if text and text not in cleaned:
+            cleaned.append(text)
+    return cleaned
+
+
 def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
     """Valida y normaliza los campos de una prueba recibidos de la interfaz."""
     cleaned: dict[str, Any] = {}
@@ -215,6 +231,8 @@ def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
             cleaned[field] = _clean_list(value, field)
             if any(not isinstance(v, str) for v in cleaned[field]):
                 raise ValueError("'imagenes' debe ser una lista de rutas.")
+        elif field == "etiquetas":
+            cleaned[field] = _clean_tags(value)
         elif field == "nivel":
             cleaned[field] = normalize_level(value)
         else:
@@ -396,6 +414,18 @@ class EditorApi:
             {"indice": index, "titulo": title, "nivel": level}
             for index, title, level in headings_in_chapter(chapter)
         ]
+
+    @respuesta
+    def etiquetas(self) -> list[str]:
+        """Etiquetas usadas en todas las pruebas, para proponerlas al escribir."""
+        usadas: set[str] = set()
+        for chapter in self._chapters:
+            for _index, test in tests_in_chapter(chapter):
+                valor = test.get("etiquetas") or []
+                for tag in valor if isinstance(valor, list) else [valor]:
+                    if str(tag).strip():
+                        usadas.add(str(tag).strip())
+        return sorted(usadas, key=str.lower)
 
     # --- lectura -------------------------------------------------------
     @respuesta
@@ -703,7 +733,7 @@ class EditorApi:
                     seen.setdefault(test_id, []).append((ci, index))
                 if not str(test.get("titulo") or "").strip():
                     add("aviso", ci, index, test_id, "La prueba no tiene título.")
-                for field in LIST_FIELDS:
+                for field in (*LIST_FIELDS, "etiquetas"):
                     if field in test and test[field] not in (None, "") and not isinstance(test[field], list):
                         add("error", ci, index, test_id, f"'{field}' debe ser una lista.")
                 if not any(test.get(f) for f in ("pasos", "situacion_inicial", "situacion_final")):

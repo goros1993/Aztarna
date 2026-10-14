@@ -11,6 +11,7 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `editor_api.py`, `web/` | API en Python e interfaz HTML del editor. |
 | `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
+| `ejecucion_core.py` | Campañas de ejecución: selección de pruebas y resultados (en desarrollo). |
 | `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
 | `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
 | `test_*.py` | Pruebas automatizadas. |
@@ -198,6 +199,7 @@ contenido:
       referencia: ""
       fecha: ""
       version: ""
+      etiquetas: [regresion, smoke]
       contexto:
         - "Contexto que se aplica únicamente a esta prueba."
       campos_adicionales:
@@ -213,6 +215,9 @@ Consejos para crear una prueba:
 
 - Copia una prueba existente del mismo tipo y actualiza el ID, títulos, campos
   y pasos.
+- Usa `etiquetas` para agrupar pruebas (por ejemplo `regresion`, `smoke`,
+  `seguridad`); son el criterio principal para elegir qué pruebas entran en una
+  campaña de ejecución.
 - Usa un ID único salvo que la repetición sea deliberada y esté documentada.
 - Mantén `situacion_inicial`, `pasos` y `situacion_final` como listas.
 - Conserva los campos adicionales con su significado; no mezcles el resultado
