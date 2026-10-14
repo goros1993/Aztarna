@@ -263,5 +263,23 @@ def docx_base_dir():
     return Path(".")
 
 
+class TamañoImagenesTests(unittest.TestCase):
+    def test_las_imagenes_altas_no_superan_el_alto_maximo(self):
+        from docx.shared import Cm
+        from PIL import Image
+
+        with TemporaryDirectory() as tmp:
+            alta, ancha = Path(tmp) / "alta.png", Path(tmp) / "ancha.png"
+            Image.new("RGB", (300, 900), "white").save(alta)
+            Image.new("RGB", (900, 300), "white").save(ancha)
+            doc = Document()
+            yaml_a_docx.agregar_imagen(doc.add_paragraph().add_run(), alta, Cm(10))
+            yaml_a_docx.agregar_imagen(doc.add_paragraph().add_run(), ancha, Cm(10))
+            primera, segunda = doc.inline_shapes
+            self.assertLessEqual(primera.height, Cm(yaml_a_docx.ALTO_MAX_IMAGEN_CM) + 1)
+            self.assertLess(primera.width, Cm(10))
+            self.assertEqual(segunda.width, Cm(10))
+
+
 if __name__ == "__main__":
     unittest.main()

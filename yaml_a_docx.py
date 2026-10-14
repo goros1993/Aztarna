@@ -35,6 +35,8 @@ TAMANO = 10
 COLOR_CABECERA = "00A651"      # verde de la cabecera
 COLOR_TEXTO_CABECERA = RGBColor(0xFF, 0xFF, 0xFF)
 ANCHO_TABLA_CM = 17.0          # ancho útil de la página A4 con márgenes de 2 cm
+ANCHO_IMAGEN_CM = 10.0         # ancho de las imágenes incrustadas…
+ALTO_MAX_IMAGEN_CM = 9.0       # …salvo que así queden más altas que esto (capturas verticales)
 COLUMNAS = 6                   # rejilla base de la tabla
 
 # Nombres de color -> hex (los mismos que usa convertir.py)
@@ -151,13 +153,36 @@ def insertar_imagen(celda, base_dir, imagen):
     ruta = base_dir / imagen
     if ruta.exists():
         run = celda.add_paragraph().add_run()
-        agregar_imagen(run, ruta, Cm(10))
+        agregar_imagen(run, ruta, Cm(ANCHO_IMAGEN_CM))
     else:
         print(f"  AVISO: imagen no encontrada: {ruta}")
 
 
+def _tamaño_imagen(ruta):
+    """(ancho, alto) en píxeles de una imagen normal, o None si no se puede leer."""
+    try:
+        from PIL import Image
+
+        with Image.open(ruta) as imagen:
+            return imagen.size
+    except Exception:  # noqa: BLE001 - si no se puede leer, se usa el ancho fijo
+        return None
+
+
+def _ancho_limitado(ancho, ancho_px, alto_px):
+    """Reduce el ancho si con él la imagen superaría ALTO_MAX_IMAGEN_CM de alto."""
+    if ancho_px > 0 and alto_px > 0:
+        alto_max = Cm(ALTO_MAX_IMAGEN_CM)
+        if ancho * alto_px / ancho_px > alto_max:
+            return int(alto_max * ancho_px / alto_px)
+    return ancho
+
+
 def agregar_imagen(run, ruta, ancho):
     if ruta.suffix.lower() != ".emf":
+        tamaño = _tamaño_imagen(ruta)
+        if tamaño:
+            ancho = _ancho_limitado(ancho, *tamaño)
         run.add_picture(str(ruta), width=ancho)
         return
 
@@ -171,6 +196,7 @@ def agregar_imagen(run, ruta, ancho):
     if ancho_marco <= 0 or alto_marco <= 0:
         raise ValueError(f"El EMF tiene dimensiones inválidas: {ruta}")
 
+    ancho = _ancho_limitado(ancho, ancho_marco, alto_marco)
     alto = int(ancho * alto_marco / ancho_marco)
     part = run.part
     image_part = ImagePart(
@@ -391,7 +417,12 @@ def escribir_contexto(doc, textos, base_dir=Path(".")):
             for imagen in imagenes:
                 ruta = base_dir / imagen
                 if ruta.exists():
-                    agregar_imagen(p.add_run(), ruta, Cm(10))
+                    # Cada imagen en su propio párrafo, debajo del texto (no pegada a su última línea).
+                    if p.text or p.runs:
+                        p = doc.add_paragraph()
+                        compactar(p)
+                        p.paragraph_format.space_after = Pt(6)
+                    agregar_imagen(p.add_run(), ruta, Cm(ANCHO_IMAGEN_CM))
                 else:
                     print(f"  AVISO: imagen no encontrada: {ruta}")
         else:

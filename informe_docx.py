@@ -10,6 +10,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -266,11 +267,20 @@ def _libreoffice() -> str | None:
         ruta = shutil.which(nombre)
         if ruta:
             return ruta
+    candidatos: list[Path] = []
     if sys.platform.startswith("win"):
-        for base in (Path("C:/Program Files/LibreOffice/program"), Path("C:/Program Files (x86)/LibreOffice/program")):
-            if (base / "soffice.exe").is_file():
-                return str(base / "soffice.exe")
-    return None
+        candidatos += [Path("C:/Program Files/LibreOffice/program/soffice.exe"),
+                       Path("C:/Program Files (x86)/LibreOffice/program/soffice.exe")]
+    elif sys.platform == "darwin":
+        candidatos.append(Path("/Applications/LibreOffice.app/Contents/MacOS/soffice"))
+    else:
+        # El paquete oficial de libreoffice.org se instala en /opt/libreofficeX.Y
+        # con un lanzador con la versión en el nombre (libreoffice26.8).
+        candidatos += sorted(Path("/opt").glob("libreoffice*/program/soffice"), reverse=True)
+        for carpeta in os.environ.get("PATH", "").split(os.pathsep):
+            if carpeta and Path(carpeta).is_dir():
+                candidatos += sorted(Path(carpeta).glob("libreoffice[0-9]*"), reverse=True)
+    return next((str(c) for c in candidatos if c.is_file() and os.access(c, os.X_OK)), None)
 
 
 def pdf_disponible() -> str | None:
