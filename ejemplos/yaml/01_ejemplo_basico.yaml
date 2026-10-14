@@ -1,71 +1,123 @@
+# Capítulo 1: llamadas y desplazamientos (datos ficticios).
+# Muestra lo esencial: texto de capítulo, secciones en dos niveles, pruebas
+# con listas sencillas, subpuntos con «nivel» y una imagen en un paso.
 capitulo: Ejemplo básico
 contenido:
-- seccion: Operaciones normales
+- texto: >-
+    Este capítulo reúne las pruebas **funcionales básicas** del controlador
+    DEMO-A1: registro de llamadas, servicio de plantas y nivelación. Todas se
+    ejecutan sobre el banco HIL con la instalación simulada de cuatro paradas.
+  alcance: capitulo
+- seccion: Llamadas
   nivel: 2
   contexto:
-  - Datos ficticios para probar el editor local.
+  - La instalación simulada tiene cuatro paradas (PB, P1, P2 y P3) y una sola cabina.
+  - texto: Esquema del pozo con los sensores de nivel de cada planta.
+    imagenes:
+    - imagenes/esquema_pozo.png
 - prueba:
     nombre: Llamada desde cabina
     nivel: 3
-    id: DEMO-LLAMADA-001
-    titulo: La llamada desde cabina se atiende
-    descripcion: Comprobar que una llamada de cabina llega al piso seleccionado.
-    componente: Controlador de prueba
-    plataforma: Simulador local
+    id: DEMO-LLAM-001
+    titulo: Una llamada de cabina lleva el ascensor a la planta pedida
+    descripcion: Comprobar que una llamada registrada desde la botonera de cabina se atiende y la cabina se detiene en la planta seleccionada.
+    componente: Gestor de llamadas
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - El ascensor está parado en la planta baja.
+    - La cabina está parada en PB con las puertas cerradas.
     - No hay llamadas pendientes.
     pasos:
-    - Pulsar el botón de llamada de la planta 2.
-    - Esperar a que la cabina llegue a la planta 2.
+    - texto: Pulsar el botón **2** de la botonera de cabina.
+      imagenes:
+      - imagenes/botonera_cabina.png
+    - Comprobar que el botón se ilumina y el indicador muestra *▲ 2*.
+    - Esperar a que la cabina llegue a P2.
     situacion_final:
-    - La llamada queda registrada.
-    - La cabina se detiene en la planta 2.
+    - La cabina se detiene en P2 y abre puertas.
+    - La llamada se borra del registro y el botón se apaga.
     automatizable: si
-    criticidad: media
-    entorno: Simulador
-    referencia: DEMO-REQ-001
-    fecha: ''
-    version: '1.0'
-- seccion: asdfasdf
-  nivel: 3
-- prueba:
-    id: dddddd
-    titulo: ''
-    componente: ''
-    plataforma: ''
-    criticidad: ''
-    entorno: ''
-    referencia: ''
-    fecha: ''
-    version: ''
-    automatizable: ''
-    nombre: asdf
-    nivel: 4
-    situacion_inicial: []
-    pasos: []
-    situacion_final: []
-    contexto: []
-    campos_adicionales: {}
-    imagenes: []
-    descripcion: ''
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-LLAM-01
+    fecha: '2026-09-15'
+    version: '1.2'
 - prueba:
     nombre: Llamada desde piso
     nivel: 3
-    id: DEMO-LLAMADA-002
-    titulo: La llamada desde piso queda registrada
-    descripcion: Verificar el registro de una llamada desde el piso.
-    componente: Controlador de prueba
-    plataforma: Simulador local
+    id: DEMO-LLAM-002
+    titulo: Una llamada de piso queda registrada y se confirma al pasajero
+    descripcion: Verificar que una llamada desde el pulsador de piso se registra y se confirma con la luz del pulsador.
+    componente: Gestor de llamadas
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - La cabina está parada en otra planta.
+    - La cabina está parada en P3.
     pasos:
-    - Pulsar el botón de llamada hacia arriba.
+    - Pulsar la llamada de subida en P1.
+    - Observar el pulsador de P1.
     situacion_final:
-    - El indicador confirma la llamada.
+    - El pulsador de P1 queda iluminado hasta que la cabina llega.
     automatizable: no
-    criticidad: baja
-    entorno: Simulador
-    referencia: DEMO-REQ-002
-    fecha: ''
+    criticidad: media
+    entorno: HIL
+    referencia: DEMO-REQ-LLAM-02
+    fecha: '2026-09-15'
     version: '1.0'
+- seccion: Llamadas simultáneas
+  nivel: 3
+  contexto:
+  - Pruebas con varias llamadas activas a la vez para comprobar el orden de servicio.
+- prueba:
+    nombre: Orden de servicio con llamadas cruzadas
+    nivel: 4
+    id: DEMO-LLAM-003
+    titulo: Las llamadas se atienden en el sentido de marcha
+    descripcion: Con la cabina subiendo, las llamadas en el mismo sentido se atienden antes que las de sentido contrario.
+    componente: Gestor de llamadas
+    plataforma: Banco HIL DEMO-A1
+    situacion_inicial:
+    - La cabina está en PB y sale hacia P3 por una llamada de cabina.
+    pasos:
+    - 'Mientras sube, registrar estas llamadas de piso:'
+    - texto: P1 de bajada.
+      nivel: 1
+    - texto: P2 de subida.
+      nivel: 1
+    - Anotar el orden en que la cabina se detiene.
+    situacion_final:
+    - 'La cabina se detiene en este orden:'
+    - texto: P2 (subida), porque va en el sentido de marcha.
+      nivel: 1
+    - texto: P3 (destino de cabina).
+      nivel: 1
+    - texto: P1 (bajada), en el viaje de vuelta.
+      nivel: 1
+    automatizable: si
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-LLAM-05
+    fecha: '2026-09-20'
+    version: '1.0'
+- seccion: Nivelación
+  nivel: 2
+- prueba:
+    nombre: Precisión de parada
+    nivel: 3
+    id: DEMO-NIV-001
+    titulo: La cabina para dentro de la tolerancia de nivelación
+    descripcion: Medir el desnivel entre el suelo de cabina y el de planta tras una parada normal.
+    componente: Control de posición
+    plataforma: Banco HIL DEMO-A1
+    situacion_inicial:
+    - Carga en cabina simulada al 0 %.
+    pasos:
+    - Enviar la cabina de PB a P3.
+    - Leer el desnivel informado por el sensor de nivel de P3.
+    - Repetir con carga simulada al 100 %.
+    situacion_final:
+    - El desnivel es menor de [[res:amarillo|±5 mm]] en ambos casos.
+    automatizable: si
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-NIV-01
+    fecha: '2026-09-22'
+    version: '1.1'

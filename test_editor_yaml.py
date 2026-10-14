@@ -4,7 +4,7 @@ import unittest
 
 from ruamel.yaml import YAML
 
-import editor_yaml
+import editor_core as editor_yaml  # el núcleo no depende de Tkinter
 
 
 class EditorYamlTests(unittest.TestCase):

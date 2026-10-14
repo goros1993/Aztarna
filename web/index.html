@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Editor de pruebas</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="4 7 20 7"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+    <symbol id="i-indent" viewBox="0 0 24 24"><line x1="11" y1="7" x2="20" y2="7"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="11" y1="17" x2="20" y2="17"/><polyline points="4 9 7 12 4 15"/></symbol>
+    <symbol id="i-outdent" viewBox="0 0 24 24"><line x1="11" y1="7" x2="20" y2="7"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="11" y1="17" x2="20" y2="17"/><polyline points="7 9 4 12 7 15"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.5"/><polyline points="5 18 11 13 15 16 20 11"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5V18a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1V9.5a1 1 0 0 0-1-1H12l-2-2.5H4.5a1 1 0 0 0-1 1z"/></symbol>
+    <symbol id="i-reload" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.2-5.1"/><polyline points="19 4 19 8 15 8"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M5 14v5h14v-5"/><line x1="12" y1="4" x2="12" y2="15"/><polyline points="7.5 10.5 12 15 16.5 10.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="1.5"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 19.5h18z"/><line x1="12" y1="10" x2="12" y2="14.5"/><line x1="12" y1="17" x2="12" y2="17.2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="5 12.5 10 17.5 19 7"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="17" r="1.2"/><circle cx="15" cy="17" r="1.2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <header class="barra">
+    <div class="marca">Pruebas YAML</div>
+    <button class="btn carpeta" id="btn-carpeta" type="button" title="Cambiar de carpeta">
+      <svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>
+      <span id="carpeta-ruta">Sin carpeta</span>
+    </button>
+    <label class="capitulo" for="sel-capitulo">
+      <span class="sr">Capítulo</span>
+      <select id="sel-capitulo" disabled></select>
+    </label>
+    <div class="relleno"></div>
+    <button class="btn ghost" id="btn-recargar" type="button" title="Volver a leer los archivos del disco">
+      <svg class="ico" aria-hidden="true"><use href="#i-reload"/></svg>Recargar
+    </button>
+    <button class="btn" id="btn-exportar" type="button" title="Generar el documento de Word con todos los capítulos">
+      <svg class="ico" aria-hidden="true"><use href="#i-export"/></svg>Exportar DOCX
+    </button>
+  </header>
+
+  <div class="cuerpo" id="cuerpo">
+    <aside class="lateral" id="lateral" aria-label="Navegación del capítulo">
+      <div class="busqueda">
+        <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="buscar" type="search" placeholder="Buscar por ID o texto" aria-label="Buscar por ID o texto" autocomplete="off">
+      </div>
+      <div class="lateral-acciones">
+        <button class="btn peq" id="btn-nueva-prueba" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Prueba</button>
+        <button class="btn peq" id="btn-nueva-seccion" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Sección</button>
+        <span class="ayuda-arrastre">Arrastra para reordenar</span>
+      </div>
+      <ul id="arbol" class="arbol" role="tree" aria-label="Secciones y pruebas"></ul>
+    </aside>
+    <div class="divisor" id="divisor" role="separator" aria-orientation="vertical" aria-label="Ajustar el ancho del panel" tabindex="0"></div>
+    <main class="principal" id="principal" tabindex="-1"></main>
+  </div>
+
+  <section class="problemas" id="problemas" aria-label="Validación" hidden>
+    <div class="problemas-cab">
+      <div class="seg" role="group" aria-label="Alcance de la validación">
+        <button type="button" id="alcance-capitulo" aria-pressed="true">Este capítulo</button>
+        <button type="button" id="alcance-todos" aria-pressed="false">Todos</button>
+      </div>
+      <button class="btn ghost peq" id="btn-revalidar" type="button">Volver a validar</button>
+    </div>
+    <ul id="lista-problemas" class="lista-problemas"></ul>
+  </section>
+
+  <footer class="estado">
+    <button class="btn ghost peq" id="btn-problemas" type="button" aria-expanded="false" aria-controls="problemas">
+      <svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>
+      <span id="resumen-problemas">Sin validar</span>
+    </button>
+    <span id="resumen-datos" class="muted"></span>
+    <div class="relleno"></div>
+    <span id="estado-guardado" class="estado-guardado" hidden>Cambios sin guardar</span>
+  </footer>
+</div>
+
+<div id="avisos" class="avisos" aria-live="polite"></div>
+
+<script src="vendor/yaml-editor.js"></script>
+<script src="js/util.js"></script>
+<script src="js/tree.js"></script>
+<script src="js/form.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

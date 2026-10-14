@@ -1,3 +1,4 @@
 python-docx>=1.2,<2
 Pillow>=10,<13
 ruamel.yaml>=0.18,<0.20
+pywebview>=5,<7

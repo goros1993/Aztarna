@@ -399,19 +399,13 @@ def escribir_contexto(doc, textos, base_dir=Path(".")):
             escribir_inline(p, str(texto))
 
 
-def main():
-    ap = argparse.ArgumentParser(description="YAML de pruebas -> DOCX")
-    ap.add_argument("entrada", help="carpeta con YAML (con indice.yaml) o un archivo YAML")
-    ap.add_argument("-o", "--salida", default="pruebas.docx")
-    ap.add_argument("--primer-capitulo", type=int, default=1,
-                    help="número del primer Título 1 (p. ej. 8 si el original empieza en 8)")
-    args = ap.parse_args()
-
-    capitulos = cargar(args.entrada)
+def generar_docx(entrada, salida, primer_capitulo=1):
+    """Genera el DOCX a partir de los YAML y devuelve (pruebas, capítulos)."""
+    capitulos = cargar(entrada)
     if not capitulos:
-        raise SystemExit("No se han encontrado YAML con la clave 'contenido'.")
+        raise ValueError("No se han encontrado YAML con la clave 'contenido'.")
 
-    doc = preparar_documento(args.primer_capitulo)
+    doc = preparar_documento(primer_capitulo)
     ids, total = set(), 0
     for cap, contenido, base_dir in capitulos:
         if cap:
@@ -432,8 +426,23 @@ def main():
                 total += 1
             elif "texto" in el:
                 escribir_contexto(doc, [el["texto"]], base_dir)
-    doc.save(args.salida)
-    print(f"{total} pruebas en {len(capitulos)} capítulos -> {args.salida}")
+    doc.save(salida)
+    return total, len(capitulos)
+
+
+def main():
+    ap = argparse.ArgumentParser(description="YAML de pruebas -> DOCX")
+    ap.add_argument("entrada", help="carpeta con YAML (con indice.yaml) o un archivo YAML")
+    ap.add_argument("-o", "--salida", default="pruebas.docx")
+    ap.add_argument("--primer-capitulo", type=int, default=1,
+                    help="número del primer Título 1 (p. ej. 8 si el original empieza en 8)")
+    args = ap.parse_args()
+
+    try:
+        total, n_capitulos = generar_docx(args.entrada, args.salida, args.primer_capitulo)
+    except ValueError as error:
+        raise SystemExit(str(error))
+    print(f"{total} pruebas en {n_capitulos} capítulos -> {args.salida}")
 
 
 if __name__ == "__main__":

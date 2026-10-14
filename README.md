@@ -161,7 +161,59 @@ Consejos para crear una prueba:
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.
 
-## Editor de escritorio local
+## Editor web local (recomendado)
+
+Es la interfaz nueva: HTML dentro de una ventana nativa (pywebview), con la
+misma lógica de ruamel.yaml que el editor de Tkinter, así que los comentarios y
+el formato de los YAML se conservan.
+
+```bash
+python -m pip install -r requirements.txt
+python editor_web.py                 # última carpeta usada, o ejemplos/yaml
+python editor_web.py ruta/a/yaml     # otra carpeta
+```
+
+No inicia ningún servidor ni abre el navegador. En Windows usa WebView2, que
+viene con Windows 11 y con Windows 10 actualizado.
+
+Qué ofrece respecto al editor de Tkinter:
+
+- Un único formulario para pruebas y secciones, con las listas (situación
+  inicial, pasos, situación final, contexto) como filas editables: añadir,
+  quitar, reordenar (Alt+↑/↓) y sangrar. Los pasos van numerados.
+- Imágenes por elemento con miniatura: botón de añadir, pegar con Ctrl+V o
+  soltar archivos. Se copian a `imagenes/`. Los EMF no tienen vista previa fuera
+  de Windows, pero se conservan.
+- Formato en línea (negrita, cursiva, colores, resaltado) que se ve mientras se
+  escribe, sin marcas a la vista. Los botones alternan: volver a pulsar
+  resaltado sobre un texto resaltado lo quita; sin selección, el formato se
+  aplica a lo siguiente que se escriba. Ctrl+Z / Ctrl+Y deshacen y rehacen
+  texto y formato. Se guarda con las marcas que entiende `yaml_a_docx.py`
+  (`**negrita**`, `[[rojo|…]]`, `[[res:amarillo|…]]`…).
+- Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
+  ajustan solos.
+- Vista YAML con resaltado y errores señalados en la línea exacta.
+- Panel de validación (IDs duplicados, imágenes que faltan, pruebas sin título
+  o sin pasos, saltos de nivel) y botón **Exportar DOCX**.
+- Recuerda la última carpeta abierta.
+
+`web/vendor/yaml-editor.js` es un bundle precompilado de CodeMirror 6 (licencia
+MIT) para la vista YAML; no hace falta Node para usar el editor.
+
+### Generar el .exe de Windows
+
+En un Windows con Python 3.10 o posterior, ejecuta `construir_exe.bat`. Crea un
+entorno limpio, instala `requirements.txt` y PyInstaller, y deja
+`dist\EditorPruebas.exe` (un solo archivo, sin consola). PyInstaller no compila
+de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
+incluyen en el .exe: en el primer arranque pide una carpeta y después la
+recuerda.
+
+Se prueba la interfaz sin pywebview (por ejemplo con un navegador) porque toda
+la comunicación pasa por `window.pywebview.api`; las pruebas de la API están en
+`test_editor_api.py`.
+
+## Editor de escritorio local (Tkinter, anterior)
 
 Para crear, buscar y editar pruebas con formularios, ejecuta desde la carpeta
 del proyecto:
@@ -200,16 +252,25 @@ pruebas y subsecciones descendientes se mantienen, promocionadas un nivel.
 
 El repositorio incluye datos ficticios para probar la aplicación antes de
 importar el documento real. Estos ejemplos no contienen información del
-documento original y están registrados en `ejemplos/yaml/indice.yaml`:
+documento original y están registrados en `ejemplos/yaml/indice.yaml`. Describen
+un controlador de ascensor inventado («DEMO-A1») probado en un banco HIL:
 
-- `01_ejemplo_basico.yaml`: pruebas sencillas y jerarquía de secciones.
-- `02_ejemplo_adicionales.yaml`: contexto de prueba y campos adicionales.
-- `03_ejemplo_secciones_imagenes.yaml`: secciones anidadas, imágenes en el
-  contexto de sección, de prueba y de pasos, y una prueba con todos los campos.
-- `04_ejemplo_edicion_variantes.yaml`: varias pruebas bajo secciones para
-  practicar búsqueda, creación, edición y borrado.
+- `01_ejemplo_basico.yaml` (llamadas y nivelación): texto de capítulo,
+  secciones en dos niveles, subpuntos con `nivel` en las listas y una imagen en
+  un paso.
+- `02_ejemplo_adicionales.yaml` (bus CAN y diagnóstico): campos adicionales de
+  texto, de varias líneas y de lista, contexto de prueba y todas las marcas de
+  formato en línea (negrita, cursiva, colores, color hexadecimal y resaltados).
+- `03_ejemplo_secciones_imagenes.yaml` (puertas y serie de seguridad):
+  secciones anidadas hasta el nivel 6 e imágenes PNG, JPG y EMF en el contexto
+  de sección y de prueba, en la situación inicial, los pasos y la situación
+  final, y como imágenes de la prueba.
+- `04_ejemplo_edicion_variantes.yaml` (mantenimiento y variantes): una prueba
+  completa y otra casi vacía, todos los valores de `automatizable`, la clave
+  antigua `imagen` y una sección vacía para practicar el arrastre en el árbol.
 
-Las imágenes ficticias usadas por el tercer capítulo están en
+Los ejemplos validan sin errores ni avisos y llevan comentarios YAML que el
+editor conserva al guardar. Las imágenes son sintéticas y están en
 `ejemplos/yaml/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
 una copia si quieres conservar los originales.
 
@@ -367,7 +428,10 @@ de que solo subes código y documentación no confidenciales:
 
 ```bash
 git status
-git add .gitignore README.md requirements.txt convertir.py yaml_a_docx.py editor_yaml.py inventario.py test_conversion.py test_editor_yaml.py
+git add .gitignore README.md requirements.txt construir_exe.bat \
+  convertir.py yaml_a_docx.py inventario.py \
+  editor_core.py editor_yaml.py editor_api.py editor_web.py web/ \
+  test_conversion.py test_editor_yaml.py test_editor_api.py ejemplos/
 git status
 git commit -m "Update Word and YAML validation tools"
 git push

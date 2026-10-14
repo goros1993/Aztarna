@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Core data and editing helpers for the local Tkinter YAML editor."""
+"""Núcleo de datos y edición de los YAML de pruebas.
+
+Este módulo no depende de ninguna interfaz gráfica: lo usan tanto el editor
+web (editor_api.py) como el editor antiguo de Tkinter (editor_yaml.py).
+"""
 from __future__ import annotations
 
 import os
@@ -7,13 +11,9 @@ import re
 import tempfile
 from io import StringIO
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
-import tkinter as tk
 from typing import Any
 
-from PIL import Image, ImageTk
 from ruamel.yaml import YAML
-from ruamel.yaml.error import YAMLError
 
 
 TEST_FIELDS = (
@@ -234,22 +234,112 @@ def insert_test(chapter: dict[str, Any], test: dict[str, Any],
         contents.append({"prueba": test})
         return
 
-    selected_heading = contents[heading_index]
-    heading_level = int(selected_heading.get("nivel", 2))
-    insert_at = heading_index + 1
-    while insert_at < len(contents):
-        element = contents[insert_at]
-        if isinstance(element, dict):
-            if "seccion" in element and normalize_level(element.get("nivel"), 2) <= heading_level:
-                break
-            existing_test = element.get("prueba")
-            if (
-                isinstance(existing_test, dict)
-                and normalize_level(existing_test.get("nivel"), 3) <= heading_level
-            ):
-                break
-        insert_at += 1
-    contents.insert(insert_at, {"prueba": test})
+    contents.insert(section_end_index(contents, heading_index), {"prueba": test})
+
+
+def element_level(element: Any) -> int | None:
+    """Nivel de encabezado de una sección o prueba; None si no es ninguna."""
+    if not isinstance(element, dict):
+        return None
+    if isinstance(element.get("seccion"), str):
+        return normalize_level(element.get("nivel"), 2)
+    if isinstance(element.get("prueba"), dict):
+        return normalize_level(element["prueba"].get("nivel"), 3)
+    return None
+
+
+def section_end_index(contents: list[Any], heading_index: int) -> int:
+    """Índice donde termina el bloque de una sección (exclusivo).
+
+    El bloque incluye el encabezado y todo lo que cuelga de él hasta la
+    siguiente sección o prueba de nivel igual o superior.
+    """
+    heading = contents[heading_index]
+    if not isinstance(heading, dict) or not isinstance(heading.get("seccion"), str):
+        raise ValueError("La posición seleccionada ya no corresponde a una sección.")
+    heading_level = normalize_level(heading.get("nivel"), 2)
+    end = heading_index + 1
+    while end < len(contents):
+        level = element_level(contents[end])
+        if level is not None and level <= heading_level:
+            break
+        end += 1
+    return end
+
+
+def block_range(contents: list[Any], index: int) -> tuple[int, int]:
+    """Rango [inicio, fin) que se mueve junto con el elemento `index`."""
+    if index < 0 or index >= len(contents) or element_level(contents[index]) is None:
+        raise ValueError("La posición seleccionada ya no es una sección ni una prueba.")
+    if isinstance(contents[index].get("seccion"), str):
+        return index, section_end_index(contents, index)
+    return index, index + 1
+
+
+def _set_level(element: dict[str, Any], level: int) -> None:
+    target = element["prueba"] if isinstance(element.get("prueba"), dict) else element
+    target["nivel"] = level
+
+
+def move_block(
+    chapter: dict[str, Any],
+    index: int,
+    target_index: int,
+    position: str,
+) -> int:
+    """Mueve una prueba o una sección (con su contenido) junto a otro elemento.
+
+    `position` puede ser "antes", "despues" o "dentro" (solo si el destino es
+    una sección: se añade al final de ella). El nivel del elemento movido se
+    ajusta al nuevo lugar y el de sus descendientes, en la misma medida.
+    Devuelve el nuevo índice del elemento movido.
+    """
+    contents = chapter["data"]["contenido"]
+    if position not in ("antes", "despues", "dentro"):
+        raise ValueError(f"Posición no válida: {position}")
+    start, end = block_range(contents, index)
+    if target_index < 0 or target_index >= len(contents):
+        raise ValueError("El destino ya no existe.")
+    target_level = element_level(contents[target_index])
+    if target_level is None:
+        raise ValueError("El destino no es una sección ni una prueba.")
+    if start <= target_index < end:
+        raise ValueError("No se puede mover un elemento dentro de sí mismo.")
+    target_is_section = isinstance(contents[target_index].get("seccion"), str)
+    if position == "dentro" and not target_is_section:
+        raise ValueError("Solo se puede mover dentro de una sección.")
+
+    old_level = element_level(contents[index])
+    if position == "antes":
+        new_level = target_level
+        insert_at = target_index
+    elif position == "despues":
+        new_level = target_level
+        insert_at = (
+            section_end_index(contents, target_index) if target_is_section else target_index + 1
+        )
+    else:
+        new_level = target_level + 1
+        insert_at = section_end_index(contents, target_index)
+
+    delta = new_level - old_level
+    block_levels = [element_level(contents[i]) for i in range(start, end)]
+    if any(not 1 <= level + delta <= 6 for level in block_levels):
+        raise ValueError(
+            "El movimiento dejaría algún nivel fuera del rango 1-6. "
+            "Elige otro destino."
+        )
+
+    block = [contents[i] for i in range(start, end)]
+    for element, level in zip(block, block_levels):
+        if delta:
+            _set_level(element, level + delta)
+    if insert_at > start:
+        insert_at -= end - start
+    del contents[start:end]
+    for offset, element in enumerate(block):
+        contents.insert(insert_at + offset, element)
+    return insert_at
 
 
 def insert_section_after_test(
@@ -424,5 +514,3 @@ YAML_FIELDS = {
     "contexto": "Contexto de la prueba (YAML)",
     "campos_adicionales": "Campos adicionales (YAML)",
 }
-
-

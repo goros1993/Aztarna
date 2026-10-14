@@ -1,103 +1,120 @@
+# Capítulo 3: puertas y serie de seguridad (datos ficticios).
+# Muestra secciones anidadas hasta el nivel 6 e imágenes en todos los sitios
+# posibles: contexto de sección y de prueba, situación inicial, pasos,
+# situación final e imágenes de la prueba. Incluye PNG, JPG y un EMF
+# vectorial (en Linux y macOS el editor no muestra su miniatura, pero lo
+# conserva y lo exporta al DOCX).
 capitulo: Ejemplo de secciones e imágenes
 contenido:
-- seccion: Acceso a la plataforma
+- seccion: Puertas
   nivel: 2
   contexto:
-  - Escenario ficticio para probar el contexto compartido por una sección.
-  - texto: Diagrama general del flujo de acceso.
+  - Las puertas de cabina y de piso se mueven juntas con el operador de puertas.
+  - texto: Secuencia de señales durante una apertura con reapertura por obstáculo.
     imagenes:
-    - imagenes/diagrama_acceso.png
-- seccion: Inicio de sesión
+    - imagenes/cronograma_puertas.png
+- seccion: Apertura
   nivel: 3
-  contexto:
-  - texto: Estado inicial del panel de pruebas.
-    imagenes:
-    - imagenes/panel_estado.png
 - prueba:
-    nombre: Inicio de sesión correcto
+    nombre: Apertura normal
     nivel: 4
-    id: DEMO-ACCESO-001
-    titulo: Un usuario válido puede iniciar sesión
-    descripcion: Comprueba un acceso correcto desde el portal ficticio.
-    componente: Servicio de identidad
-    plataforma: Aplicación web de demostración
+    id: DEMO-PUER-001
+    titulo: Las puertas abren al llegar a planta
+    descripcion: Comprobar el tiempo de apertura y el final de carrera de puerta abierta.
+    componente: Operador de puertas
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - texto: El usuario de prueba está registrado.
-      imagenes:
-      - imagenes/panel_estado.png
+    - La cabina llega a P1 con una llamada de cabina.
     pasos:
-    - texto: Introducir un nombre de usuario y una contraseña válidos.
-    - texto: Confirmar el acceso y comprobar el panel principal.
-      imagenes:
-      - imagenes/panel_estado.png
+    - Medir el tiempo desde la parada hasta la activación de FC_ABIERTA.
     situacion_final:
-    - El panel principal muestra la cuenta del usuario.
+    - FC_ABIERTA se activa en menos de 3 s.
     automatizable: si
-    criticidad: alta
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-LOGIN-01
-    fecha: ''
-    version: '1.0'
-    contexto:
-    - La cuenta y los datos usados son ficticios.
-    - texto: El flujo esperado se representa en el diagrama de la sección.
-      imagenes:
-      - imagenes/diagrama_acceso.png
-    campos_adicionales:
-      Resultado esperado: Se crea una sesión válida y se muestra el panel.
-      Tipo de cuenta: Usuario estándar de demostración
-    imagenes:
-    - imagenes/panel_estado.png
-- prueba:
-    nombre: Rechazo de contraseña incorrecta
-    nivel: 4
-    id: DEMO-ACCESO-002
-    titulo: Una contraseña incorrecta no inicia sesión
-    descripcion: Comprueba el mensaje de error sin exponer información sensible.
-    componente: Servicio de identidad
-    plataforma: Aplicación web de demostración
-    situacion_inicial:
-    - Existe una cuenta ficticia activa.
-    pasos:
-    - Introducir una contraseña incorrecta.
-    - Confirmar que el acceso se rechaza.
-    situacion_final:
-    - La sesión no se crea y se presenta un mensaje genérico.
-    automatizable: medio
     criticidad: media
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-LOGIN-02
-    fecha: ''
+    entorno: HIL
+    referencia: DEMO-REQ-PUER-01
+    fecha: '2026-09-28'
     version: '1.0'
-    contexto: []
-    campos_adicionales: {}
-    imagenes: []
-- seccion: Recuperación de acceso
+- seccion: Operador de puertas A
+  nivel: 4
+  contexto:
+  - Solo aplica a las instalaciones con operador de tipo A.
+- seccion: Reapertura por obstáculo
+  nivel: 5
+  contexto:
+  - texto: El banco HIL dispone de una barrera infrarroja simulada para provocar la reapertura.
+    imagenes:
+    - imagenes/foto_banco_hil.jpg
+- prueba:
+    nombre: Reapertura con barrera interrumpida
+    nivel: 6
+    id: DEMO-PUER-002
+    titulo: Las puertas se reabren si la barrera detecta un obstáculo
+    descripcion: Interrumpir la barrera infrarroja durante el cierre y comprobar que las puertas vuelven a abrir.
+    componente: Operador de puertas
+    plataforma: Banco HIL DEMO-A1
+    situacion_inicial:
+    - texto: La cabina está en P2 con las puertas abiertas y la HMI en modo normal.
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    pasos:
+    - Esperar a que comience el cierre de puertas.
+    - texto: Activar la barrera IR durante 0,5 s desde el panel del banco.
+      imagenes:
+      - imagenes/foto_banco_hil.jpg
+    - Observar el motor de puertas y los finales de carrera.
+    situacion_final:
+    - texto: El motor invierte el sentido y FC_ABIERTA vuelve a activarse, como en el cronograma.
+      imagenes:
+      - imagenes/cronograma_puertas.png
+    - Tras la reapertura, el cierre se repite con normalidad.
+    automatizable: corto
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-PUER-04
+    fecha: '2026-09-28'
+    version: '1.3'
+    contexto:
+    - Es la prueba con más imágenes del conjunto; sirve para ver las miniaturas en el editor.
+    - texto: La captura de la HMI se toma con el registro de alarmas abierto.
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    campos_adicionales:
+      Resultado esperado: Reapertura en menos de 300 ms desde la interrupción.
+    imagenes:
+    - imagenes/registro_eventos.png
+- seccion: Serie de seguridad
   nivel: 2
   contexto:
-  - texto: Pantalla ficticia utilizada para las pruebas de recuperación.
+  - texto: Esquema vectorial (EMF) de los contactos de la serie; el rojo es el contacto que se abre en la prueba.
     imagenes:
-    - imagenes/panel_estado.png
+    - imagenes/esquema_seguridad.emf
 - prueba:
-    nombre: Solicitud de enlace de recuperación
+    nombre: Apertura de la serie de seguridad
     nivel: 3
-    id: DEMO-ACCESO-003
-    titulo: Se puede solicitar un enlace de recuperación
-    descripcion: Muestra un tercer caso bajo una sección de nivel superior.
-    componente: Servicio de identidad
-    plataforma: Aplicación web de demostración
+    id: DEMO-SEG-001
+    titulo: Abrir un contacto de la serie para la cabina de inmediato
+    descripcion: Simular la apertura del tercer contacto de la serie de seguridad con la cabina en marcha.
+    componente: Circuito de seguridad
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - El usuario está en la pantalla de recuperación.
+    - La cabina viaja de P3 a PB a velocidad nominal.
     pasos:
-    - Solicitar un enlace para la cuenta ficticia.
+    - Abrir el contacto 3 de la serie desde el panel del banco.
     situacion_final:
-    - La aplicación confirma la recepción de la solicitud.
+    - texto: La cabina para de inmediato y la HMI muestra [[rojo|E-301]].
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    - El controlador no admite llamadas hasta rearmar la serie.
     automatizable: no
-    criticidad: baja
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-LOGIN-03
-    fecha: ''
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-SEG-01
+    fecha: '2026-10-01'
     version: '1.0'
-    contexto: []
-    campos_adicionales: {}
-    imagenes: []
+    imagenes:
+    - imagenes/esquema_seguridad.emf
+- texto: >-
+    Nota final del capítulo: las pruebas de la serie de seguridad deben
+    repetirse tras cualquier cambio de cableado en el banco.
+  alcance: capitulo

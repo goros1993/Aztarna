@@ -11,6 +11,11 @@ __pycache__/
 /exportacion/
 inventario.txt
 
+# Construcción del .exe (construir_exe.bat / PyInstaller)
+/build/
+/dist/
+*.spec
+
 # Documentos de trabajo: mantener el DOCX original fuera del repositorio
 *.docx
 

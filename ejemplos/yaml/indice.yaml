@@ -1,3 +1,5 @@
+# Orden de los capítulos de ejemplo. Todos los datos son ficticios:
+# describen un controlador de ascensor de demostración («DEMO-A1»).
 - capitulo: Ejemplo básico
   archivo: 01_ejemplo_basico.yaml
 - capitulo: Ejemplo con campos adicionales

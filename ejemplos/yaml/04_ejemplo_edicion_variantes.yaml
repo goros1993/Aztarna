@@ -1,116 +1,120 @@
+# Capítulo 4: mantenimiento y variantes (datos ficticios).
+# Pensado para practicar la edición: una prueba completa, otra casi vacía,
+# todos los valores de «automatizable», la clave antigua «imagen» (singular)
+# que genera el importador y una sección sin pruebas a la que arrastrar
+# elementos desde el árbol. Los comentarios como este se conservan al guardar.
 capitulo: Ejemplo de edición y variantes
 contenido:
-- seccion: Búsqueda de registros
+- seccion: Modo inspección
   nivel: 2
   contexto:
-  - Muestra varias pruebas editables bajo una misma sección.
+  - El modo inspección permite mover la cabina a velocidad reducida desde la botonera de techo.
 - prueba:
-    nombre: Buscar un registro existente
+    nombre: Entrada en modo inspección
     nivel: 3
-    id: DEMO-BUSQUEDA-001
-    titulo: La búsqueda devuelve el registro coincidente
-    descripcion: Comprueba una búsqueda por un identificador ficticio.
-    componente: Módulo de búsqueda
-    plataforma: Aplicación web de demostración
+    id: DEMO-MANT-001
+    titulo: El controlador entra en modo inspección y limita la velocidad
+    descripcion: Activar el modo inspección y comprobar que la velocidad máxima baja a 0,25 m/s y se ignoran las llamadas.
+    componente: Control de maniobra
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - Hay registros ficticios cargados.
+    - La cabina está parada en P1 sin llamadas.
+    - El técnico simulado está identificado en la HMI.
     pasos:
-    - Introducir el identificador DEMO-42.
-    - Ejecutar la búsqueda.
+    - Activar el interruptor de inspección del techo de cabina.
+    - texto: Comprobar el modo en la HMI.
+      imagen: imagenes/pantalla_hmi.png
+    - Mover la cabina hacia arriba con el pulsador de subida.
+    - Registrar una llamada de piso en P3.
     situacion_final:
-    - Se muestra el registro DEMO-42.
-    automatizable: si
-    criticidad: media
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-SEARCH-01
-    fecha: '2026-10-01'
-    version: '1.0'
-    contexto:
-    - Los registros no corresponden a personas reales.
-    campos_adicionales:
-      Datos de prueba:
-      - Identificador: DEMO-42
-      - Estado: activo
-      Etiqueta: Muestra para editar campos adicionales
-    imagenes: []
-- seccion: Variantes de datos
-  nivel: 3
-  contexto:
-  - Sirve para probar la jerarquía plegable y la edición de secciones.
-- prueba:
-    nombre: Búsqueda sin coincidencias
-    nivel: 4
-    id: DEMO-BUSQUEDA-002
-    titulo: La búsqueda informa cuando no hay coincidencias
-    descripcion: Comprueba el estado vacío con un identificador no existente.
-    componente: Módulo de búsqueda
-    plataforma: Aplicación web de demostración
-    situacion_inicial:
-    - Hay registros ficticios cargados.
-    pasos:
-    - Buscar el identificador DEMO-NO-EXISTE.
-    situacion_final:
-    - Se muestra un mensaje de que no hay resultados.
+    - La HMI indica **INSPECCIÓN** y la velocidad no supera 0,25 m/s.
+    - La llamada de P3 [[rojo|no]] se atiende mientras dure el modo.
     automatizable: corto
-    criticidad: baja
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-SEARCH-02
-    fecha: ''
+    criticidad: alta
+    entorno: HIL
+    referencia: DEMO-REQ-MANT-01
+    fecha: '2026-10-02'
     version: '1.0'
     contexto:
-    - texto: Este caso incluye una nota de contexto sin imagen.
+    - El paso 2 usa la clave antigua «imagen» en lugar de «imagenes»; el editor la muestra igual.
     campos_adicionales:
-      Resultado esperado: Lista vacía y mensaje informativo.
-    imagenes: []
+      Resultado esperado: Velocidad limitada y llamadas ignoradas.
+      Personal: Técnico de mantenimiento (perfil simulado)
 - prueba:
-    nombre: Búsqueda con campo opcional vacío
-    nivel: 4
-    id: DEMO-BUSQUEDA-003
-    titulo: Se puede buscar aunque no se indique un filtro opcional
-    descripcion: Ejemplo breve para editar campos vacíos y listas YAML.
-    componente: Módulo de búsqueda
-    plataforma: Aplicación web de demostración
+    nombre: Salida de inspección
+    nivel: 3
+    id: DEMO-MANT-002
+    titulo: Al salir de inspección se recupera el servicio normal
+    descripcion: Prueba a medio redactar, con campos opcionales vacíos, para practicar la edición.
+    componente: Control de maniobra
+    plataforma: ''
     situacion_inicial: []
     pasos:
-    - Abrir el formulario de búsqueda.
-    - Ejecutar la búsqueda sin completar el filtro opcional.
-    situacion_final:
-    - La aplicación aplica sus criterios predeterminados.
+    - Desactivar el interruptor de inspección.
+    situacion_final: []
     automatizable: ''
     criticidad: ''
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-SEARCH-03
+    entorno: ''
+    referencia: ''
     fecha: ''
-    version: '1.0'
-    contexto: []
-    campos_adicionales: {}
-    imagenes: []
-- seccion: Resultados y exportación
+    version: ''
+- seccion: Variantes de formulario
   nivel: 2
   contexto:
-  - Permite probar la creación de otra sección independiente.
+  - Algunas tablas del documento original usan formularios distintos. Al importarlas, lo que no encaja en el esquema común se guarda en *campos adicionales*.
 - prueba:
-    nombre: Exportar resultados
+    nombre: Prueba de resistencia
     nivel: 3
-    id: DEMO-EXPORT-001
-    titulo: Los resultados se exportan con sus datos principales
-    descripcion: Caso ficticio adicional para probar búsqueda, selección y borrado.
-    componente: Módulo de exportación
-    plataforma: Aplicación web de demostración
+    id: DEMO-VAR-001
+    titulo: El controlador completa 1000 viajes sin errores
+    descripcion: Prueba larga que procede de un formulario con campos de duración y ciclos.
+    componente: Control de maniobra
+    plataforma: Banco HIL DEMO-A1
     situacion_inicial:
-    - Hay resultados ficticios visibles.
+    - Generador de tráfico configurado con llamadas aleatorias.
     pasos:
-    - Seleccionar un resultado.
-    - Exportar los datos a un archivo local.
+    - Lanzar el generador de tráfico.
+    - Dejarlo funcionando hasta completar 1000 viajes.
+    - Revisar el registro de eventos.
     situacion_final:
-    - El archivo contiene el resultado seleccionado.
+    - No hay alarmas de tipo E en el registro.
     automatizable: largo
     criticidad: media
-    entorno: Entorno local de demostración
-    referencia: DEMO-REQ-EXPORT-01
-    fecha: ''
+    entorno: HIL
+    referencia: DEMO-REQ-VAR-01
+    fecha: '2026-10-05'
     version: '1.0'
-    contexto: []
     campos_adicionales:
-      Formato de salida: CSV
-    imagenes: []
+      Duración estimada: 8 h
+      Ciclos: '1000'
+      Criterio de aceptación: |-
+        Cero alarmas de tipo E.
+        Como máximo 5 avisos de tipo W.
+- prueba:
+    nombre: Rescate manual
+    nivel: 3
+    id: DEMO-VAR-002
+    titulo: El procedimiento de rescate manual lleva la cabina a planta
+    descripcion: Variante redactada por otro equipo; el resultado esperado está separado de la situación final.
+    componente: Circuito de seguridad
+    plataforma: Banco HIL DEMO-A1
+    situacion_inicial:
+    - Corte de alimentación simulado con la cabina entre P1 y P2.
+    pasos:
+    - Activar el freno manual desde el cuadro de rescate.
+    - Mover la cabina hasta la zona de puertas de P1.
+    situacion_final:
+    - La cabina queda en zona de puertas.
+    automatizable: no
+    criticidad: alta
+    entorno: Laboratorio
+    referencia: DEMO-REQ-VAR-02
+    fecha: '2026-10-05'
+    version: '0.9'
+    campos_adicionales:
+      Resultado esperado: Las puertas pueden abrirse manualmente desde el exterior.
+      Equipo autor: Equipo de seguridad (ficticio)
+- seccion: Para practicar
+  nivel: 2
+  contexto:
+  - Sección vacía. Arrastra aquí pruebas desde el árbol, crea subsecciones o bórrala; sus niveles se ajustan solos.
