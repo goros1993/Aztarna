@@ -8,14 +8,19 @@ adapta a la interfaz (diálogos del sistema, rutas, datos en JSON).
 from __future__ import annotations
 
 import base64
+import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+import ajustes
 import ejecucion_core as ej
+import robot_core
 from editor_api import EditorApi, respuesta, to_plain
 
 
@@ -29,6 +34,7 @@ class EditorEjecucionApi(EditorApi):
     def __init__(self, carpeta_inicial: str | Path | None = None) -> None:
         super().__init__(carpeta_inicial)
         self._campaña: dict[str, Any] | None = None
+        self._robot: dict[str, Any] | None = None       # ejecución de Robot en curso (o la última)
 
     # --- utilidades -----------------------------------------------------------
     def _requiere_campaña(self) -> dict[str, Any]:
@@ -65,7 +71,10 @@ class EditorEjecucionApi(EditorApi):
     def campana_opciones(self) -> dict[str, list[str]]:
         """Valores que existen para cada criterio de selección."""
         self._require_dir()
-        return ej.opciones_filtro(self._chapters)
+        opciones = ej.opciones_filtro(self._chapters)
+        if self._robot_config().get("suites"):
+            opciones["robot"] = ["con", "sin"]
+        return opciones
 
     @respuesta
     def campana_previsualizar(self, filtro: dict[str, Any]) -> list[dict[str, str]]:
@@ -74,7 +83,7 @@ class EditorEjecucionApi(EditorApi):
         return [
             {"id": item["id"], "archivo": item["archivo"],
              "titulo": str(item["prueba"].get("titulo") or item["prueba"].get("nombre") or "")}
-            for item in ej.seleccionar(self._chapters, filtro or {})
+            for item in ej.seleccionar(self._chapters, filtro or {}, self._ids_robot(filtro))
         ]
 
     @respuesta
@@ -91,7 +100,7 @@ class EditorEjecucionApi(EditorApi):
                 raise ValueError(f"Ya existe {destino}. Elige otra carpeta o cambia el nombre.")
         else:
             destino = Path(carpeta)
-        self._campaña = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {})
+        self._campaña = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
         return self._estado()
 
     def _abrir(self, carpeta: Path) -> dict[str, Any]:
@@ -301,5 +310,181 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_resincronizar(self) -> dict[str, Any]:
-        cambios = ej.resincronizar(self._requiere_campaña(), self._chapters)
+        campaña = self._requiere_campaña()
+        cambios = ej.resincronizar(campaña, self._chapters, self._ids_robot(campaña["datos"].get("seleccion")))
         return {**self._estado(), "cambios": cambios}
+
+    # --- Robot Framework: configuración y cobertura ---------------------------------
+    def _robot_config(self) -> dict[str, str]:
+        """Configuración de Robot para la carpeta de pruebas abierta (es de cada PC)."""
+        if self._yaml_dir is None:
+            return {}
+        valor = (ajustes.leer().get("robot") or {}).get(str(self._yaml_dir)) or {}
+        return {k: str(v) for k, v in valor.items() if isinstance(v, str)}
+
+    def _robot_suites(self) -> Path | None:
+        suites = self._robot_config().get("suites")
+        return Path(suites).expanduser() if suites else None
+
+    def _cobertura(self) -> dict[str, Any] | None:
+        suites = self._robot_suites()
+        if suites is None or not suites.exists():
+            return None
+        return robot_core.cobertura(self._chapters, robot_core.escanear_suites(suites))
+
+    def _ids_robot(self, filtro: Any) -> set[str] | None:
+        """IDs con test de Robot, solo si el filtro lo necesita."""
+        if not isinstance(filtro, dict) or not filtro.get("robot"):
+            return None
+        cobertura = self._cobertura()
+        if cobertura is None:
+            raise ValueError("Para filtrar por test de Robot, configura antes la carpeta de tests de Robot.")
+        return set(cobertura["por_id"])
+
+    @staticmethod
+    def _comando_por_defecto() -> str:
+        if shutil.which("robot"):
+            return "robot"
+        return "python -m robot" if not sys.platform.startswith("win") else "py -m robot"
+
+    @staticmethod
+    def _partir_comando(comando: str) -> list[str]:
+        partes = shlex.split(comando, posix=not sys.platform.startswith("win"))
+        return [p.strip('"') for p in partes if p.strip('"')]
+
+    @respuesta
+    def robot_config(self) -> dict[str, Any]:
+        self._require_dir()
+        return {"config": self._robot_config(), "comando_defecto": self._comando_por_defecto()}
+
+    @respuesta
+    def robot_guardar_config(self, config: dict[str, Any]) -> dict[str, Any]:
+        """Guarda la configuración de Robot de esta carpeta de pruebas y devuelve la cobertura."""
+        base = self._require_dir()
+        limpia = {k: str(config.get(k) or "").strip() for k in ("suites", "comando", "argumentos")}
+        if limpia["suites"] and not Path(limpia["suites"]).expanduser().exists():
+            raise ValueError(f"No existe la carpeta de tests de Robot: {limpia['suites']}")
+        todas = dict(ajustes.leer().get("robot") or {})
+        if any(limpia.values()):
+            todas[str(base)] = {k: v for k, v in limpia.items() if v}
+        else:
+            todas.pop(str(base), None)
+        ajustes.guardar({"robot": todas})
+        return {"cobertura": self._cobertura()}
+
+    @respuesta
+    def robot_elegir_carpeta(self) -> dict[str, Any]:
+        carpeta = self._dialogo_carpeta()
+        return {"carpeta": str(carpeta)} if carpeta else {"cancelado": True}
+
+    @respuesta
+    def robot_comprobar(self, comando: str = "") -> dict[str, Any]:
+        """Ejecuta «<comando> --version» para comprobar que Robot está disponible."""
+        partes = self._partir_comando(comando or self._comando_por_defecto())
+        try:
+            r = subprocess.run([*partes, "--version"], capture_output=True, text=True, timeout=60,
+                               **_sin_ventana())
+        except (OSError, subprocess.SubprocessError) as error:
+            raise ValueError(f"No se pudo ejecutar «{' '.join(partes)}»: {error}") from None
+        salida = (r.stdout + r.stderr).strip()
+        if "Robot Framework" not in salida:
+            raise ValueError(f"«{' '.join(partes)}» no parece Robot Framework: {salida[:300] or 'sin salida'}")
+        return {"version": salida.splitlines()[-1]}
+
+    @respuesta
+    def robot_cobertura(self) -> dict[str, Any] | None:
+        """Qué pruebas tienen test de Robot (None si no está configurado)."""
+        self._require_dir()
+        return self._cobertura()
+
+    @respuesta
+    def validar(self) -> dict[str, Any]:
+        informe = EditorApi.validar.__wrapped__(self)
+        try:
+            cobertura = self._cobertura()
+        except (OSError, ValueError):
+            cobertura = None
+        if cobertura:
+            ubicacion = {}
+            for ci, capitulo in enumerate(self._chapters):
+                for indice, prueba in ej.tests_in_chapter(capitulo):
+                    ubicacion.setdefault(str(prueba.get("id") or "").strip(), (ci, indice))
+            for test_id in cobertura["hecho_sin_robot"]:
+                ci, indice = ubicacion[test_id]
+                informe["problemas"].append({
+                    "severidad": "aviso", "capitulo": ci, "indice": indice, "id": test_id,
+                    "archivo": self._chapters[ci]["path"].name,
+                    "mensaje": f"Automatizable «hecho», pero ningún test de Robot lleva la etiqueta id:{test_id}.",
+                })
+            informe["avisos"] = sum(1 for p in informe["problemas"] if p["severidad"] == "aviso")
+        return informe
+
+    # --- Robot Framework: ejecutar desde el editor -----------------------------------
+    @respuesta
+    def campana_robot_lanzar(self, ids: list[str]) -> dict[str, Any]:
+        """Lanza Robot solo con los tests de esas pruebas; el avance se consulta con campana_robot_progreso."""
+        campaña = self._requiere_campaña()
+        if campaña["datos"].get("estado") == "cerrada":
+            raise ValueError("La campaña está cerrada.")
+        if self._robot and self._robot["proceso"].poll() is None:
+            raise ValueError("Ya hay una ejecución de Robot en marcha.")
+        config = self._robot_config()
+        suites = self._robot_suites()
+        if suites is None or not suites.exists():
+            raise ValueError("Configura antes la carpeta de tests de Robot (botón Robot de la barra superior).")
+        marca = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        salida = campaña["carpeta"] / ej.CARPETA_EVIDENCIAS / "robot" / marca
+        argumentos = robot_core.preparar_ejecucion(
+            salida, suites, [str(i) for i in ids], self._partir_comando(config.get("argumentos", "")))
+        orden = [*self._partir_comando(config.get("comando") or self._comando_por_defecto()), *argumentos]
+        consola = open(salida / "consola.txt", "w", encoding="utf-8", errors="replace")
+        try:
+            proceso = subprocess.Popen(
+                orden, cwd=str(suites if suites.is_dir() else suites.parent), stdout=consola,
+                stderr=subprocess.STDOUT, env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1"}, **_sin_ventana())
+        except OSError as error:
+            consola.close()
+            raise ValueError(f"No se pudo lanzar Robot («{orden[0]}»): {error}. Revisa el comando en la configuración de Robot.") from None
+        self._robot = {"proceso": proceso, "salida": salida, "consola": consola, "ids": list(ids),
+                       "inicio": datetime.now(), "cancelada": False}
+        return {"carpeta": str(salida), "pruebas": len(ids)}
+
+    @respuesta
+    def campana_robot_progreso(self) -> dict[str, Any] | None:
+        if not self._robot:
+            return None
+        ejecucion = self._robot
+        codigo = ejecucion["proceso"].poll()
+        avance = robot_core.leer_progreso(ejecucion["salida"] / "progreso.jsonl")
+        if codigo is not None and not ejecucion["consola"].closed:
+            ejecucion["consola"].close()
+        output = ejecucion["salida"] / "output.xml"
+        try:
+            consola = (ejecucion["salida"] / "consola.txt").read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            consola = []
+        return {
+            "en_marcha": codigo is None,
+            "codigo": codigo,
+            "cancelada": ejecucion["cancelada"],
+            "segundos": int((datetime.now() - ejecucion["inicio"]).total_seconds()),
+            "total": avance["total"],
+            "terminados": avance["terminados"],
+            "actual": avance["actual"],
+            "output": str(output) if codigo is not None and output.is_file() else None,
+            "consola": consola[-12:],
+        }
+
+    @respuesta
+    def campana_robot_cancelar(self) -> dict[str, Any]:
+        if self._robot and self._robot["proceso"].poll() is None:
+            self._robot["cancelada"] = True
+            self._robot["proceso"].terminate()
+        return {}
+
+
+def _sin_ventana() -> dict[str, Any]:
+    """En Windows, que Robot no abra una consola encima del editor."""
+    if sys.platform.startswith("win"):
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    return {}

@@ -46,7 +46,7 @@ def main() -> None:
         ("Tests de Robot sin etiqueta id:", datos["sin_id"]),
         ("IDs que no existen en las pruebas", datos["inexistentes"]),
         ("IDs que no están en esta campaña", datos["fuera_de_campaña"]),
-        ("Pruebas de la campaña sin test de Robot", datos["sin_robot"]),
+        ("Pruebas de la campaña sin resultado en este archivo", datos["sin_robot"]),
     ]
     for titulo, lista in avisos:
         if lista:

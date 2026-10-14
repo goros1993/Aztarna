@@ -87,12 +87,14 @@ def _lista(valor: Any) -> list[str]:
     return [str(v).strip() for v in valor if str(v).strip()]
 
 
-def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any]) -> bool:
+def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
+                  ids_robot: set[str] | None = None) -> bool:
     """True si la prueba entra en la selección.
 
     - `etiquetas`: basta con que tenga una de ellas.
     - `criticidad`, `plataforma`… (CAMPOS_FILTRO): su valor debe estar en la lista.
     - `capitulos`: nombres de archivo de capítulo.
+    - `robot`: ["con"] o ["sin"] test de Robot (necesita `ids_robot`).
     - `incluir_ids` entra siempre; `excluir_ids` no entra nunca.
     Un criterio vacío no filtra.
     """
@@ -111,16 +113,22 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any]) 
         valores = _lista(filtro.get(campo))
         if valores and str(prueba.get(campo) or "").strip() not in valores:
             return False
+    robot = _lista(filtro.get("robot"))
+    if robot and ids_robot is not None and len(robot) == 1:
+        tiene = test_id in ids_robot
+        if (robot[0] == "con") != tiene:
+            return False
     return True
 
 
-def seleccionar(capitulos: list[dict[str, Any]], filtro: dict[str, Any]) -> list[dict[str, Any]]:
+def seleccionar(capitulos: list[dict[str, Any]], filtro: dict[str, Any],
+                ids_robot: set[str] | None = None) -> list[dict[str, Any]]:
     """Pruebas que cumplen el filtro, en el orden del documento."""
     seleccion = []
     for capitulo in capitulos:
         archivo = capitulo["path"].name
         for indice, prueba in tests_in_chapter(capitulo):
-            if cumple_filtro(prueba, archivo, filtro):
+            if cumple_filtro(prueba, archivo, filtro, ids_robot):
                 seleccion.append({
                     "id": str(prueba.get("id") or "").strip(),
                     "archivo": archivo, "indice": indice, "prueba": prueba,
@@ -258,7 +266,8 @@ def _comprobar_ids(seleccion: list[dict[str, Any]]) -> None:
 
 
 def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
-          filtro: dict[str, Any], datos: dict[str, Any] | None = None) -> dict[str, Any]:
+          filtro: dict[str, Any], datos: dict[str, Any] | None = None,
+          ids_robot: set[str] | None = None) -> dict[str, Any]:
     """Crea una campaña nueva con las pruebas que cumplen el filtro (lista congelada)."""
     carpeta = Path(carpeta)
     if es_campaña(carpeta):
@@ -270,7 +279,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
         raise ValueError("La campaña necesita un nombre.")
     pruebas_yaml = Path(pruebas_yaml).expanduser().resolve()
     capitulos = read_chapters(pruebas_yaml)
-    seleccion = seleccionar(capitulos, filtro)
+    seleccion = seleccionar(capitulos, filtro, ids_robot)
     if not seleccion:
         raise ValueError("Ninguna prueba cumple el criterio de selección.")
     _comprobar_ids(seleccion)
@@ -419,13 +428,14 @@ def ruta_evidencia(campaña: dict[str, Any], relativa: str) -> Path:
     return ruta
 
 
-def resincronizar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, list[str]]:
+def resincronizar(campaña: dict[str, Any], capitulos: list[dict[str, Any]],
+                  ids_robot: set[str] | None = None) -> dict[str, list[str]]:
     """Vuelve a aplicar el criterio: añade las pruebas nuevas que lo cumplen.
 
     Las que ya no lo cumplen no se quitan (pueden tener resultados); se informa de ellas.
     """
     _exigir_abierta(campaña)
-    seleccion = seleccionar(capitulos, dict(campaña["datos"].get("seleccion") or {}))
+    seleccion = seleccionar(capitulos, dict(campaña["datos"].get("seleccion") or {}), ids_robot)
     _comprobar_ids(seleccion)
     actuales = set(ids_de(campaña))
     nuevas = [item for item in seleccion if item["id"] not in actuales]

@@ -81,15 +81,45 @@ Plan:
    `report.html` a las evidencias de la campaña y se avisa de los tests sin
    `id:` y de los `id:` que no existen. Lee el XML directamente, sin instalar
    Robot en el editor, y admite los formatos de RF 6 y RF 7.
-2. Cobertura: leer las etiquetas `id:` de los `.robot` para marcar en el
-   editor qué pruebas tienen test automático, avisar de `automatizable: hecho`
-   sin test de Robot y de tests de Robot con IDs inexistentes, y filtrar
-   «automáticas / manuales» al crear una campaña.
-3. Lanzar Robot desde el editor solo con las pruebas pendientes de la campaña
-   (`--include id:…`), con progreso en vivo mediante un *listener*. Necesita
-   configurar el comando, las suites y las variables de cada banco.
+2. *Hecho:* cobertura. Se leen las etiquetas `id:` de los `.robot` (sin
+   ejecutarlos) para marcar en el editor qué pruebas tienen test automático,
+   avisar de `automatizable: hecho` sin test y de IDs inexistentes, y filtrar
+   «con / sin test de Robot» al crear una campaña. La configuración (carpeta
+   de suites, comando y argumentos) es de cada PC (`ajustes.py`).
+3. *Hecho:* lanzar Robot desde la campaña solo con las pruebas elegidas
+   (`--include id:…` en un archivo de argumentos), con avance en vivo mediante
+   un *listener*, cancelación y vista previa de la importación al terminar.
+   Pendiente: si se cierra el editor con Robot en marcha, Robot sigue y sus
+   resultados se pueden importar después con *Importar Robot…*; valorar
+   avisar o esperar.
 4. Cuando haya red o integración continua: importar sin intervención (la
    línea de comandos ya lo permite).
+
+### Propuesta aplazada: un solo test (pasos ejecutables)
+
+Hoy hay tests en YAML (para pasar a mano) y tests de Robot que los
+automatizan; son parecidos pero no iguales, y pueden divergir. Propuesta para
+no duplicarlos: que **cada paso del YAML sea el nombre de una keyword de
+Robot** (Robot admite nombres de keyword con argumentos incrustados, como
+`Pulsar el botón ${planta} de la botonera de cabina`) y que un generador cree
+los `.robot` a partir de los YAML (situación inicial → *Given*, pasos →
+*When*, situación final → *Then*), sin editarlos a mano. Las keywords las
+mantiene el equipo de automatización y contienen el detalle técnico
+(timeouts, tolerancias, direcciones del banco).
+
+- Ventajas: una sola descripción; el tester y Robot hacen los mismos pasos;
+  `robot --dryrun` lista los pasos sin keyword (el trabajo pendiente de
+  automatización); el editor podría proponer las keywords existentes al
+  escribir un paso.
+- Excepciones: pasos solo manuales (marcados en el YAML) y tests de Robot
+  escritos a mano para casos complejos, enlazados con `id:` y con una
+  etiqueta `huella:` para avisar si el YAML cambió desde que se automatizó.
+- Transición: inventario de equivalencias, vocabulario común de pasos
+  (partiendo de las keywords existentes), generador con *dry-run* y retirada
+  de los tests duplicados.
+- **Aplazada:** hoy son unas 400 pruebas y 80 keywords; reescribir los pasos
+  en un lenguaje controlado es demasiado trabajo por ahora. Mientras tanto,
+  el enlace es la etiqueta `id:` y la cobertura avisa de lo que falta.
 
 ## Varias formas de ejecutar y validación de una versión de SW
 

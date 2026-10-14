@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot generator="Robot 6.1.1 (Python 3.14.4 on linux)" generated="20261014 23:02:49.199" rpa="false" schemaversion="4">
+<robot generator="Robot 6.1.1 (Python 3.14.4 on linux)" generated="20261014 23:22:44.402" rpa="false" schemaversion="4">
 <suite id="s1" name="Robot" source="ejemplos/robot">
 <suite id="s1-s1" name="Regresion Demo" source="ejemplos/robot/regresion_demo.robot">
 <test id="s1-s1-t1" name="Llamada de cabina lleva a la planta pedida" line="16">
@@ -7,56 +7,72 @@
 <var>${planta}</var>
 <arg>origen=0</arg>
 <arg>destino=2</arg>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.6s</arg>
+<arg>Tiempo de viaje simulado</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20261014 23:22:45.031" level="INFO">Slept 600 milliseconds</msg>
+<msg timestamp="20261014 23:22:45.031" level="INFO">Tiempo de viaje simulado</msg>
+<status status="PASS" starttime="20261014 23:22:44.430" endtime="20261014 23:22:45.031"/>
+</kw>
 <kw name="Log" library="BuiltIn">
 <arg>Viaje simulado de ${origen} a ${destino}</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.231" level="INFO">Viaje simulado de 0 a 2</msg>
-<status status="PASS" starttime="20261014 23:02:49.230" endtime="20261014 23:02:49.231"/>
+<msg timestamp="20261014 23:22:45.032" level="INFO">Viaje simulado de 0 a 2</msg>
+<status status="PASS" starttime="20261014 23:22:45.031" endtime="20261014 23:22:45.032"/>
 </kw>
 <return>
 <value>${destino}</value>
-<status status="PASS" starttime="20261014 23:02:49.231" endtime="20261014 23:02:49.231"/>
+<status status="PASS" starttime="20261014 23:22:45.032" endtime="20261014 23:22:45.033"/>
 </return>
-<msg timestamp="20261014 23:02:49.231" level="INFO">${planta} = 2</msg>
-<status status="PASS" starttime="20261014 23:02:49.230" endtime="20261014 23:02:49.231"/>
+<msg timestamp="20261014 23:22:45.033" level="INFO">${planta} = 2</msg>
+<status status="PASS" starttime="20261014 23:22:44.430" endtime="20261014 23:22:45.033"/>
 </kw>
 <kw name="Should Be Equal As Integers" library="BuiltIn">
 <arg>${planta}</arg>
 <arg>2</arg>
 <doc>Fails if objects are unequal after converting them to integers.</doc>
-<status status="PASS" starttime="20261014 23:02:49.231" endtime="20261014 23:02:49.231"/>
+<status status="PASS" starttime="20261014 23:22:45.033" endtime="20261014 23:22:45.034"/>
 </kw>
 <doc>Automatiza DEMO-LLAM-001.</doc>
 <tag>id:DEMO-LLAM-001</tag>
 <tag>regresion</tag>
-<status status="PASS" starttime="20261014 23:02:49.230" endtime="20261014 23:02:49.231"/>
+<status status="PASS" starttime="20261014 23:22:44.429" endtime="20261014 23:22:45.034"/>
 </test>
 <test id="s1-s1-t2" name="Llamada de piso queda registrada" line="22">
 <kw name="Log" library="BuiltIn">
 <arg>Pulsador de P1 iluminado</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.232" level="INFO">Pulsador de P1 iluminado</msg>
-<status status="PASS" starttime="20261014 23:02:49.232" endtime="20261014 23:02:49.232"/>
+<msg timestamp="20261014 23:22:45.035" level="INFO">Pulsador de P1 iluminado</msg>
+<status status="PASS" starttime="20261014 23:22:45.035" endtime="20261014 23:22:45.036"/>
 </kw>
 <tag>id:DEMO-LLAM-002</tag>
 <tag>regresion</tag>
-<status status="PASS" starttime="20261014 23:02:49.231" endtime="20261014 23:02:49.232"/>
+<status status="PASS" starttime="20261014 23:22:45.034" endtime="20261014 23:22:45.036"/>
 </test>
 <test id="s1-s1-t3" name="Nivelación sin carga" line="26">
 <kw name="Comprobar Desnivel">
 <arg>3</arg>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.6s</arg>
+<arg>Medida simulada del sensor de nivel</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20261014 23:22:45.638" level="INFO">Slept 600 milliseconds</msg>
+<msg timestamp="20261014 23:22:45.638" level="INFO">Medida simulada del sensor de nivel</msg>
+<status status="PASS" starttime="20261014 23:22:45.037" endtime="20261014 23:22:45.638"/>
+</kw>
 <kw name="Should Be True" library="BuiltIn">
 <arg>${mm} &lt;= 5</arg>
 <arg>Desnivel de ${mm} mm: supera el límite de ±5 mm</arg>
 <doc>Fails if the given condition is not true.</doc>
-<status status="PASS" starttime="20261014 23:02:49.232" endtime="20261014 23:02:49.233"/>
+<status status="PASS" starttime="20261014 23:22:45.639" endtime="20261014 23:22:45.639"/>
 </kw>
-<status status="PASS" starttime="20261014 23:02:49.232" endtime="20261014 23:02:49.233"/>
+<status status="PASS" starttime="20261014 23:22:45.037" endtime="20261014 23:22:45.640"/>
 </kw>
 <doc>Primera variante de DEMO-NIV-001.</doc>
 <tag>id:DEMO-NIV-001</tag>
 <tag>regresion</tag>
-<status status="PASS" starttime="20261014 23:02:49.232" endtime="20261014 23:02:49.233"/>
+<status status="PASS" starttime="20261014 23:22:45.036" endtime="20261014 23:22:45.640"/>
 </test>
 <test id="s1-s1-t4" name="Nivelación con carga máxima" line="31">
 <kw name="Guardar Captura">
@@ -65,79 +81,87 @@
 <arg>${IMAGENES}/${imagen}</arg>
 <arg>${OUTPUT DIR}/captura-${imagen}</arg>
 <doc>Copies the source file into the destination.</doc>
-<msg timestamp="20261014 23:02:49.234" level="INFO" html="true">Copied file from '&lt;a href="ejemplos/yaml/imagenes/registro_eventos.png"&gt;ejemplos/yaml/imagenes/registro_eventos.png&lt;/a&gt;' to '&lt;a href="ejemplos/robot/resultados_rf6/captura-registro_eventos.png"&gt;ejemplos/robot/resultados_rf6/captura-registro_eventos.png&lt;/a&gt;'.</msg>
-<status status="PASS" starttime="20261014 23:02:49.233" endtime="20261014 23:02:49.234"/>
+<msg timestamp="20261014 23:22:45.644" level="INFO" html="true">Copied file from '&lt;a href="ejemplos/yaml/imagenes/registro_eventos.png"&gt;ejemplos/yaml/imagenes/registro_eventos.png&lt;/a&gt;' to '&lt;a href="ejemplos/robot/resultados_rf6/captura-registro_eventos.png"&gt;ejemplos/robot/resultados_rf6/captura-registro_eventos.png&lt;/a&gt;'.</msg>
+<status status="PASS" starttime="20261014 23:22:45.642" endtime="20261014 23:22:45.644"/>
 </kw>
 <kw name="Log" library="BuiltIn">
 <arg>&lt;img src="captura-${imagen}" width="400"&gt;</arg>
 <arg>HTML</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.235" level="INFO" html="true">&lt;img src="captura-registro_eventos.png" width="400"&gt;</msg>
-<status status="PASS" starttime="20261014 23:02:49.234" endtime="20261014 23:02:49.235"/>
+<msg timestamp="20261014 23:22:45.645" level="INFO" html="true">&lt;img src="captura-registro_eventos.png" width="400"&gt;</msg>
+<status status="PASS" starttime="20261014 23:22:45.645" endtime="20261014 23:22:45.645"/>
 </kw>
-<status status="PASS" starttime="20261014 23:02:49.233" endtime="20261014 23:02:49.235"/>
+<status status="PASS" starttime="20261014 23:22:45.641" endtime="20261014 23:22:45.645"/>
 </kw>
 <kw name="Comprobar Desnivel">
 <arg>7</arg>
+<kw name="Sleep" library="BuiltIn">
+<arg>0.6s</arg>
+<arg>Medida simulada del sensor de nivel</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<msg timestamp="20261014 23:22:46.246" level="INFO">Slept 600 milliseconds</msg>
+<msg timestamp="20261014 23:22:46.246" level="INFO">Medida simulada del sensor de nivel</msg>
+<status status="PASS" starttime="20261014 23:22:45.645" endtime="20261014 23:22:46.246"/>
+</kw>
 <kw name="Should Be True" library="BuiltIn">
 <arg>${mm} &lt;= 5</arg>
 <arg>Desnivel de ${mm} mm: supera el límite de ±5 mm</arg>
 <doc>Fails if the given condition is not true.</doc>
-<msg timestamp="20261014 23:02:49.236" level="FAIL">Desnivel de 7 mm: supera el límite de ±5 mm</msg>
-<status status="FAIL" starttime="20261014 23:02:49.235" endtime="20261014 23:02:49.236"/>
+<msg timestamp="20261014 23:22:46.248" level="FAIL">Desnivel de 7 mm: supera el límite de ±5 mm</msg>
+<status status="FAIL" starttime="20261014 23:22:46.246" endtime="20261014 23:22:46.248"/>
 </kw>
-<status status="FAIL" starttime="20261014 23:02:49.235" endtime="20261014 23:02:49.236"/>
+<status status="FAIL" starttime="20261014 23:22:45.645" endtime="20261014 23:22:46.248"/>
 </kw>
 <doc>Segunda variante de DEMO-NIV-001: falla y deja una captura.</doc>
 <tag>id:DEMO-NIV-001</tag>
 <tag>regresion</tag>
-<status status="FAIL" starttime="20261014 23:02:49.233" endtime="20261014 23:02:49.236">Desnivel de 7 mm: supera el límite de ±5 mm</status>
+<status status="FAIL" starttime="20261014 23:22:45.640" endtime="20261014 23:22:46.249">Desnivel de 7 mm: supera el límite de ±5 mm</status>
 </test>
 <test id="s1-s1-t5" name="Trama de estado de cabina" line="37">
 <kw name="Skip" library="BuiltIn">
 <arg>No hay analizador CAN conectado en este PC</arg>
 <doc>Skips the rest of the current test.</doc>
-<msg timestamp="20261014 23:02:49.237" level="SKIP">No hay analizador CAN conectado en este PC</msg>
-<status status="SKIP" starttime="20261014 23:02:49.237" endtime="20261014 23:02:49.237"/>
+<msg timestamp="20261014 23:22:46.251" level="SKIP">No hay analizador CAN conectado en este PC</msg>
+<status status="SKIP" starttime="20261014 23:22:46.250" endtime="20261014 23:22:46.251"/>
 </kw>
 <tag>id:DEMO-CAN-001</tag>
 <tag>regresion</tag>
-<status status="SKIP" starttime="20261014 23:02:49.236" endtime="20261014 23:02:49.237">No hay analizador CAN conectado en este PC</status>
+<status status="SKIP" starttime="20261014 23:22:46.249" endtime="20261014 23:22:46.251">No hay analizador CAN conectado en este PC</status>
 </test>
 <test id="s1-s1-t6" name="Apertura y reapertura de puertas" line="41">
 <kw name="Log" library="BuiltIn">
 <arg>Apertura en 2,1 s; reapertura en 180 ms</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.238" level="INFO">Apertura en 2,1 s; reapertura en 180 ms</msg>
-<status status="PASS" starttime="20261014 23:02:49.238" endtime="20261014 23:02:49.238"/>
+<msg timestamp="20261014 23:22:46.251" level="INFO">Apertura en 2,1 s; reapertura en 180 ms</msg>
+<status status="PASS" starttime="20261014 23:22:46.251" endtime="20261014 23:22:46.251"/>
 </kw>
 <doc>Un mismo test cubre dos pruebas YAML.</doc>
 <tag>id:DEMO-PUER-001</tag>
 <tag>id:DEMO-PUER-002</tag>
 <tag>regresion</tag>
-<status status="PASS" starttime="20261014 23:02:49.237" endtime="20261014 23:02:49.238"/>
+<status status="PASS" starttime="20261014 23:22:46.251" endtime="20261014 23:22:46.252"/>
 </test>
 <test id="s1-s1-t7" name="Diagnóstico del bus sin enlazar" line="46">
 <kw name="Log" library="BuiltIn">
 <arg>Mensaje DIAG 0x7E recibido</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.239" level="INFO">Mensaje DIAG 0x7E recibido</msg>
-<status status="PASS" starttime="20261014 23:02:49.239" endtime="20261014 23:02:49.239"/>
+<msg timestamp="20261014 23:22:46.252" level="INFO">Mensaje DIAG 0x7E recibido</msg>
+<status status="PASS" starttime="20261014 23:22:46.252" endtime="20261014 23:22:46.252"/>
 </kw>
 <doc>Sin etiqueta id: todavía no se ha enlazado con ninguna prueba YAML.</doc>
 <tag>diagnostico</tag>
-<status status="PASS" starttime="20261014 23:02:49.238" endtime="20261014 23:02:49.239"/>
+<status status="PASS" starttime="20261014 23:22:46.252" endtime="20261014 23:22:46.252"/>
 </test>
 <test id="s1-s1-t8" name="Prueba retirada" line="51">
 <kw name="Log" library="BuiltIn">
 <arg>Prueba antigua</arg>
 <doc>Logs the given message with the given level.</doc>
-<msg timestamp="20261014 23:02:49.240" level="INFO">Prueba antigua</msg>
-<status status="PASS" starttime="20261014 23:02:49.240" endtime="20261014 23:02:49.240"/>
+<msg timestamp="20261014 23:22:46.253" level="INFO">Prueba antigua</msg>
+<status status="PASS" starttime="20261014 23:22:46.253" endtime="20261014 23:22:46.253"/>
 </kw>
 <doc>Su ID ya no existe en los YAML: el importador avisa.</doc>
 <tag>id:DEMO-OLD-999</tag>
-<status status="PASS" starttime="20261014 23:02:49.239" endtime="20261014 23:02:49.240"/>
+<status status="PASS" starttime="20261014 23:22:46.252" endtime="20261014 23:22:46.253"/>
 </test>
 <doc>Tests automáticos de ejemplo (ficticios) del controlador DEMO-A1.
 
@@ -145,9 +169,9 @@ Cada test se enlaza con su prueba YAML mediante la etiqueta
 id:&lt;ID de la prueba&gt;. Las palabras clave simulan el banco HIL
 para que el ejemplo se pueda ejecutar en cualquier PC:
 robot --outputdir resultados ejemplos/robot</doc>
-<status status="FAIL" starttime="20261014 23:02:49.223" endtime="20261014 23:02:49.241"/>
+<status status="FAIL" starttime="20261014 23:22:44.423" endtime="20261014 23:22:46.253"/>
 </suite>
-<status status="FAIL" starttime="20261014 23:02:49.201" endtime="20261014 23:02:49.241"/>
+<status status="FAIL" starttime="20261014 23:22:44.403" endtime="20261014 23:22:46.254"/>
 </suite>
 <statistics>
 <total>

@@ -569,7 +569,8 @@ function cuerpoPrueba(ubicacion) {
     editorLista("pasos", "Pasos", { numerada: true, ayuda: "Pulsa Enter para añadir otro paso; Mayús+Enter inserta un salto de línea." }),
     editorLista("situacion_final", "Situación final"),
     editorExtras(),
-    galeria());
+    galeria(),
+    bloqueAutomatizacion(F.idOriginal || F.valores.id));
   return cont;
 }
 

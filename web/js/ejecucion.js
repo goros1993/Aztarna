@@ -126,6 +126,7 @@ async function usarCampana(r, { silencio = false } = {}) {
     cacheImagenes.clear();
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = ""; S.colapsadas.clear();
     aplicarResumen(r.carpeta_pruebas);
+    await cargarCobertura();
   }
   S.campana = r;
   S.seleccion = null;
@@ -183,6 +184,7 @@ async function nuevaCampana() {
   const grupos = [
     ["etiquetas", "Etiquetas (basta con una)"], ["criticidad", "Criticidad"], ["automatizable", "Automatizable"],
     ["plataforma", "Plataforma"], ["entorno", "Entorno"], ["componente", "Componente"], ["capitulos", "Capítulos"],
+    ["robot", "Automatización"],
   ].filter(([clave]) => (opciones[clave] || []).length);
   const vista = h("div", { class: "vista-seleccion" });
   const actualizar = debounce(async () => {
@@ -195,7 +197,8 @@ async function nuevaCampana() {
   }, 150);
   const fichasGrupo = (clave, valores) => h("div", { class: "fichas-filtro" }, valores.map((v) => h("button", {
     type: "button", class: "ficha-filtro", "aria-pressed": "false",
-    text: clave === "capitulos" ? nombres[v] || v : clave === "automatizable" ? AUTOMATIZABLE_TXT[v] || v : v,
+    text: clave === "capitulos" ? nombres[v] || v : clave === "automatizable" ? AUTOMATIZABLE_TXT[v] || v
+      : clave === "robot" ? { con: "Con test de Robot", sin: "Sin test de Robot" }[v] : v,
     onclick: (e) => {
       const lista = filtro[clave] || (filtro[clave] = []);
       const i = lista.indexOf(v);
@@ -312,7 +315,8 @@ function mostrarPanelCampana() {
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
         h("span", { class: "ruta", text: [d.objeto, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),
       h("span", { class: "chip-estado " + (c.cerrada ? "cerrada" : "abierta"), text: c.cerrada ? "Cerrada" : "Abierta" }),
-      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: importarRobot, text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
+      c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la campaña que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
+      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la campaña sigue abierta" }),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar campaña…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
@@ -339,12 +343,12 @@ function mostrarPanelCampana() {
 }
 
 /* ---- resultados de Robot Framework ---- */
-async function importarRobot() {
+async function importarRobot(ruta = null) {
   if (!S.campana || S.campana.cerrada) return;
   if (!(await guardia())) return;
   setDirty(false);
   try {
-    const elegido = await api.campana_robot_elegir();
+    const elegido = typeof ruta === "string" ? { ruta } : await api.campana_robot_elegir();
     if (elegido.cancelado) return;
     const plan = await api.campana_robot_previsualizar(elegido.ruta);
     const t = plan.totales;
@@ -365,7 +369,7 @@ async function importarRobot() {
       lista("Tests de Robot sin etiqueta id:", plan.sin_id),
       lista("IDs que no existen en las pruebas", plan.inexistentes, "atencion"),
       lista("IDs que no están en esta campaña", plan.fuera_de_campaña),
-      lista("Pruebas de la campaña sin test de Robot (siguen como están)", plan.sin_robot));
+      lista("Pruebas de la campaña sin resultado en este archivo (siguen como están)", plan.sin_robot));
     const r = await dialogo({
       titulo: "Importar resultados de Robot Framework", cuerpo, ancho: true,
       botones: [
@@ -585,6 +589,8 @@ function panelResultado() {
       !R.enCampana ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la campaña." }) : null,
       cerrada() ? h("p", { class: "aviso-panel", text: "La campaña está cerrada: los resultados no se pueden cambiar." }) : null,
       R.origen === "robot" ? h("p", { class: "origen-panel", text: "Resultado importado de Robot Framework. Si lo cambias a mano, el importado queda en el historial." }) : null,
+      tieneRobot(R.id) ? h("div", { class: "seccion-panel robot-panel" },
+        h("div", { class: "cab-panel" }, h("h3", {}, icon("robot"), " Tests de Robot")), listaTestsRobot(R.id)) : null,
       R.cambiada ? h("p", { class: "aviso-panel", text: "La prueba ha cambiado después de ejecutarse. Revisa si hay que repetirla." }) : null,
       h("div", { class: "seccion-panel" },
         h("div", { class: "cab-panel" }, h("h3", { text: "Resultado" }),

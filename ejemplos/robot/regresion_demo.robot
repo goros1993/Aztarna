@@ -57,11 +57,13 @@ Prueba retirada
 *** Keywords ***
 Simular Viaje
     [Arguments]    ${origen}    ${destino}
+    Sleep    0.6s    Tiempo de viaje simulado
     Log    Viaje simulado de ${origen} a ${destino}
     RETURN    ${destino}
 
 Comprobar Desnivel
     [Arguments]    ${mm}
+    Sleep    0.6s    Medida simulada del sensor de nivel
     Should Be True    ${mm} <= 5    Desnivel de ${mm} mm: supera el límite de ±5 mm
 
 Guardar Captura

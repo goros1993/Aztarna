@@ -12,11 +12,11 @@ dentro de una ventana nativa y se comunica con Python por un puente interno.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
 
+import ajustes
 from ejecucion_api import EditorEjecucionApi as EditorApi
 
 
@@ -36,30 +36,14 @@ def carpeta_por_defecto() -> Path | None:
     return next((c for c in candidatas if (c / "indice.yaml").is_file()), None)
 
 
-def archivo_ajustes() -> Path:
-    """Dónde se guarda la última carpeta usada (se puede cambiar con EDITOR_PRUEBAS_AJUSTES)."""
-    personalizado = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-    if personalizado:
-        return Path(personalizado)
-    raiz = Path(os.environ.get("APPDATA") or Path.home() / ".config")
-    return raiz / "EditorPruebasYaml" / "ajustes.json"
-
-
 def ultima_carpeta() -> Path | None:
-    try:
-        carpeta = Path(json.loads(archivo_ajustes().read_text(encoding="utf-8"))["ultima_carpeta"])
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
-    return carpeta if carpeta.is_dir() else None
+    valor = ajustes.leer().get("ultima_carpeta")
+    carpeta = Path(valor) if isinstance(valor, str) and valor else None
+    return carpeta if carpeta and carpeta.is_dir() else None
 
 
 def recordar_carpeta(carpeta: Path) -> None:
-    try:
-        ruta = archivo_ajustes()
-        ruta.parent.mkdir(parents=True, exist_ok=True)
-        ruta.write_text(json.dumps({"ultima_carpeta": str(carpeta)}, ensure_ascii=False), encoding="utf-8")
-    except OSError:
-        pass  # no poder recordar la carpeta no debe impedir trabajar
+    ajustes.guardar({"ultima_carpeta": str(carpeta)})
 
 
 def main() -> None:

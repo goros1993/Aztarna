@@ -1,7 +1,10 @@
 """Pruebas de la importación de resultados de Robot Framework (robot_core.py)."""
+import json
+import os
 import shutil
 import subprocess
 import sys
+import time
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -121,6 +124,151 @@ class ImportarTests(unittest.TestCase):
         estado = api.campana_robot_importar(str(SALIDA_RF7))
         self.assertTrue(estado["ok"], estado.get("error"))
         self.assertEqual(estado["datos"]["resumen"]["totales"]["ok"], 4)
+
+
+class EscaneoTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.dir = Path(self._tmp.name)
+
+    def escribir(self, ruta, texto):
+        ruta = self.dir / ruta
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text(texto, encoding="utf-8")
+
+    def test_ejemplo(self):
+        tests = {t["nombre"]: t["ids"] for t in rc.escanear_suites(RAIZ / "ejemplos" / "robot")["tests"]}
+        self.assertEqual(len(tests), 8)
+        self.assertEqual(tests["Apertura y reapertura de puertas"], ["DEMO-PUER-001", "DEMO-PUER-002"])
+        self.assertEqual(tests["Diagnóstico del bus sin enlazar"], [])
+
+    def test_etiquetas_de_archivo_carpeta_continuacion_y_comentarios(self):
+        self.escribir("suite/__init__.robot", "*** Settings ***\nTest Tags    banco\n")
+        self.escribir("suite/a.robot", (
+            "*** Settings ***\nForce Tags    id:COMUN-1\nDefault Tags    id:DEF-1\n\n"
+            "*** Test Cases ***\n"
+            "Uno\n    [Tags]    id:A-1    # comentario\n    ...    id:A-2\n    Log    x\n"
+            "Dos\n    Log    sin etiquetas propias\n"
+            "Tres\n    [Tags]    id:${VARIABLE}    id:B-1\n"
+            "# Comentario\n"
+        ))
+        self.escribir("suite/b.robot", "| *** Test Cases *** |\n| Cuatro | [Tags] | id:C-1 |\n|        | Log    | x      |\n")
+        self.escribir("otra.resource", "*** Keywords ***\nNada\n    Log    x\n")
+        tests = {t["nombre"]: t for t in rc.escanear_suites(self.dir)["tests"]}
+        self.assertEqual(tests["Uno"]["ids"], ["COMUN-1", "A-1", "A-2"])
+        self.assertIn("banco", tests["Uno"]["etiquetas"])
+        self.assertEqual(tests["Dos"]["ids"], ["COMUN-1", "DEF-1"])
+        self.assertEqual(tests["Tres"]["ids"], ["COMUN-1", "B-1"])
+        self.assertEqual(tests["Cuatro"]["ids"], ["C-1"])
+        self.assertEqual(tests["Uno"]["linea"], 6)
+
+    def test_cobertura(self):
+        capitulos = read_chapters(RAIZ / "ejemplos" / "yaml")
+        c = rc.cobertura(capitulos, rc.escanear_suites(RAIZ / "ejemplos" / "robot"))
+        self.assertIn("DEMO-NIV-001", c["cubiertas"])
+        self.assertEqual(len(c["por_id"]["DEMO-NIV-001"]), 2)
+        self.assertEqual(c["inexistentes"], ["DEMO-OLD-999"])
+        self.assertEqual(c["hecho_sin_robot"], ["DEMO-DIAG-001"])
+        self.assertEqual(c["sin_id"][0]["nombre"], "Diagnóstico del bus sin enlazar")
+
+    def test_preparar_ejecucion(self):
+        args = rc.preparar_ejecucion(self.dir / "salida", self.dir / "suites", ["DEMO-ANDEN-1"], ["--loglevel", "DEBUG"])
+        texto = (self.dir / "salida" / "argumentos.txt").read_text()
+        self.assertIn("--include id:demo-anden-1", texto)       # en minúsculas: AND/OR/NOT no se confunden
+        self.assertTrue((self.dir / "salida" / "progreso_editor.py").is_file())
+        self.assertEqual(args[-3:], ["--loglevel", "DEBUG", str(self.dir / "suites")])
+
+
+# Robot falso: lee el archivo de argumentos, escribe el avance como el listener
+# y deja un output.xml de ejemplo. Así se prueba el lanzamiento sin instalar Robot.
+ROBOT_FALSO = r"""
+import json, shutil, sys
+from pathlib import Path
+if "--version" in sys.argv:
+    print("Robot Framework 7.0 (falso)"); sys.exit(251)
+lineas = Path(sys.argv[sys.argv.index("--argumentfile") + 1]).read_text().splitlines()
+salida = Path(next(l.split(" ", 1)[1] for l in lineas if l.startswith("--outputdir")))
+progreso = Path(next(l.split(" ", 1)[1] for l in lineas if l.startswith("--listener")).split(";")[1])
+with open(progreso, "a") as f:
+    f.write(json.dumps({"tipo": "inicio", "total": 1}) + "\n")
+    f.write(json.dumps({"tipo": "fin_test", "nombre": "Uno", "estado": "PASS", "mensaje": ""}) + "\n")
+    f.write(json.dumps({"tipo": "fin"}) + "\n")
+shutil.copy(%r, salida / "output.xml")
+print("Output:  " + str(salida / "output.xml"))
+sys.exit(1)
+""" % str(SALIDA_RF7)
+
+
+class LanzarTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = Path(self._tmp.name)
+        self.anterior = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
+        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(self.restaurar)
+        for carpeta in ("yaml", "robot"):
+            shutil.copytree(RAIZ / "ejemplos" / carpeta, self.tmp / carpeta)
+        falso = self.tmp / "robot_falso.py"
+        falso.write_text(ROBOT_FALSO)
+        self.comando = f'"{sys.executable}" "{falso}"'
+        ej.crear(self.tmp / "camp", self.tmp / "yaml", "Robot", {"etiquetas": ["regresion"]})
+        self.api = EditorEjecucionApi()
+        self.assertTrue(self.api.campana_abrir(str(self.tmp / "camp"))["ok"])
+
+    def restaurar(self):
+        if self.anterior is None:
+            os.environ.pop("EDITOR_PRUEBAS_AJUSTES", None)
+        else:
+            os.environ["EDITOR_PRUEBAS_AJUSTES"] = self.anterior
+
+    def configurar(self):
+        r = self.api.robot_guardar_config({"suites": str(self.tmp / "robot"), "comando": self.comando})
+        self.assertTrue(r["ok"], r.get("error"))
+        return r["datos"]["cobertura"]
+
+    def test_configuracion_cobertura_y_validacion(self):
+        self.assertIsNone(self.api.robot_cobertura()["datos"])
+        self.assertFalse(self.api.robot_guardar_config({"suites": str(self.tmp / "no-existe")})["ok"])
+        cobertura = self.configurar()
+        self.assertEqual(len(cobertura["cubiertas"]), 6)
+        guardado = json.loads((self.tmp / "ajustes.json").read_text())
+        self.assertIn(str((self.tmp / "yaml").resolve()), guardado["robot"])
+        avisos = [p["mensaje"] for p in self.api.validar()["datos"]["problemas"]]
+        self.assertTrue(any("DEMO-DIAG-001" in m for m in avisos))
+        self.assertEqual(self.api.robot_comprobar(self.comando)["datos"]["version"], "Robot Framework 7.0 (falso)")
+
+    def test_filtro_con_y_sin_robot(self):
+        self.configurar()
+        con = self.api.campana_previsualizar({"robot": ["con"]})["datos"]
+        sin = self.api.campana_previsualizar({"robot": ["sin"]})["datos"]
+        self.assertEqual(len(con), 6)
+        self.assertEqual(len(con) + len(sin), 14)
+        self.assertEqual(self.api.campana_opciones()["datos"]["robot"], ["con", "sin"])
+
+    def test_lanzar_seguir_e_importar(self):
+        self.configurar()
+        datos = self.api.campana_robot_lanzar(["DEMO-LLAM-001"])
+        self.assertTrue(datos["ok"], datos.get("error"))
+        for _ in range(100):
+            progreso = self.api.campana_robot_progreso()["datos"]
+            if not progreso["en_marcha"]:
+                break
+            time.sleep(0.1)
+        self.assertFalse(progreso["en_marcha"])
+        self.assertEqual(progreso["total"], 1)
+        self.assertEqual(progreso["terminados"][0]["estado"], "PASS")
+        self.assertTrue(progreso["output"])
+        importado = self.api.campana_robot_importar(progreso["output"])["datos"]["importacion"]
+        # Los resultados ya estaban dentro de la campaña: no se copian a otra carpeta.
+        self.assertEqual(Path(datos["datos"]["carpeta"]).name, Path(importado["carpeta_evidencias"]).name)
+        self.assertFalse((Path(datos["datos"]["carpeta"]) / "__pycache__").exists())
+
+    def test_lanzar_sin_configurar(self):
+        r = self.api.campana_robot_lanzar(["DEMO-LLAM-001"])
+        self.assertFalse(r["ok"])
+        self.assertIn("Configura", r["error"])
 
 
 if __name__ == "__main__":

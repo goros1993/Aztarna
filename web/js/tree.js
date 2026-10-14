@@ -98,6 +98,7 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
       S.modo === "ejecucion" ? marcaEstado(n.id) : null,
       h("span", { class: "tid", text: n.id || "(sin ID)" }),
       h("span", { class: "tit", text: n.titulo || "(sin título)" }),
+      tieneRobot(n.id) ? h("span", { class: "marca-robot", title: "Tiene test de Robot Framework" }, icon("robot")) : null,
     ]);
   }
   if (marca) {

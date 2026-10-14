@@ -15,6 +15,7 @@ const S = {
   alcanceTodos: false,
   modo: leerLocal("modo") === "ejecucion" ? "ejecucion" : "edicion",
   campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
+  cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
   filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
 };
 
@@ -142,6 +143,7 @@ async function elegirCarpeta() {
     S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
     S.colapsadas.clear(); cacheImagenes.clear();
     aplicarResumen(r);
+    await cargarCobertura();
     await cargarNavegacion();
     mostrarVacio();
     validarEnSegundoPlano();
@@ -327,6 +329,7 @@ function conectar() {
     try {
       cacheImagenes.clear();
       aplicarResumen(await api.recargar());
+      await cargarCobertura();
       await refrescarTodo({});
       aviso("Archivos recargados desde el disco", "ok");
     } catch (e) { fallo(e); }
@@ -345,6 +348,7 @@ function conectar() {
   iniciarArrastreArbol();
   iniciarDivisor();
   iniciarEjecucion();
+  iniciarRobot();
 
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -367,6 +371,7 @@ async function arrancar() {
     if (resumen.aviso) aviso(resumen.aviso, "error");
     if (S.modo === "ejecucion") await recuperarCampana();
     if (S.capitulos.length) {
+      await cargarCobertura();
       await cargarNavegacion();
       mostrarVacio();
       validarEnSegundoPlano();

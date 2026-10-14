@@ -26,6 +26,8 @@
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 3 19.5h18z"/><line x1="12" y1="10" x2="12" y2="14.5"/><line x1="12" y1="17" x2="12" y2="17.2"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><polyline points="5 12.5 10 17.5 19 7"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="17" r="1.2"/><circle cx="15" cy="17" r="1.2"/></symbol>
+    <symbol id="i-robot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="2"/><line x1="12" y1="4" x2="12" y2="8"/><circle cx="12" cy="3.5" r="1"/><circle cx="9.5" cy="13" r="1.2"/><circle cx="14.5" cy="13" r="1.2"/><line x1="9.5" y1="16.5" x2="14.5" y2="16.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><polygon points="8 5 19 12 8 19 8 5"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></symbol>
   </defs>
 </svg>
@@ -50,6 +52,9 @@
       <select id="sel-capitulo" disabled></select>
     </label>
     <div class="relleno"></div>
+    <button class="btn ghost" id="btn-robot" type="button" title="Configurar Robot Framework y ver qué pruebas están automatizadas">
+      <svg class="ico" aria-hidden="true"><use href="#i-robot"/></svg><span id="robot-resumen">Robot</span>
+    </button>
     <button class="btn ghost" id="btn-recargar" type="button" title="Volver a leer los archivos del disco">
       <svg class="ico" aria-hidden="true"><use href="#i-reload"/></svg>Recargar
     </button>
@@ -116,6 +121,7 @@
 <script src="js/tree.js"></script>
 <script src="js/form.js"></script>
 <script src="js/ejecucion.js"></script>
+<script src="js/robot.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

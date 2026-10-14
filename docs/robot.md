@@ -61,8 +61,8 @@ observaciones indican qué tests se ejecutaron y por qué falló cada uno.
    - tests de Robot sin etiqueta `id:`,
    - IDs que no existen en las pruebas (erratas o pruebas borradas),
    - IDs que existen pero no están en esta campaña,
-   - pruebas de la campaña sin test de Robot (se quedan como están, para
-     pasarlas a mano).
+   - pruebas de la campaña sin resultado en ese archivo (se quedan como
+     están, para pasarlas a mano o en otra ejecución).
 3. Pulsa **Importar**. Se copian `output.xml`, `log.html`, `report.html` y
    las capturas enlazadas en el log a `evidencias/robot/<fecha>/` dentro de la
    campaña, y cada prueba queda con su resultado, el ejecutor «Robot
@@ -79,6 +79,54 @@ python importar_robot.py ruta/a/la/campaña resultados/output.xml             # 
 Volver a importar el mismo `output.xml` no duplica nada. Si se repiten los
 tests fallidos (`robot --rerunfailed resultados/output.xml …`) y se importa
 el nuevo resultado, el anterior queda en el historial de cada prueba.
+
+## Configurar Robot en el editor
+
+Botón **Robot** de la barra superior. La configuración es de cada PC y de
+cada carpeta de pruebas:
+
+- **Carpeta con los tests de Robot:** la carpeta de las suites (o un archivo
+  `.robot`).
+- **Comando para ejecutar Robot:** el que usarías en la consola, por ejemplo
+  `robot`, `python -m robot` o la ruta completa
+  (`C:\venv\Scripts\robot.exe`). *Comprobar* ejecuta `--version`.
+- **Argumentos adicionales:** los que necesite el banco, por ejemplo
+  `--variable BANCO:2 --pythonpath lib`.
+
+Robot se ejecuta en la carpeta de los tests, con el Python donde esté
+instalado; el editor no necesita tenerlo instalado.
+
+## Cobertura: qué pruebas tienen test de Robot
+
+Con la carpeta configurada, el editor lee las etiquetas `id:` de los `.robot`
+(sin ejecutarlos; tiene en cuenta `Test Tags`/`Force Tags` del archivo y de
+`__init__.robot`) y:
+
+- marca con un robot en el árbol las pruebas que tienen test automático, y
+  en cada prueba lista sus tests de Robot (archivo y línea);
+- avisa en la validación de las pruebas con `automatizable: hecho` sin test
+  de Robot;
+- en la configuración muestra los tests sin `id:` y los `id:` que no existen;
+- al crear una campaña permite filtrar por **Automatización: con / sin test
+  de Robot**.
+
+## Ejecutar Robot desde una campaña
+
+**Ejecutar Robot…** (en el resumen de la campaña) lanza Robot solo con los
+tests de las pruebas elegidas: las pendientes o todas las de la campaña que
+tienen test de Robot. El editor:
+
+1. crea `evidencias/robot/<fecha>/` dentro de la campaña y lanza Robot con
+   `--include id:<id>` por cada prueba (en un archivo de argumentos), las
+   suites y los argumentos configurados;
+2. muestra el avance test a test (con un *listener* que escribe en
+   `progreso.jsonl`) y permite cancelar;
+3. al terminar abre la vista previa de la importación; los resultados ya
+   están en la campaña (`output.xml`, `log.html`, `report.html`, la salida de
+   la consola en `consola.txt`), así que no se copian otra vez.
+
+Si Robot termina sin `output.xml` (comando mal configurado, argumentos
+inválidos…), se muestra la salida de la consola.
 
 ## Capturas
 

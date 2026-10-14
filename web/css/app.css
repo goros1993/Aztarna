@@ -562,3 +562,27 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .aviso-robot { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; font-size: 13px; }
 .aviso-robot span { color: var(--ink-2); overflow-wrap: anywhere; }
 .aviso-robot.atencion strong { color: var(--warn); }
+
+/* ---- Robot Framework ---- */
+.marca-robot { flex: none; display: inline-flex; color: var(--accent); opacity: 0.85; }
+.marca-robot .ico { width: 14px; height: 14px; }
+.tests-robot { margin: 0; padding: 0; list-style: none; font-size: 13.5px; }
+.tests-robot li { padding: 3px 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: baseline; }
+.tests-robot .nombre-robot { font-weight: 600; }
+.tests-robot .muted { font: 12px var(--mono); }
+.robot-panel .cab-panel h3 { display: inline-flex; align-items: center; gap: 4px; }
+.config-robot .rejilla { grid-template-columns: 1fr; }
+.config-robot .fila-botones { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.config-robot .fila-botones p { margin: 0; }
+.cobertura-robot { border-top: 1px solid var(--rule); padding-top: 8px; }
+.cobertura-robot h3 { font-size: 14px; margin: 4px 0; color: var(--ink); }
+.ok-txt { color: var(--ok); margin: 0; }
+.lanzar-robot .opcion { display: flex; margin: 4px 0; }
+.tests-elegidos { list-style: none; margin: 8px 0 0; padding: 0; max-height: 220px; overflow: auto; font-size: 13px; border: 1px solid var(--rule); border-radius: 4px; }
+.tests-elegidos li { padding: 3px 8px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 4px; }
+.tests-elegidos .tid { font: 12px var(--mono); color: var(--ink-2); }
+.estado-robot { margin: 0 0 8px; color: var(--ink); }
+.avance-robot { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.avance-robot li { padding: 3px 0; }
+.consola-robot { max-height: 200px; overflow: auto; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 8px; font: 12px var(--mono); white-space: pre-wrap; }
+.panel-campana .acciones .titulo { min-width: 220px; }

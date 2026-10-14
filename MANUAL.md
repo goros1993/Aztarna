@@ -67,8 +67,9 @@ en Ubuntu, *Configuración → Apariencia*.
 ![Ventana del editor en modo Edición](docs/manual/01_ventana_edicion.png)
 
 - **Barra superior:** modo (Edición / Ejecución), carpeta de pruebas,
-  capítulo, *Recargar* (vuelve a leer los archivos del disco) y *Exportar
-  DOCX*.
+  capítulo, *Robot* (configuración de Robot Framework y número de pruebas
+  automatizadas), *Recargar* (vuelve a leer los archivos del disco) y
+  *Exportar DOCX*.
 - **Panel izquierdo:** buscador (por ID o texto) y el **árbol** del capítulo
   con sus secciones y pruebas. Las secciones se pliegan y despliegan con la
   flecha. El ancho del panel se ajusta arrastrando su borde.
@@ -256,8 +257,8 @@ prueba seleccionada:
 - **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);
-- botones **Importar Robot…** (ver 5.7), **Generar informe…**, **Cerrar
-  campaña…** y **Siguiente pendiente**.
+- botones **Ejecutar Robot…** e **Importar Robot…** (ver 5.7), **Generar
+  informe…**, **Cerrar campaña…** y **Siguiente pendiente**.
 
 ### 5.5 Pasar una prueba
 
@@ -315,6 +316,30 @@ Para que una prueba reciba el resultado, su test de Robot tiene que llevar la
 etiqueta `id:` con el ID de la prueba (por ejemplo `id:DEMO-LLAM-001`). Quien
 escribe los tests de Robot tiene los detalles en
 [docs/robot.md](docs/robot.md).
+
+**Configurar Robot.** El botón **Robot** de la barra superior indica dónde
+están los tests de Robot de este PC y cómo se ejecuta Robot (el comando que
+usarías en la consola; *Comprobar* verifica que funciona). Se configura una
+vez por PC y carpeta de pruebas.
+
+![Configuración de Robot](docs/manual/20_config_robot.png)
+
+Con eso, el editor sabe qué pruebas están automatizadas: las marca con un
+robot en el árbol, cada prueba muestra sus tests de Robot, la validación
+avisa de las pruebas marcadas como automatizable «hecho» que no tienen test,
+y al crear una campaña se puede filtrar por *Automatización: con / sin test
+de Robot*.
+
+![Prueba con sus tests de Robot](docs/manual/19_cobertura_edicion.png)
+
+**Ejecutar Robot desde la campaña.** En el resumen, **Ejecutar Robot…** lanza
+Robot solo con las pruebas de la campaña que tienen test automático (las
+pendientes o todas). Se ve el avance test a test y se puede cancelar; al
+terminar aparece la misma vista previa de la importación.
+
+![Elegir qué ejecutar](docs/manual/21_ejecutar_robot.png)
+
+![Avance de Robot](docs/manual/22_progreso_robot.png)
 
 ### 5.8 Cerrar la campaña
 
