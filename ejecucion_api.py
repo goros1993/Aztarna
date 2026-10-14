@@ -266,6 +266,39 @@ class EditorEjecucionApi(EditorApi):
                 resultado["aviso_pdf"] = str(error)
         return resultado
 
+    # --- Robot Framework ---------------------------------------------------------------
+    @respuesta
+    def campana_robot_elegir(self) -> dict[str, Any]:
+        """Selector del sistema para elegir el output.xml de Robot Framework."""
+        import webview
+
+        campaña = self._requiere_campaña()
+        if self._window is None:
+            raise ValueError("El selector de archivos solo está disponible en la aplicación.")
+        kind = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or webview.OPEN_DIALOG
+        elegido = self._window.create_file_dialog(
+            kind, directory=str(campaña["carpeta"].parent),
+            file_types=("Resultados de Robot Framework (*.xml)", "Todos los archivos (*.*)"),
+        )
+        if not elegido:
+            return {"cancelado": True}
+        return {"ruta": elegido if isinstance(elegido, str) else elegido[0]}
+
+    @respuesta
+    def campana_robot_previsualizar(self, ruta: str) -> dict[str, Any]:
+        """Qué haría la importación del output.xml, sin cambiar nada."""
+        import robot_core
+
+        return robot_core.plan(self._requiere_campaña(), robot_core.leer_output(ruta), self._chapters)
+
+    @respuesta
+    def campana_robot_importar(self, ruta: str) -> dict[str, Any]:
+        """Apunta en la campaña los resultados del output.xml."""
+        import robot_core
+
+        datos = robot_core.importar(self._requiere_campaña(), ruta, self._chapters)
+        return {**self._estado(), "importacion": datos}
+
     @respuesta
     def campana_resincronizar(self) -> dict[str, Any]:
         cambios = ej.resincronizar(self._requiere_campaña(), self._chapters)

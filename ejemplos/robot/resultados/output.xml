@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.14.4 on linux)" generated="2026-10-14T23:02:48.905060" rpa="false" schemaversion="5">
+<suite id="s1" name="Robot" source="ejemplos/robot">
+<suite id="s1-s1" name="Regresion Demo" source="ejemplos/robot/regresion_demo.robot">
+<test id="s1-s1-t1" name="Llamada de cabina lleva a la planta pedida" line="16">
+<kw name="Simular Viaje">
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.950639" level="INFO">Viaje simulado de 0 a 2</msg>
+<arg>Viaje simulado de ${origen} a ${destino}</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.950343" elapsed="0.000359"/>
+</kw>
+<return>
+<value>${destino}</value>
+<status status="PASS" start="2026-10-14T23:02:48.950760" elapsed="0.000051"/>
+</return>
+<msg time="2026-10-14T23:02:48.950932" level="INFO">${planta} = 2</msg>
+<var>${planta}</var>
+<arg>origen=0</arg>
+<arg>destino=2</arg>
+<status status="PASS" start="2026-10-14T23:02:48.949773" elapsed="0.001183"/>
+</kw>
+<kw name="Should Be Equal As Integers" owner="BuiltIn">
+<arg>${planta}</arg>
+<arg>2</arg>
+<doc>Fails if objects are unequal after converting them to integers.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.951058" elapsed="0.000270"/>
+</kw>
+<doc>Automatiza DEMO-LLAM-001.</doc>
+<tag>id:DEMO-LLAM-001</tag>
+<tag>regresion</tag>
+<status status="PASS" start="2026-10-14T23:02:48.949178" elapsed="0.002245"/>
+</test>
+<test id="s1-s1-t2" name="Llamada de piso queda registrada" line="22">
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.952080" level="INFO">Pulsador de P1 iluminado</msg>
+<arg>Pulsador de P1 iluminado</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.951888" elapsed="0.000236"/>
+</kw>
+<tag>id:DEMO-LLAM-002</tag>
+<tag>regresion</tag>
+<status status="PASS" start="2026-10-14T23:02:48.951580" elapsed="0.000631"/>
+</test>
+<test id="s1-s1-t3" name="Nivelación sin carga" line="26">
+<kw name="Comprobar Desnivel">
+<kw name="Should Be True" owner="BuiltIn">
+<arg>${mm} &lt;= 5</arg>
+<arg>Desnivel de ${mm} mm: supera el límite de ±5 mm</arg>
+<doc>Fails if the given condition is not true.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.952855" elapsed="0.000371"/>
+</kw>
+<arg>3</arg>
+<status status="PASS" start="2026-10-14T23:02:48.952624" elapsed="0.000661"/>
+</kw>
+<doc>Primera variante de DEMO-NIV-001.</doc>
+<tag>id:DEMO-NIV-001</tag>
+<tag>regresion</tag>
+<status status="PASS" start="2026-10-14T23:02:48.952344" elapsed="0.001017"/>
+</test>
+<test id="s1-s1-t4" name="Nivelación con carga máxima" line="31">
+<kw name="Guardar Captura">
+<kw name="Copy File" owner="OperatingSystem">
+<msg time="2026-10-14T23:02:48.954833" level="INFO" html="true">Copied file from '&lt;a href="ejemplos/yaml/imagenes/registro_eventos.png"&gt;ejemplos/yaml/imagenes/registro_eventos.png&lt;/a&gt;' to '&lt;a href="ejemplos/robot/resultados/captura-registro_eventos.png"&gt;ejemplos/robot/resultados/captura-registro_eventos.png&lt;/a&gt;'.</msg>
+<arg>${IMAGENES}/${imagen}</arg>
+<arg>${OUTPUT DIR}/captura-${imagen}</arg>
+<doc>Copies the source file into the destination.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.954022" elapsed="0.000901"/>
+</kw>
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.955531" level="INFO" html="true">&lt;img src="captura-registro_eventos.png" width="400"&gt;</msg>
+<arg>&lt;img src="captura-${imagen}" width="400"&gt;</arg>
+<arg>HTML</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.955159" elapsed="0.000425"/>
+</kw>
+<arg>registro_eventos.png</arg>
+<status status="PASS" start="2026-10-14T23:02:48.953816" elapsed="0.001829"/>
+</kw>
+<kw name="Comprobar Desnivel">
+<kw name="Should Be True" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.956640" level="FAIL">Desnivel de 7 mm: supera el límite de ±5 mm</msg>
+<arg>${mm} &lt;= 5</arg>
+<arg>Desnivel de ${mm} mm: supera el límite de ±5 mm</arg>
+<doc>Fails if the given condition is not true.</doc>
+<status status="FAIL" start="2026-10-14T23:02:48.956105" elapsed="0.000741">Desnivel de 7 mm: supera el límite de ±5 mm</status>
+</kw>
+<arg>7</arg>
+<status status="FAIL" start="2026-10-14T23:02:48.955776" elapsed="0.001247">Desnivel de 7 mm: supera el límite de ±5 mm</status>
+</kw>
+<doc>Segunda variante de DEMO-NIV-001: falla y deja una captura.</doc>
+<tag>id:DEMO-NIV-001</tag>
+<tag>regresion</tag>
+<status status="FAIL" start="2026-10-14T23:02:48.953485" elapsed="0.003730">Desnivel de 7 mm: supera el límite de ±5 mm</status>
+</test>
+<test id="s1-s1-t5" name="Trama de estado de cabina" line="37">
+<kw name="Skip" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.958255" level="SKIP">No hay analizador CAN conectado en este PC</msg>
+<arg>No hay analizador CAN conectado en este PC</arg>
+<doc>Stops the current test or task and sets its status to SKIP.</doc>
+<status status="SKIP" start="2026-10-14T23:02:48.957913" elapsed="0.000444">No hay analizador CAN conectado en este PC</status>
+</kw>
+<tag>id:DEMO-CAN-001</tag>
+<tag>regresion</tag>
+<status status="SKIP" start="2026-10-14T23:02:48.957481" elapsed="0.001047">No hay analizador CAN conectado en este PC</status>
+</test>
+<test id="s1-s1-t6" name="Apertura y reapertura de puertas" line="41">
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.959795" level="INFO">Apertura en 2,1 s; reapertura en 180 ms</msg>
+<arg>Apertura en 2,1 s; reapertura en 180 ms</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.959483" elapsed="0.000396"/>
+</kw>
+<doc>Un mismo test cubre dos pruebas YAML.</doc>
+<tag>id:DEMO-PUER-001</tag>
+<tag>id:DEMO-PUER-002</tag>
+<tag>regresion</tag>
+<status status="PASS" start="2026-10-14T23:02:48.958766" elapsed="0.001287"/>
+</test>
+<test id="s1-s1-t7" name="Diagnóstico del bus sin enlazar" line="46">
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.961532" level="INFO">Mensaje DIAG 0x7E recibido</msg>
+<arg>Mensaje DIAG 0x7E recibido</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.961184" elapsed="0.000418"/>
+</kw>
+<doc>Sin etiqueta id: todavía no se ha enlazado con ninguna prueba YAML.</doc>
+<tag>diagnostico</tag>
+<status status="PASS" start="2026-10-14T23:02:48.960303" elapsed="0.001457"/>
+</test>
+<test id="s1-s1-t8" name="Prueba retirada" line="51">
+<kw name="Log" owner="BuiltIn">
+<msg time="2026-10-14T23:02:48.962630" level="INFO">Prueba antigua</msg>
+<arg>Prueba antigua</arg>
+<doc>Logs the given message with the given level.</doc>
+<status status="PASS" start="2026-10-14T23:02:48.962414" elapsed="0.000258"/>
+</kw>
+<doc>Su ID ya no existe en los YAML: el importador avisa.</doc>
+<tag>id:DEMO-OLD-999</tag>
+<status status="PASS" start="2026-10-14T23:02:48.961943" elapsed="0.000812"/>
+</test>
+<doc>Tests automáticos de ejemplo (ficticios) del controlador DEMO-A1.
+
+Cada test se enlaza con su prueba YAML mediante la etiqueta
+id:&lt;ID de la prueba&gt;. Las palabras clave simulan el banco HIL
+para que el ejemplo se pueda ejecutar en cualquier PC:
+robot --outputdir resultados ejemplos/robot</doc>
+<status status="FAIL" start="2026-10-14T23:02:48.939262" elapsed="0.023863"/>
+</suite>
+<status status="FAIL" start="2026-10-14T23:02:48.906434" elapsed="0.057089"/>
+</suite>
+<statistics>
+<total>
+<stat pass="6" fail="1" skip="1">All Tests</stat>
+</total>
+<tag>
+<stat pass="1" fail="0" skip="0">diagnostico</stat>
+<stat pass="0" fail="0" skip="1">id:DEMO-CAN-001</stat>
+<stat pass="1" fail="0" skip="0">id:DEMO-LLAM-001</stat>
+<stat pass="1" fail="0" skip="0">id:DEMO-LLAM-002</stat>
+<stat pass="1" fail="1" skip="0">id:DEMO-NIV-001</stat>
+<stat pass="1" fail="0" skip="0">id:DEMO-OLD-999</stat>
+<stat pass="1" fail="0" skip="0">id:DEMO-PUER-001</stat>
+<stat pass="1" fail="0" skip="0">id:DEMO-PUER-002</stat>
+<stat pass="4" fail="1" skip="1">regresion</stat>
+</tag>
+<suite>
+<stat name="Robot" id="s1" pass="6" fail="1" skip="1">Robot</stat>
+<stat name="Regresion Demo" id="s1-s1" pass="6" fail="1" skip="1">Robot.Regresion Demo</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

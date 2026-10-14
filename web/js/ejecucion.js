@@ -312,6 +312,7 @@ function mostrarPanelCampana() {
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
         h("span", { class: "ruta", text: [d.objeto, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),
       h("span", { class: "chip-estado " + (c.cerrada ? "cerrada" : "abierta"), text: c.cerrada ? "Cerrada" : "Abierta" }),
+      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: importarRobot, text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la campaña sigue abierta" }),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar campaña…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
@@ -335,6 +336,53 @@ function mostrarPanelCampana() {
         h("dt", { text: "Criterio" }), h("dd", { text: criterio }),
         h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: c.carpeta, onclick: () => api.mostrar_en_carpeta(c.carpeta + "/campaña.yaml").catch(fallo) })),
         h("dt", { text: "Pruebas" }), h("dd", { text: String(d.pruebas_yaml || "") })))));
+}
+
+/* ---- resultados de Robot Framework ---- */
+async function importarRobot() {
+  if (!S.campana || S.campana.cerrada) return;
+  if (!(await guardia())) return;
+  setDirty(false);
+  try {
+    const elegido = await api.campana_robot_elegir();
+    if (elegido.cancelado) return;
+    const plan = await api.campana_robot_previsualizar(elegido.ruta);
+    const t = plan.totales;
+    const lista = (titulo, ids, clase = "") => ids.length ? h("div", { class: "aviso-robot " + clase },
+      h("strong", { text: `${titulo} (${ids.length})` }), h("span", { text: ids.join(", ") })) : null;
+    const cuerpo = h("div", { class: "importar-robot" },
+      h("p", { class: "muted", text: `${elegido.ruta} · ${plural(plan.tests_robot, "test", "tests")} · ${plan.generador}` }),
+      plan.resultados.length
+        ? h("table", { class: "tabla-estados" },
+          h("thead", {}, h("tr", {}, h("th", { text: "Prueba" }), h("th", { text: "Resultado" }), h("th", { text: "Antes" }), h("th", { text: "Tests de Robot" }))),
+          h("tbody", {}, plan.resultados.map((r) => h("tr", {},
+            h("td", { class: "tid", text: r.id }),
+            h("td", {}, h("span", { class: "chip-estado e-" + r.estado, text: ESTADO_TXT[r.estado] })),
+            h("td", { class: "muted", text: r.anterior ? ESTADO_TXT[r.anterior] || r.anterior : "—" }),
+            h("td", { text: r.tests.join(" · ") })))))
+        : h("p", { class: "aviso-panel", text: "Ninguna prueba de esta campaña tiene resultados en ese archivo. ¿Llevan los tests de Robot la etiqueta id:<ID>?" }),
+      lista("Sustituyen un resultado manual (el manual queda en el historial)", plan.sustituyen_manual, "atencion"),
+      lista("Tests de Robot sin etiqueta id:", plan.sin_id),
+      lista("IDs que no existen en las pruebas", plan.inexistentes, "atencion"),
+      lista("IDs que no están en esta campaña", plan.fuera_de_campaña),
+      lista("Pruebas de la campaña sin test de Robot (siguen como están)", plan.sin_robot));
+    const r = await dialogo({
+      titulo: "Importar resultados de Robot Framework", cuerpo, ancho: true,
+      botones: [
+        { texto: "Cancelar", valor: "no", tipo: "ghost" },
+        plan.resultados.length ? { texto: `Importar ${plural(plan.resultados.length, "resultado", "resultados")}`, valor: "si", tipo: "primary" } : null,
+      ].filter(Boolean),
+    });
+    if (r !== "si") return;
+    const estado = await api.campana_robot_importar(elegido.ruta);
+    S.campana = estado;
+    S.seleccion = null;
+    R = null;
+    pintarModo();
+    await cargarNavegacion();
+    mostrarVacio();
+    aviso(`Importados: ${t.ok} OK, ${t.no_ok} NO OK, ${t.no_aplica} no aplica`, "ok");
+  } catch (e) { fallo(e); }
 }
 
 /* ---- cierre e informe ---- */
@@ -505,6 +553,7 @@ async function mostrarEnEjecucion(datos) {
     evidencias: aLista(res.evidencias).map(String),
     ejecutor: String(res.ejecutor || leerLocal("ejecutor") || S.campana.datos.responsable || ""),
     intentos: aLista(res.intentos), fecha: res.fecha, cambiada: info.prueba_cambiada, enCampana: info.en_campaña,
+    origen: res.origen || "",
   };
   mostrar(h("div", { class: "vista-ejecucion" },
     h("div", { class: "acciones" },
@@ -535,6 +584,7 @@ function panelResultado() {
     append(panel, [
       !R.enCampana ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la campaña." }) : null,
       cerrada() ? h("p", { class: "aviso-panel", text: "La campaña está cerrada: los resultados no se pueden cambiar." }) : null,
+      R.origen === "robot" ? h("p", { class: "origen-panel", text: "Resultado importado de Robot Framework. Si lo cambias a mano, el importado queda en el historial." }) : null,
       R.cambiada ? h("p", { class: "aviso-panel", text: "La prueba ha cambiado después de ejecutarse. Revisa si hay que repetirla." }) : null,
       h("div", { class: "seccion-panel" },
         h("div", { class: "cab-panel" }, h("h3", { text: "Resultado" }),

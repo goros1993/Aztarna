@@ -13,9 +13,11 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
 | `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
 | `informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
+| `robot_core.py`, `importar_robot.py` | Importar resultados de Robot Framework en una campaña. |
 | `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
 | `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
 | `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
+| `ejemplos/robot/` | Suite de Robot de ejemplo y sus resultados. |
 | `test_*.py` | Pruebas automatizadas. |
 
 El manual para quien usa el editor (sin detalles técnicos) está en
@@ -243,6 +245,12 @@ existente, el editor pide confirmación (para las campañas, un ID nuevo es otra
 prueba). Cambiar el texto, los pasos o la ubicación de una prueba no rompe
 nada; si ya se había ejecutado, la campaña avisa de que cambió.
 
+**Pruebas automáticas (Robot Framework).** Cada test de Robot lleva la
+etiqueta `id:<ID de la prueba>`. *Importar Robot…* (en el resumen de la
+campaña) o `python importar_robot.py <campaña> <output.xml>` apuntan sus
+resultados (PASS → OK, FAIL → NO OK, SKIP → No aplica) con el log y las
+capturas como evidencias. Detalles en [docs/robot.md](docs/robot.md).
+
 Para probarlo: modo Ejecución → *Abrir campaña…* →
 `ejemplos/ejecuciones/regresion_v2.3`. Al abrir una campaña se abre también
 su carpeta de pruebas.
@@ -398,8 +406,8 @@ git status
 git add .gitignore README.md MANUAL.md PENDIENTE.md docs/ requirements.txt construir_exe.bat \
   convertir.py inventario.py yaml_a_docx.py \
   editor_core.py editor_api.py editor_web.py web/ \
-  ejecucion_core.py ejecucion_api.py informe_docx.py \
-  test_conversion.py test_editor_core.py test_editor_api.py test_ejecucion.py ejemplos/
+  ejecucion_core.py ejecucion_api.py informe_docx.py robot_core.py importar_robot.py \
+  test_conversion.py test_editor_core.py test_editor_api.py test_ejecucion.py test_robot.py ejemplos/
 git status
 git commit -m "Descripción del cambio"
 git push

@@ -256,8 +256,8 @@ prueba seleccionada:
 - **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);
-- botones **Siguiente pendiente**, **Generar informe…** y **Cerrar
-  campaña…**.
+- botones **Importar Robot…** (ver 5.7), **Generar informe…**, **Cerrar
+  campaña…** y **Siguiente pendiente**.
 
 ### 5.5 Pasar una prueba
 
@@ -292,7 +292,31 @@ resultado normalmente. El anterior **no se pierde**: queda en el
 **Historial** con sus observaciones, incidencia y evidencias, y aparecerá en
 el informe («NO OK con BUG-123; OK tras corregirlo»).
 
-### 5.7 Cerrar la campaña
+### 5.7 Pruebas automáticas (Robot Framework)
+
+Si parte de las pruebas se ejecutan con Robot Framework, sus resultados se
+pueden apuntar de golpe:
+
+1. Ejecuta Robot como siempre. Al terminar deja un archivo `output.xml`.
+2. En el resumen de la campaña pulsa **Importar Robot…** y elige ese
+   `output.xml`.
+3. Antes de cambiar nada verás qué resultado tendrá cada prueba (PASS → OK,
+   FAIL → NO OK con el motivo, SKIP → No aplica) y los avisos: pruebas que ya
+   tenían un resultado manual (no se pierde: pasa al historial), tests de
+   Robot sin enlazar o con un ID que no existe, y pruebas de la campaña que
+   no tienen test automático (esas se pasan a mano como siempre).
+![Importar resultados de Robot](docs/manual/18_importar_robot.png)
+
+4. Pulsa **Importar**. El log de Robot y sus capturas quedan como evidencias
+   de cada prueba, y el panel indica *Resultado importado de Robot
+   Framework*.
+
+Para que una prueba reciba el resultado, su test de Robot tiene que llevar la
+etiqueta `id:` con el ID de la prueba (por ejemplo `id:DEMO-LLAM-001`). Quien
+escribe los tests de Robot tiene los detalles en
+[docs/robot.md](docs/robot.md).
+
+### 5.8 Cerrar la campaña
 
 ![Cerrar la campaña](docs/manual/13_cerrar_campana.png)
 
@@ -310,7 +334,7 @@ Una campaña cerrada se sigue pudiendo abrir para consultarla. La barra
 superior indica *Pruebas congeladas (solo lectura)*: para volver a editar las
 pruebas, abre su carpeta de pruebas con el botón de la carpeta.
 
-### 5.8 Generar el informe
+### 5.9 Generar el informe
 
 ![Generar el informe](docs/manual/14_informe_dialogo.png)
 

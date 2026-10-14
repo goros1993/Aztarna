@@ -22,6 +22,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ruamel.yaml.scalarstring import LiteralScalarString
+
 from editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_in_chapter
 
 ARCHIVO_CAMPAÑA = "campaña.yaml"
@@ -40,6 +42,13 @@ ESTADOS_VISIBLES = {
 }
 # Campos de la prueba por los que se puede filtrar (además de etiquetas, capítulos e IDs).
 CAMPOS_FILTRO = ("criticidad", "automatizable", "plataforma", "entorno", "componente")
+
+
+def to_plain_simple(valor: Any) -> Any:
+    """Listas y textos de ruamel como tipos simples, para comparar."""
+    if isinstance(valor, list):
+        return [to_plain_simple(v) for v in valor]
+    return str(valor) if valor is not None else None
 
 
 def ahora() -> str:
@@ -303,8 +312,13 @@ def estado_de(campaña: dict[str, Any], test_id: str) -> str:
 
 def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
               observaciones: str = "", incidencia: str = "", evidencias: list[str] | None = None,
-              ejecutor: str = "", huella_actual: str = "") -> dict[str, Any]:
-    """Apunta el resultado de una prueba. El resultado anterior pasa al historial."""
+              ejecutor: str = "", huella_actual: str = "", fecha: str | None = None,
+              origen: str = "") -> dict[str, Any]:
+    """Apunta el resultado de una prueba. El resultado anterior pasa al historial.
+
+    `fecha` permite indicar cuándo se ejecutó (por defecto, ahora) y `origen`
+    de dónde viene el resultado si no es manual (por ejemplo, «robot»).
+    """
     _exigir_abierta(campaña)
     if test_id not in ids_de(campaña):
         raise ValueError(f"La prueba {test_id} no forma parte de esta campaña.")
@@ -325,17 +339,22 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
                 del resultados[test_id]
         guardar(campaña)
         return resultados.get(test_id) or {"estado": "pendiente"}
-    nuevo: dict[str, Any] = {"estado": estado, "fecha": ahora()}
-    for clave, valor in (("ejecutor", ejecutor), ("huella", huella_actual),
+    nuevo: dict[str, Any] = {"estado": estado, "fecha": fecha or ahora()}
+    for clave, valor in (("ejecutor", ejecutor), ("origen", origen), ("huella", huella_actual),
                          ("observaciones", observaciones), ("incidencia", incidencia)):
         if str(valor or "").strip():
             nuevo[clave] = str(valor).strip()
+    if "\n" in str(nuevo.get("observaciones", "")):
+        nuevo["observaciones"] = LiteralScalarString(nuevo["observaciones"])   # legible en el YAML
     if evidencias:
         nuevo["evidencias"] = [str(e) for e in evidencias]
     if anterior:
         intentos = list(anterior.get("intentos") or [])
         previo = {k: v for k, v in dict(anterior).items() if k != "intentos"}
-        mismo = previo.get("estado") == estado and previo.get("huella") == nuevo.get("huella")
+        # Solo se omite del historial si es exactamente lo mismo (repetir el mismo guardado);
+        # un resultado distinto, aunque tenga el mismo estado, no debe perder el anterior.
+        claves = ("estado", "huella", "origen", "observaciones", "incidencia", "evidencias")
+        mismo = all(to_plain_simple(previo.get(k)) == to_plain_simple(nuevo.get(k)) for k in claves)
         if not mismo:
             intentos.append(previo)          # otro resultado: el anterior queda en el historial
         if intentos:

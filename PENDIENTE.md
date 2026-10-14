@@ -54,8 +54,67 @@ Para más adelante:
   una carpeta compartida con bloqueo. Las huellas y el historial de intentos
   ya guardan lo necesario para detectar esos conflictos.
 - Comparar campañas («nuevos fallos respecto a la versión anterior»).
-- Importar resultados de pruebas automáticas (por ejemplo, JUnit XML) para las
-  pruebas con `automatizable: si`.
+
+## Pruebas automáticas con Robot Framework
+
+Parte de las pruebas se automatizan con un framework en Python + Robot
+Framework. Hoy no hay ninguna referencia entre los tests de Robot y los YAML,
+y Robot se lanza a mano en el PC del tester (o en otro PC, de momento sin
+red). La versión de Robot no está fijada: hay que admitir RF 6 y RF 7.
+
+**Convención (propuesta):** cada test de Robot lleva la etiqueta
+`id:<ID de la prueba YAML>` (`[Tags]  id:DEMO-LLAM-001`). Es el único enlace,
+igual que el ID en las campañas: el nombre del test de Robot puede cambiar
+libremente. Un test de Robot puede llevar varios `id:` (cubre varias pruebas)
+y varios tests de Robot pueden cubrir la misma prueba (variantes): si todos
+pasan, OK; si alguno falla, NO OK. Detalles en
+[docs/robot.md](docs/robot.md).
+
+**Equivalencia de resultados:** PASS → OK, FAIL → NO OK (con el mensaje de
+error en observaciones), SKIP → No aplica (con el motivo).
+
+Plan:
+
+1. *Hecho (primera versión):* importar el `output.xml` de Robot en una
+   campaña, desde el editor (con vista previa antes de aplicar) y por línea de
+   comandos (`importar_robot.py`). Se copian `output.xml`, `log.html` y
+   `report.html` a las evidencias de la campaña y se avisa de los tests sin
+   `id:` y de los `id:` que no existen. Lee el XML directamente, sin instalar
+   Robot en el editor, y admite los formatos de RF 6 y RF 7.
+2. Cobertura: leer las etiquetas `id:` de los `.robot` para marcar en el
+   editor qué pruebas tienen test automático, avisar de `automatizable: hecho`
+   sin test de Robot y de tests de Robot con IDs inexistentes, y filtrar
+   «automáticas / manuales» al crear una campaña.
+3. Lanzar Robot desde el editor solo con las pruebas pendientes de la campaña
+   (`--include id:…`), con progreso en vivo mediante un *listener*. Necesita
+   configurar el comando, las suites y las variables de cada banco.
+4. Cuando haya red o integración continua: importar sin intervención (la
+   línea de comandos ya lo permite).
+
+## Varias formas de ejecutar y validación de una versión de SW
+
+Una misma versión de software se valida con pruebas que se ejecutan de
+formas distintas: automáticas con Robot, manuales en el banco HIL, manuales
+en un entorno real (instalación física), y en PCs distintos, a veces sin red.
+Hoy cada una de esas ejecuciones es una campaña independiente.
+
+Para dar por válida una versión hará falta **consolidar varias campañas** (o
+varios `resultados.yaml`) en una vista y un informe únicos:
+
+- Una «validación de versión» que agrupe campañas de la misma versión
+  (`objeto` de la campaña) y dé una tabla por prueba con el resultado de cada
+  campaña y un resultado consolidado.
+- Reglas de consolidación a decidir: qué pasa si la misma prueba sale OK en
+  una campaña y NO OK en otra (¿prevalece el último resultado, el peor, o se
+  marca como conflicto?); pruebas que no se han ejecutado en ninguna; pruebas
+  que solo pueden darse por válidas en un entorno concreto (por ejemplo, un
+  campo `entorno_requerido` o etiquetas como `entorno-real`).
+- Comprobar que todas las campañas usan las mismas pruebas (las huellas ya lo
+  permiten) o avisar de qué versión de cada prueba se ejecutó en cada sitio.
+- Informe final de versión que cite cada campaña (quién, dónde, cuándo) y
+  enlace sus informes.
+- Lo mismo sirve para juntar resultados de varias personas sobre una misma
+  campaña (ver «Varias personas en la misma campaña»).
 
 ## Siguientes pasos de importación
 
