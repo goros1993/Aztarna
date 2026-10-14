@@ -169,10 +169,10 @@ const tieneArchivos = (e) => e.dataTransfer && [...e.dataTransfer.types].include
 window.addEventListener("dragover", (e) => { if (tieneArchivos(e)) e.preventDefault(); });
 window.addEventListener("drop", (e) => { if (tieneArchivos(e)) e.preventDefault(); });
 
-function visorImagen(ruta, nombre) {
+function visorImagen(ruta, nombre, fuente = datosImagen) {
   const img = h("img", { alt: nombre || ruta });
   const visor = h("div", { class: "visor" }, "Cargando…");
-  datosImagen(ruta, 0).then((d) => { img.src = d.uri; visor.replaceChildren(img); },
+  fuente(ruta, 0).then((d) => { img.src = d.uri; visor.replaceChildren(img); },
     (e) => { visor.textContent = e.message; });
   return dialogo({
     titulo: nombre || ruta, cuerpo: visor, ancho: true,

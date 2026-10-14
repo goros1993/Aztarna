@@ -619,9 +619,11 @@ class EditorApi:
     @respuesta
     def imagen(self, ruta: str, ancho: int = 480) -> dict[str, Any]:
         """Devuelve la imagen como data URI (miniatura si `ancho` > 0)."""
+        return self._miniatura(self._resolve_image(ruta), ancho)
+
+    def _miniatura(self, path: Path, ancho: int = 480) -> dict[str, Any]:
         from PIL import Image
 
-        path = self._resolve_image(ruta)
         if not path.is_file():
             raise ValueError("No se encuentra el archivo.")
         stat = path.stat()

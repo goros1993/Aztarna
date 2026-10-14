@@ -320,6 +320,38 @@ def editar_notas(campaña: dict[str, Any], test_id: str, *, observaciones: str |
     return resultado
 
 
+MAX_EVIDENCIA_BYTES = 25 * 1024 * 1024
+
+
+def guardar_evidencia(campaña: dict[str, Any], test_id: str, nombre: str, contenido: bytes) -> str:
+    """Copia un archivo a `evidencias/` como «<ID>_<n>.<ext>» y devuelve su ruta relativa.
+
+    No lo asocia al resultado: eso se hace al registrar (o con `editar_notas`).
+    """
+    _exigir_abierta(campaña)
+    if len(contenido) > MAX_EVIDENCIA_BYTES:
+        raise ValueError(f"{nombre or 'El archivo'} supera los 25 MB.")
+    carpeta = campaña["carpeta"] / CARPETA_EVIDENCIAS
+    carpeta.mkdir(parents=True, exist_ok=True)
+    base = "".join(c if c.isalnum() or c in "-_." else "_" for c in test_id) or "evidencia"
+    extension = Path(nombre or "").suffix.lower() or ".png"
+    numero = 1
+    while any(carpeta.glob(f"{base}_{numero:02d}.*")):
+        numero += 1
+    destino = carpeta / f"{base}_{numero:02d}{extension}"
+    destino.write_bytes(contenido)
+    return f"{CARPETA_EVIDENCIAS}/{destino.name}"
+
+
+def ruta_evidencia(campaña: dict[str, Any], relativa: str) -> Path:
+    """Ruta absoluta de una evidencia, sin permitir salir de la carpeta de la campaña."""
+    base = campaña["carpeta"].resolve()
+    ruta = (base / str(relativa)).resolve()
+    if base not in ruta.parents:
+        raise ValueError("La evidencia debe estar dentro de la carpeta de la campaña.")
+    return ruta
+
+
 def resincronizar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, list[str]]:
     """Vuelve a aplicar el criterio: añade las pruebas nuevas que lo cumplen.
 

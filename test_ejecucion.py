@@ -4,8 +4,14 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import base64
+import io
+
+from PIL import Image
+
 import ejecucion_core as ej
 from editor_core import read_chapters, save_chapter
+from ejecucion_api import EditorEjecucionApi
 
 EJEMPLOS = Path(__file__).parent / "ejemplos" / "yaml"
 
@@ -193,6 +199,81 @@ class CicloTests(CampañaBase):
         campaña = self.crear()
         campaña["datos"]["pruebas_yaml"] = "../../pruebas"
         self.assertEqual(ej.carpeta_pruebas(campaña), self.pruebas.resolve())
+
+
+def ok(testcase, respuesta):
+    testcase.assertTrue(respuesta["ok"], respuesta.get("error"))
+    return respuesta["datos"]
+
+
+class ApiTests(CampañaBase):
+    def setUp(self):
+        super().setUp()
+        self.api = EditorEjecucionApi(self.pruebas)
+        ok(self, self.api.iniciar())
+
+    def crear_por_api(self):
+        return ok(self, self.api.campana_crear("Regresión", {"etiquetas": ["smoke"]},
+                                                {"objeto": "FW 2.3"}, str(self.carpeta)))
+
+    def test_previsualizar_y_crear(self):
+        vista = ok(self, self.api.campana_previsualizar({"etiquetas": ["smoke"]}))
+        self.assertEqual([p["id"] for p in vista], ["DEMO-LLAM-001", "DEMO-NIV-001", "DEMO-PUER-001", "DEMO-SEG-001"])
+        estado = self.crear_por_api()
+        self.assertEqual(estado["datos"]["objeto"], "FW 2.3")
+        self.assertEqual(estado["resumen"]["totales"]["pendiente"], 4)
+        self.assertIn("smoke", ok(self, self.api.campana_opciones())["etiquetas"])
+
+    def test_registrar_y_corregir_notas_sin_otro_intento(self):
+        self.crear_por_api()
+        ok(self, self.api.campana_registrar("DEMO-LLAM-001", "no_ok", "Falla", "BUG-1", [], "Unai"))
+        estado = ok(self, self.api.campana_registrar("DEMO-LLAM-001", "no_ok", "Falla en P2", "BUG-1", [], "Unai"))
+        self.assertEqual(estado["resumen"]["totales"]["no_ok"], 1)
+        datos = ok(self, self.api.campana_resultado("DEMO-LLAM-001"))
+        self.assertEqual(datos["resultado"]["observaciones"], "Falla en P2")
+        self.assertNotIn("intentos", datos["resultado"])
+        self.assertTrue(datos["en_campaña"])
+        self.assertFalse(datos["prueba_cambiada"])
+
+    def test_detecta_prueba_cambiada_despues_de_ejecutar(self):
+        self.crear_por_api()
+        ok(self, self.api.campana_registrar("DEMO-LLAM-001", "ok"))
+        ok(self, self.api.guardar_prueba(0, 2, {"titulo": "Título nuevo"}))
+        self.assertTrue(ok(self, self.api.campana_resultado("DEMO-LLAM-001"))["prueba_cambiada"])
+
+    def test_evidencias_se_guardan_en_la_campaña(self):
+        self.crear_por_api()
+        buffer = io.BytesIO()
+        Image.new("RGB", (40, 20), "red").save(buffer, format="PNG")
+        datos = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+        ruta = ok(self, self.api.campana_evidencia_base64("DEMO-LLAM-001", "captura.png", datos))["ruta"]
+        self.assertEqual(ruta, "evidencias/DEMO-LLAM-001_01.png")
+        log = base64.b64encode(b"linea 1").decode()
+        self.assertEqual(ok(self, self.api.campana_evidencia_base64("DEMO-LLAM-001", "bus.log", log))["ruta"],
+                         "evidencias/DEMO-LLAM-001_02.log")
+        self.assertEqual(ok(self, self.api.campana_imagen(ruta, 100))["ancho"], 40)
+        self.assertFalse(self.api.campana_imagen("../campaña.yaml")["ok"])
+        ok(self, self.api.campana_registrar("DEMO-LLAM-001", "ok", "", "", [ruta]))
+        self.assertEqual(ej.cargar(self.carpeta)["resultados"]["DEMO-LLAM-001"]["evidencias"], [ruta])
+
+    def test_abrir_campaña_de_otra_carpeta_carga_sus_pruebas(self):
+        self.crear_por_api()
+        otra = EditorEjecucionApi()
+        estado = ok(self, otra.campana_abrir(str(self.carpeta)))
+        self.assertEqual(estado["carpeta_pruebas"]["carpeta"], str(self.pruebas.resolve()))
+        self.assertEqual(estado["resumen"]["total"], 4)
+        self.assertIsNone(ok(self, otra.campana_abrir(str(self.carpeta)))["carpeta_pruebas"])
+
+    def test_la_campaña_de_ejemplo_abre_sin_avisos(self):
+        ejemplo = Path(__file__).parent / "ejemplos" / "ejecuciones" / "regresion_v2.3"
+        estado = ok(self, EditorEjecucionApi().campana_abrir(str(ejemplo)))
+        self.assertEqual(estado["resumen"]["total"], 10)
+        self.assertEqual(estado["resumen"]["problemas"], [],
+                         "Si cambias las pruebas de ejemplo, vuelve a generar la campaña de ejemplo")
+
+    def test_sin_campaña_abierta(self):
+        self.assertIsNone(ok(self, self.api.campana_estado()))
+        self.assertFalse(self.api.campana_registrar("DEMO-LLAM-001", "ok")["ok"])
 
 
 if __name__ == "__main__":

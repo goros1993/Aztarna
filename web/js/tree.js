@@ -40,7 +40,10 @@ function renderArbol() {
   const ul = $("#arbol");
   ul.replaceChildren();
   if (!S.nodos.length) {
-    ul.appendChild(h("li", { class: "arbol-vacio", text: S.consulta ? "Ninguna prueba coincide con la búsqueda." : "Este capítulo no tiene pruebas todavía." }));
+    const texto = S.modo === "ejecucion"
+      ? (S.campana ? "Ninguna prueba de la campaña en este capítulo con este filtro." : "Abre o crea una campaña.")
+      : S.consulta ? "Ninguna prueba coincide con la búsqueda." : "Este capítulo no tiene pruebas todavía.";
+    ul.appendChild(h("li", { class: "arbol-vacio", text: texto }));
     return;
   }
   const prof = profundidades(S.nodos);
@@ -70,7 +73,7 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
     "aria-level": String(profundidad + 1),
     "aria-selected": String(Boolean(seleccionada)),
     tabIndex: seleccionada ? 0 : -1,
-    draggable: true,
+    draggable: S.modo !== "ejecucion",   // en ejecución no se reordena
     dataset: { tipo: n.tipo, indice: String(n.indice) },
     style: { "--prof": String(profundidad) },
     onclick: () => seleccionar(n.tipo, n.indice),
@@ -92,6 +95,7 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
   } else {
     append(li, [
       h("span", { class: "hueco" }),
+      S.modo === "ejecucion" ? marcaEstado(n.id) : null,
       h("span", { class: "tid", text: n.id || "(sin ID)" }),
       h("span", { class: "tit", text: n.titulo || "(sin título)" }),
     ]);

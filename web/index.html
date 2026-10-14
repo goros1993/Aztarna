@@ -33,9 +33,17 @@
 <div id="app">
   <header class="barra">
     <div class="marca">Pruebas YAML</div>
+    <div class="seg modo" role="group" aria-label="Modo de trabajo">
+      <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Edición</button>
+      <button type="button" id="modo-ejecucion" aria-pressed="false" title="Apuntar resultados en una campaña">Ejecución</button>
+    </div>
     <button class="btn carpeta" id="btn-carpeta" type="button" title="Cambiar de carpeta">
       <svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>
       <span id="carpeta-ruta">Sin carpeta</span>
+    </button>
+    <button class="btn campana solo-ejecucion" id="btn-campana" type="button" title="Crear, abrir o cambiar de campaña">
+      <svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>
+      <span id="campana-nombre">Sin campaña</span>
     </button>
     <label class="capitulo" for="sel-capitulo">
       <span class="sr">Capítulo</span>
@@ -45,7 +53,7 @@
     <button class="btn ghost" id="btn-recargar" type="button" title="Volver a leer los archivos del disco">
       <svg class="ico" aria-hidden="true"><use href="#i-reload"/></svg>Recargar
     </button>
-    <button class="btn" id="btn-exportar" type="button" title="Generar el documento de Word con todos los capítulos">
+    <button class="btn solo-edicion" id="btn-exportar" type="button" title="Generar el documento de Word con todos los capítulos">
       <svg class="ico" aria-hidden="true"><use href="#i-export"/></svg>Exportar DOCX
     </button>
   </header>
@@ -56,10 +64,22 @@
         <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
         <input id="buscar" type="search" placeholder="Buscar por ID o texto" aria-label="Buscar por ID o texto" autocomplete="off">
       </div>
-      <div class="lateral-acciones">
+      <div class="lateral-acciones solo-edicion">
         <button class="btn peq" id="btn-nueva-prueba" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Prueba</button>
         <button class="btn peq" id="btn-nueva-seccion" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Sección</button>
         <span class="ayuda-arrastre">Arrastra para reordenar</span>
+      </div>
+      <div class="lateral-acciones solo-ejecucion">
+        <label class="sr" for="filtro-estado">Mostrar</label>
+        <select id="filtro-estado" class="peq">
+          <option value="">Todas las pruebas</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="no_ok">NO OK</option>
+          <option value="bloqueada">Bloqueadas</option>
+          <option value="ok">OK</option>
+          <option value="no_aplica">No aplica</option>
+        </select>
+        <button class="btn peq" id="btn-panel-campana" type="button" title="Ver el resumen de la campaña">Resumen</button>
       </div>
       <ul id="arbol" class="arbol" role="tree" aria-label="Secciones y pruebas"></ul>
     </aside>
@@ -95,6 +115,7 @@
 <script src="js/util.js"></script>
 <script src="js/tree.js"></script>
 <script src="js/form.js"></script>
+<script src="js/ejecucion.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

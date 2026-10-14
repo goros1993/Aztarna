@@ -11,9 +11,10 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `editor_api.py`, `web/` | API en Python e interfaz HTML del editor. |
 | `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
-| `ejecucion_core.py` | Campañas de ejecución: selección de pruebas y resultados (en desarrollo). |
+| `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
 | `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
 | `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
+| `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
 | `test_*.py` | Pruebas automatizadas. |
 
 El trabajo pendiente y las propuestas están en [PENDIENTE.md](PENDIENTE.md).
@@ -167,6 +168,56 @@ de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
 incluyen en el .exe: en el primer arranque pide una carpeta y después la
 recuerda.
 
+## Ejecución de pruebas (campañas)
+
+El editor tiene dos modos, que se eligen arriba a la izquierda: **Edición**
+(cambiar las pruebas) y **Ejecución** (apuntar sus resultados). En ejecución
+los YAML de pruebas solo se leen: los resultados se guardan en la carpeta de
+una *campaña*, que cada uno guarda donde quiera en su PC.
+
+```text
+2026-11-03_Regresión_v2.3/
+├── campaña.yaml      # datos, criterio de selección y lista de pruebas
+├── resultados.yaml   # un resultado por prueba, con su historial
+└── evidencias/       # capturas y archivos adjuntos
+```
+
+**Crear una campaña.** Botón de la campaña → *Nueva campaña*: nombre, qué se
+prueba (versión), entorno, responsable y qué pruebas entran, marcando
+etiquetas, criticidad, automatizable, plataforma, entorno, componente o
+capítulos (dentro de un grupo basta con una opción; entre grupos, todas). La
+vista previa muestra las pruebas que entrarán. Después se elige la carpeta
+donde guardarla y se crea una subcarpeta con la fecha y el nombre. La lista de
+pruebas queda fijada; *Resincronizar* añade las que se etiqueten más tarde.
+
+**Apuntar resultados.** El árbol muestra solo las pruebas de la campaña, con
+un punto de color por estado, y se puede filtrar por estado. Al abrir una
+prueba se ve en solo lectura y, a la derecha, su resultado:
+
+| Estado | Significado | Tecla |
+|---|---|---|
+| OK | Se ejecutó y el resultado es el esperado. | 1 |
+| NO OK | Se ejecutó y el producto no se comporta como se espera. | 2 |
+| Bloqueada | No se pudo ejecutar por algo ajeno al producto (banco, hardware, otra prueba que falló). | 3 |
+| No aplica | No aplica a esta versión o configuración. | 4 |
+| Pendiente | Aún sin ejecutar. | 0 |
+
+Cada resultado admite observaciones, incidencia, ejecutor y evidencias (pegar
+una captura con Ctrl+V, soltar archivos o *Añadir*; también logs u otros
+archivos). **Ctrl+Intro** guarda y salta a la siguiente pendiente. Si se
+apunta otro resultado, el anterior queda en el historial («NO OK con BUG-123 y
+OK tras corregirlo»). Si una prueba se edita después de ejecutarse, se avisa.
+
+**Resumen.** El botón *Resumen* (o no tener ninguna prueba seleccionada)
+muestra el avance, los totales por estado, el porcentaje de OK sobre las
+pruebas que aplican, el desglose por capítulo y por criticidad, y avisos como
+NO OK sin observaciones o pruebas que ya no existen.
+
+Para probarlo: modo Ejecución → *Abrir campaña…* →
+`ejemplos/ejecuciones/regresion_v2.3`. Al abrir una campaña se abre también
+su carpeta de pruebas. El cierre de campaña y el informe final están en
+[PENDIENTE.md](PENDIENTE.md).
+
 ## Edición de pruebas en YAML
 
 Los capítulos tienen una secuencia ordenada en `contenido`. Sus elementos
@@ -303,8 +354,9 @@ python -m unittest discover -v
 
 Cubren la conversión Word/YAML, la extracción y exportación de imágenes, las
 funciones del núcleo (navegación jerárquica, inserción, movimiento y borrado),
-la API del editor (edición, validación, imágenes, exportación y cierre) y que
-los capítulos de ejemplo validan sin errores.
+la API del editor (edición, validación, imágenes, exportación y cierre), las
+campañas de ejecución (selección, resultados, historial, evidencias, resumen)
+y que los ejemplos validan sin errores.
 
 ## Publicación del repositorio
 
@@ -317,7 +369,8 @@ git status
 git add .gitignore README.md PENDIENTE.md requirements.txt construir_exe.bat \
   convertir.py inventario.py yaml_a_docx.py \
   editor_core.py editor_api.py editor_web.py web/ \
-  test_conversion.py test_editor_core.py test_editor_api.py ejemplos/
+  ejecucion_core.py ejecucion_api.py \
+  test_conversion.py test_editor_core.py test_editor_api.py test_ejecucion.py ejemplos/
 git status
 git commit -m "Descripción del cambio"
 git push

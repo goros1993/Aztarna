@@ -25,6 +25,7 @@ function mostrarSinCarpeta() {
 
 function mostrarVacio() {
   F = null;
+  if (S.modo === "ejecucion") { mostrarPanelCampana(); return; }
   mostrar(h("div", { class: "centro" },
     h("h2", { text: "Elige qué editar" }),
     h("p", { text: "Selecciona una prueba o una sección en el panel izquierdo, o crea una nueva." }),
@@ -282,7 +283,8 @@ function quitarErrorCampo(clave) {
 }
 
 /* ---- miniaturas e imágenes ---- */
-function miniatura(ruta, alQuitar) {
+/** Miniatura de una imagen; `fuente(ruta, ancho)` la obtiene (por defecto, de la carpeta de YAML). */
+function miniatura(ruta, alQuitar, fuente = datosImagen) {
   const nombre = ruta.split("/").pop();
   const img = h("img", { alt: nombre });
   const marco = h("div", { class: "marco" }, img);
@@ -292,10 +294,10 @@ function miniatura(ruta, alQuitar) {
       class: "btn icono quitar", type: "button", title: "Quitar imagen", "aria-label": "Quitar " + nombre,
       onclick: (e) => { e.stopPropagation(); alQuitar(); },
     }, icon("x")) : null);
-  datosImagen(ruta, 240).then((d) => {
+  fuente(ruta, 240).then((d) => {
     img.src = d.uri;
     img.title = `${d.ancho} × ${d.alto} px`;
-    img.addEventListener("click", () => visorImagen(ruta, nombre));
+    img.addEventListener("click", () => visorImagen(ruta, nombre, fuente));
   }, (e) => {
     const perdida = /No se encuentra/.test(e.message);
     fig.classList.add("falla");
@@ -621,6 +623,7 @@ function marcarErrorEnCampo(error) {
 }
 
 async function guardarActual() {
+  if (S.modo === "ejecucion") return guardarResultado();
   if (!F) return true;
   const { tipo, indice, modo, vista } = F;
   try {

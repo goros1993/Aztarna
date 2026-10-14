@@ -1,0 +1,44 @@
+DEMO-LLAM-001:
+  estado: ok
+  fecha: 2026-10-14T10:00
+  ejecutor: Ana
+  huella: 5cac35e1b67f
+  observaciones: Repetida tras corregir BUG-123.
+  intentos:
+  - estado: no_ok
+    fecha: 2026-10-14T10:00
+    ejecutor: Ana
+    huella: 5cac35e1b67f
+    observaciones: La cabina no se detiene en P2 en el primer intento.
+    incidencia: BUG-123
+DEMO-LLAM-002:
+  estado: ok
+  fecha: 2026-10-14T10:00
+  ejecutor: Ana
+  huella: 3c96bb805a2a
+DEMO-NIV-001:
+  estado: no_ok
+  fecha: 2026-10-14T10:00
+  ejecutor: Ana
+  huella: d82bbaed03e2
+  observaciones: Desnivel de 7 mm con carga al 100 % (límite ±5 mm).
+  incidencia: BUG-130
+  evidencias:
+  - evidencias/DEMO-NIV-001_01.png
+DEMO-CAN-002:
+  estado: bloqueada
+  fecha: 2026-10-14T10:00
+  ejecutor: Luis
+  huella: 383fd3edde73
+  observaciones: El relé R4 del banco está averiado; no se puede simular la desconexión.
+DEMO-PUER-001:
+  estado: ok
+  fecha: 2026-10-14T10:00
+  ejecutor: Luis
+  huella: a2380887fe61
+DEMO-MANT-001:
+  estado: no_aplica
+  fecha: 2026-10-14T10:00
+  ejecutor: Luis
+  huella: d6b1793971d1
+  observaciones: La versión 2.3 no cambia el modo inspección.

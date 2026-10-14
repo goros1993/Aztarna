@@ -26,15 +26,18 @@ Hecho:
   cambiadas después de ejecutarse; resincronizar; cerrar; resumen y avisos.
 - Fase 2: campo `etiquetas` en el editor (fichas con sugerencias) y en los
   ejemplos.
+- Fase 3: modo «Ejecución» en el editor (`ejecucion_api.py`,
+  `web/js/ejecucion.js`): crear o abrir campaña con vista previa de la
+  selección, recientes, árbol con el estado de cada prueba y filtro por
+  estado, ficha en solo lectura con panel de resultado (estado con teclas,
+  observaciones, incidencia, ejecutor, evidencias, historial) y «Guardar y
+  siguiente» (Ctrl+Intro). Campaña de ejemplo en `ejemplos/ejecuciones/`.
+- Fase 4 (primera versión): panel de resumen con avance, totales, porcentaje
+  de OK sobre las que aplican, desglose por capítulo y criticidad, avisos y
+  resincronizar.
 
 Siguiente:
 
-- Fase 3: modo «Ejecución» en el editor: crear o abrir campaña (con vista
-  previa de la selección), árbol con el estado de cada prueba, ficha en solo
-  lectura con panel de resultado (estado, observaciones, incidencia,
-  evidencias) y «Guardar y siguiente pendiente».
-- Fase 4: panel de resumen (avance, totales por estado, desglose por capítulo y
-  criticidad, fallos y bloqueos) y validación de la campaña.
 - Fase 5: cerrar campaña y generar el entregable: DOCX/PDF con el mismo
   aspecto que `yaml_a_docx.py`, con un resumen al principio (datos de la
   campaña, totales, criterio de selección) y el resultado de cada prueba.

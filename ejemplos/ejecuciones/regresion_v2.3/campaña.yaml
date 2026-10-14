@@ -1,0 +1,31 @@
+nombre: Regresión v2.3 (ejemplo)
+objeto: Controlador DEMO-A1, firmware 2.3.0-rc2
+entorno: Banco HIL nº 2
+responsable: Equipo de validación
+inicio: 2026-11-03T09:00
+estado: abierta
+pruebas_yaml: ../../yaml
+seleccion:
+  etiquetas:
+  - regresion
+pruebas:
+- id: DEMO-LLAM-001
+  huella: 5cac35e1b67f
+- id: DEMO-LLAM-002
+  huella: 3c96bb805a2a
+- id: DEMO-LLAM-003
+  huella: ff2c9099a517
+- id: DEMO-NIV-001
+  huella: d82bbaed03e2
+- id: DEMO-CAN-001
+  huella: a1c30b7e9841
+- id: DEMO-CAN-002
+  huella: 383fd3edde73
+- id: DEMO-PUER-001
+  huella: a2380887fe61
+- id: DEMO-PUER-002
+  huella: 3b54337a3ec1
+- id: DEMO-SEG-001
+  huella: 7a6f6e21f5b4
+- id: DEMO-MANT-001
+  huella: d6b1793971d1

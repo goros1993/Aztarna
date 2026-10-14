@@ -13,6 +13,9 @@ const S = {
   problemas: [],
   resumen: null,        // {errores, avisos}
   alcanceTodos: false,
+  modo: leerLocal("modo") === "ejecucion" ? "ejecucion" : "edicion",
+  campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
+  filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
 };
 
 function setDirty(valor) {
@@ -63,7 +66,7 @@ function aplicarResumen(resumen) {
   boton.title = S.carpeta || "";
   const sel = $("#sel-capitulo");
   sel.replaceChildren(...S.capitulos.map((c) => h("option", {
-    value: String(c.indice), text: `${c.nombre} (${c.pruebas})`, selected: c.indice === S.capitulo,
+    value: String(c.indice), text: textoCapitulo(c), selected: c.indice === S.capitulo,
   })));
   sel.disabled = !S.capitulos.length;
   $("#resumen-datos").textContent = S.capitulos.length
@@ -77,6 +80,7 @@ function aplicarResumen(resumen) {
 async function cargarNavegacion() {
   if (!S.capitulos.length) { S.nodos = []; renderArbol(); return; }
   S.nodos = await api.navegacion(S.capitulo, S.consulta);
+  if (S.modo === "ejecucion") S.nodos = filtrarNodosEjecucion(S.nodos);
   renderArbol();
 }
 
@@ -100,7 +104,8 @@ async function abrir(tipo, indice) {
   try {
     const datos = await api.obtener(S.capitulo, indice);
     S.seleccion = { tipo: datos.tipo, indice };
-    mostrarElemento(datos);
+    if (S.modo === "ejecucion") await mostrarEnEjecucion(datos);
+    else mostrarElemento(datos);
     renderArbol();
     enfocarSeleccion();
   } catch (e) {
@@ -336,6 +341,7 @@ function conectar() {
   }, 180));
   iniciarArrastreArbol();
   iniciarDivisor();
+  iniciarEjecucion();
 
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -350,11 +356,13 @@ function conectar() {
 
 async function arrancar() {
   conectar();
+  pintarModo();
   mostrarSinCarpeta();
   try {
     const resumen = await api.iniciar();
     aplicarResumen(resumen);
     if (resumen.aviso) aviso(resumen.aviso, "error");
+    if (S.modo === "ejecucion") await recuperarCampana();
     if (S.capitulos.length) {
       await cargarNavegacion();
       mostrarVacio();
