@@ -12,6 +12,7 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
 | `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
+| `informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
 | `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
 | `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
 | `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
@@ -213,10 +214,36 @@ muestra el avance, los totales por estado, el porcentaje de OK sobre las
 pruebas que aplican, el desglose por capítulo y por criticidad, y avisos como
 NO OK sin observaciones o pruebas que ya no existen.
 
+**Cerrar e informe.** *Cerrar campaña* exige que no quede nada pendiente,
+guarda dentro de la campaña una copia de sus pruebas tal como están
+(`pruebas_congeladas/`, con secciones e imágenes) y bloquea los resultados.
+Desde entonces la campaña se revisa y se informa con esa copia, aunque los YAML
+de pruebas sigan cambiando; el editor la muestra en solo lectura. *Generar
+informe* crea un DOCX con el mismo aspecto que `yaml_a_docx.py`: un resumen al
+principio (datos de la campaña, criterio, totales, desglose por capítulo,
+fallos y bloqueos, avisos) y cada prueba con su resultado, observaciones,
+incidencia, evidencias e intentos anteriores. Con la campaña abierta sale
+marcado como BORRADOR. El PDF se genera con LibreOffice o, en Windows, con
+Microsoft Word, si están instalados. También desde la línea de comandos:
+
+```bash
+python informe_docx.py ruta/a/la/campaña -o informe.docx --pdf
+```
+
+**Cómo se une una campaña con las pruebas.** La campaña no copia las pruebas
+mientras está abierta: guarda dónde están (ruta relativa a la campaña y ruta
+absoluta, y prueba las dos al abrirla) y, de cada prueba, su **ID** y una
+*huella* de su contenido. Si no encuentra la carpeta de pruebas, pregunta
+dónde está y lo recuerda. Por eso **los ID deben ser únicos y estables**: el
+editor no deja guardar un ID repetido, la validación marca los duplicados, no
+se puede crear una campaña con IDs repetidos y, al cambiar el ID de una prueba
+existente, el editor pide confirmación (para las campañas, un ID nuevo es otra
+prueba). Cambiar el texto, los pasos o la ubicación de una prueba no rompe
+nada; si ya se había ejecutado, la campaña avisa de que cambió.
+
 Para probarlo: modo Ejecución → *Abrir campaña…* →
 `ejemplos/ejecuciones/regresion_v2.3`. Al abrir una campaña se abre también
-su carpeta de pruebas. El cierre de campaña y el informe final están en
-[PENDIENTE.md](PENDIENTE.md).
+su carpeta de pruebas.
 
 ## Edición de pruebas en YAML
 
@@ -369,7 +396,7 @@ git status
 git add .gitignore README.md PENDIENTE.md requirements.txt construir_exe.bat \
   convertir.py inventario.py yaml_a_docx.py \
   editor_core.py editor_api.py editor_web.py web/ \
-  ejecucion_core.py ejecucion_api.py \
+  ejecucion_core.py ejecucion_api.py informe_docx.py \
   test_conversion.py test_editor_core.py test_editor_api.py test_ejecucion.py ejemplos/
 git status
 git commit -m "Descripción del cambio"

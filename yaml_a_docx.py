@@ -296,6 +296,7 @@ def tabla_prueba(doc, prueba, base_dir):
     # Espacio entre tablas
     sep = doc.add_paragraph()
     compactar(sep)
+    return t
 
 
 # ----------------------------------------------------------------------
@@ -397,13 +398,12 @@ def escribir_contexto(doc, textos, base_dir=Path(".")):
             escribir_inline(p, str(texto))
 
 
-def generar_docx(entrada, salida, primer_capitulo=1):
-    """Genera el DOCX a partir de los YAML y devuelve (pruebas, capítulos)."""
-    capitulos = cargar(entrada)
-    if not capitulos:
-        raise ValueError("No se han encontrado YAML con la clave 'contenido'.")
+def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
+    """Escribe títulos, contexto y tablas de los capítulos; devuelve el número de pruebas.
 
-    doc = preparar_documento(primer_capitulo)
+    `al_escribir_prueba(doc, tabla, prueba, base_dir)`, si se indica, se llama
+    tras cada tabla (por ejemplo, para añadir el resultado de una ejecución).
+    """
     ids, total = set(), 0
     for cap, contenido, base_dir in capitulos:
         if cap:
@@ -420,10 +420,23 @@ def generar_docx(entrada, salida, primer_capitulo=1):
                 if p.get("id") in ids:
                     print(f"  AVISO: ID duplicado: {p.get('id')}")
                 ids.add(p.get("id"))
-                tabla_prueba(doc, p, base_dir)
+                tabla = tabla_prueba(doc, p, base_dir)
+                if al_escribir_prueba is not None:
+                    al_escribir_prueba(doc, tabla, p, base_dir)
                 total += 1
             elif "texto" in el:
                 escribir_contexto(doc, [el["texto"]], base_dir)
+    return total
+
+
+def generar_docx(entrada, salida, primer_capitulo=1):
+    """Genera el DOCX a partir de los YAML y devuelve (pruebas, capítulos)."""
+    capitulos = cargar(entrada)
+    if not capitulos:
+        raise ValueError("No se han encontrado YAML con la clave 'contenido'.")
+
+    doc = preparar_documento(primer_capitulo)
+    total = escribir_capitulos(doc, capitulos)
     doc.save(salida)
     return total, len(capitulos)
 

@@ -108,6 +108,20 @@ async function recuperarCampana() {
 
 async function usarCampana(r, { silencio = false } = {}) {
   if (!r || r.cancelado) return;
+  if (r.faltan_pruebas) {
+    if (silencio) return;
+    const respuesta = await dialogo({
+      titulo: "No se encuentran las pruebas de la campaña",
+      cuerpo: h("div", {},
+        h("p", {}, "La campaña ", h("strong", { text: r.nombre }), " no encuentra su carpeta de pruebas. Puede que se haya movido o que la campaña venga de otro PC."),
+        h("p", { class: "muted", text: "Se buscó en: " + r.rutas.join("  ·  ") }),
+        h("p", { text: "Indica dónde está ahora la carpeta de pruebas (la que contiene indice.yaml). La campaña lo recordará." })),
+      botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Buscar la carpeta…", valor: "si", tipo: "primary" }],
+    });
+    if (respuesta !== "si") return;
+    try { await usarCampana(await api.campana_reubicar(r.carpeta), { silencio }); } catch (e) { fallo(e); }
+    return;
+  }
   if (r.carpeta_pruebas) {      // la campaña usa otra carpeta de pruebas: se abre esa
     cacheImagenes.clear();
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = ""; S.colapsadas.clear();
@@ -298,7 +312,9 @@ function mostrarPanelCampana() {
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
         h("span", { class: "ruta", text: [d.objeto, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),
       h("span", { class: "chip-estado " + (c.cerrada ? "cerrada" : "abierta"), text: c.cerrada ? "Cerrada" : "Abierta" }),
-      c.cerrada ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: r.totales.pendiente ? "Siguiente pendiente" : "Revisar" })),
+      h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la campaña sigue abierta" }),
+      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar campaña…" }),
+      c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Avance" }),
         h("p", { class: "ayuda", text: `${r.ejecutadas} de ${r.total} ejecutadas (${r.progreso} %) · inicio ${String(d.inicio || "").replace("T", " ")}${d.fin ? " · fin " + String(d.fin).replace("T", " ") : ""}` })),
@@ -319,6 +335,81 @@ function mostrarPanelCampana() {
         h("dt", { text: "Criterio" }), h("dd", { text: criterio }),
         h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: c.carpeta, onclick: () => api.mostrar_en_carpeta(c.carpeta + "/campaña.yaml").catch(fallo) })),
         h("dt", { text: "Pruebas" }), h("dd", { text: String(d.pruebas_yaml || "") })))));
+}
+
+/* ---- cierre e informe ---- */
+async function cerrarCampana() {
+  if (!S.campana || S.campana.cerrada) return;
+  if (!(await guardia())) return;
+  setDirty(false);
+  const t = S.campana.resumen.totales;
+  if (t.pendiente) {
+    await dialogo({
+      titulo: "Aún no se puede cerrar",
+      cuerpo: `Quedan ${plural(t.pendiente, "prueba pendiente", "pruebas pendientes")}. Ejecútalas o márcalas como «No aplica» antes de cerrar la campaña.`,
+      botones: [{ texto: "Entendido", valor: "", tipo: "primary" }],
+    });
+    return;
+  }
+  const r = await dialogo({
+    titulo: "Cerrar la campaña",
+    cuerpo: h("div", {},
+      h("p", { text: "Al cerrarla:" }),
+      h("ul", {},
+        h("li", { text: "Se guarda una copia de sus pruebas tal como están ahora (con sus imágenes) dentro de la carpeta de la campaña. El informe y la revisión usarán esa copia aunque las pruebas cambien después." }),
+        h("li", { text: "Los resultados ya no se podrán cambiar." })),
+      h("p", { text: `Resultado: ${t.ok} OK, ${t.no_ok} NO OK, ${t.bloqueada} bloqueadas, ${t.no_aplica} no aplican.` })),
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cerrar campaña", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  try {
+    const estado = await api.campana_cerrar();
+    if (estado.carpeta_pruebas) { cacheImagenes.clear(); S.capitulo = 0; aplicarResumen(estado.carpeta_pruebas); }
+    S.campana = estado;
+    S.seleccion = null;
+    R = null;
+    pintarModo();
+    await cargarNavegacion();
+    mostrarVacio();
+    aviso("Campaña cerrada", "ok");
+    await generarInforme();
+  } catch (e) { fallo(e); }
+}
+
+async function generarInforme() {
+  if (!S.campana) return;
+  if (!(await guardia())) return;
+  setDirty(false);
+  let conPdf = null;
+  try { conPdf = await api.campana_pdf_disponible(); } catch (_e) { /* sin PDF */ }
+  const casilla = h("input", { type: "checkbox", id: "informe-pdf", disabled: !conPdf });
+  casilla.checked = Boolean(conPdf) && leerLocal("informe-pdf") === "si";
+  const r = await dialogo({
+    titulo: S.campana.cerrada ? "Informe de la campaña" : "Informe (borrador)",
+    cuerpo: h("div", {},
+      h("p", { text: "Un documento de Word con un resumen al principio (datos de la campaña, totales, desglose por capítulo, fallos y bloqueos) y después cada prueba con su resultado, observaciones, evidencias e intentos anteriores." }),
+      S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La campaña sigue abierta: el informe saldrá marcado como BORRADOR." }),
+      h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
+        conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
+  aviso(casilla.checked ? "Generando el informe y el PDF…" : "Generando el informe…");
+  try {
+    const d = await api.campana_informe(null, casilla.checked);
+    if (d.cancelado) return;
+    const respuesta = await dialogo({
+      titulo: "Informe generado",
+      cuerpo: h("div", {},
+        h("p", { text: `${plural(d.pruebas, "prueba", "pruebas")} en el informe.` }),
+        h("p", { class: "muted", text: d.archivo }),
+        d.pdf ? h("p", { class: "muted", text: d.pdf }) : null,
+        d.aviso_pdf ? h("p", { class: "aviso-panel", text: d.aviso_pdf }) : null),
+      botones: [{ texto: "Mostrar en la carpeta", valor: "mostrar", tipo: "" }, { texto: "Cerrar", valor: "", tipo: "primary" }],
+    });
+    if (respuesta === "mostrar") await api.mostrar_en_carpeta(d.pdf || d.archivo).catch(fallo);
+  } catch (e) { fallo(e); }
 }
 
 async function resincronizar() {

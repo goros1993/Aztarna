@@ -36,11 +36,12 @@ Hecho:
   de OK sobre las que aplican, desglose por capítulo y criticidad, avisos y
   resincronizar.
 
-Siguiente:
-
-- Fase 5: cerrar campaña y generar el entregable: DOCX/PDF con el mismo
-  aspecto que `yaml_a_docx.py`, con un resumen al principio (datos de la
-  campaña, totales, criterio de selección) y el resultado de cada prueba.
+- Fase 5: cerrar campaña (congela sus pruebas con secciones e imágenes en
+  `pruebas_congeladas/` y la deja en solo lectura) e informe DOCX/PDF
+  (`informe_docx.py`) con resumen al principio y el resultado de cada prueba.
+  La campaña guarda la ruta a las pruebas relativa y absoluta y, si no las
+  encuentra, pregunta dónde están. Cambiar el ID de una prueba pide
+  confirmación.
 
 Para más adelante:
 

@@ -586,7 +586,7 @@ function cuerpoSeccion(ubicacion) {
 function mostrarElemento(datos) {
   const el = datos.elemento;
   if (datos.tipo === "prueba") {
-    F = { modo: "editar", tipo: "prueba", indice: datos.indice, valores: valoresDePrueba(el), cambios: new Set(), nivel: el.nivel, vista: "form" };
+    F = { modo: "editar", tipo: "prueba", indice: datos.indice, valores: valoresDePrueba(el), cambios: new Set(), nivel: el.nivel, vista: "form", idOriginal: String(el.id || "") };
     mostrar(cuerpoPrueba(null));
   } else {
     F = {
@@ -637,6 +637,16 @@ async function guardarActual() {
     if (modo === "nueva") return await crearActual();
     if (!F.cambios.size) { aviso("No hay cambios que guardar"); return true; }
     const cambios = recogerCambios();
+    if (tipo === "prueba" && F.idOriginal && "id" in cambios && String(cambios.id).trim() !== F.idOriginal) {
+      const r = await dialogo({
+        titulo: "¿Cambiar el ID de la prueba?",
+        cuerpo: h("div", {},
+          h("p", { text: `El ID pasará de «${F.idOriginal}» a «${String(cambios.id).trim()}».` }),
+          h("p", { text: "Las campañas de ejecución reconocen cada prueba por su ID. Si esta prueba ya tiene resultados en alguna campaña, allí aparecerá como «ya no existe» y el ID nuevo contará como una prueba distinta. Cambia el ID solo si es un error o si de verdad es otra prueba." })),
+        botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cambiar el ID", valor: "si", tipo: "peligro" }],
+      });
+      if (r !== "si") return false;
+    }
     if (tipo === "prueba") await api.guardar_prueba(S.capitulo, indice, cambios);
     else await api.guardar_seccion(S.capitulo, indice, cambios);
     setDirty(false);

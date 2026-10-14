@@ -12,6 +12,8 @@ from PIL import Image
 import ejecucion_core as ej
 from editor_core import read_chapters, save_chapter
 from ejecucion_api import EditorEjecucionApi
+import informe_docx
+from docx import Document
 
 EJEMPLOS = Path(__file__).parent / "ejemplos" / "yaml"
 
@@ -197,9 +199,105 @@ class CicloTests(CampañaBase):
 
     def test_ruta_relativa_a_las_pruebas(self):
         campaña = self.crear()
-        campaña["datos"]["pruebas_yaml"] = "../../pruebas"
+        self.assertEqual(campaña["datos"]["pruebas_yaml"], "../../pruebas")
+        self.assertEqual(campaña["datos"]["pruebas_yaml_absoluta"], str(self.pruebas.resolve()))
         self.assertEqual(ej.carpeta_pruebas(campaña), self.pruebas.resolve())
 
+
+class UbicacionTests(CampañaBase):
+    def test_moverlo_todo_junto_usa_la_ruta_relativa(self):
+        self.crear()
+        otro = self.tmp / "otro_pc"
+        shutil.copytree(self.tmp / "campañas", otro / "campañas")
+        shutil.copytree(self.pruebas, otro / "pruebas")
+        shutil.rmtree(self.pruebas)
+        campaña = ej.cargar(otro / "campañas" / "regresion")
+        self.assertEqual(ej.carpeta_pruebas(campaña), (otro / "pruebas").resolve())
+
+    def test_mover_solo_la_campaña_usa_la_ruta_absoluta(self):
+        self.crear()
+        movida = self.tmp / "en" / "otro" / "sitio"
+        shutil.move(str(self.carpeta), movida)
+        self.assertEqual(ej.carpeta_pruebas(ej.cargar(movida)), self.pruebas.resolve())
+
+    def test_sin_pruebas_se_puede_reubicar(self):
+        self.crear()
+        nueva = self.tmp / "pruebas_nuevas"
+        shutil.move(str(self.pruebas), nueva)
+        campaña = ej.cargar(self.carpeta)
+        self.assertIsNone(ej.carpeta_pruebas(campaña))
+        vacia = self.tmp / "vacia"
+        vacia.mkdir()
+        with self.assertRaisesRegex(ValueError, "no contiene YAML"):
+            ej.reubicar_pruebas(campaña, vacia)
+        ej.reubicar_pruebas(campaña, nueva)
+        self.assertEqual(ej.carpeta_pruebas(ej.cargar(self.carpeta)), nueva.resolve())
+
+
+class CongelarTests(CampañaBase):
+    def cerrar_todo(self, filtro):
+        campaña = self.crear(filtro)
+        for test_id in ej.ids_de(campaña):
+            ej.registrar(campaña, test_id, "ok")
+        ej.cerrar(campaña, self.capitulos())
+        return ej.cargar(self.carpeta)
+
+    def test_al_cerrar_se_congelan_las_pruebas_con_secciones_e_imagenes(self):
+        campaña = self.cerrar_todo({"etiquetas": ["puertas"]})
+        congelada = self.carpeta / ej.CARPETA_CONGELADA
+        capitulos = read_chapters(congelada)
+        self.assertEqual([c["path"].name for c in capitulos], ["03_ejemplo_secciones_imagenes.yaml"])
+        contenido = capitulos[0]["data"]["contenido"]
+        self.assertEqual([e.get("seccion") or e["prueba"]["id"] for e in contenido],
+                         ["Puertas", "Apertura", "DEMO-PUER-001", "Operador de puertas A",
+                          "Reapertura por obstáculo", "DEMO-PUER-002"])
+        self.assertTrue((congelada / "imagenes" / "cronograma_puertas.png").is_file())
+        self.assertTrue((congelada / "imagenes" / "foto_banco_hil.jpg").is_file())
+        self.assertFalse((congelada / "imagenes" / "trama_can.png").exists())
+        self.assertEqual(ej.capitulos_de(campaña)[0]["path"].parent, congelada)
+
+    def test_cambiar_las_pruebas_despues_no_afecta_a_una_campaña_cerrada(self):
+        campaña = self.cerrar_todo({"etiquetas": ["smoke"]})
+        capitulo = self.capitulos()[0]
+        capitulo["data"]["contenido"][2]["prueba"]["titulo"] = "Otro título"
+        save_chapter(capitulo)
+        self.assertEqual(ej.resumen(campaña, ej.capitulos_de(campaña))["problemas"], [])
+
+
+class InformeTests(CampañaBase):
+    def textos(self, ruta):
+        doc = Document(ruta)
+        celdas = [c.text for t in doc.tables for r in t.rows for c in r.cells]
+        return [p.text for p in doc.paragraphs], celdas
+
+    def test_informe_de_una_campaña_abierta_es_un_borrador(self):
+        campaña = self.crear({"etiquetas": ["smoke"]})
+        ej.registrar(campaña, "DEMO-LLAM-001", "no_ok", observaciones="No para en P2", incidencia="BUG-9")
+        ej.registrar(campaña, "DEMO-LLAM-001", "ok", observaciones="Repetida")
+        datos = informe_docx.generar_informe(campaña, self.tmp / "informe")
+        self.assertTrue(datos["archivo"].endswith(".docx"))
+        self.assertEqual(datos["pruebas"], 4)
+        parrafos, celdas = self.textos(datos["archivo"])
+        self.assertIn("Informe de ejecución", parrafos)
+        self.assertTrue(any(p.startswith("BORRADOR") for p in parrafos))
+        self.assertTrue(any(c.startswith("Resultado de la ejecución: OK") for c in celdas))
+        self.assertTrue(any("Intentos anteriores (1)" in c and "BUG-9" in c for c in celdas))
+        self.assertTrue(any(c.startswith("Resultado de la ejecución: Pendiente") for c in celdas))
+
+    def test_informe_de_una_campaña_cerrada_usa_las_pruebas_congeladas(self):
+        campaña = self.crear({"etiquetas": ["manual"]})
+        ej.registrar(campaña, "DEMO-VAR-002", "ok")
+        ej.cerrar(campaña, self.capitulos())
+        capitulo = self.capitulos()[3]
+        for e in capitulo["data"]["contenido"]:
+            if isinstance(e, dict) and e.get("prueba", {}).get("id") == "DEMO-VAR-002":
+                e["prueba"]["titulo"] = "Cambiado después de cerrar"
+        save_chapter(capitulo)
+        datos = informe_docx.generar_informe(ej.cargar(self.carpeta), self.tmp / "informe.docx")
+        parrafos, celdas = self.textos(datos["archivo"])
+        self.assertFalse(any(p.startswith("BORRADOR") for p in parrafos))
+        self.assertFalse(any("Cambiado después de cerrar" in c for c in celdas))
+        self.assertTrue(any("procedimiento de rescate" in c for c in celdas))
 
 def ok(testcase, respuesta):
     testcase.assertTrue(respuesta["ok"], respuesta.get("error"))
@@ -270,6 +368,33 @@ class ApiTests(CampañaBase):
         self.assertEqual(estado["resumen"]["total"], 10)
         self.assertEqual(estado["resumen"]["problemas"], [],
                          "Si cambias las pruebas de ejemplo, vuelve a generar la campaña de ejemplo")
+
+    def test_cerrar_por_api_deja_las_pruebas_en_solo_lectura(self):
+        estado = ok(self, self.api.campana_crear("Manual", {"etiquetas": ["manual"]}, {}, str(self.carpeta)))
+        self.assertEqual(estado["resumen"]["total"], 1)
+        self.assertFalse(self.api.campana_cerrar()["ok"])            # queda una pendiente
+        ok(self, self.api.campana_registrar("DEMO-VAR-002", "ok"))
+        cerrada = ok(self, self.api.campana_cerrar())
+        self.assertTrue(cerrada["cerrada"])
+        self.assertTrue(cerrada["carpeta_pruebas"]["solo_lectura"])
+        fallo = self.api.guardar_prueba(0, 1, {"titulo": "x"})
+        self.assertFalse(fallo["ok"])
+        self.assertIn("copia congelada", fallo["error"])
+        informe = ok(self, self.api.campana_informe(str(self.tmp / "inf.docx")))
+        self.assertTrue(Path(informe["archivo"]).is_file())
+        # al abrir otra carpeta se puede volver a editar
+        ok(self, self.api.abrir_carpeta(str(self.pruebas)))
+        ok(self, self.api.guardar_prueba(0, 2, {"titulo": "Editable de nuevo"}))
+
+    def test_abrir_sin_encontrar_las_pruebas_y_reubicarlas(self):
+        self.crear_por_api()
+        nueva = self.tmp / "movidas"
+        shutil.move(str(self.pruebas), nueva)
+        otra = EditorEjecucionApi()
+        datos = ok(self, otra.campana_abrir(str(self.carpeta)))
+        self.assertTrue(datos["faltan_pruebas"])
+        estado = ok(self, otra.campana_reubicar(str(self.carpeta), str(nueva)))
+        self.assertEqual(estado["carpeta_pruebas"]["carpeta"], str(nueva.resolve()))
 
     def test_sin_campaña_abierta(self):
         self.assertIsNone(ok(self, self.api.campana_estado()))

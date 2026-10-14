@@ -62,8 +62,11 @@ function aplicarResumen(resumen) {
   S.carpeta = resumen.carpeta;
   S.capitulos = resumen.capitulos;
   const boton = $("#carpeta-ruta");
-  boton.textContent = S.carpeta || "Sin carpeta";
-  boton.title = S.carpeta || "";
+  S.soloLectura = Boolean(resumen.solo_lectura);
+  boton.textContent = S.carpeta ? (S.soloLectura ? "Pruebas congeladas (solo lectura)" : S.carpeta) : "Sin carpeta";
+  boton.title = S.soloLectura
+    ? "Pruebas tal como estaban al cerrar la campaña. No se pueden editar; para editar, abre la carpeta de pruebas."
+    : S.carpeta || "";
   const sel = $("#sel-capitulo");
   sel.replaceChildren(...S.capitulos.map((c) => h("option", {
     value: String(c.indice), text: textoCapitulo(c), selected: c.indice === S.capitulo,

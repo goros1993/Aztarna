@@ -267,6 +267,7 @@ class EditorApi:
         self._thumbs: dict[tuple[str, int, int, int], dict[str, Any]] = {}
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
         self._al_cargar: Callable[[Path], None] | None = None   # p. ej. recordar la carpeta
+        self._solo_lectura = False     # p. ej., las pruebas congeladas de una campaña cerrada
         self._sin_guardar = False      # la interfaz avisa cuando hay cambios pendientes
         self._cierre_aceptado = False
 
@@ -299,6 +300,7 @@ class EditorApi:
         chapters = read_chapters(yaml_dir)
         if not chapters:
             raise ValueError("No se encontraron capítulos YAML en la carpeta.")
+        self._solo_lectura = False
         self._yaml_dir = yaml_dir.resolve()
         self._chapters = chapters
         self._mtimes = {c["path"]: c["path"].stat().st_mtime_ns for c in chapters}
@@ -314,8 +316,18 @@ class EditorApi:
             chapter["data"] = roundtrip_yaml().load(source)
         self._mtimes[chapter["path"]] = chapter["path"].stat().st_mtime_ns
 
+    def _exigir_escritura(self) -> None:
+        if self._solo_lectura:
+            raise ValueError(
+                "Esta carpeta es la copia congelada de una campaña cerrada y no se puede modificar. "
+                "Para editar las pruebas, abre su carpeta de pruebas."
+            )
+
     def _persist(self, chapter: dict[str, Any]) -> None:
         """Guarda el capítulo; si falla, vuelve a leer el disco para no divergir."""
+        if self._solo_lectura:
+            self._reload_chapter(chapter)      # deshace lo que se cambió en memoria
+            self._exigir_escritura()
         path: Path = chapter["path"]
         if path.exists() and path.stat().st_mtime_ns != self._mtimes.get(path):
             self._reload_chapter(chapter)
@@ -333,6 +345,7 @@ class EditorApi:
     def _summary(self) -> dict[str, Any]:
         return {
             "carpeta": str(self._yaml_dir) if self._yaml_dir else None,
+            "solo_lectura": self._solo_lectura,
             "capitulos": [
                 {
                     "indice": i,
@@ -674,6 +687,7 @@ class EditorApi:
         return {"rutas": self._import_files([Path(p) for p in chosen])}
 
     def _import_files(self, files: list[Path]) -> list[str]:
+        self._exigir_escritura()
         uploads = []
         for path in files:
             if path.stat().st_size > MAX_IMAGE_BYTES:
@@ -688,6 +702,7 @@ class EditorApi:
     @respuesta
     def importar_imagen_base64(self, nombre: str, datos: str) -> dict[str, Any]:
         """Guarda una imagen pegada o arrastrada desde el navegador."""
+        self._exigir_escritura()
         if "," in datos[:100]:
             datos = datos.split(",", 1)[1]
         contenido = base64.b64decode(datos)

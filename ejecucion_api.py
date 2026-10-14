@@ -94,6 +94,26 @@ class EditorEjecucionApi(EditorApi):
         self._campaña = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {})
         return self._estado()
 
+    def _abrir(self, carpeta: Path) -> dict[str, Any]:
+        """Abre la campaña y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
+        campaña = ej.cargar(carpeta)
+        congelada = ej.carpeta_congelada(campaña) if campaña["datos"].get("estado") == "cerrada" else None
+        pruebas = congelada or ej.carpeta_pruebas(campaña)
+        if pruebas is None:
+            # Se movió la carpeta de pruebas (o la campaña viene de otro PC): la interfaz pregunta dónde está.
+            return {"faltan_pruebas": True, "carpeta": str(campaña["carpeta"]),
+                    "nombre": str(campaña["datos"].get("nombre") or ""),
+                    "rutas": [str(campaña["datos"].get(k)) for k in ("pruebas_yaml", "pruebas_yaml_absoluta")
+                              if campaña["datos"].get(k)]}
+        solo_lectura = congelada is not None
+        cambia_carpeta = (self._yaml_dir is None or pruebas.resolve() != self._yaml_dir
+                          or self._solo_lectura != solo_lectura)
+        if cambia_carpeta:
+            self._load(pruebas)
+        self._solo_lectura = solo_lectura
+        self._campaña = campaña
+        return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None}
+
     @respuesta
     def campana_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
         """Abre una campaña; si sus pruebas están en otra carpeta, abre también esa carpeta."""
@@ -103,15 +123,20 @@ class EditorEjecucionApi(EditorApi):
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
-        campaña = ej.cargar(elegida)
-        pruebas = ej.carpeta_pruebas(campaña)
-        if not (pruebas / "indice.yaml").is_file() and not any(pruebas.glob("*.yaml")):
-            raise ValueError(f"No se encuentran las pruebas de la campaña en {pruebas}.")
-        cambia_carpeta = self._yaml_dir is None or pruebas.resolve() != self._yaml_dir
-        if cambia_carpeta:
-            self._load(pruebas)
-        self._campaña = campaña
-        return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None}
+        return self._abrir(elegida)
+
+    @respuesta
+    def campana_reubicar(self, carpeta: str, pruebas: str | None = None) -> dict[str, Any]:
+        """Indica dónde están ahora las pruebas de una campaña y la abre."""
+        campaña = ej.cargar(carpeta)
+        if pruebas is None:
+            elegida = self._dialogo_carpeta()
+            if elegida is None:
+                return {"cancelado": True}
+        else:
+            elegida = Path(pruebas)
+        ej.reubicar_pruebas(campaña, elegida)
+        return self._abrir(Path(carpeta))
 
     @respuesta
     def campana_estado(self) -> dict[str, Any] | None:
@@ -197,6 +222,49 @@ class EditorEjecucionApi(EditorApi):
         else:
             subprocess.Popen(["xdg-open", str(archivo)])  # noqa: S603,S607
         return {}
+
+    @respuesta
+    def campana_cerrar(self) -> dict[str, Any]:
+        """Cierra la campaña: congela sus pruebas y pasa a mostrarlas en solo lectura."""
+        campaña = self._requiere_campaña()
+        if self._solo_lectura:
+            raise ValueError("La campaña ya está cerrada.")
+        ej.cerrar(campaña, self._chapters)
+        return self._abrir(campaña["carpeta"])
+
+    @respuesta
+    def campana_pdf_disponible(self) -> str | None:
+        import informe_docx
+
+        return informe_docx.pdf_disponible()
+
+    @respuesta
+    def campana_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
+        """Genera el informe DOCX (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
+        import informe_docx
+
+        campaña = self._requiere_campaña()
+        if salida is None:
+            import webview
+
+            if self._window is None:
+                raise ValueError("«Guardar como» solo está disponible en la aplicación.")
+            kind = getattr(getattr(webview, "FileDialog", None), "SAVE", None) or webview.SAVE_DIALOG
+            elegido = self._window.create_file_dialog(
+                kind, directory=str(campaña["carpeta"]), save_filename=f"Informe_{campaña['carpeta'].name}.docx",
+                file_types=("Documento de Word (*.docx)",),
+            )
+            if not elegido:
+                return {"cancelado": True}
+            salida = elegido if isinstance(elegido, str) else elegido[0]
+        datos = informe_docx.generar_informe(campaña, salida, self._chapters)
+        resultado = {"archivo": datos["archivo"], "pruebas": datos["pruebas"], "pdf": None, "aviso_pdf": None}
+        if pdf:
+            try:
+                resultado["pdf"] = str(informe_docx.convertir_a_pdf(datos["archivo"]))
+            except (ValueError, OSError, subprocess.SubprocessError) as error:
+                resultado["aviso_pdf"] = str(error)
+        return resultado
 
     @respuesta
     def campana_resincronizar(self) -> dict[str, Any]:

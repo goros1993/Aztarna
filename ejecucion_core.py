@@ -16,16 +16,19 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from editor_core import read_chapters, roundtrip_yaml, tests_in_chapter
+from editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_in_chapter
 
 ARCHIVO_CAMPAÑA = "campaña.yaml"
 ARCHIVO_RESULTADOS = "resultados.yaml"
 CARPETA_EVIDENCIAS = "evidencias"
+# Al cerrar, copia de las pruebas de la campaña tal como estaban (mismo formato que la carpeta de pruebas).
+CARPETA_CONGELADA = "pruebas_congeladas"
 
 ESTADOS = ("pendiente", "ok", "no_ok", "bloqueada", "no_aplica")
 ESTADOS_VISIBLES = {
@@ -167,10 +170,55 @@ def es_campaña(carpeta: str | Path) -> bool:
     return (Path(carpeta) / ARCHIVO_CAMPAÑA).is_file()
 
 
-def carpeta_pruebas(campaña: dict[str, Any]) -> Path:
-    """Carpeta de los YAML de pruebas (puede guardarse relativa a la campaña)."""
-    ruta = Path(str(campaña["datos"]["pruebas_yaml"])).expanduser()
-    return ruta if ruta.is_absolute() else (campaña["carpeta"] / ruta).resolve()
+def _tiene_pruebas(ruta: Path) -> bool:
+    return ruta.is_dir() and ((ruta / "indice.yaml").is_file() or any(ruta.glob("*.yaml")))
+
+
+def rutas_pruebas(carpeta_campaña: Path, pruebas: Path) -> dict[str, str]:
+    """Cómo guardar dónde están las pruebas: relativa a la campaña (si se puede) y absoluta.
+
+    La relativa sigue valiendo si se mueven juntas (o se copian a otro PC); la
+    absoluta, si solo se mueve la campaña.
+    """
+    pruebas = Path(pruebas).resolve()
+    datos = {}
+    try:
+        datos["pruebas_yaml"] = Path(os.path.relpath(pruebas, Path(carpeta_campaña).resolve())).as_posix()
+    except ValueError:            # en Windows, otra unidad: no hay ruta relativa
+        pass
+    datos["pruebas_yaml_absoluta"] = str(pruebas)
+    return datos
+
+
+def carpeta_pruebas(campaña: dict[str, Any]) -> Path | None:
+    """Carpeta de los YAML de pruebas, o None si no se encuentra en ninguna de las rutas guardadas."""
+    for clave in ("pruebas_yaml", "pruebas_yaml_absoluta"):
+        valor = campaña["datos"].get(clave)
+        if not valor:
+            continue
+        ruta = Path(str(valor)).expanduser()
+        ruta = ruta if ruta.is_absolute() else (campaña["carpeta"] / ruta).resolve()
+        if _tiene_pruebas(ruta):
+            return ruta
+    return None
+
+
+def carpeta_congelada(campaña: dict[str, Any]) -> Path | None:
+    ruta = campaña["carpeta"] / CARPETA_CONGELADA
+    return ruta if _tiene_pruebas(ruta) else None
+
+
+def reubicar_pruebas(campaña: dict[str, Any], nueva: str | Path) -> Path:
+    """Indica dónde están ahora las pruebas de la campaña (si se movieron)."""
+    nueva = Path(nueva).expanduser().resolve()
+    if not _tiene_pruebas(nueva):
+        raise ValueError("Esa carpeta no contiene YAML de pruebas.")
+    if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(campaña)):
+        raise ValueError("Esa carpeta no contiene ninguna prueba de esta campaña.")
+    campaña["datos"].pop("pruebas_yaml", None)
+    campaña["datos"].update(rutas_pruebas(campaña["carpeta"], nueva))
+    guardar(campaña)
+    return nueva
 
 
 def cargar(carpeta: str | Path) -> dict[str, Any]:
@@ -225,7 +273,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
             **{k: extra[k] for k in ("objeto", "entorno", "responsable") if k in extra},
             "inicio": ahora(),
             "estado": "abierta",
-            "pruebas_yaml": str(pruebas_yaml),
+            **rutas_pruebas(carpeta, pruebas_yaml),
             "seleccion": {k: v for k, v in filtro.items() if v not in (None, "", [])},
             "pruebas": [{"id": item["id"], "huella": huella(item["prueba"])} for item in seleccion],
         },
@@ -370,8 +418,73 @@ def resincronizar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> 
     return {"añadidas": [i["id"] for i in nuevas], "ya_no_cumplen": sorted(actuales - seleccionados)}
 
 
+def filtrar_contenido(contenido: list[Any], ids: set[str]) -> list[Any]:
+    """Elementos de un capítulo que afectan a esas pruebas: las pruebas y las secciones que las contienen."""
+    quedan = {
+        i for i, e in enumerate(contenido)
+        if isinstance(e, dict) and isinstance(e.get("prueba"), dict)
+        and str(e["prueba"].get("id") or "").strip() in ids
+    }
+    if not quedan:
+        return []
+    for i, e in enumerate(contenido):
+        if isinstance(e, dict) and isinstance(e.get("seccion"), str):
+            fin = section_end_index(contenido, i)
+            if any(i < j < fin for j in quedan):
+                quedan.add(i)
+    return [contenido[i] for i in sorted(quedan)]
+
+
+def _rutas_imagen(valor: Any) -> set[str]:
+    rutas: set[str] = set()
+    if isinstance(valor, dict):
+        for clave, hijo in valor.items():
+            if clave in ("imagenes", "imagen"):
+                for ruta in hijo if isinstance(hijo, list) else [hijo]:
+                    if isinstance(ruta, str) and ruta.strip():
+                        rutas.add(ruta.strip())
+            else:
+                rutas |= _rutas_imagen(hijo)
+    elif isinstance(valor, list):
+        for hijo in valor:
+            rutas |= _rutas_imagen(hijo)
+    return rutas
+
+
+def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
+    """Copia a `pruebas_congeladas/` las pruebas de la campaña (con sus secciones e imágenes).
+
+    Tiene el mismo formato que una carpeta de pruebas, así que el informe y la
+    revisión de una campaña cerrada no dependen de cómo evolucionen los YAML.
+    """
+    destino = campaña["carpeta"] / CARPETA_CONGELADA
+    if destino.exists():
+        shutil.rmtree(destino)
+    destino.mkdir(parents=True)
+    ids = set(ids_de(campaña))
+    indice, imagenes, base = [], set(), None
+    for capitulo in capitulos:
+        contenido = filtrar_contenido(capitulo["data"]["contenido"], ids)
+        if not contenido:
+            continue
+        base = base or capitulo["path"].parent
+        nombre = capitulo["data"].get("capitulo") or capitulo["path"].stem
+        _escribir_yaml(destino / capitulo["path"].name, {"capitulo": nombre, "contenido": contenido})
+        indice.append({"capitulo": nombre, "archivo": capitulo["path"].name})
+        imagenes |= _rutas_imagen(contenido)
+    _escribir_yaml(destino / "indice.yaml", indice)
+    if base is not None:
+        base = base.resolve()
+        for relativa in sorted(imagenes):
+            origen = (base / relativa).resolve()
+            if base in origen.parents and origen.is_file():
+                (destino / relativa).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(origen, destino / relativa)
+    return destino
+
+
 def cerrar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
-    """Cierra la campaña: no admite más cambios. No puede quedar nada pendiente."""
+    """Cierra la campaña: congela sus pruebas y no admite más cambios. No puede quedar nada pendiente."""
     _exigir_abierta(campaña)
     pendientes = [i for i in ids_de(campaña) if estado_de(campaña, i) == "pendiente"]
     if pendientes:
@@ -379,9 +492,22 @@ def cerrar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
             f"Quedan {len(pendientes)} pruebas pendientes ({', '.join(pendientes[:5])}"
             f"{'…' if len(pendientes) > 5 else ''}). Ejecútalas o márcalas como «No aplica»."
         )
+    congelar(campaña, capitulos)
     campaña["datos"]["estado"] = "cerrada"
     campaña["datos"]["fin"] = ahora()
     guardar(campaña)
+
+
+def capitulos_de(campaña: dict[str, Any]) -> list[dict[str, Any]]:
+    """Capítulos con los que trabajar: los congelados si está cerrada, si no los vigentes."""
+    if campaña["datos"].get("estado") == "cerrada":
+        congelada = carpeta_congelada(campaña)
+        if congelada is not None:
+            return read_chapters(congelada)
+    vigente = carpeta_pruebas(campaña)
+    if vigente is None:
+        raise ValueError("No se encuentran las pruebas de la campaña.")
+    return read_chapters(vigente)
 
 
 # ----------------------------------------------------------------------
