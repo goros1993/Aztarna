@@ -3,9 +3,9 @@
 Genera un único DOCX a partir de los YAML de pruebas.
 
 Uso:
-    python yaml_a_docx.py salida/yaml                 -> pruebas.docx (usa indice.yaml)
-    python yaml_a_docx.py salida/yaml -o mi_doc.docx
-    python yaml_a_docx.py capitulo.yaml               (un solo archivo)
+    python herramientas.py word salida/yaml                 -> pruebas.docx (usa indice.yaml)
+    python herramientas.py word salida/yaml -o mi_doc.docx
+    python herramientas.py word capitulo.yaml               (un solo archivo)
 
 Requisitos:
     pip install python-docx ruamel.yaml
@@ -27,7 +27,7 @@ from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
-from esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS
+from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS
 
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN (todo el aspecto visual se cambia aquí, en un solo sitio)
@@ -524,13 +524,13 @@ def generar_docx(entrada, salida, primer_capitulo=1):
     return total, len(capitulos)
 
 
-def main():
-    ap = argparse.ArgumentParser(description="YAML de pruebas -> DOCX")
+def main(argv=None, prog=None):
+    ap = argparse.ArgumentParser(prog=prog, description="YAML de pruebas -> DOCX")
     ap.add_argument("entrada", help="carpeta con YAML (con indice.yaml) o un archivo YAML")
     ap.add_argument("-o", "--salida", default="pruebas.docx")
     ap.add_argument("--primer-capitulo", type=int, default=1,
                     help="número del primer Título 1 (p. ej. 8 si el original empieza en 8)")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     try:
         total, n_capitulos = generar_docx(args.entrada, args.salida, args.primer_capitulo)

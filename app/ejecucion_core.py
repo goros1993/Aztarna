@@ -24,7 +24,7 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_in_chapter
+from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_in_chapter
 
 ARCHIVO_CAMPAÑA = "campaña.yaml"
 ARCHIVO_RESULTADOS = "resultados.yaml"

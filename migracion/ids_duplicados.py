@@ -2,9 +2,9 @@
 """Ayuda a corregir IDs de prueba repetidos, vacíos o con espacios.
 
 Uso:
-    python ids_duplicados.py ruta/a/yaml                      # escribe ids.csv con una propuesta
-    python ids_duplicados.py ruta/a/yaml -o otra.csv
-    python ids_duplicados.py ruta/a/yaml --aplicar ids.csv    # aplica los ID nuevos del CSV
+    python herramientas.py ids ruta/a/yaml                      # escribe ids.csv con una propuesta
+    python herramientas.py ids ruta/a/yaml -o otra.csv
+    python herramientas.py ids ruta/a/yaml --aplicar ids.csv    # aplica los ID nuevos del CSV
 
 1. Sin `--aplicar` escribe un CSV (se abre con Excel) con una fila por cada
    prueba afectada: dónde está, su título, cuánto se parece a la otra prueba
@@ -29,7 +29,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-from editor_core import read_chapters, save_chapter
+from app.editor_core import read_chapters, save_chapter
 
 COLUMNAS = ["id_actual", "id_nuevo", "motivo", "parecido", "archivo", "indice", "capitulo", "seccion", "titulo"]
 _ID_VALIDO = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:[_\-.][A-Za-z0-9]+)+$")
@@ -206,12 +206,12 @@ def aplicar(carpeta: Path, filas: list[dict[str, str]], guardar: bool = True) ->
     return {"aplicados": len(cambios), "errores": [], "archivos": sorted(tocados), "repetidos_restantes": restantes}
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios")
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios")
     ap.add_argument("carpeta", help="carpeta con indice.yaml y los capítulos")
     ap.add_argument("-o", "--salida", default="ids.csv", help="CSV con la propuesta (por defecto: ids.csv)")
     ap.add_argument("--aplicar", metavar="CSV", help="aplica los id_nuevo de este CSV")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     carpeta = Path(args.carpeta)
     try:
         if args.aplicar:
@@ -237,7 +237,7 @@ def main() -> None:
         print(f"  {n:5d}  {motivo}")
     if sin_propuesta:
         print(f"  {sin_propuesta} sin propuesta: rellena «id_nuevo» en el CSV.")
-    print(f"Revísalo y aplícalo con: python ids_duplicados.py {args.carpeta} --aplicar {args.salida}")
+    print(f"Revísalo y aplícalo con: python herramientas.py ids {args.carpeta} --aplicar {args.salida}")
 
 
 if __name__ == "__main__":

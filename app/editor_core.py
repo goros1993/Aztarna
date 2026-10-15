@@ -15,7 +15,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
-import esquema
+from app import esquema
 
 LIST_FIELDS = esquema.CAMPOS_LISTA
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}

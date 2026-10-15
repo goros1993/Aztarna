@@ -72,8 +72,8 @@ También desde la línea de comandos (útil en un PC sin el editor abierto o,
 más adelante, en integración continua):
 
 ```bash
-python importar_robot.py ruta/a/la/campaña resultados/output.xml --simular   # solo mira
-python importar_robot.py ruta/a/la/campaña resultados/output.xml             # importa
+python herramientas.py robot ruta/a/la/campaña resultados/output.xml --simular   # solo mira
+python herramientas.py robot ruta/a/la/campaña resultados/output.xml             # importa
 ```
 
 Volver a importar el mismo `output.xml` no duplica nada. Si se repiten los

@@ -12,8 +12,8 @@ o en el capítulo si aún no hay ningún título. Los avisos se
 agrupan por tipo en avisos.txt (y avisos.csv para filtrarlos en Excel).
 
 Uso:
-    python convertir.py tu_archivo.docx            -> carpeta salida/
-    python convertir.py tu_archivo.docx -o otra
+    python herramientas.py convertir tu_archivo.docx            -> carpeta salida/
+    python herramientas.py convertir tu_archivo.docx -o otra
 
 Requisitos:
     pip install python-docx ruamel.yaml
@@ -33,7 +33,7 @@ from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 from ruamel.yaml import YAML
 
-import esquema
+from app import esquema
 
 
 def sin_tildes(s):
@@ -652,11 +652,11 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
     return capitulos
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Word -> YAML por capítulos")
+def main(argv=None, prog=None):
+    ap = argparse.ArgumentParser(prog=prog, description="Word -> YAML por capítulos")
     ap.add_argument("docx")
     ap.add_argument("-o", "--salida", default="salida")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     doc = Document(args.docx)
     avisos = []

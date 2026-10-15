@@ -16,8 +16,8 @@ import os
 import sys
 from pathlib import Path
 
-import ajustes
-from ejecucion_api import EditorEjecucionApi as EditorApi
+from app import ajustes
+from app.ejecucion_api import EditorEjecucionApi as EditorApi
 
 
 def recurso(relativa: str) -> Path:

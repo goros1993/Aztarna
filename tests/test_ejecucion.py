@@ -9,10 +9,10 @@ import io
 
 from PIL import Image
 
-import ejecucion_core as ej
-from editor_core import read_chapters, save_chapter
-from ejecucion_api import EditorEjecucionApi
-import informe_docx
+from app import ejecucion_core as ej
+from app.editor_core import read_chapters, save_chapter
+from app.ejecucion_api import EditorEjecucionApi
+from app import informe_docx
 from docx import Document
 
 EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"

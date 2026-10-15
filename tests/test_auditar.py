@@ -5,8 +5,8 @@ from tempfile import TemporaryDirectory
 
 from docx import Document
 
-import auditar
-import convertir
+from migracion import auditar
+from migracion import convertir
 from tests.test_conversion import documento_mixto
 
 

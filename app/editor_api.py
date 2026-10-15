@@ -28,8 +28,8 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-import esquema
-from editor_core import (
+from app import esquema
+from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
     delete_section,
@@ -948,7 +948,7 @@ class EditorApi:
     @respuesta
     def exportar_docx(self, primer_capitulo: int = 1, salida: str | None = None) -> dict[str, Any]:
         """Genera el DOCX con `yaml_a_docx`. Sin `salida`, abre «Guardar como»."""
-        import yaml_a_docx
+        from app import yaml_a_docx
 
         base = self._require_dir()
         if salida is None:
@@ -960,16 +960,12 @@ class EditorApi:
             output = output.with_suffix(".docx")
         output.parent.mkdir(parents=True, exist_ok=True)
         buffer = io.StringIO()
-        old_argv = sys.argv
-        sys.argv = ["yaml_a_docx", str(base), "-o", str(output), "--primer-capitulo", str(int(primer_capitulo))]
         try:
             with contextlib.redirect_stdout(buffer):
-                yaml_a_docx.main()
+                yaml_a_docx.main([str(base), "-o", str(output), "--primer-capitulo", str(int(primer_capitulo))])
         except SystemExit as stop:
             if stop.code not in (None, 0):
                 raise ValueError(str(stop.code)) from None
-        finally:
-            sys.argv = old_argv
         lines = [line.strip() for line in buffer.getvalue().splitlines() if line.strip()]
         return {
             "archivo": str(output),

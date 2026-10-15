@@ -3,8 +3,8 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import ids_duplicados as idd
-from editor_core import read_chapters, tests_in_chapter
+from migracion import ids_duplicados as idd
+from app.editor_core import read_chapters, tests_in_chapter
 
 CAPITULO = """\
 capitulo: Llamadas

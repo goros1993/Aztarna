@@ -77,7 +77,7 @@ Plan:
 
 1. *Hecho (primera versión):* importar el `output.xml` de Robot en una
    campaña, desde el editor (con vista previa antes de aplicar) y por línea de
-   comandos (`importar_robot.py`). Se copian `output.xml`, `log.html` y
+   comandos (`python herramientas.py robot`). Se copian `output.xml`, `log.html` y
    `report.html` a las evidencias de la campaña y se avisa de los tests sin
    `id:` y de los `id:` que no existen. Lee el XML directamente, sin instalar
    Robot en el editor, y admite los formatos de RF 6 y RF 7.
@@ -163,7 +163,7 @@ reglas de `esquema.migrar_prueba` (ver README, «Esquema de las pruebas») y
 título. La auditoría del documento real ya no da pérdidas (algunos capítulos
 se importarán aparte, más adelante: hará falta que el conversor pueda añadir
 capítulos a una carpeta de YAML existente, `--anadir-a`, sin pisar imágenes
-ni archivos). Los IDs repetidos se corrigen con `ids_duplicados.py`.
+ni archivos). Los IDs repetidos se corrigen con `python herramientas.py ids`.
 
 ### Propuesta: pruebas que aparecen en dos sitios
 
@@ -207,9 +207,9 @@ Propuesta: una **referencia a prueba** como elemento propio del capítulo:
 Cuando haya demasiadas tablas o estructuras distintas, conviene seguir esta
 secuencia antes de declarar como oficiales los YAML:
 
-1. Ejecutar `python inventario.py "<docx>"` y guardar su salida para agrupar
+1. Ejecutar `python herramientas.py inventario "<docx>"` y guardar su salida para agrupar
    tablas por estructura.
-2. Ejecutar la importación inicial con `python convertir.py "<docx>" -o importacion`
+2. Ejecutar la importación inicial con `python herramientas.py convertir "<docx>" -o importacion`
    y revisar `importacion/avisos.txt` agrupando los avisos por tipo e ID.
 3. Identificar, en una muestra de 2 o 3 tablas de cada formato, cuáles son:
    - pruebas estándar,

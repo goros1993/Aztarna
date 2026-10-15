@@ -2,7 +2,7 @@
 """Comprueba que la importación del Word a YAML no pierde información.
 
 Uso:
-    python auditar.py documento.docx importacion/yaml -o importacion/auditoria.html
+    python herramientas.py auditar documento.docx importacion/yaml -o importacion/auditoria.html
 
 Compara las palabras del Word original con las de los YAML, tabla a tabla y
 párrafo a párrafo (sin mirar el formato ni el orden de los campos, que en la
@@ -36,10 +36,10 @@ from docx.oxml.ns import qn
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 
-import convertir
-import esquema
-import inventario
-from editor_core import read_chapters, tests_in_chapter
+from migracion import convertir
+from app import esquema
+from migracion import inventario
+from app.editor_core import read_chapters, tests_in_chapter
 
 _MARCAS = re.compile(r"\[\[[^\]|]+\||\]\]|\*\*|\*")
 _ETIQUETAS = sorted({*convertir.ETIQUETAS_CAMPOS, *convertir.ALIAS_ETIQUETAS_ADICIONALES, "EJECUCIÓN DE PRUEBA"},
@@ -512,19 +512,19 @@ def resumen(datos: dict[str, Any]) -> str:
 # Informe HTML
 # ----------------------------------------------------------------------
 def informe_html(datos: dict[str, Any]) -> str:
-    plantilla = (Path(__file__).parent / "plantillas" / "auditoria.html").read_text(encoding="utf-8")
+    plantilla = (Path(__file__).resolve().parent.parent / "plantillas" / "auditoria.html").read_text(encoding="utf-8")
     datos_json = json.dumps({**datos, "etiquetas": esquema.ETIQUETAS, "automatizable": esquema.AUTOMATIZABLE_VISIBLE},
                             ensure_ascii=False, default=str).replace("</", "<\\/")
     return (plantilla.replace("{{titulo}}", html.escape(f"Auditoría · {datos['documento']}"))
             .replace("{{datos}}", datos_json))
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Comprueba que la importación del Word a YAML no pierde información")
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Comprueba que la importación del Word a YAML no pierde información")
     ap.add_argument("docx", help="documento Word original")
     ap.add_argument("yaml", help="carpeta con los YAML importados (con indice.yaml)")
     ap.add_argument("-o", "--salida", default="auditoria.html", help="informe HTML (por defecto: auditoria.html)")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     try:
         datos = auditar(args.docx, args.yaml)
     except (ValueError, OSError) as error:

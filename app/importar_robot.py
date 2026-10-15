@@ -2,8 +2,8 @@
 """Importa en una campaña los resultados de Robot Framework (output.xml).
 
 Uso:
-    python importar_robot.py ruta/a/la/campaña ruta/a/output.xml            # importa
-    python importar_robot.py ruta/a/la/campaña ruta/a/output.xml --simular  # solo muestra qué haría
+    python herramientas.py robot ruta/a/la/campaña ruta/a/output.xml            # importa
+    python herramientas.py robot ruta/a/la/campaña ruta/a/output.xml --simular  # solo muestra qué haría
 
 Cada test de Robot debe llevar la etiqueta id:<ID de la prueba YAML>.
 PASS -> OK, FAIL -> NO OK, SKIP -> No aplica. Ver docs/robot.md.
@@ -12,19 +12,19 @@ from __future__ import annotations
 
 import argparse
 
-import ejecucion_core as ej
-import robot_core
+from app import ejecucion_core as ej
+from app import robot_core
 
 VISIBLE = {"ok": "OK", "no_ok": "NO OK", "no_aplica": "No aplica"}
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Importa resultados de Robot Framework en una campaña")
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Importa resultados de Robot Framework en una campaña")
     ap.add_argument("campaña", help="carpeta de la campaña (con campaña.yaml)")
     ap.add_argument("output", help="output.xml generado por Robot Framework")
     ap.add_argument("--simular", action="store_true", help="no cambia nada; solo muestra qué se importaría")
     ap.add_argument("--ejecutor", default=robot_core.EJECUTOR, help="nombre del ejecutor (por defecto: Robot Framework)")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     try:
         campaña = ej.cargar(args.campaña)
         capitulos = ej.capitulos_de(campaña)

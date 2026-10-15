@@ -18,10 +18,10 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-import ajustes
-import ejecucion_core as ej
-import robot_core
-from editor_api import EditorApi, respuesta, to_plain
+from app import ajustes
+from app import ejecucion_core as ej
+from app import robot_core
+from app.editor_api import EditorApi, respuesta, to_plain
 
 
 def _nombre_carpeta(nombre: str) -> str:
@@ -243,7 +243,7 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_pdf_disponible(self) -> str | None:
-        import informe_docx
+        from app import informe_docx
 
         return informe_docx.pdf_disponible()
 
@@ -257,7 +257,7 @@ class EditorEjecucionApi(EditorApi):
     @respuesta
     def campana_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
         """Genera el informe DOCX (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
-        import informe_docx
+        from app import informe_docx
 
         campaña = self._requiere_campaña()
         if salida is None:
@@ -294,14 +294,14 @@ class EditorEjecucionApi(EditorApi):
     @respuesta
     def campana_robot_previsualizar(self, ruta: str) -> dict[str, Any]:
         """Qué haría la importación del output.xml, sin cambiar nada."""
-        import robot_core
+        from app import robot_core
 
         return robot_core.plan(self._requiere_campaña(), robot_core.leer_output(ruta), self._chapters)
 
     @respuesta
     def campana_robot_importar(self, ruta: str) -> dict[str, Any]:
         """Apunta en la campaña los resultados del output.xml."""
-        import robot_core
+        from app import robot_core
 
         datos = robot_core.importar(self._requiere_campaña(), ruta, self._chapters)
         return {**self._estado(), "importacion": datos}

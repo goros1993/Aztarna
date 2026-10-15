@@ -4,8 +4,8 @@ import unittest
 
 from ruamel.yaml import YAML
 
-import editor_api
-import editor_core
+from app import editor_api
+from app import editor_core
 
 
 class EditorCoreTests(unittest.TestCase):

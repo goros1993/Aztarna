@@ -3,28 +3,48 @@
 Herramientas para importar la información de un documento Word a YAML, editar
 las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML.
 
-| Archivo | Para qué sirve |
+```text
+editor_web.py      el editor de pruebas (python editor_web.py)
+herramientas.py    las utilidades de línea de órdenes (python herramientas.py <orden>)
+app/               lógica del editor y de las campañas
+migracion/         importación del Word original (hasta que los YAML son la fuente oficial)
+web/               interfaz del editor (HTML, CSS y JavaScript)
+plantillas/        plantilla de la tabla de cada prueba y del informe de auditoría
+ejemplos/          capítulos, una campaña y una suite de Robot ficticios para probar todo
+tests/             pruebas automatizadas (python -m unittest)
+docs/              capturas del manual y documentación de Robot Framework
+```
+
+| Módulo | Para qué sirve |
 |---|---|
-| `convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
-| `inventario.py` | Agrupa las tablas del DOCX por estructura antes de importar. |
-| `editor_web.py` | Editor de pruebas (ventana local con pywebview). |
-| `editor_api.py`, `web/` | API en Python e interfaz HTML del editor. |
-| `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
-| `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
-| `esquema.py` | Campos de las pruebas, sus nombres y sus opciones (único sitio donde se definen). |
-| `auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
-| `ids_duplicados.py` | Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios. |
-| `plantillas/tabla_prueba.docx` | Plantilla de la tabla de cada prueba (vacía, solo etiquetas). |
-| `plantillas/auditoria.html` | Plantilla del informe de `auditar.py`. |
-| `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
-| `informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
-| `robot_core.py`, `importar_robot.py` | Robot Framework: cobertura, ejecución e importación de resultados. |
-| `ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot). |
+| `app/esquema.py` | Campos de las pruebas, sus nombres y sus opciones (único sitio donde se definen). |
+| `app/editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
+| `app/editor_api.py` | API del editor que usa la interfaz de `web/`. |
+| `app/ejecucion_core.py`, `app/ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
+| `app/robot_core.py` | Robot Framework: cobertura, ejecución e importación de resultados. |
+| `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
+| `app/informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
+| `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot). |
+| `migracion/convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
+| `migracion/inventario.py` | Agrupa las tablas del DOCX por estructura antes de importar. |
+| `migracion/auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
+| `migracion/ids_duplicados.py` | Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios. |
 | `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
-| `ejemplos/yaml/` | Capítulos ficticios para probar todo. |
-| `ejemplos/ejecuciones/` | Una campaña de ejemplo a medio ejecutar. |
-| `ejemplos/robot/` | Suite de Robot de ejemplo y sus resultados. |
-| `tests/` | Pruebas automatizadas (`python -m unittest`). |
+
+Las utilidades se ejecutan todas con `herramientas.py`:
+
+| Orden | Hace |
+|---|---|
+| `python herramientas.py convertir documento.docx -o importacion` | Word → YAML, con avisos |
+| `python herramientas.py inventario documento.docx` | Agrupa las tablas del Word por estructura |
+| `python herramientas.py auditar documento.docx importacion/yaml` | Comprueba que la importación no pierde texto |
+| `python herramientas.py ids importacion/yaml` | Propone (y con `--aplicar`, aplica) IDs nuevos para los repetidos |
+| `python herramientas.py word ruta/a/yaml -o pruebas.docx` | Genera el Word a partir de los YAML |
+| `python herramientas.py informe ruta/a/campaña --pdf` | Informe de una campaña |
+| `python herramientas.py robot ruta/a/campaña output.xml` | Importa resultados de Robot Framework |
+
+`python herramientas.py` sin nada lista las órdenes y `python herramientas.py
+<orden> --help` explica las opciones de cada una.
 
 El manual para quien usa el editor (sin detalles técnicos) está en
 [MANUAL.md](MANUAL.md). El trabajo pendiente y las propuestas están en
@@ -73,7 +93,7 @@ con Windows 10 actualizado.
 Guarda el documento Word original fuera del repositorio y ejecuta:
 
 ```bash
-python convertir.py "/ruta/privada/al/documento-original.docx" -o importacion
+python herramientas.py convertir "/ruta/privada/al/documento-original.docx" -o importacion
 ```
 
 En Windows, sustituye la ruta por la ruta local correspondiente. La
@@ -106,7 +126,7 @@ Las tablas que no son pruebas van donde iría un párrafo en ese punto: en el
 `contexto` de la sección o de la prueba siguiente, entre su texto, o en el
 capítulo si están antes del primer título. El DOCX generado las vuelve a
 pintar en su sitio: el documento queda completo.
-`python inventario.py documento.docx` usa la misma clasificación y resume
+`python herramientas.py inventario documento.docx` usa la misma clasificación y resume
 cuántas tablas hay de cada clase y variante, sin generar los YAML.
 
 Los avisos indican capítulo, número de tabla en el Word e ID. Además de los
@@ -116,10 +136,10 @@ repetidos (con la tabla donde apareció antes) o con espacios.
 ## Revisar y validar la importación
 
 Antes de adoptar los YAML como datos oficiales, comprueba que no se pierde
-nada con `auditar.py`:
+nada con la auditoría:
 
 ```bash
-python auditar.py "/ruta/privada/documento.docx" importacion/yaml -o importacion/auditoria.html
+python herramientas.py auditar "/ruta/privada/documento.docx" importacion/yaml -o importacion/auditoria.html
 ```
 
 Compara las palabras del Word con las de los YAML, tabla a tabla y párrafo a
@@ -135,7 +155,7 @@ tabla:
   situación final que pasa al ensayo) no cuentan como faltas.
 
 `auditoria.html` muestra los recuentos (pruebas, tablas, imágenes, IDs), las
-familias de tablas (las de `inventario.py`) y cada tabla con el original al
+familias de tablas (las del inventario) y cada tabla con el original al
 lado de la nueva y las palabras que faltan marcadas; marca como **muestra** la
 primera, la central y la última de cada familia para revisar a ojo que cada
 texto ha ido a su campo. Lleva el texto del documento: no lo compartas.
@@ -164,8 +184,8 @@ Las campañas reconocen cada prueba por su ID, así que conviene corregir los
 repetidos antes de empezar a apuntar resultados:
 
 ```bash
-python ids_duplicados.py importacion/yaml -o ids.csv          # propuesta
-python ids_duplicados.py importacion/yaml --aplicar ids.csv   # aplica lo revisado
+python herramientas.py ids importacion/yaml -o ids.csv          # propuesta
+python herramientas.py ids importacion/yaml --aplicar ids.csv   # aplica lo revisado
 ```
 
 `ids.csv` (se abre con Excel) tiene una fila por prueba con ID repetido, vacío
@@ -207,7 +227,7 @@ aparte) y conserva sus comentarios y su formato.
   escribe, sin marcas a la vista. Los botones alternan: volver a pulsar
   resaltado sobre un texto resaltado lo quita; sin selección, el formato se
   aplica a lo siguiente que se escriba. Ctrl+Z / Ctrl+Y deshacen y rehacen
-  texto y formato. Se guarda con las marcas que entiende `yaml_a_docx.py`
+  texto y formato. Se guarda con las marcas que entiende `app/yaml_a_docx.py`
   (`**negrita**`, `[[rojo|…]]`, `[[res:amarillo|…]]`…).
 - Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
   ajustan solos.
@@ -293,7 +313,7 @@ guarda dentro de la campaña una copia de sus pruebas tal como están
 (`pruebas_congeladas/`, con secciones e imágenes) y bloquea los resultados.
 Desde entonces la campaña se revisa y se informa con esa copia, aunque los YAML
 de pruebas sigan cambiando; el editor la muestra en solo lectura. *Generar
-informe* crea un DOCX con el mismo aspecto que `yaml_a_docx.py`: un resumen al
+informe* crea un DOCX con el mismo aspecto que el Word de las pruebas: un resumen al
 principio (datos de la campaña, criterio, totales, desglose por capítulo,
 fallos y bloqueos, avisos) y cada prueba con su resultado, observaciones,
 incidencia, evidencias e intentos anteriores. Con la campaña abierta sale
@@ -301,7 +321,7 @@ marcado como BORRADOR. El PDF se genera con LibreOffice o, en Windows, con
 Microsoft Word, si están instalados. También desde la línea de comandos:
 
 ```bash
-python informe_docx.py ruta/a/la/campaña -o informe.docx --pdf
+python herramientas.py informe ruta/a/la/campaña -o informe.docx --pdf
 ```
 
 **Cómo se une una campaña con las pruebas.** La campaña no copia las pruebas
@@ -317,7 +337,7 @@ nada; si ya se había ejecutado, la campaña avisa de que cambió.
 
 **Pruebas automáticas (Robot Framework).** Cada test de Robot lleva la
 etiqueta `id:<ID de la prueba>`. *Importar Robot…* (en el resumen de la
-campaña) o `python importar_robot.py <campaña> <output.xml>` apuntan sus
+campaña) o `python herramientas.py robot <campaña> <output.xml>` apuntan sus
 resultados (PASS → OK, FAIL → NO OK, SKIP → No aplica) con el log y las
 capturas como evidencias. Con la carpeta de tests de Robot configurada (botón
 *Robot*), el editor marca qué pruebas tienen test automático, avisa de las
@@ -381,7 +401,7 @@ contenido:
 ### Esquema de las pruebas
 
 Todas las pruebas tienen los mismos campos, en el orden de la tabla de
-`plantillas/tabla_prueba.docx`. Se definen en un solo sitio, `esquema.py`, que
+`plantillas/tabla_prueba.docx`. Se definen en un solo sitio, `app/esquema.py`, que
 usan el importador, el editor (formulario y validación), el DOCX y las
 campañas:
 
@@ -402,7 +422,7 @@ campañas:
 Además, `nombre` y `nivel` (título en el documento), `contexto`,
 `campos_adicionales` (filas al final de la tabla) e `imagenes`.
 
-**Cambiar un campo para todas las pruebas.** Se cambia en `esquema.py` (y, si
+**Cambiar un campo para todas las pruebas.** Se cambia en `app/esquema.py` (y, si
 el Word trae datos que convertir, la regla en `esquema.migrar_prueba`) y se
 vuelve a importar el Word.
 
@@ -478,20 +498,20 @@ una copia si quieres conservar los originales.
 Con el índice y los capítulos dentro de la misma carpeta:
 
 ```bash
-python yaml_a_docx.py importacion/yaml -o exportacion/pruebas.docx
+python herramientas.py word importacion/yaml -o exportacion/pruebas.docx
 ```
 
 Para generar desde un único capítulo:
 
 ```bash
-python yaml_a_docx.py importacion/yaml/02_funciones_basicas.yaml \
+python herramientas.py word importacion/yaml/02_funciones_basicas.yaml \
   -o exportacion/funciones_basicas.docx
 ```
 
 Si los títulos deben empezar con otro número de capítulo:
 
 ```bash
-python yaml_a_docx.py importacion/yaml -o exportacion/pruebas.docx \
+python herramientas.py word importacion/yaml -o exportacion/pruebas.docx \
   --primer-capitulo 8
 ```
 
@@ -525,10 +545,7 @@ confidenciales:
 ```bash
 git status
 git add .gitignore README.md MANUAL.md PENDIENTE.md docs/ requirements.txt construir_exe.bat \
-  convertir.py inventario.py yaml_a_docx.py \
-  editor_core.py editor_api.py editor_web.py web/ \
-  ejecucion_core.py ejecucion_api.py informe_docx.py robot_core.py importar_robot.py ajustes.py \
-  tests/ ejemplos/
+  editor_web.py herramientas.py app/ migracion/ web/ plantillas/ tests/ ejemplos/
 git status
 git commit -m "Descripción del cambio"
 git push

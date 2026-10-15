@@ -8,8 +8,8 @@ from zipfile import ZipFile
 
 from docx import Document
 
-import convertir
-import yaml_a_docx
+from migracion import convertir
+from app import yaml_a_docx
 
 
 PNG_1X1 = base64.b64decode(

@@ -5,7 +5,7 @@ Mismo aspecto que `yaml_a_docx.py`, con un resumen al principio y el
 resultado de la ejecución debajo de la tabla de cada prueba.
 
 Uso:
-    python informe_docx.py ruta/a/la/campaña [-o informe.docx] [--pdf]
+    python herramientas.py informe ruta/a/la/campaña [-o informe.docx] [--pdf]
 """
 from __future__ import annotations
 
@@ -21,8 +21,8 @@ from typing import Any
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Pt, RGBColor
 
-import ejecucion_core as ej
-import yaml_a_docx as yd
+from app import ejecucion_core as ej
+from app import yaml_a_docx as yd
 
 COLOR_ESTADO = {"ok": "2B7A4B", "no_ok": "B3261E", "bloqueada": "9A5B00", "no_aplica": "6B7B85", "pendiente": "72838D"}
 FONDO_ESTADO = {"ok": "DCEFE3", "no_ok": "F8DEDB", "bloqueada": "F7ECD2", "no_aplica": "E4E9EC", "pendiente": "F2F4F5"}
@@ -317,12 +317,12 @@ def convertir_a_pdf(docx: str | Path) -> Path:
     return pdf
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Informe de una campaña de ejecución")
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Informe de una campaña de ejecución")
     ap.add_argument("campaña", help="carpeta de la campaña (con campaña.yaml)")
     ap.add_argument("-o", "--salida", help="archivo DOCX de salida (por defecto, dentro de la campaña)")
     ap.add_argument("--pdf", action="store_true", help="generar también el PDF")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     try:
         campaña = ej.cargar(args.campaña)
         salida = args.salida or campaña["carpeta"] / f"Informe_{campaña['carpeta'].name}.docx"

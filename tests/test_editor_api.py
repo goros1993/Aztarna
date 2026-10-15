@@ -10,8 +10,8 @@ from tempfile import TemporaryDirectory
 from PIL import Image
 from ruamel.yaml import YAML
 
-import editor_api
-from editor_core import element_level, move_block
+from app import editor_api
+from app.editor_core import element_level, move_block
 
 EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
 

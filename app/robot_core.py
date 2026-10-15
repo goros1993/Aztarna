@@ -21,7 +21,7 @@ from html import unescape
 from pathlib import Path
 from typing import Any
 
-import ejecucion_core as ej
+from app import ejecucion_core as ej
 
 PREFIJO_ID = "id:"
 EJECUTOR = "Robot Framework"

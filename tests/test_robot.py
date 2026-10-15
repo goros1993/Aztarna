@@ -9,10 +9,10 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import ejecucion_core as ej
-import robot_core as rc
-from editor_core import read_chapters
-from ejecucion_api import EditorEjecucionApi
+from app import ejecucion_core as ej
+from app import robot_core as rc
+from app.editor_core import read_chapters
+from app.ejecucion_api import EditorEjecucionApi
 
 RAIZ = Path(__file__).resolve().parent.parent
 SALIDA_RF7 = RAIZ / "ejemplos" / "robot" / "resultados" / "output.xml"
@@ -107,7 +107,7 @@ class ImportarTests(unittest.TestCase):
             rc.importar(ej.cargar(self.tmp / "manual"), SALIDA_RF7, self.capitulos())
 
     def test_linea_de_comandos(self):
-        orden = [sys.executable, str(RAIZ / "importar_robot.py"), str(self.tmp / "camp"), str(SALIDA_RF7)]
+        orden = [sys.executable, str(RAIZ / "herramientas.py"), "robot", str(self.tmp / "camp"), str(SALIDA_RF7)]
         simulado = subprocess.run([*orden, "--simular"], capture_output=True, text=True, cwd=RAIZ)
         self.assertEqual(simulado.returncode, 0, simulado.stderr)
         self.assertIn("Se importarían: 4 OK, 1 NO OK, 1 no aplica", simulado.stdout)

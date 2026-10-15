@@ -5,17 +5,17 @@ variantes existen antes de ajustar el parser. Cada tabla se clasifica igual
 que en convertir.py: prueba, dudosa (se conservará como tabla; revisar) o
 informativa (no es una prueba; se conservará tal cual).
 
-Uso (en la misma carpeta que convertir.py):
-    python inventario.py tu_archivo.docx
+Uso:
+    python herramientas.py inventario tu_archivo.docx
 Escribe inventario.txt y muestra un resumen corto por pantalla.
 """
-import sys
+import argparse
 from collections import Counter, defaultdict
 
 from docx import Document
 
-import esquema
-from convertir import CAMPOS, SECCIONES, celdas_unicas, clasificar_tabla, etiquetas_tabla, texto_celda
+from app import esquema
+from migracion.convertir import CAMPOS, SECCIONES, celdas_unicas, clasificar_tabla, etiquetas_tabla, texto_celda
 
 # Campos de la tabla común (esquema.py). Los alias, como «Condiciones
 # iniciales», cuentan como su campo; «sobran» son los del formato antiguo
@@ -57,7 +57,10 @@ def nombre_familia(clave):
     return f"{'ESTÁNDAR' if not faltan and not sobran else 'VARIANTE'} filas={nfilas}"
 
 
-def main(ruta):
+def main(argv=None, prog=None):
+    ap = argparse.ArgumentParser(prog=prog, description="Agrupa las tablas del Word por estructura antes de importar")
+    ap.add_argument("docx", help="documento Word original")
+    ruta = ap.parse_args(argv).docx
     doc = Document(ruta)
     familias = defaultdict(list)
     motivos = {}
@@ -98,4 +101,4 @@ def main(ruta):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main()

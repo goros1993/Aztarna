@@ -18,6 +18,7 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
     --name EditorPruebas ^
     --add-data "web;web" ^
     --collect-submodules webview ^
+    --collect-submodules app ^
     editor_web.py || goto :error
 
 echo.
