@@ -11,7 +11,7 @@ Resource          banco.resource
 
 
 *** Variables ***
-${IMAGENES}       ${CURDIR}/../yaml/imagenes
+${IMAGENES}       ${CURDIR}/../yaml/pruebas/imagenes
 
 
 *** Test Cases ***

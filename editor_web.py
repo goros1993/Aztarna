@@ -3,7 +3,7 @@
 
 Uso:
     python editor_web.py                 # la última carpeta usada, o ejemplos/yaml
-    python editor_web.py ruta/a/yaml     # abre otra carpeta
+    python editor_web.py ruta/a/yaml     # abre otra carpeta (el proyecto o su carpeta pruebas/)
     python editor_web.py --depurar       # con herramientas de desarrollo
 
 No arranca ningún servidor: la interfaz (web/) se carga como archivos locales
@@ -33,7 +33,7 @@ def carpeta_por_defecto() -> Path | None:
         Path(sys.executable).resolve().parent / "ejemplos" / "yaml",
         recurso("ejemplos/yaml"),
     ]
-    return next((c for c in candidatas if (c / "indice.yaml").is_file()), None)
+    return next((c for c in candidatas if (c / "pruebas" / "indice.yaml").is_file() or (c / "indice.yaml").is_file()), None)
 
 
 def ultima_carpeta() -> Path | None:
@@ -48,7 +48,7 @@ def recordar_carpeta(carpeta: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Editor de pruebas YAML")
-    parser.add_argument("carpeta", nargs="?", help="carpeta con indice.yaml y los capítulos")
+    parser.add_argument("carpeta", nargs="?", help="carpeta del proyecto (pruebas/ y requisitos/) o la de pruebas")
     parser.add_argument("--depurar", action="store_true", help="activa las herramientas de desarrollo")
     args = parser.parse_args()
 

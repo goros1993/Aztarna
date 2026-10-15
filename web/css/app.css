@@ -414,6 +414,8 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 }
 #app:not(.modo-ejecucion) .solo-ejecucion { display: none !important; }
 #app.modo-ejecucion .solo-edicion { display: none !important; }
+#app:not(.modo-requisitos) .solo-requisitos { display: none !important; }
+#app.modo-requisitos .no-requisitos { display: none !important; }
 .barra .seg.modo { flex: none; }
 .lateral-acciones select { flex: 1; min-width: 0; padding: 2px 6px; font-size: 13px; }
 
@@ -676,3 +678,68 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 .sugerencias-fichas .opcion { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
 .sugerencias-fichas .opcion.activa, .sugerencias-fichas .opcion:hover { background: var(--accent-soft); }
 .sugerencias-fichas .usos { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+
+/* ---- requisitos y trazabilidad ---- */
+:root {
+  --cv-cubierto: var(--st-ok); --cv-cubierto-soft: var(--st-ok-soft);
+  --cv-sin_cobertura: var(--st-no_ok); --cv-sin_cobertura-soft: var(--st-no_ok-soft);
+  --cv-no_aplica: var(--st-no_aplica); --cv-no_aplica-soft: var(--st-no_aplica-soft);
+  --cv-modificado: var(--st-bloqueada); --cv-modificado-soft: var(--st-bloqueada-soft);
+}
+.punto-cobertura { flex: none; width: 10px; height: 10px; border-radius: 50%; margin-right: 2px; box-shadow: inset 0 0 0 2px var(--st-pendiente); }
+.punto-cobertura.c-cubierto { background: var(--cv-cubierto); box-shadow: none; }
+.punto-cobertura.c-sin_cobertura { box-shadow: inset 0 0 0 2px var(--cv-sin_cobertura); }
+.punto-cobertura.c-no_aplica { background: var(--cv-no_aplica-soft); box-shadow: inset 0 0 0 2px var(--cv-no_aplica); }
+.marca-cambio { flex: none; display: inline-flex; color: var(--cv-modificado); }
+.marca-cambio .ico { width: 14px; height: 14px; }
+.fila.requisito .tit { color: var(--ink-2); }
+.fila.requisito.sel .tit { color: var(--ink); }
+.fila .cobertura-seccion { color: var(--cv-sin_cobertura); }
+.fila .cobertura-seccion.completa { color: var(--ink-3); }
+
+.chip-cobertura { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 12.5px; font-weight: 600; white-space: nowrap; border: 1px solid; }
+.chip-cobertura.c-cubierto { color: var(--cv-cubierto); background: var(--cv-cubierto-soft); }
+.chip-cobertura.c-sin_cobertura { color: var(--cv-sin_cobertura); background: var(--cv-sin_cobertura-soft); }
+.chip-cobertura.c-no_aplica { color: var(--cv-no_aplica); background: var(--cv-no_aplica-soft); }
+
+.lista-traza { list-style: none; margin: 0; padding: 0; }
+.lista-traza li { display: grid; grid-template-columns: minmax(130px, max-content) minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--rule); }
+.lista-traza li:last-child { border-bottom: 0; }
+.lista-traza .tid { font: 12.5px var(--mono); }
+.lista-traza .muted { font-size: 12px; text-align: right; }
+@media (max-width: 880px) { .lista-traza li { grid-template-columns: minmax(0, 1fr); } .lista-traza .muted { text-align: left; } }
+
+.aviso-cambio { margin: 0 0 14px; padding: 10px 14px; border-radius: 4px; background: var(--cv-modificado-soft); border-left: 4px solid var(--cv-modificado); }
+.aviso-cambio-cab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--cv-modificado); }
+.aviso-cambio-cab strong { flex: 1; min-width: 220px; }
+.aviso-cambio .ayuda { margin: 6px 0; color: var(--ink-2); }
+.texto-anterior { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 13px; }
+.texto-anterior dt { color: var(--ink-2); font-weight: 600; }
+.texto-anterior dd { margin: 0; white-space: pre-wrap; }
+
+.ficha.no-valida { background: var(--danger-soft); color: var(--danger); }
+.ficha.cambiada { background: var(--cv-modificado-soft); color: var(--cv-modificado); }
+.ficha .ir { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.ficha .ir:hover { text-decoration: underline; text-underline-offset: 2px; }
+.sugerencias-fichas .usos { overflow: hidden; text-overflow: ellipsis; text-align: right; }
+
+.tarjeta.pulsable { font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.tarjeta.pulsable:hover { background: var(--hover); }
+.tarjeta.c-cubierto { border-left-color: var(--cv-cubierto); }
+.tarjeta.c-sin_cobertura { border-left-color: var(--cv-sin_cobertura); }
+.tarjeta.c-no_aplica { border-left-color: var(--cv-no_aplica); }
+.tarjeta.c-modificado { border-left-color: var(--cv-modificado); }
+.barra-progreso .c-cubierto { background: var(--cv-cubierto); }
+.barra-progreso .c-sin_cobertura { background: var(--cv-sin_cobertura); opacity: 0.55; }
+.tabla-cobertura tr.pulsable { cursor: pointer; }
+.tabla-cobertura tr.pulsable:hover td { background: var(--hover); }
+.tabla-cobertura .celda-barra { width: 28%; }
+.tabla-cobertura .celda-barra .barra-progreso { height: 8px; margin: 0; }
+.c-txt-sin_cobertura { color: var(--cv-sin_cobertura); font-weight: 600; }
+.c-txt-modificado { color: var(--cv-modificado); font-weight: 600; }
+.plegable summary { cursor: pointer; font-weight: 600; font-size: 15px; padding: 4px 0 8px; }
+.formulario .ayuda.completo { grid-column: 1 / -1; margin: -4px 0 0; font-size: 12px; color: var(--ink-3); }
+
+.tabla-capitulos tr.pulsable { cursor: pointer; }
+.tabla-capitulos tr.pulsable:hover td { background: var(--hover); }
+.tabla-capitulos tr.pulsable td:first-child { color: var(--accent); }

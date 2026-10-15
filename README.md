@@ -1,28 +1,34 @@
 # Validación: Word y YAML
 
+> **Nombre futuro: Aztarna** (en euskera, «huella, rastro»): la herramienta
+> gestiona ya pruebas, requisitos y su trazabilidad. El cambio de nombre
+> (ventana, ejecutable, repositorio y documentación) está en `PENDIENTE.md`.
+
 Herramientas para importar la información de un documento Word a YAML, editar
-las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML.
+las pruebas y los requisitos en un editor local, ver qué requisitos cubre cada
+prueba (trazabilidad) y generar un DOCX de lectura a partir de los YAML.
 
 ```text
 editor_web.py      el editor de pruebas (python editor_web.py)
 herramientas.py    las utilidades de línea de órdenes (python herramientas.py <orden>)
-app/               lógica del editor y de las campañas
+app/               lógica del editor, de la trazabilidad y de las campañas
 migracion/         importación del Word original (hasta que los YAML son la fuente oficial)
 web/               interfaz del editor (HTML, CSS y JavaScript)
-plantillas/        plantilla de la tabla de cada prueba y del informe de auditoría
-ejemplos/          capítulos, una campaña y una suite de Robot ficticios para probar todo
+plantillas/        plantillas de la tabla de cada prueba y de cada requisito, y del informe de auditoría
+ejemplos/          capítulos de pruebas y de requisitos, una campaña y una suite de Robot ficticios
 tests/             pruebas automatizadas (python -m unittest)
 docs/              capturas del manual y documentación de Robot Framework
 ```
 
 | Módulo | Para qué sirve |
 |---|---|
-| `app/esquema.py` | Campos de las pruebas, sus nombres y sus opciones (único sitio donde se definen). |
+| `app/esquema.py` | Campos de las pruebas y de los requisitos, sus nombres y sus opciones (único sitio donde se definen). |
+| `app/trazabilidad.py` | Cobertura de los requisitos, referencias que no existen, requisitos cambiados y matriz. |
 | `app/editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `app/editor_api.py` | API del editor que usa la interfaz de `web/`. |
 | `app/ejecucion_core.py`, `app/ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
 | `app/robot_core.py` | Robot Framework: cobertura, ejecución e importación de resultados. |
-| `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
+| `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML (de pruebas o de requisitos). |
 | `app/informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
 | `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot). |
 | `migracion/convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
@@ -263,10 +269,74 @@ de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
 incluyen en el .exe: en el primer arranque pide una carpeta y después la
 recuerda.
 
+## Requisitos y trazabilidad
+
+Un proyecto tiene dos carpetas con el mismo formato (índice, capítulos y
+secciones):
+
+```text
+proyecto/
+├── pruebas/       indice.yaml, capítulos e imagenes/
+└── requisitos/    indice.yaml, capítulos y revisiones.yaml
+```
+
+El editor, `trazabilidad` y `word` aceptan la carpeta del proyecto o la de
+pruebas; las campañas guardan la ruta de `pruebas/`. Una carpeta de pruebas
+suelta (con `indice.yaml` dentro, como la que crea `convertir`) también vale:
+sus requisitos van entonces en su subcarpeta `requisitos/`.
+
+Cada requisito es un elemento `requisito:` con la tabla de
+`plantillas/tabla_requisito.docx`:
+
+```yaml
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-LLAM-001
+    titulo: Atención de llamadas de cabina
+    descripcion: Una llamada registrada desde la botonera de cabina se atenderá…
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 4.1
+    tipo: Obligatorio                 # Informativo / Obligatorio / Opcional
+    criterio_validacion: [Test]       # Inspección / Análisis / Test (varios)
+    fase: Fase 1
+    fecha: '2026-01-05'
+    version: '1.0'
+```
+
+El enlace se guarda en un solo sitio: el campo `requisitos` de cada prueba
+(lista de IDs). A partir de ahí `app/trazabilidad.py` calcula:
+
+- **Cobertura** de cada requisito: *cubierto* (alguna prueba lo cita), *sin
+  cobertura* (se valida con «Test», o no tiene criterio, y ninguna lo cita) o
+  *no aplica* (informativo, o solo inspección o análisis). Resumen por capítulo
+  y por sección.
+- **Referencias que no existen** (pruebas que citan un ID que no está en el
+  catálogo) y **pruebas sin requisito**.
+- **Requisitos cambiados:** la huella de título, descripción y contexto. Si el
+  editor guarda un cambio en un requisito con pruebas, lo apunta en
+  `requisitos/revisiones.yaml` con el texto revisado por última vez, hasta que
+  se marcan sus pruebas como revisadas. Fecha, versión, tipo y criterio no
+  cuentan como cambio.
+
+En el editor, el modo **Requisitos** tiene el árbol con la cobertura de cada
+requisito y sección, un panel de cobertura (con exportación de la matriz a
+CSV), la ficha de cada requisito con las pruebas que lo cubren y el aviso de
+cambio, y el cambio de ID propagado a las pruebas. En el modo Pruebas, el campo
+Requisitos propone los IDs del catálogo y marca los que no existen o han
+cambiado.
+
+```bash
+python herramientas.py trazabilidad ejemplos/yaml                    # resumen
+python herramientas.py trazabilidad ejemplos/yaml -o matriz.csv      # y matriz para Excel
+python herramientas.py word ejemplos/yaml/requisitos -o requisitos.docx
+```
+
 ## Ejecución de pruebas (campañas)
 
-El editor tiene dos modos, que se eligen arriba a la izquierda: **Edición**
-(cambiar las pruebas) y **Ejecución** (apuntar sus resultados). En ejecución
+El editor tiene tres modos, que se eligen arriba a la izquierda: **Pruebas**
+(cambiar las pruebas), **Requisitos** (cambiar los requisitos, ver la sección
+anterior) y **Ejecución** (apuntar los resultados de las pruebas). En ejecución
 los YAML de pruebas solo se leen: los resultados se guardan en la carpeta de
 una *campaña*, que cada uno guarda donde quiera en su PC.
 
@@ -471,26 +541,33 @@ exportador convierte en formato de Word:
 
 El repositorio incluye datos ficticios para probar la aplicación antes de
 importar el documento real. Estos ejemplos no contienen información del
-documento original y están registrados en `ejemplos/yaml/indice.yaml`. Describen
-un controlador de ascensor inventado («DEMO-A1») probado en un banco HIL:
+documento original. `ejemplos/yaml` es un proyecto con `pruebas/` (registradas
+en `pruebas/indice.yaml`) y `requisitos/`. Describen un controlador de ascensor
+inventado («DEMO-A1») probado en un banco HIL:
 
-- `01_ejemplo_basico.yaml` (llamadas y nivelación): texto de capítulo,
+- `pruebas/01_ejemplo_basico.yaml` (llamadas y nivelación): texto de capítulo,
   secciones en dos niveles, subpuntos con `nivel` en las listas y una imagen en
   un paso.
-- `02_ejemplo_adicionales.yaml` (bus CAN y diagnóstico): campos adicionales de
+- `pruebas/02_ejemplo_adicionales.yaml` (bus CAN y diagnóstico): campos adicionales de
   texto, de varias líneas y de lista, contexto de prueba y todas las marcas de
   formato en línea (negrita, cursiva, colores, color hexadecimal y resaltados).
-- `03_ejemplo_secciones_imagenes.yaml` (puertas y serie de seguridad):
+- `pruebas/03_ejemplo_secciones_imagenes.yaml` (puertas y serie de seguridad):
   secciones anidadas hasta el nivel 6 e imágenes PNG, JPG y EMF en el contexto
   de sección y de prueba, en la situación inicial, los pasos y la situación
   final, y como imágenes de la prueba.
-- `04_ejemplo_edicion_variantes.yaml` (mantenimiento y variantes): una prueba
+- `pruebas/04_ejemplo_edicion_variantes.yaml` (mantenimiento y variantes): una prueba
   completa y otra casi vacía, todos los valores de `automatizable`, la clave
   antigua `imagen` y una sección vacía para practicar el arrastre en el árbol.
+- `requisitos/` (dos capítulos): requisitos citados por esas pruebas, con un
+  ejemplo de cada caso: sin cobertura (`REQ-LLAM-004`), informativo
+  (`REQ-GEN-001`), validado por inspección (`REQ-SEG-002`) y cambiado con
+  pruebas por revisar (`REQ-PUER-002`, en `revisiones.yaml`). La prueba
+  `DEMO-LLAM-003` cita `REQ-COLA-001`, que no existe.
 
-Los ejemplos validan sin errores ni avisos y llevan comentarios YAML que el
+Los ejemplos validan sin errores; el único aviso es esa referencia a un
+requisito que no existe, puesta a propósito. Llevan comentarios YAML que el
 editor conserva al guardar. Las imágenes son sintéticas y están en
-`ejemplos/yaml/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
+`ejemplos/yaml/pruebas/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
 una copia si quieres conservar los originales.
 
 ## Generar un DOCX desde los YAML

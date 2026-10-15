@@ -60,8 +60,8 @@ class ImportarTests(unittest.TestCase):
         self._tmp = TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
         self.tmp = Path(self._tmp.name)
-        self.pruebas = self.tmp / "yaml"
-        shutil.copytree(RAIZ / "ejemplos" / "yaml", self.pruebas)
+        shutil.copytree(RAIZ / "ejemplos" / "yaml", self.tmp / "yaml")
+        self.pruebas = self.tmp / "yaml" / "pruebas"
         self.campaña = ej.crear(self.tmp / "camp", self.pruebas, "Robot", {"etiquetas": ["regresion"]})
 
     def capitulos(self):
@@ -164,7 +164,7 @@ class EscaneoTests(unittest.TestCase):
         self.assertEqual(tests["Uno"]["linea"], 6)
 
     def test_cobertura(self):
-        capitulos = read_chapters(RAIZ / "ejemplos" / "yaml")
+        capitulos = read_chapters(RAIZ / "ejemplos" / "yaml" / "pruebas")
         c = rc.cobertura(capitulos, rc.escanear_suites(RAIZ / "ejemplos" / "robot"))
         self.assertIn("DEMO-NIV-001", c["cubiertas"])
         self.assertEqual(len(c["por_id"]["DEMO-NIV-001"]), 2)
@@ -277,7 +277,7 @@ class LanzarTests(unittest.TestCase):
         cobertura = self.configurar()
         self.assertEqual(len(cobertura["cubiertas"]), 6)
         guardado = json.loads((self.tmp / "ajustes.json").read_text())
-        self.assertIn(str((self.tmp / "yaml").resolve()), guardado["robot"])
+        self.assertIn(str((self.tmp / "yaml" / "pruebas").resolve()), guardado["robot"])
         avisos = [p["mensaje"] for p in self.api.validar()["datos"]["problemas"]]
         self.assertTrue(any("DEMO-DIAG-001" in m for m in avisos))
         self.assertEqual(self.api.robot_comprobar(self.comando)["datos"]["version"], "Robot Framework 7.0 (falso)")

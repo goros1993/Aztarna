@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 from app import editor_api
 from app.editor_core import element_level, move_block
 
-EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
+EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml" / "pruebas"
 
 CAPITULO = """\
 capitulo: Demo  # comentario del capítulo

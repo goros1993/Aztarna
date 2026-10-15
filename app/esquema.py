@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Esquema de las pruebas: qué campos tienen, cómo se llaman y qué valores admiten.
+"""Esquema de las pruebas y de los requisitos: qué campos tienen, cómo se llaman y qué valores admiten.
 
 Es el único sitio donde se definen. Lo usan el importador del Word, el
 editor (formulario y validación), la generación del DOCX y las campañas.
@@ -260,3 +260,62 @@ def completar(prueba: Any) -> None:
     for clave, valor in prueba_vacia().items():
         if clave not in prueba and clave not in ("nombre", "nivel", "contexto", "campos_adicionales", "imagenes"):
             _poner(prueba, clave, valor)
+
+
+# ----------------------------------------------------------------------
+# Requisitos (plantilla en plantillas/tabla_requisito.docx)
+# ----------------------------------------------------------------------
+#     ID | Título
+#     Descripción
+#     Fuente
+#     Referencia
+#     Tipo | Criterio de validación
+#     Fase | Fecha | Versión
+#
+# Van en la carpeta `requisitos/`, junto a la de pruebas (`proyecto/pruebas` y
+# `proyecto/requisitos`) o, en una carpeta de pruebas suelta, dentro de ella. Tienen
+# el mismo formato de capítulos y secciones; cada requisito es un elemento `requisito:`.
+CARPETA_PRUEBAS = "pruebas"
+CARPETA_REQUISITOS = "requisitos"
+
+REQ_CAMPOS_TEXTO = ("nombre", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "fase", "fecha", "version")
+REQ_CAMPOS_LISTA = ("contexto",)
+REQ_OPCIONES_MULTIPLES = {
+    "criterio_validacion": ("Inspección", "Análisis", "Test"),
+}
+# Una opción de una lista cerrada.
+REQ_TIPOS = ("Informativo", "Obligatorio", "Opcional")
+REQ_OBLIGATORIOS = ("id", "titulo")
+# Criterio de validación que pide pruebas: un requisito sin criterio también las pide.
+CRITERIO_CON_PRUEBAS = "Test"
+# Un requisito de este tipo no se verifica (no necesita pruebas).
+TIPO_SIN_VERIFICACION = "Informativo"
+
+REQ_ORDEN = (
+    "nombre", "nivel", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "criterio_validacion",
+    "fase", "fecha", "version", "contexto",
+)
+
+REQ_ETIQUETAS = {
+    "id": "ID", "nombre": "Encabezado en el documento", "titulo": "Título", "descripcion": "Descripción",
+    "fuente": "Fuente", "referencia": "Referencia", "tipo": "Tipo", "criterio_validacion": "Criterio validación",
+    "fase": "Fase", "fecha": "Fecha", "version": "Versión", "contexto": "Contexto",
+}
+
+
+def requisito_vacio() -> dict[str, Any]:
+    """Requisito nuevo con todos los campos del esquema, vacíos."""
+    vacio: dict[str, Any] = {"nombre": "", "nivel": 3}
+    for clave in REQ_ORDEN:
+        if clave not in vacio:
+            vacio[clave] = "" if clave in REQ_CAMPOS_TEXTO else []
+    return vacio
+
+
+def necesita_pruebas(requisito: Any) -> bool:
+    """Si el requisito se verifica con pruebas (criterio «Test» o sin criterio, y no informativo)."""
+    if str(requisito.get("tipo") or "").strip() == TIPO_SIN_VERIFICACION:
+        return False
+    criterio = requisito.get("criterio_validacion") or []
+    criterio = criterio if isinstance(criterio, list) else [criterio]
+    return not criterio or CRITERIO_CON_PRUEBAS in criterio

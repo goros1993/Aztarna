@@ -308,3 +308,56 @@ práctica y auditable es:
 
 5. Mantener siempre un aviso por tabla clasificada como informativa o dudosa, y
    comparar conteos con el documento original antes de aceptar la importación.
+
+## Gestión de requisitos (rama `requisitos`)
+
+La trazabilidad vive en un único sitio: el campo `requisitos` de cada prueba
+(lista de IDs). Matriz, cobertura e impacto de cambios se calculan a partir de
+ahí.
+
+Hecho (con requisitos ficticios en `ejemplos/yaml/requisitos/`):
+
+- Esquema del requisito con la plantilla `plantillas/tabla_requisito.docx`
+  (esquema.py): ID, Título, Descripción, Fuente, Referencia, Tipo
+  (Informativo / Obligatorio / Opcional), Criterio validación (Inspección /
+  Análisis / Test, varias), Fase, Fecha y Versión, más contexto.
+- Carpeta `requisitos/` junto a `pruebas/` (o dentro de una carpeta de
+  pruebas suelta), con capítulos y secciones.
+- `app/trazabilidad.py`: cobertura (cubierto / sin cobertura / no aplica:
+  informativos o validados sin «Test»), referencias a requisitos que no
+  existen, pruebas sin requisito, resumen por capítulo y sección, matriz CSV
+  y `herramientas.py trazabilidad`.
+- Requisitos cambiados: huella de título, descripción y contexto; al guardar
+  un requisito con pruebas se apunta en `requisitos/revisiones.yaml` con el
+  texto revisado, hasta pulsar «Pruebas revisadas».
+- Editor: modo Requisitos (árbol con marca de cobertura y «cubiertos/total» por
+  sección, filtro por estado, panel de cobertura, ficha con las pruebas que lo
+  cubren y el texto anterior si ha cambiado), cambio de ID que se aplica
+  también en las pruebas, campo Requisitos de la prueba con sugerencias del
+  catálogo y marca de los que no existen o han cambiado, Word de requisitos.
+
+Pendiente:
+
+1. Importar el Word real de requisitos (`inventario`, `convertir` y
+   `auditar` adaptados a la tabla de requisitos).
+2. Campañas: estado de verificación por requisito (verificado / fallido según
+   el resultado de sus pruebas) y sección en el informe; campaña de impacto
+   con las pruebas de los requisitos cambiados.
+3. Líneas base y comparación entre revisiones (nuevos, eliminados, modificados
+   con diff, posibles renombrados).
+
+Decidido:
+
+- El Word de requisitos lo mantiene el equipo, como el de pruebas: se importa
+  una vez, los YAML pasan a ser la fuente oficial y se editan en el editor. Un
+  cambio de requisito es una edición (se detecta por huella), no una revisión
+  nueva del Word; la comparación de versiones queda para importaciones
+  puntuales o entre líneas base.
+- Sin jerarquía; agrupación por capítulos y secciones. La cobertura se resume
+  también por bloque (sección y capítulo).
+
+Decisiones abiertas:
+
+- ¿Una prueba basta para cubrir un requisito o hace falta marca manual de
+  cobertura completa?
+- ¿Los IDs actuales del campo `requisitos` coinciden con los del Word?

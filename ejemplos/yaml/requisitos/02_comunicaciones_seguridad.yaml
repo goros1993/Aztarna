@@ -1,0 +1,149 @@
+# Capítulo 2 de requisitos (datos ficticios).
+# Incluye un requisito que se valida por inspección (REQ-SEG-002: no necesita
+# pruebas) y otro sin pruebas (REQ-MANT-002). La prueba DEMO-LLAM-003 cita
+# REQ-COLA-001, que no existe: sale como referencia huérfana.
+capitulo: Comunicaciones, seguridad y mantenimiento
+contenido:
+- seccion: Bus CAN
+  nivel: 2
+  contexto:
+  - 'Parámetros del bus para todos los requisitos de esta sección:'
+  - tabla:
+      filas:
+      - ['**Parámetro**', '**Valor**']
+      - [Velocidad, 250 kbit/s]
+      - [Periodo de la trama de estado, 100 ms]
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-CAN-010
+    titulo: Trama de estado
+    descripcion: El controlador publicará en el bus CAN, cada 100 ms, una trama con la planta actual y el estado de las puertas.
+    fuente: Interno
+    referencia: ICD-DEMO-CAN v1.3
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-CAN-020
+    titulo: Pérdida del bus
+    descripcion: Si no recibe tramas durante 500 ms, el controlador terminará el viaje en curso en la planta más cercana y quedará fuera de servicio.
+    fuente: Interno
+    referencia: ICD-DEMO-CAN v1.3
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'
+- seccion: Diagnóstico
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-DIAG-001
+    titulo: Registro de eventos
+    descripcion: Todo mensaje de diagnóstico quedará guardado en el registro de eventos con fecha, hora y código.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 7.1
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 2
+    fecha: '2026-02-10'
+    version: '1.0'
+- seccion: Seguridad
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-SEG-001
+    titulo: Apertura de la serie de seguridad
+    descripcion: Abrir cualquier contacto de la serie de seguridad parará la cabina de inmediato y cortará la alimentación del motor.
+    fuente: Normativa
+    referencia: EN 81-20, 5.11.2
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-SEG-002
+    titulo: Documentación de la serie de seguridad
+    descripcion: El esquema eléctrico identificará cada contacto de la serie de seguridad con su ubicación en el pozo.
+    fuente: Normativa
+    referencia: EN 81-20, 7.2
+    tipo: Obligatorio
+    criterio_validacion:
+    - Inspección
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'
+- seccion: Mantenimiento y rescate
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-MANT-001
+    titulo: Modo inspección
+    descripcion: En modo inspección la velocidad de la cabina no superará 0,3 m/s y solo se moverá con mando mantenido.
+    fuente: Normativa
+    referencia: EN 81-20, 5.12.1.5
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-MANT-002
+    titulo: Salida del modo inspección
+    descripcion: Al salir del modo inspección, el controlador recuperará el servicio normal sin necesidad de reinicio.
+    fuente: Interno
+    referencia: ''
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 2
+    fecha: '2026-02-10'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-RES-001
+    titulo: Resistencia
+    descripcion: El controlador completará 1000 viajes consecutivos sin errores ni reinicios.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 9.1
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    - Análisis
+    fase: Fase 2
+    fecha: '2026-02-10'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-RES-002
+    titulo: Rescate manual
+    descripcion: El procedimiento de rescate manual permitirá llevar la cabina a una planta sin alimentación de red.
+    fuente: Normativa
+    referencia: EN 81-20, 5.9.2
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    - Inspección
+    fase: Fase 1
+    fecha: '2026-02-10'
+    version: '1.0'

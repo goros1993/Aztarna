@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Genera un único DOCX a partir de los YAML de pruebas.
+Genera un único DOCX a partir de los YAML de pruebas (o de requisitos).
 
 Uso:
     python herramientas.py word salida/yaml                 -> pruebas.docx (usa indice.yaml)
     python herramientas.py word salida/yaml -o mi_doc.docx
     python herramientas.py word capitulo.yaml               (un solo archivo)
+    python herramientas.py word salida/yaml/requisitos -o requisitos.docx
 
 Requisitos:
     pip install python-docx ruamel.yaml
@@ -27,7 +28,7 @@ from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
-from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS
+from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS, REQ_ETIQUETAS
 
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN (todo el aspecto visual se cambia aquí, en un solo sitio)
@@ -40,6 +41,7 @@ ANCHO_TABLA_CM = 17.0          # ancho útil de la página A4 con márgenes de 2
 ANCHO_IMAGEN_CM = 10.0         # ancho de las imágenes incrustadas…
 ALTO_MAX_IMAGEN_CM = 9.0       # …salvo que así queden más altas que esto (capturas verticales)
 ANCHOS_PRUEBA_CM = (4.66, 4.66, 7.35)   # columnas de la plantilla (plantillas/tabla_prueba.docx)
+ANCHOS_REQUISITO_CM = (8.91, 3.99, 3.79)   # columnas de la plantilla (plantillas/tabla_requisito.docx)
 
 # Nombres de color -> hex (los mismos que usa convertir.py)
 COLORES = {"rojo": "FF0000", "azul": "0070C0", "verde": "00B050"}
@@ -338,6 +340,42 @@ def tabla_prueba(doc, prueba, base_dir):
     return t
 
 
+def tabla_requisito(doc, req, base_dir):
+    """Tabla de un requisito con la plantilla de plantillas/tabla_requisito.docx (campos en esquema.py)."""
+    t = doc.add_table(rows=6, cols=3)
+    t.style = "Table Grid"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    fijar_anchos(t, list(ANCHOS_REQUISITO_CM))
+
+    def fusionar(fila, ini, fin):
+        return t.cell(fila, ini).merge(t.cell(fila, fin)) if fin > ini else t.cell(fila, ini)
+
+    # Fila 0: ID (dos columnas) | título (verde)
+    for c, txt, cursiva in ((fusionar(0, 0, 1), req.get("id", ""), False), (t.cell(0, 2), req.get("titulo", ""), True)):
+        sombrear(c, COLOR_CABECERA)
+        p = c.paragraphs[0]
+        compactar(p)
+        r = p.add_run(str(txt or ""))
+        r.bold, r.italic = True, cursiva
+        r.font.color.rgb = COLOR_TEXTO_CABECERA
+
+    # Filas 1-3: descripción, fuente y referencia
+    for fila, clave in ((1, "descripcion"), (2, "fuente"), (3, "referencia")):
+        etiqueta_valor(fusionar(fila, 0, 2), REQ_ETIQUETAS[clave], req.get(clave))
+
+    # Fila 4: tipo | criterio de validación
+    etiqueta_valor(t.cell(4, 0), REQ_ETIQUETAS["tipo"], req.get("tipo"))
+    etiqueta_valor(fusionar(4, 1, 2), REQ_ETIQUETAS["criterio_validacion"], unir(req.get("criterio_validacion"), " / "))
+
+    # Fila 5: fase | fecha | versión
+    for col, clave in enumerate(("fase", "fecha", "version")):
+        etiqueta_valor(t.cell(5, col), REQ_ETIQUETAS[clave], req.get(clave))
+
+    sep = doc.add_paragraph()
+    compactar(sep)
+    return t
+
+
 def tabla_informativa(doc, tabla, base_dir):
     """Tabla que no es una prueba (historial, parámetros…), tal como venía en el Word.
 
@@ -414,6 +452,8 @@ def numerar_titulos(doc, primer_capitulo=1):
 def cargar(entrada):
     yaml = YAML(typ="safe")
     ruta = Path(entrada)
+    if ruta.is_dir() and not (ruta / "indice.yaml").exists() and (ruta / "pruebas").is_dir():
+        ruta = ruta / "pruebas"             # carpeta del proyecto: el documento de pruebas
     if ruta.is_file():
         archivos = [ruta]
     else:
@@ -422,7 +462,7 @@ def cargar(entrada):
             with open(indice, encoding="utf-8") as f:
                 archivos = [ruta / e["archivo"] for e in yaml.load(f)]
         else:
-            archivos = sorted(a for a in ruta.glob("*.yaml") if a.name != "indice.yaml")
+            archivos = sorted(a for a in ruta.glob("*.yaml") if a.name not in ("indice.yaml", "revisiones.yaml"))
     capitulos = []
     for a in archivos:
         with open(a, encoding="utf-8") as f:
@@ -480,7 +520,7 @@ def escribir_contexto(doc, textos, base_dir=Path(".")):
 
 
 def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
-    """Escribe títulos, contexto y tablas de los capítulos; devuelve el número de pruebas.
+    """Escribe títulos, contexto y tablas de los capítulos; devuelve el número de pruebas (o requisitos).
 
     `al_escribir_prueba(doc, tabla, prueba, base_dir)`, si se indica, se llama
     tras cada tabla (por ejemplo, para añadir el resultado de una ejecución).
@@ -505,6 +545,16 @@ def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
                 if al_escribir_prueba is not None:
                     al_escribir_prueba(doc, tabla, p, base_dir)
                 total += 1
+            elif "requisito" in el:
+                r = el["requisito"]
+                if r.get("nombre"):
+                    titulo(doc, r["nombre"], r.get("nivel") or 3)
+                escribir_contexto(doc, r.get("contexto"), base_dir)
+                if r.get("id") in ids:
+                    print(f"  AVISO: ID duplicado: {r.get('id')}")
+                ids.add(r.get("id"))
+                tabla_requisito(doc, r, base_dir)
+                total += 1
             elif "tabla" in el:
                 tabla_informativa(doc, el["tabla"] or {}, base_dir)
             elif "texto" in el:
@@ -513,7 +563,7 @@ def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
 
 
 def generar_docx(entrada, salida, primer_capitulo=1):
-    """Genera el DOCX a partir de los YAML y devuelve (pruebas, capítulos)."""
+    """Genera el DOCX a partir de los YAML y devuelve (pruebas o requisitos, capítulos)."""
     capitulos = cargar(entrada)
     if not capitulos:
         raise ValueError("No se han encontrado YAML con la clave 'contenido'.")
@@ -522,6 +572,11 @@ def generar_docx(entrada, salida, primer_capitulo=1):
     total = escribir_capitulos(doc, capitulos)
     doc.save(salida)
     return total, len(capitulos)
+
+
+def son_requisitos(capitulos):
+    """Si los capítulos son de requisitos (para el texto del resumen)."""
+    return any("requisito" in el for _c, contenido, _b in capitulos for el in contenido if isinstance(el, dict))
 
 
 def main(argv=None, prog=None):
@@ -536,7 +591,8 @@ def main(argv=None, prog=None):
         total, n_capitulos = generar_docx(args.entrada, args.salida, args.primer_capitulo)
     except ValueError as error:
         raise SystemExit(str(error))
-    print(f"{total} pruebas en {n_capitulos} capítulos -> {args.salida}")
+    nombre = "requisitos" if son_requisitos(cargar(args.entrada)) else "pruebas"
+    print(f"{total} {nombre} en {n_capitulos} capítulos -> {args.salida}")
 
 
 if __name__ == "__main__":

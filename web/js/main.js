@@ -13,13 +13,20 @@ const S = {
   problemas: [],
   resumen: null,        // {errores, avisos}
   alcanceTodos: false,
-  modo: leerLocal("modo") === "ejecucion" ? "ejecucion" : "edicion",
+  modo: ["ejecucion", "requisitos"].includes(leerLocal("modo")) ? leerLocal("modo") : "edicion",
+  capituloPorModo: {},  // último capítulo abierto en pruebas y en requisitos
+  hayRequisitos: false, // si la carpeta tiene requisitos (subcarpeta requisitos/)
+  filtroCobertura: "",  // en requisitos: mostrar solo los de este estado de cobertura
   campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
   cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
   keywords: null,       // keywords de Robot que se proponen al escribir los pasos
   esquema: null,        // campos de las pruebas y sus opciones (esquema.py)
   filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
 };
+
+const enRequisitos = () => S.modo === "requisitos";
+/** Colección que se edita en cada modo: los requisitos o las pruebas (también en ejecución). */
+const coleccionDe = (modo) => (modo === "requisitos" ? "requisitos" : "pruebas");
 
 function setDirty(valor) {
   const antes = S.dirty;
@@ -29,6 +36,8 @@ function setDirty(valor) {
   if (barra) barra.hidden = !S.dirty;
   const cab = $("#cab-sin-guardar");
   if (cab) cab.hidden = !S.dirty;
+  const descartar = $("#cab-descartar");
+  if (descartar) descartar.hidden = !S.dirty;
 }
 
 /** Si hay cambios sin guardar, pregunta qué hacer. Devuelve true si se puede continuar. */
@@ -64,6 +73,8 @@ async function pedirCierre() {
 function aplicarResumen(resumen) {
   S.carpeta = resumen.carpeta;
   S.capitulos = resumen.capitulos;
+  S.hayRequisitos = Boolean(resumen.hay_requisitos);
+  S.errorRequisitos = resumen.error_requisitos || null;
   const boton = $("#carpeta-ruta");
   S.soloLectura = Boolean(resumen.solo_lectura);
   boton.textContent = S.carpeta ? (S.soloLectura ? "Pruebas congeladas (solo lectura)" : S.carpeta) : "Sin carpeta";
@@ -75,8 +86,9 @@ function aplicarResumen(resumen) {
     value: String(c.indice), text: textoCapitulo(c), selected: c.indice === S.capitulo,
   })));
   sel.disabled = !S.capitulos.length;
+  const [uno, varios] = resumen.coleccion === "requisitos" ? ["requisito", "requisitos"] : ["prueba", "pruebas"];
   $("#resumen-datos").textContent = S.capitulos.length
-    ? `${plural(S.capitulos.length, "capítulo", "capítulos")} · ${plural(S.capitulos.reduce((a, c) => a + c.pruebas, 0), "prueba", "pruebas")}`
+    ? `${plural(S.capitulos.length, "capítulo", "capítulos")} · ${plural(S.capitulos.reduce((a, c) => a + c.pruebas, 0), uno, varios)}`
     : "";
   for (const id of ["btn-nueva-prueba", "btn-nueva-seccion", "btn-exportar", "btn-recargar", "btn-problemas"]) {
     $("#" + id).disabled = !S.capitulos.length;
@@ -87,6 +99,7 @@ async function cargarNavegacion() {
   if (!S.capitulos.length) { S.nodos = []; renderArbol(); return; }
   S.nodos = await api.navegacion(S.capitulo, S.consulta);
   if (S.modo === "ejecucion") S.nodos = filtrarNodosEjecucion(S.nodos);
+  if (enRequisitos()) S.nodos = filtrarNodosCobertura(S.nodos);
   renderArbol();
 }
 
@@ -143,7 +156,7 @@ async function elegirCarpeta() {
     if (r.cancelado) return;
     setDirty(false);
     S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
-    S.colapsadas.clear(); cacheImagenes.clear();
+    S.colapsadas.clear(); cacheImagenes.clear(); S.capituloPorModo = {};
     aplicarResumen(r);
     await cargarCobertura();
     await cargarNavegacion();
@@ -166,7 +179,8 @@ async function nuevaPrueba() {
   if (!S.capitulos.length) return;
   if (!(await guardia())) return;
   setDirty(false);
-  await mostrarNuevaPrueba();
+  if (enRequisitos()) await mostrarNuevoRequisito();
+  else await mostrarNuevaPrueba();
 }
 
 async function nuevaSeccion() {
@@ -268,7 +282,7 @@ async function exportarDocx() {
   const r = await dialogo({
     titulo: "Exportar a Word",
     cuerpo: h("div", {},
-      h("p", { text: `Se exportarán los ${plural(S.capitulos.length, "capítulo", "capítulos")} de la carpeta, en el orden del índice.` }),
+      h("p", { text: `Se exportarán los ${plural(S.capitulos.length, "capítulo", "capítulos")} de ${enRequisitos() ? "requisitos" : "pruebas"} de la carpeta, en el orden del índice.` }),
       h("p", {}, h("label", { for: "primer-capitulo", text: "Número del primer título 1: " }), campo)),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
   });
@@ -342,6 +356,17 @@ function conectar() {
   $("#btn-plegar-todo").addEventListener("click", () => plegarTodo(true));
   $("#btn-desplegar-todo").addEventListener("click", () => plegarTodo(false));
   $("#btn-nueva-seccion").addEventListener("click", nuevaSeccion);
+  $("#filtro-cobertura").addEventListener("change", async (e) => {
+    S.filtroCobertura = e.target.value;
+    try { await cargarNavegacion(); } catch (err) { fallo(err); }
+  });
+  $("#btn-panel-traza").addEventListener("click", async () => {
+    if (!(await guardia())) return;
+    setDirty(false);
+    S.seleccion = null;
+    renderArbol();
+    mostrarVacio();
+  });
   $("#btn-problemas").addEventListener("click", () => alternarPanelProblemas());
   $("#btn-revalidar").addEventListener("click", validarEnSegundoPlano);
   $("#alcance-capitulo").addEventListener("click", () => fijarAlcance(false));
@@ -373,7 +398,7 @@ async function arrancar() {
   try {
     S.esquema = await api.esquema();
     const resumen = await api.iniciar();
-    aplicarResumen(resumen);
+    aplicarResumen(enRequisitos() && resumen.carpeta ? await api.coleccion("requisitos") : resumen);
     if (resumen.aviso) aviso(resumen.aviso, "error");
     if (S.modo === "ejecucion") await recuperarCampana();
     if (S.capitulos.length) {
@@ -381,7 +406,7 @@ async function arrancar() {
       await cargarNavegacion();
       mostrarVacio();
       validarEnSegundoPlano();
-    }
+    } else if (enRequisitos() && S.carpeta) mostrarVacio();
   } catch (e) { fallo(e); }
 }
 

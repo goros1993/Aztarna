@@ -31,6 +31,7 @@
     <symbol id="i-table" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="4" y1="14.5" x2="20" y2="14.5"/><line x1="10" y1="5" x2="10" y2="19"/></symbol>
     <symbol id="i-plegar" viewBox="0 0 24 24"><polyline points="7 4 12 9 17 4"/><polyline points="7 20 12 15 17 20"/></symbol>
     <symbol id="i-desplegar" viewBox="0 0 24 24"><polyline points="7 9 12 4 17 9"/><polyline points="7 15 12 20 17 15"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></symbol>
   </defs>
 </svg>
@@ -39,7 +40,8 @@
   <header class="barra">
     <div class="marca">Pruebas YAML</div>
     <div class="seg modo" role="group" aria-label="Modo de trabajo">
-      <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Edición</button>
+      <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Pruebas</button>
+      <button type="button" id="modo-requisitos" aria-pressed="false" title="Editar los requisitos y ver qué pruebas los cubren">Requisitos</button>
       <button type="button" id="modo-ejecucion" aria-pressed="false" title="Apuntar resultados en una campaña">Ejecución</button>
     </div>
     <button class="btn carpeta" id="btn-carpeta" type="button" title="Cambiar de carpeta">
@@ -55,7 +57,7 @@
       <select id="sel-capitulo" disabled></select>
     </label>
     <div class="relleno"></div>
-    <button class="btn ghost" id="btn-robot" type="button" title="Configurar Robot Framework y ver qué pruebas están automatizadas">
+    <button class="btn ghost no-requisitos" id="btn-robot" type="button" title="Configurar Robot Framework y ver qué pruebas están automatizadas">
       <svg class="ico" aria-hidden="true"><use href="#i-robot"/></svg><span id="robot-resumen">Robot</span>
     </button>
     <button class="btn ghost" id="btn-recargar" type="button" title="Volver a leer los archivos del disco">
@@ -77,7 +79,7 @@
         <button class="btn icono" id="btn-desplegar-todo" type="button" title="Desplegar todas las secciones" aria-label="Desplegar todas las secciones"><svg class="ico" aria-hidden="true"><use href="#i-desplegar"/></svg></button>
       </div>
       <div class="lateral-acciones solo-edicion">
-        <button class="btn peq" id="btn-nueva-prueba" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Prueba</button>
+        <button class="btn peq" id="btn-nueva-prueba" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span id="txt-nueva">Prueba</span></button>
         <button class="btn peq" id="btn-nueva-seccion" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Sección</button>
         <span class="ayuda-arrastre">Arrastra para reordenar</span>
       </div>
@@ -92,6 +94,17 @@
           <option value="no_aplica">No aplica</option>
         </select>
         <button class="btn peq" id="btn-panel-campana" type="button" title="Ver el resumen de la campaña">Resumen</button>
+      </div>
+      <div class="lateral-acciones solo-requisitos">
+        <label class="sr" for="filtro-cobertura">Mostrar</label>
+        <select id="filtro-cobertura" class="peq">
+          <option value="">Todos los requisitos</option>
+          <option value="sin_cobertura">Sin cobertura</option>
+          <option value="cubierto">Cubiertos</option>
+          <option value="no_aplica">No aplica</option>
+          <option value="modificado">Cambiados (pruebas por revisar)</option>
+        </select>
+        <button class="btn peq" id="btn-panel-traza" type="button" title="Ver la cobertura de todos los requisitos">Cobertura</button>
       </div>
       <ul id="arbol" class="arbol" role="tree" aria-label="Secciones y pruebas"></ul>
     </aside>
@@ -130,6 +143,7 @@
 <script src="js/tabla.js"></script>
 <script src="js/ejecucion.js"></script>
 <script src="js/robot.js"></script>
+<script src="js/requisitos.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
