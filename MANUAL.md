@@ -143,6 +143,8 @@ Otros botones de la cabecera:
   esta y con el ID vacío para que le pongas uno nuevo.
 - **Borrar:** pide confirmación. Al borrar una **sección**, sus pruebas no se
   borran: suben un nivel.
+- **Descartar:** aparece solo con cambios sin guardar; los deshace y vuelve a
+  mostrar lo que hay guardado.
 - **Formulario / YAML:** ver 4.6.
 
 ### 4.2 Dar formato al texto
@@ -442,7 +444,8 @@ Se ve al abrir la campaña, al pulsar **Resumen** o cuando no hay ninguna
 prueba seleccionada:
 
 - avance y totales por resultado;
-- desglose por capítulo;
+- desglose por capítulo: haz clic en un capítulo para ir a él (se abre su
+  primera prueba pendiente);
 - **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);

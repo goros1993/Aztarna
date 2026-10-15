@@ -36,6 +36,8 @@ function setDirty(valor) {
   if (barra) barra.hidden = !S.dirty;
   const cab = $("#cab-sin-guardar");
   if (cab) cab.hidden = !S.dirty;
+  const descartar = $("#cab-descartar");
+  if (descartar) descartar.hidden = !S.dirty;
 }
 
 /** Si hay cambios sin guardar, pregunta qué hacer. Devuelve true si se puede continuar. */

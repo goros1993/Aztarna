@@ -186,6 +186,12 @@ function cabecera() {
       botones.push(h("button", { class: "btn ghost", type: "button", onclick: duplicarActual, title: esReq ? "Crear un requisito nuevo con estos datos" : "Crear una prueba nueva con estos datos" }, icon("copy"), "Duplicar"));
     }
     botones.push(h("button", { class: "btn ghost peligro", type: "button", onclick: borrarActual }, icon("trash"), "Borrar"));
+    if (F.vista !== "yaml") {
+      botones.push(h("button", {
+        class: "btn ghost", type: "button", id: "cab-descartar", hidden: !S.dirty, onclick: descartarCambios,
+        title: "Volver a lo que hay guardado", text: "Descartar",
+      }));
+    }
     if (F.vista === "yaml") {
       botones.push(h("button", { class: "btn ghost", type: "button", onclick: () => cambiarVista("form", true), text: "Descartar" }));
       botones.push(h("button", { class: "btn primary", type: "button", onclick: guardarActual, text: "Aplicar YAML" }));
@@ -799,6 +805,15 @@ async function crearActual() {
     aviso("Sección creada", "ok");
   }
   return true;
+}
+
+/** Deshace los cambios sin guardar del formulario: vuelve a abrir lo guardado. */
+async function descartarCambios() {
+  if (!F || F.modo !== "editar" || !S.dirty) return;
+  const { tipo, indice } = F;
+  setDirty(false);
+  await abrir(tipo, indice);
+  aviso("Cambios descartados");
 }
 
 async function cancelarNueva() {

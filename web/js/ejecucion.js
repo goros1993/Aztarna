@@ -280,6 +280,15 @@ async function irAPruebaCampana(id) {
   await seleccionar("prueba", p.indice);
 }
 
+/** Desde el resumen: abre el capítulo y su primera prueba pendiente (o la primera, si no queda ninguna). */
+async function irACapituloCampana(ci) {
+  const archivo = S.capitulos[ci] && S.capitulos[ci].archivo;
+  const suyas = S.campana ? S.campana.resumen.pruebas.filter((p) => p.archivo === archivo) : [];
+  const destino = suyas.find((p) => p.estado === "pendiente") || suyas[0];
+  if (destino) { await irAPruebaCampana(destino.id); return; }
+  if (ci !== S.capitulo) { $("#sel-capitulo").value = String(ci); await cambiarCapitulo(String(ci)); }
+}
+
 async function siguientePendiente(desdeId = null) {
   const lista = S.campana ? S.campana.resumen.pruebas : [];
   const inicio = desdeId ? lista.findIndex((p) => p.id === desdeId) : -1;
@@ -318,10 +327,14 @@ function mostrarPanelCampana() {
     ESTADOS.map((e) => r.totales[e] ? h("span", { class: "e-" + e, style: { flexGrow: String(r.totales[e]) }, title: `${ESTADO_TXT[e]}: ${r.totales[e]}` }) : null));
   const tarjeta = (titulo, valor, extra = "", clase = "") => h("div", { class: "tarjeta " + clase },
     h("span", { class: "t-tit", text: titulo }), h("span", { class: "t-val", text: String(valor) }), extra ? h("span", { class: "t-extra", text: extra }) : null);
-  const tabla = (titulo, datos) => h("table", { class: "tabla-estados" },
+  const tabla = (titulo, datos) => h("table", { class: "tabla-estados tabla-capitulos" },
     h("thead", {}, h("tr", {}, h("th", { text: titulo }), ESTADOS.map((e) => h("th", { class: "num", text: ESTADO_TXT[e] })))),
-    h("tbody", {}, Object.entries(datos).map(([nombre, t]) => h("tr", {}, h("td", { text: nombre }),
-      ESTADOS.map((e) => h("td", { class: "num" + (t[e] ? " e-txt-" + e : ""), text: t[e] ? String(t[e]) : "·" }))))));
+    h("tbody", {}, Object.entries(datos).map(([nombre, t]) => {
+      const ci = S.capitulos.findIndex((cap) => cap.nombre === nombre);
+      return h("tr", ci < 0 ? {} : { class: "pulsable", title: "Ir a este capítulo", onclick: () => irACapituloCampana(ci) },
+        h("td", { text: nombre }),
+        ESTADOS.map((e) => h("td", { class: "num" + (t[e] ? " e-txt-" + e : ""), text: t[e] ? String(t[e]) : "·" })));
+    })));
   const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => `${k}: ${[].concat(v).join(", ")}`).join(" · ") || "todas las pruebas";
   const problemas = r.problemas.length
     ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: "Ir a la prueba", onclick: () => irAPruebaCampana(p.id) },
