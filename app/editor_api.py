@@ -498,6 +498,17 @@ class EditorApi:
         }
 
     @respuesta
+    def etiquetas_uso(self) -> list[dict[str, Any]]:
+        """Etiquetas usadas y en cuántas pruebas, las más usadas primero (para proponerlas)."""
+        usos: dict[str, int] = {}
+        for chapter in self._chapters:
+            for _index, test in tests_in_chapter(chapter):
+                valor = test.get("etiquetas") or []
+                for tag in {str(t).strip() for t in (valor if isinstance(valor, list) else [valor])} - {""}:
+                    usos[tag] = usos.get(tag, 0) + 1
+        return [{"etiqueta": t, "usos": n} for t, n in sorted(usos.items(), key=lambda x: (-x[1], x[0].lower()))]
+
+    @respuesta
     def etiquetas(self) -> list[str]:
         """Etiquetas usadas en todas las pruebas, para proponerlas al escribir."""
         usadas: set[str] = set()

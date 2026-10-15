@@ -158,9 +158,11 @@ textarea { resize: none; overflow: hidden; line-height: 1.45; display: block; wi
 .divisor:hover, .divisor.activo { background: var(--accent); opacity: 0.45; }
 .principal { flex: 1; min-width: 0; overflow: auto; background: var(--paper); outline: none; scroll-padding-top: 90px; scroll-padding-bottom: 24px; }
 
-.busqueda { position: relative; padding: 10px 10px 6px; }
-.busqueda .ico { position: absolute; left: 20px; top: 50%; margin-top: -4px; color: var(--ink-3); }
-.busqueda input { width: 100%; padding-left: 30px; }
+.busqueda { display: flex; align-items: center; gap: 2px; padding: 10px 6px 6px 10px; }
+.caja-busqueda { position: relative; flex: 1; min-width: 0; }
+.caja-busqueda .ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-3); }
+.caja-busqueda input { width: 100%; padding-left: 30px; }
+.busqueda .btn.icono { flex: none; width: 28px; min-height: 30px; }
 .lateral-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 10px 8px; }
 .ayuda-arrastre { margin-left: auto; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
 
@@ -199,7 +201,8 @@ textarea { resize: none; overflow: hidden; line-height: 1.45; display: block; wi
 .arbol-vacio { padding: 18px 14px; color: var(--ink-3); }
 
 /* ---- formulario ---- */
-.formulario { max-width: 900px; padding: 0 28px 64px; }
+/* Aprovecha la ventana maximizada, sin que las líneas se hagan demasiado largas en pantallas muy anchas. */
+.formulario { max-width: 1600px; padding: 0 28px 64px; }
 .acciones {
   position: sticky; top: 0; z-index: 5;
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -431,7 +434,7 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 /* ficha + panel de resultado */
 .barra .campana { flex: 0 1 auto; min-width: 120px; max-width: 26vw; }
 .barra .campana span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vista-ejecucion { padding: 0 32px 72px; max-width: 1360px; }
+.vista-ejecucion { padding: 0 32px 72px; max-width: 1600px; }
 .vista-ejecucion .acciones { gap: 14px; }
 .chip-estado.grande { font-size: 13.5px; padding: 3px 12px; border-radius: 12px; }
 .columnas-ejecucion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 36px; align-items: start; }
@@ -662,3 +665,14 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 }
 @keyframes girar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .ruleta { animation-duration: 2.4s; } }
+
+/* ---- sugerencias de tags ya usados ---- */
+.campo.con-sugerencias { position: relative; }
+.sugerencias-fichas {
+  position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin-top: 2px;
+  max-height: 260px; overflow-y: auto; background: var(--paper); padding: 4px;
+  border: 1px solid var(--rule-strong); border-radius: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.sugerencias-fichas .opcion { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
+.sugerencias-fichas .opcion.activa, .sugerencias-fichas .opcion:hover { background: var(--accent-soft); }
+.sugerencias-fichas .usos { font-size: 12px; color: var(--ink-3); white-space: nowrap; }

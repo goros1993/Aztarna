@@ -339,6 +339,8 @@ function conectar() {
   });
   $("#btn-exportar").addEventListener("click", exportarDocx);
   $("#btn-nueva-prueba").addEventListener("click", nuevaPrueba);
+  $("#btn-plegar-todo").addEventListener("click", () => plegarTodo(true));
+  $("#btn-desplegar-todo").addEventListener("click", () => plegarTodo(false));
   $("#btn-nueva-seccion").addEventListener("click", nuevaSeccion);
   $("#btn-problemas").addEventListener("click", () => alternarPanelProblemas());
   $("#btn-revalidar").addEventListener("click", validarEnSegundoPlano);

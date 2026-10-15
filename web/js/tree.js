@@ -117,6 +117,18 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
   return li;
 }
 
+/** Pliega (o despliega) a la vez todas las secciones con contenido del capítulo. */
+function plegarTodo(cerrar) {
+  const conHijos = new Set(S.nodos.map((n) => n.padre).filter((p) => p !== null && p !== undefined));
+  for (const n of S.nodos) {
+    if (n.tipo !== "seccion") continue;
+    if (cerrar && conHijos.has(n.indice)) S.colapsadas.add(claveColapso(n));
+    else S.colapsadas.delete(claveColapso(n));
+  }
+  renderArbol();
+  enfocarSeleccion();
+}
+
 function alternarSeccion(n, forzar) {
   const clave = claveColapso(n);
   const cerrar = forzar === undefined ? !S.colapsadas.has(clave) : forzar;

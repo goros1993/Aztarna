@@ -10,7 +10,7 @@ __pycache__/
 /importacion/
 /exportacion/
 inventario.txt
-
+ids.csv
 # Construcción del .exe (construir_exe.bat / PyInstaller)
 /build/
 /dist/

@@ -126,6 +126,9 @@ class ApiTests(ApiBase):
         ok(self, self.api.guardar_prueba(0, 1, {"etiquetas": [" smoke ", "regresion", "smoke", ""]}))
         self.assertEqual(list(self.contenido()[1]["prueba"]["etiquetas"]), ["smoke", "regresion"])
         self.assertEqual(ok(self, self.api.etiquetas()), ["regresion", "smoke"])
+        ok(self, self.api.guardar_prueba(0, 4, {"etiquetas": ["smoke"]}))
+        self.assertEqual(ok(self, self.api.etiquetas_uso()),
+                         [{"etiqueta": "smoke", "usos": 2}, {"etiqueta": "regresion", "usos": 1}])
         self.assertFalse(self.api.guardar_prueba(0, 1, {"etiquetas": "smoke"})["ok"])
 
     def test_guardar_listas_con_imagenes(self):

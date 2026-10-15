@@ -215,31 +215,63 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
 
 /**
  * Lista de textos como fichas (tags, requisitos): Enter añade (y la coma, si
- * `conComas`), Retroceso en vacío quita la última.
+ * `conComas`), Retroceso en vacío quita la última. Con `sugerir` (promesa de
+ * [{texto, usos}]) propone, al entrar y al escribir, los valores ya usados en
+ * otras pruebas: ↑ ↓ para elegir, Intro o Tab para añadir, Esc para cerrar.
  */
 function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false } = {}) {
   const valores = F.valores[clave];
   const id = "f-" + clave;
   const fichas = h("div", { class: "fichas" });
-  const sugerencias = h("datalist", { id: "sugerencias-" + clave });
+  const lista = h("div", { class: "sugerencias-fichas", role: "listbox", hidden: true });
+  const norm = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  let usadas = [], opciones = [], activa = -1;
   const entrada = h("input", {
-    id, type: "text", autocomplete: "off", list: "sugerencias-" + clave,
+    id, type: "text", autocomplete: "off",
     placeholder: "Añadir…", "aria-label": `Añadir a ${etiqueta}`,
     onkeydown: (e) => {
-      if ((e.key === "Enter" || (conComas && e.key === ",")) && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
+      if (!lista.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        activa = (activa + (e.key === "ArrowDown" ? 1 : opciones.length - 1 + (activa < 0 ? 1 : 0))) % opciones.length;
+        pintarLista();
+      } else if (!lista.hidden && (e.key === "Enter" || e.key === "Tab") && activa >= 0) {
+        e.preventDefault(); añadir(opciones[activa].texto);
+      } else if (e.key === "Escape" && !lista.hidden) {
+        e.preventDefault(); e.stopPropagation(); cerrar();
+      } else if ((e.key === "Enter" || (conComas && e.key === ",")) && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
       else if (e.key === "Enter") e.preventDefault();
       else if (e.key === "Backspace" && !entrada.value && valores.length) { valores.pop(); tocar(clave); pintar(); }
     },
-    oninput: () => { if (conComas && entrada.value.includes(",")) añadir(entrada.value); },
-    onchange: () => { if (entrada.value.trim()) añadir(entrada.value); },   // al elegir una sugerencia o salir del campo
+    oninput: () => { if (conComas && entrada.value.includes(",")) añadir(entrada.value); else proponer(); },
+    onfocus: () => proponer(),
+    onblur: () => setTimeout(() => { if (document.activeElement !== entrada) { cerrar(); if (entrada.value.trim()) añadir(entrada.value, false); } }, 150),
   });
-  function añadir(texto) {
+  /** Las usadas que encajan con lo escrito y la prueba no tiene: primero las que empiezan así, luego las más usadas. */
+  function proponer() {
+    if (!usadas.length) { cerrar(); return; }
+    const escrito = norm(entrada.value.trim());
+    opciones = usadas.filter((u) => !valores.includes(u.texto) && (!escrito || norm(u.texto).includes(escrito)))
+      .sort((a, b) => (escrito ? norm(b.texto).startsWith(escrito) - norm(a.texto).startsWith(escrito) : 0) || b.usos - a.usos)
+      .slice(0, 8);
+    activa = escrito && opciones.length ? 0 : -1;
+    pintarLista();
+  }
+  function pintarLista() {
+    lista.replaceChildren(...opciones.map((o, i) => h("div", {
+      class: "opcion" + (i === activa ? " activa" : ""), role: "option", "aria-selected": String(i === activa),
+      onmousedown: (e) => e.preventDefault(), onclick: () => añadir(o.texto),
+    }, h("span", { text: o.texto }), h("span", { class: "usos", text: plural(o.usos, "prueba", "pruebas") }))));
+    lista.hidden = !opciones.length;
+  }
+  function cerrar() { lista.hidden = true; opciones = []; activa = -1; }
+  function añadir(texto, enfocar = true) {
     for (const parte of (conComas ? texto.split(",") : [texto]).map((t) => t.trim()).filter(Boolean)) {
       if (!valores.includes(parte)) valores.push(parte);
     }
     entrada.value = "";
     tocar(clave);
     pintar();
+    if (enfocar) { entrada.focus(); proponer(); }
   }
   function pintar() {
     fichas.replaceChildren(...valores.map((t, i) => h("span", { class: "ficha" }, t,
@@ -249,14 +281,15 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
       }, "×"))), entrada);
   }
   pintar();
-  if (sugerir) sugerir().then((lista) => sugerencias.replaceChildren(...lista.map((t) => h("option", { value: t }))), () => {});
-  return h("div", { class: "campo" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
-    h("label", { for: id, text: etiqueta }), fichas, sugerencias,
+  if (sugerir) sugerir().then((l) => { usadas = l; if (document.activeElement === entrada) proponer(); }, () => {});
+  return h("div", { class: "campo con-sugerencias" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
+    h("label", { for: id, text: etiqueta }), fichas, lista,
     ayuda ? h("span", { class: "ayuda", text: ayuda }) : null);
 }
 
 const campoEtiquetas = () => campoFichas("etiquetas", "Tags", {
-  conComas: true, sugerir: () => api.etiquetas(), completo: false, ancho: true,
+  conComas: true, completo: false, ancho: true,
+  sugerir: () => api.etiquetas_uso().then((l) => l.map((x) => ({ texto: x.etiqueta, usos: x.usos }))),
   ayuda: "Sirven para elegir qué pruebas entran en una campaña de ejecución.",
 });
 

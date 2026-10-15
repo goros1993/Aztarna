@@ -72,8 +72,10 @@ en Ubuntu, *Configuración → Apariencia*.
   *Exportar DOCX*.
 - **Panel izquierdo:** buscador (por ID o texto) y el **árbol** del capítulo
   con sus secciones y pruebas. Las secciones se pliegan y despliegan con la
-  flecha. El ancho del panel se ajusta arrastrando su borde.
-- **Zona central:** la prueba o sección seleccionada.
+  flecha; los dos botones junto al buscador **pliegan** o **despliegan todas**
+  a la vez. El ancho del panel se ajusta arrastrando su borde.
+- **Zona central:** la prueba o sección seleccionada. Con la ventana
+  maximizada, el formulario se ensancha para aprovechar la pantalla.
 - **Barra inferior:** resultado de la validación (errores y avisos) y el
   aviso de *Cambios sin guardar*.
 
@@ -98,10 +100,14 @@ El formulario sigue el orden de la tabla de la prueba en el documento:
   opción de la lista.
 - **Requisitos:** escribe cada uno y pulsa **Intro**; la **×** lo quita.
 - **Tags:** palabras para agrupar pruebas (`regresion`, `smoke`,
-  `seguridad`…). Escribe y pulsa **Intro** o una **coma** para añadir. Te
-  propone los que ya existen en otras pruebas. Son el criterio principal para
-  elegir qué pruebas entran en una campaña, así que conviene usar siempre los
-  mismos nombres.
+  `seguridad`…). Al entrar en el campo se proponen los que ya usan otras
+  pruebas, los más usados primero y con cuántas pruebas los llevan; al
+  escribir, la lista se filtra. **↑ / ↓** y **Intro** (o **Tab**, o un clic)
+  añaden el elegido; si no hay ninguno que sirva, **Intro** o una **coma**
+  añaden lo escrito. Son el criterio principal para elegir qué pruebas entran
+  en una campaña, así que conviene usar siempre los mismos nombres.
+
+  ![Tags propuestos al escribir](docs/manual/27_tags.png)
 - **Fecha** y **Versión**.
 - **Campos adicionales:** información de la prueba que no tiene sitio en la
   tabla; sale en filas al final de ella. Cada campo tiene un nombre y un
