@@ -320,8 +320,9 @@ Fases:
 1. Inventario del Word de requisitos (`inventario`) y elección de plantilla de
    tabla. Campos propuestos: `id`, `titulo` (obligatorios), `texto`, `tipo`,
    `verificacion` (ensayo / inspección / análisis / demostración), `estado`
-   (borrador / aprobado / obsoleto), `padre`, `origen`, `version`,
-   `etiquetas`, `notas`.
+   (borrador / aprobado / obsoleto), `origen`, `version`, `etiquetas`,
+   `notas`. Sin jerarquía padre/hijo: los requisitos son simples y se agrupan
+   en capítulos y secciones (bloques), igual que las pruebas.
 2. Importación + auditoría a `requisitos/*.yaml`; orden
    `herramientas.py trazabilidad`: matriz, requisitos sin cobertura,
    referencias huérfanas y pruebas sin requisito.
@@ -335,11 +336,18 @@ Fases:
 5. Campañas: estado de verificación por requisito (sin cobertura / cubierto /
    verificado / fallido / sospechoso / no aplica) y sección en el informe.
 
+Decidido:
+
+- El Word de requisitos lo mantiene el equipo, como el de pruebas: se importa
+  una vez, los YAML pasan a ser la fuente oficial y se editan en el editor. Un
+  cambio de requisito es una edición (se detecta por huella), no una revisión
+  nueva del Word; la comparación de versiones queda para importaciones
+  puntuales o entre líneas base.
+- Sin jerarquía; agrupación por capítulos y secciones. La cobertura se resume
+  también por bloque (sección y capítulo).
+
 Decisiones abiertas:
 
-- ¿El Word de requisitos lo mantiene otro (solo lectura + reimportar) o pasa a
-  editarse en la herramienta?
-- ¿Hay jerarquía? ¿Cubrir los hijos cubre al padre?
 - ¿Una prueba basta para cubrir un requisito o hace falta marca manual de
   cobertura completa?
 - ¿Los IDs actuales del campo `requisitos` coinciden con los del Word?
