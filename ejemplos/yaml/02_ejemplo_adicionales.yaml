@@ -18,21 +18,22 @@ contenido:
     id: DEMO-CAN-001
     titulo: La trama de estado refleja la planta y las puertas
     descripcion: Comprobar que los bytes de la trama *0x18F* cambian con la posición de la cabina y el estado de las puertas.
-    componente: Pasarela CAN
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - El analizador de bus está conectado y filtra el identificador 0x18F.
     pasos:
     - Llevar la cabina a P2 y esperar a que cierre puertas.
     - Capturar diez tramas consecutivas.
     - Comparar los bytes 0 y 3 con la tabla de la sección.
-    situacion_final:
     - El byte 0 vale [[azul|0x02]] y el byte 3 vale [[verde|0x07]] (puertas cerradas).
     - El periodo entre tramas está entre 95 y 105 ms.
+    maniobra:
+    - Simplex
     automatizable: medio
-    criticidad: media
-    entorno: HIL
-    referencia: DEMO-REQ-CAN-01
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-CAN-010
     fecha: '2026-09-18'
     version: '2.0'
     etiquetas:
@@ -40,34 +41,29 @@ contenido:
     - comunicaciones
     contexto:
     - Esta prueba solo afecta a la trama de estado; las de diagnóstico se validan en la sección siguiente.
-    campos_adicionales:
-      Resultado esperado: La trama coincide con la tabla en las diez capturas.
-      Requisito(s):
-      - DEMO-SPEC-CAN-01
-      - DEMO-SPEC-CAN-04
-      Observaciones: |-
-        Si el periodo sale fuera de margen, revisar primero la carga del bus.
-        Con carga superior al 70 % los resultados no son representativos.
 - prueba:
     nombre: Pérdida de comunicación
     nivel: 3
     id: DEMO-CAN-002
     titulo: El controlador detecta la pérdida del bus y para en planta
     descripcion: Simular la desconexión del bus CAN durante un viaje.
-    componente: Pasarela CAN
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina viaja de PB a P3.
     pasos:
     - Desconectar el bus CAN desde el panel del banco HIL.
     - Esperar al menos 1 s.
-    situacion_final:
     - Se genera la alarma [[rojo|E-210 Comunicación perdida]].
     - La cabina para en la siguiente planta y abre puertas.
+    maniobra:
+    - Simplex
+    - Dúplex
     automatizable: medio
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-CAN-03
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-CAN-020
     fecha: '2026-09-18'
     version: '1.0'
     etiquetas:
@@ -91,21 +87,21 @@ contenido:
     id: DEMO-DIAG-001
     titulo: Un mensaje de diagnóstico queda en el registro de eventos
     descripcion: Enviar un mensaje DIAG y comprobar que el controlador lo procesa y lo registra.
-    componente: Diagnóstico
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - El registro de eventos está vacío.
     pasos:
     - Enviar el mensaje DIAG 0x7E con 8 bytes de datos de prueba.
     - Abrir el registro de eventos.
-    situacion_final:
     - texto: Aparece la línea **DIAG** con el identificador 0x7E.
       imagenes:
       - imagenes/registro_eventos.png
+    maniobra: []
     automatizable: hecho
-    criticidad: baja
-    entorno: Simulador
-    referencia: DEMO-REQ-DIAG-01
+    entorno:
+    - Automático
+    requisitos:
+    - REQ-DIAG-001
     fecha: '2026-09-25'
     version: '1.0'
     etiquetas:
@@ -113,5 +109,4 @@ contenido:
     contexto:
     - Mensajes con formato [[#7030A0|en morado]], [[res:verde|resaltado verde]] y [[res:cian|resaltado cian]], para ver todas las marcas en la vista previa y en el DOCX.
     campos_adicionales:
-      Resultado esperado: El mensaje aparece en el registro con la hora de recepción.
       Formato: El formato en línea también funciona en los **campos adicionales**.

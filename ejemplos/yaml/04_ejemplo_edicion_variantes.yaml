@@ -15,8 +15,7 @@ contenido:
     id: DEMO-MANT-001
     titulo: El controlador entra en modo inspección y limita la velocidad
     descripcion: Activar el modo inspección y comprobar que la velocidad máxima baja a 0,25 m/s y se ignoran las llamadas.
-    componente: Control de maniobra
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina está parada en P1 sin llamadas.
     - El técnico simulado está identificado en la HMI.
@@ -26,13 +25,15 @@ contenido:
       imagen: imagenes/pantalla_hmi.png
     - Mover la cabina hacia arriba con el pulsador de subida.
     - Registrar una llamada de piso en P3.
-    situacion_final:
     - La HMI indica **INSPECCIÓN** y la velocidad no supera 0,25 m/s.
     - La llamada de P3 [[rojo|no]] se atiende mientras dure el modo.
+    maniobra:
+    - Simplex
     automatizable: corto
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-MANT-01
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-001
     fecha: '2026-10-02'
     version: '1.0'
     etiquetas:
@@ -41,7 +42,6 @@ contenido:
     contexto:
     - El paso 2 usa la clave antigua «imagen» en lugar de «imagenes»; el editor la muestra igual.
     campos_adicionales:
-      Resultado esperado: Velocidad limitada y llamadas ignoradas.
       Personal: Técnico de mantenimiento (perfil simulado)
 - prueba:
     nombre: Salida de inspección
@@ -49,16 +49,15 @@ contenido:
     id: DEMO-MANT-002
     titulo: Al salir de inspección se recupera el servicio normal
     descripcion: Prueba a medio redactar, con campos opcionales vacíos, para practicar la edición.
-    componente: Control de maniobra
-    plataforma: ''
+    parametrizacion: []
     situacion_inicial: []
     pasos:
     - Desactivar el interruptor de inspección.
-    situacion_final: []
+    maniobra: []
     automatizable: ''
-    criticidad: ''
-    entorno: ''
-    referencia: ''
+    entorno: []
+    requisitos: []
+    etiquetas: []
     fecha: ''
     version: ''
 - seccion: Variantes de formulario
@@ -71,20 +70,20 @@ contenido:
     id: DEMO-VAR-001
     titulo: El controlador completa 1000 viajes sin errores
     descripcion: Prueba larga que procede de un formulario con campos de duración y ciclos.
-    componente: Control de maniobra
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - Generador de tráfico configurado con llamadas aleatorias.
     pasos:
     - Lanzar el generador de tráfico.
     - Dejarlo funcionando hasta completar 1000 viajes.
     - Revisar el registro de eventos.
-    situacion_final:
     - No hay alarmas de tipo E en el registro.
+    maniobra: []
     automatizable: largo
-    criticidad: media
-    entorno: HIL
-    referencia: DEMO-REQ-VAR-01
+    entorno:
+    - Automático
+    requisitos:
+    - REQ-RES-001
     fecha: '2026-10-05'
     version: '1.0'
     etiquetas:
@@ -100,27 +99,26 @@ contenido:
     nivel: 3
     id: DEMO-VAR-002
     titulo: El procedimiento de rescate manual lleva la cabina a planta
-    descripcion: Variante redactada por otro equipo; el resultado esperado está separado de la situación final.
-    componente: Circuito de seguridad
-    plataforma: Banco HIL DEMO-A1
+    descripcion: Variante redactada por otro equipo, con campos adicionales propios.
+    parametrizacion: []
     situacion_inicial:
     - Corte de alimentación simulado con la cabina entre P1 y P2.
     pasos:
     - Activar el freno manual desde el cuadro de rescate.
     - Mover la cabina hasta la zona de puertas de P1.
-    situacion_final:
     - La cabina queda en zona de puertas.
+    maniobra: []
     automatizable: no
-    criticidad: alta
-    entorno: Laboratorio
-    referencia: DEMO-REQ-VAR-02
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-RES-002
     fecha: '2026-10-05'
     version: '0.9'
     etiquetas:
     - seguridad
     - manual
     campos_adicionales:
-      Resultado esperado: Las puertas pueden abrirse manualmente desde el exterior.
       Equipo autor: Equipo de seguridad (ficticio)
 - seccion: Para practicar
   nivel: 2

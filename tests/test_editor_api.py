@@ -89,8 +89,38 @@ class ApiTests(ApiBase):
         self.assertNotIn("componente", texto)
 
     def test_un_campo_vacio_que_no_existe_no_se_anade(self):
-        ok(self, self.api.guardar_prueba(0, 1, {"criticidad": "", "contexto": []}))
-        self.assertNotIn("criticidad", (self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
+        ok(self, self.api.guardar_prueba(0, 1, {"version": "", "contexto": []}))
+        self.assertNotIn("version", (self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
+
+    def test_campos_del_esquema(self):
+        ok(self, self.api.guardar_prueba(0, 1, {
+            "entorno": ["Torre", "Automático"], "maniobra": ["Dúplex"], "requisitos": [" REQ-1 ", "REQ-2", "REQ-1"],
+            "automatizable": "Largo", "parametrizacion": ["Velocidad 1 m/s"],
+        }))
+        prueba = self.contenido()[1]["prueba"]
+        self.assertEqual(prueba["entorno"], ["Automático", "Torre"])          # en el orden de las opciones
+        self.assertEqual(prueba["requisitos"], ["REQ-1", "REQ-2"])
+        self.assertEqual(prueba["automatizable"], "largo")
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"entorno": ["HIL"]})["ok"])
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"automatizable": "a veces"})["ok"])
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"criticidad": "alta"})["ok"])     # ya no existe
+        esq = ok(self, self.api.esquema())
+        self.assertEqual(esq["opciones"]["maniobra"], ["Simplex", "Dúplex"])
+        self.assertEqual(esq["etiquetas"]["pasos"], "Ensayo")
+
+    def test_validacion_del_esquema(self):
+        datos = YAML().load((self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
+        prueba = datos["contenido"][1]["prueba"]
+        prueba["criticidad"] = "alta"
+        prueba["entorno"] = ["HIL"]
+        del prueba["titulo"]
+        with (self.dir / "01_demo.yaml").open("w", encoding="utf-8") as f:
+            YAML().dump(datos, f)
+        ok(self, self.api.recargar())
+        problemas = [(p["severidad"], p["mensaje"]) for p in ok(self, self.api.validar())["problemas"] if p["id"] == "T-1"]
+        self.assertIn(("error", "La prueba no tiene título."), problemas)
+        self.assertTrue(any("ya no existen: criticidad" in m for _s, m in problemas))
+        self.assertTrue(any("«HIL» no es una opción" in m for _s, m in problemas))
 
     def test_guardar_etiquetas_limpias_y_proponerlas(self):
         ok(self, self.api.guardar_prueba(0, 1, {"etiquetas": [" smoke ", "regresion", "smoke", ""]}))

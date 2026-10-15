@@ -20,8 +20,8 @@ programar ni conocer el formato de los archivos.
 
 El editor trabaja con dos cosas distintas:
 
-- **Las pruebas.** Qué hay que probar: título, situación inicial, pasos,
-  situación final, imágenes… Están en una **carpeta de pruebas** que mantiene
+- **Las pruebas.** Qué hay que probar: título, parametrización, situación
+  inicial, ensayo, imágenes… Están en una **carpeta de pruebas** que mantiene
   el equipo, organizada en **capítulos**, y dentro de cada capítulo en
   **secciones** (que pueden tener subsecciones).
 - **Las campañas de ejecución.** Una campaña es una tanda de pruebas que se
@@ -86,18 +86,26 @@ en Ubuntu, *Configuración → Apariencia*.
 Selecciona la prueba en el árbol. A la izquierda de su título aparece una
 placa con su ID y el **nivel** de título que tendrá en el documento.
 
-- **Datos de la prueba:** ID, encabezado en el documento, título, componente,
-  plataforma, entorno, criticidad, automatizable, referencia, fecha y versión.
-- **Etiquetas:** palabras para agrupar pruebas (`regresion`, `smoke`,
-  `seguridad`…). Escribe y pulsa **Intro** o una **coma** para añadir; la
-  **×** quita. Te propone las que ya existen en otras pruebas. Son el criterio
-  principal para elegir qué pruebas entran en una campaña, así que conviene
-  usar siempre los mismos nombres.
-- **Descripción** y las listas de **Contexto**, **Situación inicial**,
-  **Pasos** y **Situación final** (ver 4.3).
-- **Campos adicionales:** información propia de la prueba (por ejemplo,
-  «Resultado esperado»). Cada campo tiene un nombre y un valor; los que son
-  listas se escriben con un elemento por línea.
+El formulario sigue el orden de la tabla de la prueba en el documento:
+
+- **Datos de la prueba:** ID y título (los dos **obligatorios**, marcados con
+  \*), encabezado en el documento y descripción.
+- Las listas de **Contexto** (texto y tablas que van antes de la tabla),
+  **Parametrización**, **Situación inicial** y **Ensayo** (numerado), ver
+  4.3.
+- **Maniobra** (Simplex, Dúplex) y **Entorno de pruebas** (Automático,
+  Maqueta, Torre): marca todas las que correspondan. **Automatizable**: una
+  opción de la lista.
+- **Requisitos:** escribe cada uno y pulsa **Intro**; la **×** lo quita.
+- **Tags:** palabras para agrupar pruebas (`regresion`, `smoke`,
+  `seguridad`…). Escribe y pulsa **Intro** o una **coma** para añadir. Te
+  propone los que ya existen en otras pruebas. Son el criterio principal para
+  elegir qué pruebas entran en una campaña, así que conviene usar siempre los
+  mismos nombres.
+- **Fecha** y **Versión**.
+- **Campos adicionales:** información de la prueba que no tiene sitio en la
+  tabla; sale en filas al final de ella. Cada campo tiene un nombre y un
+  valor; los que son listas se escriben con un elemento por línea.
 - **Imágenes de la prueba:** se añaden al final de su tabla en el documento.
 
 Pulsa **Guardar** (o **Ctrl+S**). Mientras haya cambios sin guardar verás
@@ -158,8 +166,8 @@ Cada elemento es una fila. Los pasos se numeran solos.
 
 Si en el botón **Robot** está configurada la carpeta de los tests de Robot,
 el editor conoce sus keywords (las de los `.robot`, los `.resource` y las
-librerías de Python). Al escribir en *Situación inicial*, *Pasos* o
-*Situación final* aparece una lista con las que encajan con lo escrito, con
+librerías de Python). Al escribir en *Parametrización*, *Situación inicial*
+o *Ensayo* aparece una lista con las que encajan con lo escrito, con
 sus argumentos, su descripción y dónde están:
 
 ![Keywords propuestas al escribir un paso](docs/manual/23_keywords_sugerencias.png)
@@ -214,8 +222,9 @@ número de errores y avisos; al pulsarla se abre la lista (de este capítulo o
 de todos). Haz clic en un problema para ir a la prueba. En el árbol, las
 pruebas con problemas llevan un punto rojo (error) o ámbar (aviso).
 
-Revisa: IDs repetidos o vacíos, imágenes que no existen, pruebas sin título o
-sin pasos, niveles de título fuera de rango.
+Revisa: IDs repetidos o vacíos, pruebas sin título, imágenes que no existen,
+valores de maniobra, entorno o automatizable que no son una opción, campos
+que ya no existen (de un formato antiguo) y niveles de título fuera de rango.
 
 ### 4.8 Exportar a Word
 
@@ -291,8 +300,8 @@ la barra superior).
 
 1. Escribe el **nombre** y, si quieres, qué se prueba (la versión), el
    entorno y el responsable.
-2. Marca **qué pruebas entran**: etiquetas, criticidad, automatizable,
-   plataforma, entorno, componente o capítulos. Dentro de un grupo basta con
+2. Marca **qué pruebas entran**: tags, automatizable, entorno de pruebas,
+   maniobra o capítulos. Dentro de un grupo basta con
    cumplir una opción; entre grupos, hay que cumplirlas todas. Sin marcar nada
    entran todas. Debajo ves la lista de pruebas que entrarán.
 3. Pulsa **Elegir carpeta y crear…** y elige dónde guardarla. Se crea una
@@ -320,7 +329,7 @@ Se ve al abrir la campaña, al pulsar **Resumen** o cuando no hay ninguna
 prueba seleccionada:
 
 - avance y totales por resultado;
-- desglose por capítulo y por criticidad;
+- desglose por capítulo;
 - **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);

@@ -20,8 +20,8 @@ producto: banco caído, falta hardware, depende de otra prueba que falló) y
 
 Hecho:
 
-- Fase 1: núcleo (`ejecucion_core.py`): selección por etiquetas, criticidad,
-  automatizable, plataforma, entorno, componente, capítulo e IDs; creación con
+- Fase 1: núcleo (`ejecucion_core.py`): selección por etiquetas,
+  automatizable, entorno, maniobra, capítulo e IDs; creación con
   lista congelada; resultados con historial; huella para detectar pruebas
   cambiadas después de ejecutarse; resincronizar; cerrar; resumen y avisos.
 - Fase 2: campo `etiquetas` en el editor (fichas con sugerencias) y en los
@@ -33,7 +33,7 @@ Hecho:
   observaciones, incidencia, ejecutor, evidencias, historial) y «Guardar y
   siguiente» (Ctrl+Intro). Campaña de ejemplo en `ejemplos/ejecuciones/`.
 - Fase 4 (primera versión): panel de resumen con avance, totales, porcentaje
-  de OK sobre las que aplican, desglose por capítulo y criticidad, avisos y
+  de OK sobre las que aplican, desglose por capítulo, avisos y
   resincronizar.
 
 - Fase 5: cerrar campaña (congela sus pruebas con secciones e imágenes en
@@ -152,6 +152,53 @@ varios `resultados.yaml`) en una vista y un informe únicos:
   enlace sus informes.
 - Lo mismo sirve para juntar resultados de varias personas sobre una misma
   campaña (ver «Varias personas en la misma campaña»).
+
+## Esquema común de las pruebas
+
+*Hecho:* todas las pruebas usan la tabla de `plantillas/tabla_prueba.docx`.
+Los campos se definen solo en `esquema.py` (formulario, validación, DOCX,
+campañas e importador). El importador convierte el formato antiguo con las
+reglas de `esquema.migrar_prueba` (ver README, «Esquema de las pruebas») y
+`auditar.py` comprueba que no se pierde texto. Obligatorios por ahora: ID y
+título. Pendiente: pasar la auditoría al documento real y ajustar el
+importador familia por familia hasta que no queden tablas con pérdida.
+
+### Propuesta: pruebas que aparecen en dos sitios
+
+Algunas pruebas están en dos apartados (por ejemplo, en *Gestión de puertas*
+y en *Gestión de averías*); en uno de ellos el ensayo solo dice «Pasa la
+prueba del apartado x.x.x de gestión de averías». Hoy son dos pruebas con
+IDs distintos (o el mismo ID repetido, que la validación marca como error) y
+el número de apartado se escribe a mano, así que se rompe en cuanto cambia
+la numeración.
+
+Propuesta: una **referencia a prueba** como elemento propio del capítulo:
+
+```yaml
+- referencia_prueba:
+    id: AVE-PUER-010          # la prueba original, en otro capítulo o sección
+    nombre: Avería de puerta bloqueada
+    nivel: 3
+```
+
+- Una sola fuente: la prueba existe una vez; la referencia no tiene campos
+  propios, así que no puede quedarse desactualizada.
+- En el editor aparece en el árbol con un icono de enlace; al abrirla se ve la
+  prueba original (solo lectura) y un botón para ir a ella. La validación
+  avisa si el ID no existe.
+- En el DOCX sale su título y una línea «Ver la prueba AVE-PUER-010
+  (apartado 4.2.3)» con el número calculado al generar el documento (o con
+  una referencia cruzada de Word, que se actualiza sola).
+- En las campañas cuenta una vez: si el filtro elige la referencia (por la
+  sección o el capítulo donde está), entra la prueba original, sin
+  duplicarla.
+- Importación: el importador puede detectar ensayos del tipo «Pasa la prueba
+  del apartado x.x.x» y proponer la referencia (con aviso para revisarla),
+  buscando la prueba por el número de apartado del Word original.
+- Alternativa más simple, para pasos sueltos: una marca en el texto
+  (`[[prueba:AVE-PUER-010]]`) que el DOCX convierte en «la prueba
+  AVE-PUER-010 (apartado 4.2.3)». Sirve cuando solo un paso remite a otra
+  prueba, no la prueba entera.
 
 ## Siguientes pasos de importación
 

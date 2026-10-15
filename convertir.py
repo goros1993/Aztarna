@@ -4,7 +4,8 @@ Word -> YAML. Un YAML por capítulo (cada Título 1) + indice.yaml.
 Las imágenes se guardan en salida/yaml/imagenes y se referencian desde el YAML.
 
 Cada tabla se clasifica antes de leerla: las pruebas pasan al esquema común
-(`prueba:`) y las demás (historial de cambios, tablas de parámetros…) se
+(`prueba:`, definido en esquema.py, que también dice cómo se convierten los
+formatos antiguos) y las demás (historial de cambios, tablas de parámetros…) se
 conservan tal cual como `tabla:` con sus filas, en el mismo sitio que el
 texto que las rodea: en el contexto de la sección o de la prueba siguiente,
 o en el capítulo si aún no hay ningún título. Los avisos se
@@ -31,6 +32,8 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from ruamel.yaml import YAML
 
+import esquema
+
 
 def sin_tildes(s):
     s = unicodedata.normalize("NFD", s)
@@ -45,13 +48,18 @@ def slug(s):
     return re.sub(r"\W+", "_", sin_tildes(s).lower()).strip("_")[:40] or "capitulo"
 
 
+# Etiquetas del Word -> clave del YAML. Las del formato antiguo (componente,
+# criticidad, situación final…) se leen y luego esquema.migrar_prueba las
+# convierte o las quita.
 CAMPOS = {"descripcion": "descripcion", "componente": "componente",
           "plataforma": "plataforma", "automatizable": "automatizable",
           "criticidad": "criticidad", "entornodepruebas": "entorno",
           "referencia": "referencia", "fecha": "fecha", "version": "version"}
-SECCIONES = {"situacioninicial": "situacion_inicial", "pasos": "pasos",
-             "situacionfinal": "situacion_final"}
-AUTOMATIZABLE = {"si", "no", "corto", "medio", "largo", "hecho"}
+# Títulos de lista dentro de una celda («Situación inicial:», «Ensayo:»…).
+SECCIONES = {"parametrizacion": "parametrizacion", "situacioninicial": "situacion_inicial",
+             "pasos": "pasos", "ensayo": "pasos", "situacionfinal": "situacion_final"}
+# Campos que se guardan como lista: una línea por elemento (etiquetas: separadas por comas).
+CAMPOS_EN_LISTA = ("parametrizacion", "situacion_inicial", "pasos", "situacion_final", "requisitos")
 
 ETIQUETAS_CAMPOS = {
     "Descripción": "descripcion",
@@ -63,22 +71,29 @@ ETIQUETAS_CAMPOS = {
     "Referencia": "referencia",
     "Fecha": "fecha",
     "Versión": "version",
+    "Parametrización": "parametrizacion",
     "Situación inicial": "situacion_inicial",
     "Condiciones iniciales": "situacion_inicial",
     "Pasos": "pasos",
+    "Ensayo": "pasos",
     "ENSAYO(s) / Proceso(s)": "pasos",
     "Situación final": "situacion_final",
     "Entorno de prueba(s)": "entorno",
     "Entorno de pruebas(s)": "entorno",
+    "Maniobra": "maniobra",
+    "Maniobra(s)": "maniobra",
+    "Requisitos": "requisitos",
+    "Requisito(s)": "requisitos",
+    "Tags": "etiquetas",
 }
 CAMPOS.update({norm(etiqueta): clave for etiqueta, clave in ETIQUETAS_CAMPOS.items()})
 
+# Campos conocidos del formato antiguo que no tienen sitio en el esquema: se
+# leen como campos adicionales y esquema.migrar_prueba los elimina.
 ALIAS_ETIQUETAS_ADICIONALES = {
     "Resultado esperado": "Resultado esperado",
     "Criterio(s) de aceptación": "Criterio(s) de aceptación",
     "Criterio validación": "Criterio validación",
-    "Maniobra(s)": "Maniobra(s)",
-    "Requisito(s)": "Requisito(s)",
     "Ejecutor prueba": "Ejecutor prueba",
     "Fecha ejecución": "Fecha ejecución",
     "Resultado Obtenido": "Resultado Obtenido",
@@ -86,11 +101,6 @@ ALIAS_ETIQUETAS_ADICIONALES = {
     "Decisión": "Decisión",
     "Resultado": "Resultado",
     "Observaciones": "Observaciones",
-    "Tags": "Tags",
-    "ENSAYO(s) / Proceso(s)": "ENSAYO(s) / Proceso(s)",
-    "ENSAYO(s)/Proceso(s)": "ENSAYO(s) / Proceso(s)",
-    "Entorno de prueba(s)": "Entorno de prueba(s)",
-    "Entorno de pruebas(s)": "Entorno de pruebas(s)",
 }
 ETIQUETAS_ADICIONALES = {
     norm(alias): etiqueta
@@ -112,17 +122,18 @@ TIPOS_AVISO = {
     "id_vacio": ("Prueba sin ID", "error"),
     "id_duplicado": ("ID repetido", "error"),
     "id_no_valido": ("ID con espacios o con forma extraña", "aviso"),
+    "titulo_vacio": ("Prueba sin título", "error"),
     "tabla_dudosa": ("Tabla dudosa: conservada como tabla, revisar si es una prueba", "aviso"),
     "sin_titulo": ("Prueba sin título previo", "aviso"),
-    "campos_faltantes": ("Faltan campos del esquema (quedarán vacíos)", "info"),
-    "valor_no_valido": ("Valor no válido", "aviso"),
+    "valor_descartado": ("Valor que no encaja en el esquema (descartado)", "aviso"),
+    "campos_eliminados": ("Datos de campos que ya no existen (eliminados)", "info"),
     "etiqueta_desconocida": ("Etiqueta desconocida (conservada en campos adicionales)", "aviso"),
     "texto_fuera_de_seccion": ("Texto fuera de Situación inicial / Pasos / Situación final", "aviso"),
     "celda_sin_reconocer": ("Celda sin etiqueta reconocida", "aviso"),
     "tabla_informativa": ("Tabla que no es una prueba (conservada tal cual)", "info"),
 }
 # Tipos que se repiten mucho: en avisos.txt se agrupan por mensaje (en avisos.csv van todos).
-AGRUPAR_POR_MENSAJE = {"campos_faltantes", "etiqueta_desconocida", "tabla_informativa"}
+AGRUPAR_POR_MENSAJE = {"campos_eliminados", "valor_descartado", "etiqueta_desconocida", "tabla_informativa"}
 
 
 class Aviso(str):
@@ -269,18 +280,15 @@ def guardar_campo(d, etiqueta, valor, avisos):
     n = norm(etiqueta)
     clave = CAMPOS.get(n)
     if clave:
-        if clave in ("situacion_inicial", "pasos", "situacion_final"):
+        if clave in CAMPOS_EN_LISTA:
             items = [limpiar(linea) for linea in valor.splitlines() if limpiar(linea)]
             d.setdefault(clave, []).extend(items)
             return
+        if clave == "etiquetas":
+            d.setdefault(clave, []).extend(e for e in esquema.lista_de_textos(valor, r"[\n,]") if e not in d[clave])
+            return
         valor = " ".join(valor.split())
-        if clave == "automatizable" and valor:
-            v = norm(valor)
-            if v in AUTOMATIZABLE:
-                valor = v
-            else:
-                avisos.append(Aviso("valor_no_valido", f"valor de Automatizable no válido '{valor}'", d["id"]))
-        if valor or clave not in d:
+        if valor or clave not in d:            # entorno, maniobra y automatizable los normaliza el esquema
             d[clave] = valor
         return
 
@@ -324,12 +332,13 @@ def extraer_etiquetas(texto):
     ]
 
 
-def parsear(tabla, avisos, guardar_imagen=None):
+def parsear(tabla, avisos, guardar_imagen=None, migrar=True):
+    """Lee la tabla de una prueba. Con `migrar=False` la devuelve tal como se
+    leyó, sin pasarla al esquema (auditar.py compara las dos)."""
     filas = [celdas_unicas(r) for r in tabla.rows]
     cab = filas[0]
     d = {"id": cab[0].text.strip(),
          "titulo": cab[1].text.strip() if len(cab) > 1 else ""}
-    formato_alternativo = False
     parrafos_con_imagenes = set()
     for fila in filas[1:]:
         for c in fila:
@@ -361,8 +370,6 @@ def parsear(tabla, avisos, guardar_imagen=None):
                         avisos.append(Aviso("texto_fuera_de_seccion", f"texto fuera de sección: {l[:60]}", d["id"]))
             elif (campos := extraer_etiquetas(c.text)):
                 for etiqueta, valor in campos:
-                    if norm(etiqueta) in {"condicionesiniciales", "ensayo(s)/proceso(s)"}:
-                        formato_alternativo = True
                     guardar_campo(d, etiqueta, valor, avisos)
             elif ":" in c.text:
                 etiqueta, valor = c.text.split(":", 1)
@@ -378,15 +385,16 @@ def parsear(tabla, avisos, guardar_imagen=None):
                     imagenes_tabla.extend(imagenes_parrafo(p, guardar_imagen))
     if imagenes_tabla:
         d["imagenes"] = list(dict.fromkeys(imagenes_tabla))
-    if formato_alternativo:
-        requeridos = ("componente", "automatizable", "criticidad", "entorno",
-                      "referencia", "fecha", "version", "situacion_inicial", "pasos")
-    else:
-        requeridos = list(CAMPOS.values()) + list(SECCIONES.values())
-    faltan = [k for k in dict.fromkeys(requeridos) if k not in d]
-    if faltan:
-        avisos.append(Aviso("campos_faltantes", f"faltan campos {faltan}", d["id"]))
-    return d
+    if not migrar:
+        return d
+    # Al esquema común: situación final a Ensayo, fuera los campos que ya no
+    # existen, entorno y maniobra como opciones… y todos los campos, aunque vacíos.
+    for tipo, mensaje in esquema.migrar_prueba(d):
+        avisos.append(Aviso(tipo, mensaje, d["id"]))
+    esquema.completar(d)
+    if not d["titulo"]:
+        avisos.append(Aviso("titulo_vacio", "la prueba no tiene título (segunda celda de la cabecera)", d["id"]))
+    return {k: d[k] for k in sorted(d, key=lambda k: esquema.ORDEN.index(k) if k in esquema.ORDEN else len(esquema.ORDEN))}
 
 
 # ----------------------------------------------------------------------
@@ -634,7 +642,10 @@ def main():
     escribir_avisos(avisos, Path(args.salida))
 
     n = sum(1 for c in capitulos for e in c["contenido"] if "prueba" in e)
-    tablas = sum(1 for c in capitulos for e in c["contenido"] if "tabla" in e)
+    def tablas_en(elemento):
+        contexto = (elemento.get("prueba") or elemento).get("contexto") or []
+        return ("tabla" in elemento) + sum(1 for i in contexto if isinstance(i, dict) and "tabla" in i)
+    tablas = sum(tablas_en(e) for c in capitulos for e in c["contenido"] if isinstance(e, dict))
     dudosas = sum(1 for a in avisos if getattr(a, "tipo", "") == "tabla_dudosa")
     print(f"{n} pruebas, {tablas} tablas que no son pruebas ({dudosas} dudosas), "
           f"{len(capitulos)} capítulos, {len(avisos)} avisos (ver {Path(args.salida) / 'avisos.txt'})")

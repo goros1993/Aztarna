@@ -46,7 +46,11 @@ class SeleccionTests(CampañaBase):
         self.assertEqual(ids, ["DEMO-LLAM-001", "DEMO-NIV-001", "DEMO-PUER-001", "DEMO-SEG-001", "DEMO-VAR-002"])
 
     def test_se_combinan_criterios(self):
-        ids = self.ids({"etiquetas": ["regresion"], "criticidad": ["alta"], "capitulos": ["01_ejemplo_basico.yaml"]})
+        ids = self.ids({"etiquetas": ["regresion"], "entorno": ["Torre"], "capitulos": ["01_ejemplo_basico.yaml"]})
+        self.assertEqual(ids, ["DEMO-NIV-001"])
+
+    def test_entorno_y_maniobra_basta_con_uno(self):
+        ids = self.ids({"maniobra": ["Dúplex"], "automatizable": ["si", "hecho"]})
         self.assertEqual(ids, ["DEMO-LLAM-001", "DEMO-LLAM-003", "DEMO-NIV-001"])
 
     def test_incluir_y_excluir_ids_mandan(self):
@@ -60,7 +64,8 @@ class SeleccionTests(CampañaBase):
     def test_opciones_para_la_interfaz(self):
         opciones = ej.opciones_filtro(self.capitulos())
         self.assertIn("regresion", opciones["etiquetas"])
-        self.assertEqual(opciones["criticidad"], ["alta", "baja", "media"])
+        self.assertEqual(opciones["entorno"], ["Automático", "Maqueta", "Torre"])
+        self.assertEqual(opciones["maniobra"], ["Simplex", "Dúplex"])
         self.assertEqual(len(opciones["capitulos"]), 4)
 
 
@@ -162,7 +167,6 @@ class ResumenTests(CampañaBase):
         self.assertEqual(r["ejecutadas"], 5)
         self.assertEqual(r["porcentaje_ok"], 22.2)        # 2 OK de 9 que aplican
         self.assertEqual(r["por_capitulo"]["Ejemplo básico"]["ok"], 2)
-        self.assertEqual(r["por_criticidad"]["alta"]["bloqueada"], 1)
 
     def test_avisa_de_pruebas_cambiadas_borradas_y_fallos_sin_observaciones(self):
         ej.registrar(self.campaña, "DEMO-LLAM-001", "ok", huella_actual=self.campaña["datos"]["pruebas"][0]["huella"])

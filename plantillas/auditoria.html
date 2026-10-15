@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{titulo}}</title>
+<style>
+:root {
+  --bg: #f3f5f6; --panel: #ffffff; --ink: #18242b; --ink-2: #4a5a63; --ink-3: #74848d;
+  --rule: #d5dce0; --accent: #0b5f73; --accent-soft: #d8ebf0;
+  --mal: #b3261e; --mal-soft: #f8dedb; --aviso: #8f5b00; --aviso-soft: #f7ecd2; --bien: #2b7a4b; --bien-soft: #dcefe3;
+  --cabecera: #00a651; --mono: "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12181c; --panel: #1a2228; --ink: #e3eaee; --ink-2: #b2c0c8; --ink-3: #8597a1;
+    --rule: #2e3a41; --accent: #6cc4d8; --accent-soft: #163a44;
+    --mal: #ff8a80; --mal-soft: #4a1e1b; --aviso: #ffcc66; --aviso-soft: #3f3218; --bien: #7fd39f; --bien-soft: #183826;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
+header { padding: 18px 24px 10px; }
+h1 { margin: 0 0 4px; font-size: 20px; }
+h2 { font-size: 16px; margin: 24px 0 8px; }
+.privado { color: var(--aviso); font-size: 13px; }
+main { padding: 0 24px 40px; max-width: 1500px; }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.tarjeta { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; }
+.tarjeta .k { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; }
+.tarjeta .v { font-size: 20px; font-weight: 650; }
+.tarjeta.mal { border-color: var(--mal); } .tarjeta.mal .v { color: var(--mal); }
+.tarjeta.bien .v { color: var(--bien); }
+table.datos { border-collapse: collapse; width: 100%; background: var(--panel); border: 1px solid var(--rule); }
+table.datos th, table.datos td { border-bottom: 1px solid var(--rule); padding: 5px 8px; text-align: left; vertical-align: top; }
+table.datos th { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+table.datos tr.clic { cursor: pointer; } table.datos tr.clic:hover { background: var(--accent-soft); }
+.num { text-align: right !important; font-variant-numeric: tabular-nums; }
+.filtros { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 8px 0 12px; position: sticky; top: 0; background: var(--bg); padding: 8px 0; z-index: 2; }
+.filtros label { display: inline-flex; gap: 6px; align-items: center; }
+select, input[type=search] { font: inherit; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 5px; background: var(--panel); color: var(--ink); }
+.cuenta { color: var(--ink-3); margin-left: auto; }
+details.fila { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 6px; }
+details.fila > summary { cursor: pointer; padding: 7px 10px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; list-style: none; }
+details.fila > summary::-webkit-details-marker { display: none; }
+details.fila[open] > summary { border-bottom: 1px solid var(--rule); }
+.tid { font-family: var(--mono); font-size: 13px; }
+.chip { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.chip.perdida { background: var(--mal-soft); color: var(--mal); }
+.chip.eliminada { background: var(--aviso-soft); color: var(--aviso); }
+.chip.ok { background: var(--bien-soft); color: var(--bien); }
+.chip.muestra { background: var(--accent-soft); color: var(--accent); }
+.muted { color: var(--ink-3); }
+.detalle { padding: 10px 12px 14px; }
+.palabras { margin: 4px 0; }
+.palabras b { font-size: 12px; color: var(--ink-2); margin-right: 6px; }
+.pal { display: inline-block; font-family: var(--mono); font-size: 12px; padding: 0 5px; margin: 1px 2px; border-radius: 3px; }
+.pal.perdida, mark.perdida { background: var(--mal-soft); color: var(--mal); }
+.pal.eliminada, mark.eliminada { background: var(--aviso-soft); color: var(--aviso); }
+.pal.descartada, mark.descartada { background: var(--aviso-soft); color: var(--aviso); text-decoration: line-through; }
+mark { padding: 0 1px; border-radius: 2px; }
+.lado { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+@media (max-width: 900px) { .lado { grid-template-columns: 1fr; } }
+.lado h3 { font-size: 13px; margin: 0 0 4px; color: var(--ink-2); }
+table.doc { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.doc td { border: 1px solid var(--rule); padding: 3px 6px; vertical-align: top; white-space: pre-wrap; }
+table.doc td.cab { background: var(--cabecera); color: #fff; font-weight: 700; }
+table.doc td.cab.tit { font-style: italic; }
+table.doc ul, table.doc ol { margin: 2px 0 4px; padding-left: 20px; white-space: normal; }
+.et { font-weight: 700; }
+.avisos-tabla { color: var(--mal); margin: 4px 0; }
+.parrafo { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 10px; margin-bottom: 6px; }
+.vacio { color: var(--ink-3); padding: 10px 0; }
+button.mas { font: inherit; padding: 4px 12px; border: 1px solid var(--rule); border-radius: 5px; background: var(--panel); color: var(--ink); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="titulo"></h1>
+  <div class="privado">Este informe contiene el texto del documento. No lo compartas; para pedir ayuda basta con auditoria.txt (solo recuentos y estructura).</div>
+</header>
+<main>
+  <section><h2>Recuentos</h2><div class="tarjetas" id="recuentos"></div></section>
+  <section>
+    <h2>Familias de tablas</h2>
+    <p class="muted">Tablas con la misma estructura (como en inventario.py). Haz clic en una para ver solo sus tablas.</p>
+    <table class="datos" id="familias"></table>
+  </section>
+  <section>
+    <h2>Tablas</h2>
+    <p class="muted">✖ <b>pérdida</b>: hay palabras del Word que no están en los YAML y ninguna regla las quita (revísalas). ⚠ <b>solo eliminaciones</b>: falta texto de campos que el esquema elimina o valores que no son una opción. ✔ <b>completa</b>. Al abrir una tabla se ve el original junto a la tabla nueva, con las palabras que faltan marcadas. La <b>muestra</b> (primera, central y última de cada familia) sirve para revisar a ojo que cada texto ha ido a su campo.</p>
+    <div class="filtros">
+      <label>Estado <select id="f-estado"><option value="">Todos</option><option value="perdida">✖ Pérdida</option><option value="eliminada">⚠ Solo eliminaciones</option><option value="ok">✔ Completa</option></select></label>
+      <label>Tipo <select id="f-tipo"><option value="">Todas</option><option value="prueba">Pruebas</option><option value="tabla">No pruebas</option></select></label>
+      <label>Familia <select id="f-familia"><option value="">Todas</option></select></label>
+      <label><input type="checkbox" id="f-muestra"> Solo la muestra</label>
+      <label><input type="search" id="f-buscar" placeholder="ID, palabra o nº de tabla"></label>
+      <span class="cuenta" id="cuenta"></span>
+    </div>
+    <div id="lista"></div>
+  </section>
+  <section>
+    <h2>Texto fuera de las tablas</h2>
+    <p class="muted">Párrafos y títulos del Word con palabras que no aparecen en los YAML (contexto, títulos de sección o de prueba, texto del capítulo).</p>
+    <div id="parrafos"></div>
+  </section>
+</main>
+<script id="datos" type="application/json">{{datos}}</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("datos").textContent);
+const $ = (s) => document.querySelector(s);
+const ESTADO = { perdida: "✖ pérdida", eliminada: "⚠ solo eliminaciones", ok: "✔ completa" };
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = (w) => w.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const sinMarcas = (t) => String(t ?? "").replace(/\[\[[^\]|]+\||\]\]|\*\*|\*/g, "");
+
+/** Partes [texto, clase] preparadas por auditar.py: solo se marcan las apariciones que faltan. */
+const partes = (lista) => lista.map(([t, c]) => (c ? `<mark class="${c}">${esc(t)}</mark>` : esc(t))).join("");
+
+document.getElementById("titulo").textContent = `Auditoría de la importación · ${D.documento}`;
+document.title = `Auditoría · ${D.documento}`;
+
+/* ---- recuentos ---- */
+(function () {
+  const r = D.recuentos;
+  const t = D.tablas;
+  const tarjeta = (k, v, mal, extra = "") => `<div class="tarjeta ${mal === null ? "" : mal ? "mal" : "bien"}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>${extra ? `<div class="muted">${esc(extra)}</div>` : ""}</div>`;
+  const n = (e) => t.filter((x) => x.estado === e).length;
+  $("#recuentos").innerHTML = [
+    tarjeta("Pruebas Word → YAML", `${r.pruebas_word} → ${r.pruebas_yaml}`, r.pruebas_word !== r.pruebas_yaml),
+    tarjeta("No pruebas Word → YAML", `${r.tablas_word} → ${r.tablas_yaml}`, r.tablas_word !== r.tablas_yaml),
+    tarjeta("Imágenes Word → YAML", `${r.imagenes_word} → ${r.imagenes_yaml}`, r.imagenes_yaml < r.imagenes_word),
+    tarjeta("IDs repetidos", r.ids_repetidos.length, r.ids_repetidos.length > 0, r.ids_repetidos.slice(0, 6).join(", ")),
+    tarjeta("Pruebas sin ID", r.pruebas_sin_id, r.pruebas_sin_id > 0),
+    tarjeta("✖ Tablas con pérdida", n("perdida"), n("perdida") > 0),
+    tarjeta("⚠ Solo eliminaciones", n("eliminada"), null),
+    tarjeta("✔ Completas", n("ok"), null),
+    tarjeta("Párrafos con pérdida", D.parrafos.length, D.parrafos.length > 0),
+  ].join("");
+})();
+
+/* ---- familias ---- */
+(function () {
+  const filas = D.familias.map((f) => `<tr class="clic" data-familia="${esc(f.id)}">
+    <td class="tid">${esc(f.id)}</td><td>${esc(f.nombre)}${f.motivo && f.clase !== "prueba" ? `<div class="muted">${esc(f.motivo)}</div>` : ""}</td>
+    <td class="num">${f.n}</td><td class="num">${f.perdida ? `<span class="chip perdida">${f.perdida}</span>` : "·"}</td>
+    <td class="num">${f.eliminada || "·"}</td><td class="num">${f.ok || "·"}</td>
+    <td>${f.faltan.length ? `<div><span class="muted">faltan:</span> ${esc(f.faltan.join(", "))}</div>` : ""}${f.sobran.length ? `<div><span class="muted">sobran:</span> ${esc(f.sobran.join(", "))}</div>` : ""}</td></tr>`);
+  $("#familias").innerHTML = `<tr><th>Familia</th><th>Tipo</th><th class="num">Tablas</th><th class="num">✖</th><th class="num">⚠</th><th class="num">✔</th><th>Campos</th></tr>` + filas.join("");
+  $("#familias").addEventListener("click", (e) => {
+    const tr = e.target.closest("tr[data-familia]");
+    if (!tr) return;
+    $("#f-familia").value = tr.dataset.familia;
+    pintarLista();
+    $("#lista").scrollIntoView({ behavior: "smooth" });
+  });
+  $("#f-familia").innerHTML += D.familias.map((f) => `<option value="${esc(f.id)}">${esc(f.id)} · ${esc(f.nombre)} (${f.n})</option>`).join("");
+})();
+
+/* ---- tablas ---- */
+const PAGINA = 100;
+let filtradas = [], mostradas = 0;
+
+function filtrar() {
+  const estado = $("#f-estado").value, tipo = $("#f-tipo").value, familia = $("#f-familia").value;
+  const muestra = $("#f-muestra").checked, buscar = norm($("#f-buscar").value.trim());
+  const orden = { perdida: 0, eliminada: 1, ok: 2 };
+  return D.tablas.filter((t) => (!estado || t.estado === estado) && (!tipo || t.tipo === tipo)
+      && (!familia || t.familia === familia) && (!muestra || t.muestra)
+      && (!buscar || String(t.n) === buscar || norm(t.id || "").includes(buscar)
+        || t.original.some((f) => f.some((c) => norm(c.texto).includes(buscar)))))
+    .sort((a, b) => orden[a.estado] - orden[b.estado] || a.n - b.n);
+}
+
+function pintarLista() {
+  filtradas = filtrar();
+  mostradas = 0;
+  $("#lista").innerHTML = filtradas.length ? "" : `<p class="vacio">Ninguna tabla cumple el filtro.</p>`;
+  $("#cuenta").textContent = `${filtradas.length} de ${D.tablas.length} tablas`;
+  mas();
+}
+
+function mas() {
+  const viejo = document.getElementById("boton-mas");
+  if (viejo) viejo.remove();
+  const trozo = filtradas.slice(mostradas, mostradas + PAGINA);
+  mostradas += trozo.length;
+  $("#lista").insertAdjacentHTML("beforeend", trozo.map((t) => `<details class="fila" data-n="${t.n}">
+    <summary><span class="chip ${t.estado}">${ESTADO[t.estado]}</span>
+      <span>Tabla ${t.n}</span><span class="tid">${esc(t.id || "(sin ID)")}</span>
+      <span class="muted">${esc(t.familia)} · ${t.tipo === "prueba" ? "prueba" : "no prueba"} · ${esc(t.capitulo || "")}</span>
+      ${t.perdidas.length ? `<span class="muted">${t.perdidas.length} perdidas</span>` : ""}
+      ${t.eliminadas.length + t.descartadas.length ? `<span class="muted">${t.eliminadas.length + t.descartadas.length} eliminadas</span>` : ""}
+      ${t.muestra ? `<span class="chip muestra">muestra</span>` : ""}</summary></details>`).join(""));
+  if (mostradas < filtradas.length) {
+    $("#lista").insertAdjacentHTML("beforeend", `<button class="mas" id="boton-mas">Ver ${Math.min(PAGINA, filtradas.length - mostradas)} más (quedan ${filtradas.length - mostradas})</button>`);
+    document.getElementById("boton-mas").addEventListener("click", mas);
+  }
+}
+
+$("#lista").addEventListener("toggle", (e) => {
+  const d = e.target;
+  if (!d.open || d.dataset.pintado) return;
+  d.dataset.pintado = "1";
+  const t = D.tablas.find((x) => x.n === Number(d.dataset.n));
+  d.insertAdjacentHTML("beforeend", `<div class="detalle">${detalle(t)}</div>`);
+}, true);
+
+function detalle(t) {
+  const pals = (titulo, lista, clase) => lista.length ? `<div class="palabras"><b>${titulo} (${lista.length})</b>${lista.map((w) => `<span class="pal ${clase}">${esc(w)}</span>`).join("")}</div>` : "";
+  return [
+    t.avisos.map((a) => `<div class="avisos-tabla">${esc(a)}</div>`).join(""),
+    pals("Perdidas", t.perdidas, "perdida"),
+    pals("Eliminadas por regla", t.eliminadas, "eliminada"),
+    pals("Valores descartados", t.descartadas, "descartada"),
+    t.lugares.length ? `<div class="muted">Celdas con palabras perdidas: ${t.lugares.map(([f, c, et]) => `fila ${f}, col ${c} (${esc(et)})`).join(" · ")}</div>` : "",
+    `<div class="lado"><div><h3>Word original</h3>${tablaOriginal(t.original)}</div>
+      <div><h3>${t.tipo === "prueba" ? "Tabla nueva (YAML)" : "Tabla en los YAML"}</h3>${t.nueva ? (t.tipo === "prueba" ? tablaPrueba(t.nueva) : tablaSimple(t.nueva.filas || [])) : `<p class="vacio">No está en los YAML.</p>`}</div></div>`,
+  ].join("");
+}
+
+function tablaOriginal(filas) {
+  return `<table class="doc">${filas.map((f) => `<tr>${f.map((c) => `<td colspan="${c.span || 1}">${partes(c.partes)}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+
+function tablaSimple(filas) {
+  return `<table class="doc">${filas.map((f) => `<tr>${(Array.isArray(f) ? f : []).map((c) => {
+    const texto = c && typeof c === "object" ? c.texto : c;
+    const span = c && typeof c === "object" ? c.columnas || 1 : 1;
+    const imgs = c && typeof c === "object" && c.imagenes ? ` <span class="muted">[${c.imagenes.length} img]</span>` : "";
+    return `<td colspan="${span}">${esc(sinMarcas(texto))}${imgs}</td>`;
+  }).join("")}</tr>`).join("")}</table>`;
+}
+
+const ET = D.etiquetas;
+function lista(items, numerada) {
+  const arr = Array.isArray(items) ? items : items ? [items] : [];
+  if (!arr.length) return "";
+  const li = arr.map((it) => {
+    if (it && typeof it === "object" && it.tabla) return `<li>${tablaSimple(it.tabla.filas || [])}</li>`;
+    const texto = it && typeof it === "object" ? it.texto : it;
+    const nivel = it && typeof it === "object" ? Number(it.nivel || 0) : 0;
+    const imgs = it && typeof it === "object" && (it.imagenes || it.imagen) ? ` <span class="muted">[imagen]</span>` : "";
+    return `<li style="margin-left:${nivel * 16}px">${esc(sinMarcas(texto))}${imgs}</li>`;
+  }).join("");
+  return numerada ? `<ol>${li}</ol>` : `<ul>${li}</ul>`;
+}
+const unir = (v, sep) => esc((Array.isArray(v) ? v : v ? [v] : []).join(sep));
+const etv = (clave, valor) => `<span class="et">${esc(ET[clave])}:</span> ${valor}`;
+
+function tablaPrueba(p) {
+  const extras = Object.entries(p.campos_adicionales || {}).map(([k, v]) => `<tr><td colspan="3"><span class="et">${esc(k)}:</span> ${esc(sinMarcas(Array.isArray(v) ? v.join("\n") : typeof v === "object" ? JSON.stringify(v) : v))}</td></tr>`).join("");
+  const imagenes = (p.imagenes || []).length ? `<tr><td colspan="3" class="muted">[${p.imagenes.length} imágenes de la prueba]</td></tr>` : "";
+  const contexto = (p.contexto || []).length ? `<div class="muted">Contexto:</div>${lista(p.contexto, false)}` : "";
+  return `${contexto}<table class="doc">
+    <tr><td class="cab">${esc(p.id)}</td><td class="cab tit" colspan="2">${esc(p.titulo)}</td></tr>
+    <tr><td colspan="3">${etv("descripcion", esc(sinMarcas(p.descripcion)))}</td></tr>
+    <tr><td colspan="3"><span class="et">${esc(ET.parametrizacion)}:</span>${lista(p.parametrizacion, false)}</td></tr>
+    <tr><td colspan="3"><span class="et">${esc(ET.situacion_inicial)}:</span>${lista(p.situacion_inicial, false)}<span class="et">${esc(ET.pasos)}:</span>${lista(p.pasos, true)}</td></tr>
+    <tr><td>${etv("maniobra", unir(p.maniobra, "/"))}</td><td>${etv("automatizable", esc(D.automatizable[p.automatizable] || p.automatizable || ""))}</td><td>${etv("entorno", unir(p.entorno, " / "))}</td></tr>
+    <tr><td><span class="et">${esc(ET.requisitos)}:</span>${(p.requisitos || []).map((r) => `<div>${esc(r)}</div>`).join("")}</td><td colspan="2">${etv("etiquetas", unir(p.etiquetas, ", "))}</td></tr>
+    <tr><td>${etv("fecha", esc(p.fecha))}</td><td colspan="2">${etv("version", esc(p.version))}</td></tr>
+    ${extras}${imagenes}</table>`;
+}
+
+for (const id of ["#f-estado", "#f-tipo", "#f-familia", "#f-muestra"]) $(id).addEventListener("change", pintarLista);
+let espera = null;
+$("#f-buscar").addEventListener("input", () => { clearTimeout(espera); espera = setTimeout(pintarLista, 200); });
+pintarLista();
+
+/* ---- párrafos ---- */
+$("#parrafos").innerHTML = D.parrafos.length
+  ? D.parrafos.map((p) => `<div class="parrafo"><div class="muted">${esc(p.capitulo || "(antes del primer capítulo)")}${p.titulo ? " · título" : ""}</div>${partes(p.partes)}</div>`).join("")
+  : `<p class="vacio">✔ Todo el texto fuera de las tablas está en los YAML.</p>`;
+</script>
+</body>
+</html>

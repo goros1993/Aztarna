@@ -15,8 +15,9 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+import esquema
 
-LIST_FIELDS = ("situacion_inicial", "pasos", "situacion_final", "contexto")
+LIST_FIELDS = esquema.CAMPOS_LISTA
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 
@@ -468,25 +469,5 @@ def save_uploaded_images(uploaded_files: list[Any], image_dir: Path) -> list[str
     return paths
 
 
-DEFAULT_TEST: dict[str, Any] = {
-    "nombre": "",
-    "nivel": 3,
-    "id": "",
-    "titulo": "",
-    "descripcion": "",
-    "componente": "",
-    "plataforma": "",
-    "situacion_inicial": [],
-    "pasos": [],
-    "situacion_final": [],
-    "automatizable": "",
-    "criticidad": "",
-    "entorno": "",
-    "referencia": "",
-    "fecha": "",
-    "version": "",
-    "etiquetas": [],
-    "contexto": [],
-    "campos_adicionales": {},
-    "imagenes": [],
-}
+# Prueba nueva con todos los campos del esquema (ver esquema.py).
+DEFAULT_TEST: dict[str, Any] = esquema.prueba_vacia()

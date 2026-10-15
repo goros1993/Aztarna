@@ -174,10 +174,15 @@ class ParsearTablaVarianteTests(unittest.TestCase):
 
         self.assertEqual(prueba["descripcion"], "Verificar la llamada.")
         self.assertEqual(prueba["situacion_inicial"], ["Ascensor en reposo."])
-        self.assertEqual(prueba["pasos"], ["Realizar una llamada."])
-        self.assertEqual(prueba["situacion_final"], ["La llamada se atiende."])
+        # La situación final pasa al final del Ensayo; componente y plataforma ya no existen.
+        self.assertEqual(prueba["pasos"], ["Realizar una llamada.", "La llamada se atiende."])
+        self.assertNotIn("situacion_final", prueba)
+        self.assertNotIn("componente", prueba)
         self.assertEqual(prueba["automatizable"], "si")
-        self.assertFalse(avisos)
+        self.assertEqual(prueba["entorno"], [])          # «HIL» no es una opción del esquema
+        self.assertEqual(prueba["parametrizacion"], [])  # todas las pruebas con todos los campos
+        self.assertEqual(list(prueba)[:4], ["id", "titulo", "descripcion", "parametrizacion"])
+        self.assertEqual({a.tipo for a in avisos}, {"campos_eliminados", "valor_descartado"})
 
     def test_parsea_campos_de_formato_alternativo_y_preserva_campos_extra(self):
         doc = Document()
@@ -214,28 +219,48 @@ class ParsearTablaVarianteTests(unittest.TestCase):
         prueba = convertir.parsear(tabla, avisos)
 
         self.assertEqual(prueba["id"], "DEMO-FUNC-007")
-        self.assertEqual(prueba["componente"], "CPU_A")
+        self.assertNotIn("componente", prueba)
         self.assertEqual(prueba["automatizable"], "largo")
         self.assertEqual(prueba["situacion_inicial"], ["CPU_A en PLACA_B", "CPU_A parametrizada"])
         self.assertEqual(
             prueba["pasos"],
             ["ENSAYO 1 (Tipos de movimiento)", "Ascensor en una planta intermedia."],
         )
-        self.assertEqual(prueba["entorno"], "BANCO-02")
-        self.assertEqual(
-            prueba["campos_adicionales"],
-            {
-                "Resultado esperado": "Indicado en ensayo.",
-                "Criterio(s) de aceptación": "Indicado en ensayo.",
-                "Maniobra(s)": "Triplex",
-                "Criterio validación": "Test",
-                "Ejecutor prueba": "",
-                "Fecha ejecución": "",
-                "Resultado Obtenido": "",
-                "Decisión": "",
-                "Resultado": "",
-            },
-        )
+        # Valores que no encajan en las opciones se descartan con aviso.
+        self.assertEqual((prueba["entorno"], prueba["maniobra"]), ([], []))
+        # Resultado esperado, criterios y los campos de resultado se eliminan.
+        self.assertNotIn("campos_adicionales", prueba)
+        self.assertEqual((prueba["fecha"], prueba["version"]), ("15/11/2024", "1.0"))
+        mensajes = [a.mensaje for a in avisos]
+        self.assertIn("Maniobra: se descarta «Triplex»", mensajes)
+        self.assertIn("Entorno de pruebas: se descarta «BANCO-02»", mensajes)
+        self.assertIn("se elimina «Resultado esperado» (con datos)", mensajes)
+        self.assertNotIn("se elimina «Decisión» (con datos)", mensajes)       # estaba vacío
+
+    def test_lee_la_tabla_de_la_plantilla(self):
+        """Formato nuevo (plantillas/tabla_prueba.docx): listas, varias opciones, requisitos y tags."""
+        doc = Document()
+        tabla = doc.add_table(rows=7, cols=3)
+        tabla.cell(0, 0).text, tabla.cell(0, 1).text = "REQ_A_011", "Prueba nueva"
+        tabla.cell(1, 0).text = "Descripción: Algo."
+        tabla.cell(2, 0).text = "Parametrización:\nVelocidad 1 m/s\nCarga 0 %"
+        tabla.cell(3, 0).text = "Situación inicial:\nEn reposo.\nEnsayo:\nPaso uno.\nPaso dos."
+        tabla.cell(4, 0).text = "Maniobra: S/D"
+        tabla.cell(4, 1).text = "Automatizable: Medio"
+        tabla.cell(4, 2).text = "Entorno de pruebas: A / T"
+        tabla.cell(5, 0).text = "Requisitos:\nREQ_1\nREQ_2"
+        tabla.cell(5, 1).text = "Tags: smoke, puertas"
+        tabla.cell(6, 0).text = "Fecha: 15/10/2026"
+        tabla.cell(6, 1).text = "Versión: 1.2"
+        avisos = []
+        prueba = convertir.parsear(tabla, avisos)
+        self.assertEqual(prueba["parametrizacion"], ["Velocidad 1 m/s", "Carga 0 %"])
+        self.assertEqual(prueba["pasos"], ["Paso uno.", "Paso dos."])
+        self.assertEqual(prueba["maniobra"], ["Simplex", "Dúplex"])
+        self.assertEqual(prueba["entorno"], ["Automático", "Torre"])
+        self.assertEqual(prueba["requisitos"], ["REQ_1", "REQ_2"])
+        self.assertEqual(prueba["etiquetas"], ["smoke", "puertas"])
+        self.assertEqual(prueba["automatizable"], "medio")
         self.assertFalse(avisos)
 
     def test_exporta_campos_adicionales_en_el_docx(self):

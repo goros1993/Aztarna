@@ -17,6 +17,7 @@ const S = {
   campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
   cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
   keywords: null,       // keywords de Robot que se proponen al escribir los pasos
+  esquema: null,        // campos de las pruebas y sus opciones (esquema.py)
   filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
 };
 
@@ -367,6 +368,7 @@ async function arrancar() {
   pintarModo();
   mostrarSinCarpeta();
   try {
+    S.esquema = await api.esquema();
     const resumen = await api.iniciar();
     aplicarResumen(resumen);
     if (resumen.aviso) aviso(resumen.aviso, "error");

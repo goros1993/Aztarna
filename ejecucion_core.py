@@ -41,7 +41,8 @@ ESTADOS_VISIBLES = {
     "no_aplica": "No aplica",
 }
 # Campos de la prueba por los que se puede filtrar (además de etiquetas, capítulos e IDs).
-CAMPOS_FILTRO = ("criticidad", "automatizable", "plataforma", "entorno", "componente")
+# Entorno y maniobra son listas: basta con que la prueba tenga uno de los valores pedidos.
+CAMPOS_FILTRO = ("automatizable", "entorno", "maniobra")
 
 
 def to_plain_simple(valor: Any) -> Any:
@@ -92,7 +93,8 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
     """True si la prueba entra en la selección.
 
     - `etiquetas`: basta con que tenga una de ellas.
-    - `criticidad`, `plataforma`… (CAMPOS_FILTRO): su valor debe estar en la lista.
+    - `automatizable`, `entorno`, `maniobra` (CAMPOS_FILTRO): algún valor de la
+      prueba debe estar en la lista.
     - `capitulos`: nombres de archivo de capítulo.
     - `robot`: ["con"] o ["sin"] test de Robot (necesita `ids_robot`).
     - `incluir_ids` entra siempre; `excluir_ids` no entra nunca.
@@ -111,7 +113,7 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
         return False
     for campo in CAMPOS_FILTRO:
         valores = _lista(filtro.get(campo))
-        if valores and str(prueba.get(campo) or "").strip() not in valores:
+        if valores and not set(valores) & set(_lista(prueba.get(campo))):
             return False
     robot = _lista(filtro.get("robot"))
     if robot and ids_robot is not None and len(robot) == 1:
@@ -143,9 +145,7 @@ def opciones_filtro(capitulos: list[dict[str, Any]]) -> dict[str, list[str]]:
         for _indice, prueba in tests_in_chapter(capitulo):
             opciones["etiquetas"].update(etiquetas_de(prueba))
             for campo in CAMPOS_FILTRO:
-                valor = str(prueba.get(campo) or "").strip()
-                if valor:
-                    opciones[campo].add(valor)
+                opciones[campo].update(_lista(prueba.get(campo)))
     resultado = {campo: sorted(valores) for campo, valores in opciones.items()}
     resultado["capitulos"] = [c["path"].name for c in capitulos]
     return resultado
@@ -543,12 +543,11 @@ def capitulos_de(campaña: dict[str, Any]) -> list[dict[str, Any]]:
 # Resumen y validación
 # ----------------------------------------------------------------------
 def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, Any]:
-    """Totales por estado, desglose por capítulo y criticidad, y problemas a revisar."""
+    """Totales por estado, desglose por capítulo y problemas a revisar."""
     por_id = indice_por_id(capitulos)
     nombres = {c["path"].name: str(c["data"].get("capitulo") or c["path"].name) for c in capitulos}
     totales = {estado: 0 for estado in ESTADOS}
     por_capitulo: dict[str, dict[str, int]] = {}
-    por_criticidad: dict[str, dict[str, int]] = {}
     problemas: list[dict[str, str]] = []
     pruebas = []
     for entrada in campaña["datos"]["pruebas"]:
@@ -560,11 +559,10 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
         if not encontrada:
             problemas.append({"id": test_id, "tipo": "error",
                               "mensaje": "La prueba ya no existe en los YAML de pruebas."})
-            capitulo, criticidad, titulo = "(sin capítulo)", "", ""
+            capitulo, titulo = "(sin capítulo)", ""
         else:
             prueba = encontrada["prueba"]
             capitulo = nombres.get(encontrada["archivo"], encontrada["archivo"])
-            criticidad = str(prueba.get("criticidad") or "").strip()
             titulo = str(prueba.get("titulo") or prueba.get("nombre") or "")
             actual = huella(prueba)
             ejecutada = resultado.get("huella")
@@ -575,10 +573,9 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
             problemas.append({"id": test_id, "tipo": "aviso",
                               "mensaje": f"Resultado {ESTADOS_VISIBLES[estado]} sin observaciones."})
         por_capitulo.setdefault(capitulo, {e: 0 for e in ESTADOS})[estado] += 1
-        por_criticidad.setdefault(criticidad or "(sin indicar)", {e: 0 for e in ESTADOS})[estado] += 1
         pruebas.append({
             "id": test_id, "estado": estado, "titulo": titulo, "capitulo": capitulo,
-            "criticidad": criticidad, "archivo": encontrada["archivo"] if encontrada else None,
+            "archivo": encontrada["archivo"] if encontrada else None,
             "indice": encontrada["indice"] if encontrada else None,
             "intentos": len(resultado.get("intentos") or []) + (1 if resultado else 0),
         })
@@ -593,7 +590,6 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
         # OK sobre lo que aplica: lo que «no aplica» no cuenta ni a favor ni en contra.
         "porcentaje_ok": round(100 * totales["ok"] / aplicables, 1) if aplicables else 0.0,
         "por_capitulo": por_capitulo,
-        "por_criticidad": por_criticidad,
         "problemas": problemas,
         "pruebas": pruebas,
     }

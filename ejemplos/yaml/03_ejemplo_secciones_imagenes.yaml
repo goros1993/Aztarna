@@ -1,7 +1,7 @@
 # Capítulo 3: puertas y serie de seguridad (datos ficticios).
 # Muestra secciones anidadas hasta el nivel 6 e imágenes en todos los sitios
-# posibles: contexto de sección y de prueba, situación inicial, pasos,
-# situación final e imágenes de la prueba. Incluye PNG, JPG y un EMF
+# posibles: contexto de sección y de prueba, situación inicial, ensayo e
+# imágenes de la prueba. Incluye PNG, JPG y un EMF
 # vectorial (en Linux y macOS el editor no muestra su miniatura, pero lo
 # conserva y lo exporta al DOCX). El contexto de la sección Puertas lleva
 # una tabla de parámetros (no es una prueba) con una cabecera que ocupa dos
@@ -30,18 +30,19 @@ contenido:
     id: DEMO-PUER-001
     titulo: Las puertas abren al llegar a planta
     descripcion: Comprobar el tiempo de apertura y el final de carrera de puerta abierta.
-    componente: Operador de puertas
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina llega a P1 con una llamada de cabina.
     pasos:
     - Medir el tiempo desde la parada hasta la activación de FC_ABIERTA.
-    situacion_final:
     - FC_ABIERTA se activa en menos de 3 s.
+    maniobra:
+    - Simplex
     automatizable: si
-    criticidad: media
-    entorno: HIL
-    referencia: DEMO-REQ-PUER-01
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PUER-001
     fecha: '2026-09-28'
     version: '1.0'
     etiquetas:
@@ -64,8 +65,9 @@ contenido:
     id: DEMO-PUER-002
     titulo: Las puertas se reabren si la barrera detecta un obstáculo
     descripcion: Interrumpir la barrera infrarroja durante el cierre y comprobar que las puertas vuelven a abrir.
-    componente: Operador de puertas
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion:
+    - Barrera IR habilitada.
+    - 'Tiempo de reapertura: 200 ms.'
     situacion_inicial:
     - texto: La cabina está en P2 con las puertas abiertas y la HMI en modo normal.
       imagenes:
@@ -76,15 +78,18 @@ contenido:
       imagenes:
       - imagenes/foto_banco_hil.jpg
     - Observar el motor de puertas y los finales de carrera.
-    situacion_final:
     - texto: El motor invierte el sentido y FC_ABIERTA vuelve a activarse, como en el cronograma.
       imagenes:
       - imagenes/cronograma_puertas.png
     - Tras la reapertura, el cierre se repite con normalidad.
+    maniobra:
+    - Simplex
+    - Dúplex
     automatizable: corto
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-PUER-04
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PUER-002
     fecha: '2026-09-28'
     version: '1.3'
     etiquetas:
@@ -96,8 +101,6 @@ contenido:
     - texto: La captura de la HMI se toma con el registro de alarmas abierto.
       imagenes:
       - imagenes/pantalla_hmi.png
-    campos_adicionales:
-      Resultado esperado: Reapertura en menos de 300 ms desde la interrupción.
     imagenes:
     - imagenes/registro_eventos.png
 - seccion: Serie de seguridad
@@ -112,21 +115,23 @@ contenido:
     id: DEMO-SEG-001
     titulo: Abrir un contacto de la serie para la cabina de inmediato
     descripcion: Simular la apertura del tercer contacto de la serie de seguridad con la cabina en marcha.
-    componente: Circuito de seguridad
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina viaja de P3 a PB a velocidad nominal.
     pasos:
     - Abrir el contacto 3 de la serie desde el panel del banco.
-    situacion_final:
     - texto: La cabina para de inmediato y la HMI muestra [[rojo|E-301]].
       imagenes:
       - imagenes/pantalla_hmi.png
     - El controlador no admite llamadas hasta rearmar la serie.
+    maniobra:
+    - Dúplex
     automatizable: no
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-SEG-01
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-SEG-001
     fecha: '2026-10-01'
     version: '1.0'
     etiquetas:

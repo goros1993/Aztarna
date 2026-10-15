@@ -28,9 +28,9 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
+import esquema
 from editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
-    DEFAULT_TEST,
     LIST_FIELDS,
     delete_section,
     delete_test,
@@ -54,10 +54,7 @@ from editor_core import (
     yaml_to_string,
 )
 
-TEXT_FIELDS = (
-    "nombre", "id", "titulo", "descripcion", "componente", "plataforma",
-    "automatizable", "criticidad", "entorno", "referencia", "fecha", "version",
-)
+TEXT_FIELDS = esquema.CAMPOS_TEXTO
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
 EMPTY = (None, "", [], {})
 
@@ -261,8 +258,21 @@ def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
     """Valida y normaliza los campos de una prueba recibidos de la interfaz."""
     cleaned: dict[str, Any] = {}
     for field, value in changes.items():
-        if field in TEXT_FIELDS:
+        if field == "automatizable":
+            valor = esquema.normalizar_automatizable(value)
+            if valor is None:
+                raise ValueError(f"Automatizable no admite «{value}».")
+            cleaned[field] = valor
+        elif field in TEXT_FIELDS:
             cleaned[field] = str(value if value is not None else "").strip()
+        elif field in esquema.OPCIONES_MULTIPLES:
+            opciones = esquema.OPCIONES_MULTIPLES[field]
+            valores = [str(v).strip() for v in (value or []) if str(v).strip()] if isinstance(value, list) else None
+            if valores is None or any(v not in opciones for v in valores):
+                raise ValueError(f"«{esquema.ETIQUETAS[field]}» solo admite: {', '.join(opciones)}.")
+            cleaned[field] = [o for o in opciones if o in valores]
+        elif field == "requisitos":
+            cleaned[field] = esquema.lista_de_textos(value)
         elif field in LIST_FIELDS:
             cleaned[field] = _clean_list(value, field)
         elif field == "campos_adicionales":
@@ -478,6 +488,16 @@ class EditorApi:
         ]
 
     @respuesta
+    def esquema(self) -> dict[str, Any]:
+        """Campos de las pruebas y sus opciones, para el formulario (ver esquema.py)."""
+        return {
+            "etiquetas": esquema.ETIQUETAS,
+            "opciones": {k: list(v) for k, v in esquema.OPCIONES_MULTIPLES.items()},
+            "automatizable": [{"valor": v, "texto": esquema.AUTOMATIZABLE_VISIBLE[v]} for v in esquema.AUTOMATIZABLE],
+            "obligatorios": list(esquema.OBLIGATORIOS),
+        }
+
+    @respuesta
     def etiquetas(self) -> list[str]:
         """Etiquetas usadas en todas las pruebas, para proponerlas al escribir."""
         usadas: set[str] = set()
@@ -575,7 +595,7 @@ class EditorApi:
         contents = chapter["data"]["contenido"]
         data = clean_test_changes({k: v for k, v in datos.items() if k != "nivel"})
         self._check_id(data.get("id", ""), None)
-        test = {**DEFAULT_TEST, **data, "nivel": self._level_for(contents, ubicacion, 3)}
+        test = {**esquema.prueba_vacia(), **data, "nivel": self._level_for(contents, ubicacion, 3)}
         kind = ubicacion.get("tipo")
         insert_test(
             chapter,
@@ -851,13 +871,22 @@ class EditorApi:
                 else:
                     seen.setdefault(test_id, []).append((ci, index))
                 if not str(test.get("titulo") or "").strip():
-                    add("aviso", ci, index, test_id, "La prueba no tiene título.")
-                for field in (*LIST_FIELDS, "etiquetas"):
+                    add("error", ci, index, test_id, "La prueba no tiene título.")
+                listas = (*LIST_FIELDS, *esquema.CAMPOS_TEXTOS, *esquema.OPCIONES_MULTIPLES)
+                for field in listas:
                     if field in test and test[field] not in (None, "") and not isinstance(test[field], list):
                         add("error", ci, index, test_id, f"'{field}' debe ser una lista.")
+                for field, opciones in esquema.OPCIONES_MULTIPLES.items():
+                    otros = [str(v) for v in test.get(field) or [] if str(v) not in opciones] if isinstance(test.get(field), list) else []
+                    if otros:
+                        add("aviso", ci, index, test_id, f"{esquema.ETIQUETAS[field]}: «{', '.join(otros)}» no es una opción ({', '.join(opciones)}).")
+                if esquema.normalizar_automatizable(test.get("automatizable")) is None:
+                    add("aviso", ci, index, test_id, f"Automatizable: «{test.get('automatizable')}» no es una opción.")
+                obsoletos = [c for c in esquema.OBSOLETOS if c in test]
+                if obsoletos:
+                    add("aviso", ci, index, test_id,
+                        f"Campos que ya no existen: {', '.join(obsoletos)}. Vuelve a importar el Word o quítalos en la vista YAML.")
                 self._check_context_tables(add, ci, index, test_id, test.get("contexto"))
-                if not any(test.get(f) for f in ("pasos", "situacion_inicial", "situacion_final")):
-                    add("aviso", ci, index, test_id, "La prueba no tiene pasos ni situaciones.")
                 level = test.get("nivel")
                 if level is not None and (not isinstance(level, int) or not 1 <= level <= 6):
                     add("aviso", ci, index, test_id, f"Nivel fuera del rango 1-6: {level}.")

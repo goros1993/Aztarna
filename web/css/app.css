@@ -637,3 +637,9 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .elemento-tabla .contenido { padding-top: 2px; }
 .lectura li.con-tabla { display: block; margin: 6px 0; }
 .nota-tabla { font-size: 12.5px; margin: 4px 0 0; }
+
+/* ---- opciones múltiples (maniobra, entorno) ---- */
+fieldset.campo.opciones { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5px; color: var(--ink-2); }
+.casillas { display: flex; flex-wrap: wrap; gap: 4px 14px; min-height: 32px; align-items: center; }
+.casilla.no-valida { color: var(--warn); text-decoration: line-through; }

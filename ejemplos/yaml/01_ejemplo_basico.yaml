@@ -1,6 +1,8 @@
 # Capítulo 1: llamadas y desplazamientos (datos ficticios).
 # Muestra lo esencial: texto de capítulo, secciones en dos niveles, pruebas
-# con listas sencillas, subpuntos con «nivel» y una imagen en un paso.
+# con listas sencillas, subpuntos con «nivel» y una imagen en un paso, y
+# los campos de la tabla común (parametrización, maniobra, entorno de pruebas
+# con varias opciones, requisitos y tags).
 # Empieza con una tabla que no es una prueba (historial de cambios).
 capitulo: Ejemplo básico
 contenido:
@@ -27,8 +29,9 @@ contenido:
     id: DEMO-LLAM-001
     titulo: Una llamada de cabina lleva el ascensor a la planta pedida
     descripcion: Comprobar que una llamada registrada desde la botonera de cabina se atiende y la cabina se detiene en la planta seleccionada.
-    componente: Gestor de llamadas
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion:
+    - 'Número de paradas: 4 (PB a P3).'
+    - Llamadas de cabina habilitadas en todas las plantas.
     situacion_inicial:
     - La cabina está parada en PB con las puertas cerradas.
     - No hay llamadas pendientes.
@@ -38,13 +41,17 @@ contenido:
       - imagenes/botonera_cabina.png
     - Comprobar que el botón se ilumina y el indicador muestra *▲ 2*.
     - Esperar a que la cabina llegue a P2.
-    situacion_final:
     - La cabina se detiene en P2 y abre puertas.
     - La llamada se borra del registro y el botón se apaga.
+    maniobra:
+    - Simplex
+    - Dúplex
     automatizable: si
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-LLAM-01
+    entorno:
+    - Automático
+    - Maqueta
+    requisitos:
+    - REQ-LLAM-001
     fecha: '2026-09-15'
     version: '1.2'
     etiquetas:
@@ -57,19 +64,20 @@ contenido:
     id: DEMO-LLAM-002
     titulo: Una llamada de piso queda registrada y se confirma al pasajero
     descripcion: Verificar que una llamada desde el pulsador de piso se registra y se confirma con la luz del pulsador.
-    componente: Gestor de llamadas
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina está parada en P3.
     pasos:
     - Pulsar la llamada de subida en P1.
     - Observar el pulsador de P1.
-    situacion_final:
     - El pulsador de P1 queda iluminado hasta que la cabina llega.
+    maniobra:
+    - Simplex
     automatizable: no
-    criticidad: media
-    entorno: HIL
-    referencia: DEMO-REQ-LLAM-02
+    entorno:
+    - Automático
+    requisitos:
+    - REQ-LLAM-002
     fecha: '2026-09-15'
     version: '1.0'
     etiquetas:
@@ -85,8 +93,7 @@ contenido:
     id: DEMO-LLAM-003
     titulo: Las llamadas se atienden en el sentido de marcha
     descripcion: Con la cabina subiendo, las llamadas en el mismo sentido se atienden antes que las de sentido contrario.
-    componente: Gestor de llamadas
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion: []
     situacion_inicial:
     - La cabina está en PB y sale hacia P3 por una llamada de cabina.
     pasos:
@@ -96,7 +103,6 @@ contenido:
     - texto: P2 de subida.
       nivel: 1
     - Anotar el orden en que la cabina se detiene.
-    situacion_final:
     - 'La cabina se detiene en este orden:'
     - texto: P2 (subida), porque va en el sentido de marcha.
       nivel: 1
@@ -104,10 +110,15 @@ contenido:
       nivel: 1
     - texto: P1 (bajada), en el viaje de vuelta.
       nivel: 1
+    maniobra:
+    - Simplex
+    - Dúplex
     automatizable: si
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-LLAM-05
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-LLAM-003
+    - REQ-COLA-001
     fecha: '2026-09-20'
     version: '1.0'
     etiquetas:
@@ -121,20 +132,23 @@ contenido:
     id: DEMO-NIV-001
     titulo: La cabina para dentro de la tolerancia de nivelación
     descripcion: Medir el desnivel entre el suelo de cabina y el de planta tras una parada normal.
-    componente: Control de posición
-    plataforma: Banco HIL DEMO-A1
+    parametrizacion:
+    - 'Tolerancia de nivelación: ±5 mm.'
     situacion_inicial:
     - Carga en cabina simulada al 0 %.
     pasos:
     - Enviar la cabina de PB a P3.
     - Leer el desnivel informado por el sensor de nivel de P3.
     - Repetir con carga simulada al 100 %.
-    situacion_final:
     - El desnivel es menor de [[res:amarillo|±5 mm]] en ambos casos.
+    maniobra:
+    - Dúplex
     automatizable: si
-    criticidad: alta
-    entorno: HIL
-    referencia: DEMO-REQ-NIV-01
+    entorno:
+    - Automático
+    - Torre
+    requisitos:
+    - REQ-NIV-001
     fecha: '2026-09-22'
     version: '1.1'
     etiquetas:

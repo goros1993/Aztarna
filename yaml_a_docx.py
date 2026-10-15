@@ -27,6 +27,8 @@ from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
+from esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS
+
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN (todo el aspecto visual se cambia aquí, en un solo sitio)
 # ----------------------------------------------------------------------
@@ -37,7 +39,7 @@ COLOR_TEXTO_CABECERA = RGBColor(0xFF, 0xFF, 0xFF)
 ANCHO_TABLA_CM = 17.0          # ancho útil de la página A4 con márgenes de 2 cm
 ANCHO_IMAGEN_CM = 10.0         # ancho de las imágenes incrustadas…
 ALTO_MAX_IMAGEN_CM = 9.0       # …salvo que así queden más altas que esto (capturas verticales)
-COLUMNAS = 6                   # rejilla base de la tabla
+ANCHOS_PRUEBA_CM = (4.66, 4.66, 7.35)   # columnas de la plantilla (plantillas/tabla_prueba.docx)
 
 # Nombres de color -> hex (los mismos que usa convertir.py)
 COLORES = {"rojo": "FF0000", "azul": "0070C0", "verde": "00B050"}
@@ -51,8 +53,6 @@ RESALTADOS = {
 }
 
 # Cómo se muestra cada valor guardado en el YAML
-AUTOMATIZABLE_VISIBLE = {"si": "Sí", "no": "No", "corto": "Corto",
-                         "medio": "Medio", "largo": "Largo"}
 
 
 # ----------------------------------------------------------------------
@@ -248,57 +248,70 @@ def etiqueta_valor(celda, etiqueta, valor):
     escribir_inline(p, valor or "")
 
 
+def etiqueta_lista(celda, primera, etiqueta, items, doc, base_dir, numerada=False):
+    """«Etiqueta:» en negrita y debajo la lista (viñetas o numerada)."""
+    p = celda.paragraphs[0] if primera else celda.add_paragraph()
+    compactar(p)
+    p.add_run(f"{etiqueta}:").bold = True
+    escribir_lista(doc, celda, items, numerada, base_dir)
+
+
+def unir(valores, separador):
+    valores = valores if isinstance(valores, list) else ([valores] if valores else [])
+    return separador.join(str(v) for v in valores)
+
+
 def tabla_prueba(doc, prueba, base_dir):
-    t = doc.add_table(rows=6, cols=COLUMNAS)
+    """Tabla de una prueba con la plantilla de plantillas/tabla_prueba.docx (campos en esquema.py)."""
+    t = doc.add_table(rows=7, cols=3)
     t.style = "Table Grid"
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    fijar_anchos(t, [ANCHO_TABLA_CM / COLUMNAS] * COLUMNAS)
+    fijar_anchos(t, list(ANCHOS_PRUEBA_CM))
 
     def fusionar(fila, ini, fin):
-        return t.cell(fila, ini).merge(t.cell(fila, fin))
+        return t.cell(fila, ini).merge(t.cell(fila, fin)) if fin > ini else t.cell(fila, ini)
 
     # Fila 0: ID | título (verde)
-    c_id, c_tit = fusionar(0, 0, 1), fusionar(0, 2, 5)
-    for c, txt, cursiva in ((c_id, prueba.get("id", ""), False),
-                            (c_tit, prueba.get("titulo", ""), True)):
+    for c, txt, cursiva in ((t.cell(0, 0), prueba.get("id", ""), False),
+                            (fusionar(0, 1, 2), prueba.get("titulo", ""), True)):
         sombrear(c, COLOR_CABECERA)
         p = c.paragraphs[0]
         compactar(p)
-        r = p.add_run(txt)
+        r = p.add_run(str(txt or ""))
         r.bold, r.italic = True, cursiva
         r.font.color.rgb = COLOR_TEXTO_CABECERA
 
     # Fila 1: descripción
-    etiqueta_valor(fusionar(1, 0, 5), "Descripción", prueba.get("descripcion"))
+    etiqueta_valor(fusionar(1, 0, 2), ETIQUETAS["descripcion"], prueba.get("descripcion"))
 
-    # Fila 2: componente | plataforma
-    etiqueta_valor(fusionar(2, 0, 2), "Componente", prueba.get("componente"))
-    etiqueta_valor(fusionar(2, 3, 5), "Plataforma", prueba.get("plataforma"))
+    # Fila 2: parametrización
+    etiqueta_lista(fusionar(2, 0, 2), True, ETIQUETAS["parametrizacion"], prueba.get("parametrizacion"), doc, base_dir)
 
-    # Fila 3: situación inicial / pasos / situación final
-    c = fusionar(3, 0, 5)
-    primera = True
-    for clave, titulo, numerada in (("situacion_inicial", "Situación inicial", False),
-                                    ("pasos", "Pasos", True),
-                                    ("situacion_final", "Situación final", False)):
-        p = c.paragraphs[0] if primera else c.add_paragraph()
-        primera = False
-        compactar(p)
-        p.paragraph_format.space_before = Pt(3)
-        p.add_run(f"{titulo}:").bold = True
-        escribir_lista(doc, c, prueba.get(clave), numerada, base_dir)
+    # Fila 3: situación inicial y ensayo (numerado)
+    c = fusionar(3, 0, 2)
+    etiqueta_lista(c, True, ETIQUETAS["situacion_inicial"], prueba.get("situacion_inicial"), doc, base_dir)
+    etiqueta_lista(c, False, ETIQUETAS["pasos"], prueba.get("pasos"), doc, base_dir, numerada=True)
 
-    # Fila 4: automatizable | criticidad | entorno
+    # Fila 4: maniobra | automatizable | entorno
     auto = prueba.get("automatizable") or ""
-    etiqueta_valor(fusionar(4, 0, 1), "Automatizable",
-                   AUTOMATIZABLE_VISIBLE.get(auto, auto))
-    etiqueta_valor(fusionar(4, 2, 3), "Criticidad", prueba.get("criticidad"))
-    etiqueta_valor(fusionar(4, 4, 5), "Entorno de pruebas", prueba.get("entorno"))
+    etiqueta_valor(t.cell(4, 0), ETIQUETAS["maniobra"], unir(prueba.get("maniobra"), "/"))
+    etiqueta_valor(t.cell(4, 1), ETIQUETAS["automatizable"], AUTOMATIZABLE_VISIBLE.get(auto, auto))
+    etiqueta_valor(t.cell(4, 2), ETIQUETAS["entorno"], unir(prueba.get("entorno"), " / "))
 
-    # Fila 5: referencia | fecha | versión
-    etiqueta_valor(fusionar(5, 0, 2), "Referencia", prueba.get("referencia"))
-    etiqueta_valor(fusionar(5, 3, 4), "Fecha", prueba.get("fecha"))
-    etiqueta_valor(fusionar(5, 5, 5), "Versión", prueba.get("version"))
+    # Fila 5: requisitos (uno por línea) | tags
+    c = t.cell(5, 0)
+    p = c.paragraphs[0]
+    compactar(p)
+    p.add_run(f"{ETIQUETAS['requisitos']}:").bold = True
+    for requisito in prueba.get("requisitos") or []:
+        linea = c.add_paragraph()
+        compactar(linea)
+        escribir_inline(linea, str(requisito))
+    etiqueta_valor(fusionar(5, 1, 2), ETIQUETAS["etiquetas"], unir(prueba.get("etiquetas"), ", "))
+
+    # Fila 6: fecha | versión
+    etiqueta_valor(t.cell(6, 0), ETIQUETAS["fecha"], prueba.get("fecha"))
+    etiqueta_valor(fusionar(6, 1, 2), ETIQUETAS["version"], prueba.get("version"))
 
     for etiqueta, valor in (prueba.get("campos_adicionales") or {}).items():
         fila = t.add_row()

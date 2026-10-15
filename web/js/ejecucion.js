@@ -182,9 +182,8 @@ async function nuevaCampana() {
     h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", placeholder: ayuda }));
   const nombres = Object.fromEntries(S.capitulos.map((c) => [c.archivo, c.nombre]));
   const grupos = [
-    ["etiquetas", "Etiquetas (basta con una)"], ["criticidad", "Criticidad"], ["automatizable", "Automatizable"],
-    ["plataforma", "Plataforma"], ["entorno", "Entorno"], ["componente", "Componente"], ["capitulos", "Capítulos"],
-    ["robot", "Automatización"],
+    ["etiquetas", "Tags (basta con uno)"], ["automatizable", "Automatizable"], ["entorno", "Entorno de pruebas (basta con uno)"],
+    ["maniobra", "Maniobra (basta con una)"], ["capitulos", "Capítulos"], ["robot", "Automatización"],
   ].filter(([clave]) => (opciones[clave] || []).length);
   const vista = h("div", { class: "vista-seleccion" });
   const actualizar = debounce(async () => {
@@ -285,7 +284,7 @@ function mostrarPanelCampana() {
     const lista = recientes();
     mostrar(h("div", { class: "centro" },
       h("h2", { text: "Ejecución de pruebas" }),
-      h("p", { text: "Crea una campaña eligiendo qué pruebas pasar (por etiquetas, criticidad…) o abre una que ya exista. Los resultados se guardan en la carpeta de la campaña; los YAML de pruebas no se tocan." }),
+      h("p", { text: "Crea una campaña eligiendo qué pruebas pasar (por tags, entorno, maniobra…) o abre una que ya exista. Los resultados se guardan en la carpeta de la campaña; los YAML de pruebas no se tocan." }),
       h("div", { class: "fila-botones" },
         h("button", { class: "btn primary", type: "button", onclick: nuevaCampana, text: "Nueva campaña" }),
         h("button", { class: "btn", type: "button", onclick: () => abrirCampana(), text: "Abrir campaña…" })),
@@ -331,7 +330,6 @@ function mostrarPanelCampana() {
         tarjeta("No aplica", r.totales.no_aplica, "", "e-no_aplica"),
         tarjeta("Pendientes", r.totales.pendiente, "", "e-pendiente"))),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por capítulo" })), tabla("Capítulo", r.por_capitulo)),
-    h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por criticidad" })), tabla("Criticidad", r.por_criticidad)),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Avisos" })), problemas),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Campaña" }),
@@ -500,9 +498,9 @@ function listaLectura(items, numerada) {
 
 function fichaPrueba(el) {
   const meta = [
-    ["Componente", el.componente], ["Plataforma", el.plataforma], ["Entorno", el.entorno],
-    ["Criticidad", el.criticidad], ["Automatizable", AUTOMATIZABLE_TXT[el.automatizable] || el.automatizable],
-    ["Referencia", el.referencia], ["Fecha", el.fecha], ["Versión", el.version],
+    ["Maniobra", aLista(el.maniobra).join(" / ")], ["Automatizable", AUTOMATIZABLE_TXT[el.automatizable] || el.automatizable],
+    ["Entorno de pruebas", aLista(el.entorno).join(" / ")], ["Requisitos", aLista(el.requisitos).join(", ")],
+    ["Fecha", el.fecha], ["Versión", el.version],
   ].filter(([, v]) => v !== undefined && v !== null && String(v).trim());
   const extras = Object.entries(el.campos_adicionales || {});
   const bloque = (titulo, contenido) => h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: titulo })), contenido);
@@ -512,9 +510,9 @@ function fichaPrueba(el) {
     aLista(el.etiquetas).length ? h("div", { class: "fichas solo-lectura", "aria-label": "Etiquetas" }, aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
     el.descripcion ? bloque("Descripción", h("p", {}, textoConFormato(String(el.descripcion)))) : null,
     aLista(el.contexto).length ? bloque("Contexto", listaLectura(el.contexto, false)) : null,
+    aLista(el.parametrizacion).length ? bloque("Parametrización", listaLectura(el.parametrizacion, false)) : null,
     bloque("Situación inicial", listaLectura(el.situacion_inicial, false)),
-    bloque("Pasos", listaLectura(el.pasos, true)),
-    bloque("Situación final", listaLectura(el.situacion_final, false)),
+    bloque("Ensayo", listaLectura(el.pasos, true)),
     extras.length ? bloque("Campos adicionales", h("dl", { class: "extras-lectura" }, extras.map(([k, v]) => [
       h("dt", { text: k }),
       h("dd", {}, Array.isArray(v) ? h("ul", {}, v.map((x) => h("li", {}, textoConFormato(String(x)))))

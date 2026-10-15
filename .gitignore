@@ -18,6 +18,8 @@ inventario.txt
 
 # Documentos de trabajo: mantener el DOCX original fuera del repositorio
 *.docx
+# …salvo la plantilla de la tabla de prueba (solo etiquetas, sin datos)
+!plantillas/*.docx
 
 # Herramientas y sistema operativo
 .pytest_cache/

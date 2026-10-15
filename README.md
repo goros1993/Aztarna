@@ -11,6 +11,10 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `editor_api.py`, `web/` | API en Python e interfaz HTML del editor. |
 | `editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
+| `esquema.py` | Campos de las pruebas, sus nombres y sus opciones (único sitio donde se definen). |
+| `auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
+| `plantillas/tabla_prueba.docx` | Plantilla de la tabla de cada prueba (vacía, solo etiquetas). |
+| `plantillas/auditoria.html` | Plantilla del informe de `auditar.py`. |
 | `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
 | `informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
 | `robot_core.py`, `importar_robot.py` | Robot Framework: cobertura, ejecución e importación de resultados. |
@@ -93,7 +97,7 @@ Antes de leer cada tabla, el importador decide si es una prueba:
 
 | Clase | Criterio | Qué se hace |
 |---|---|---|
-| Prueba | Tiene Situación inicial / Pasos / Situación final (o sus equivalentes) o al menos 3 campos de prueba | Pasa al esquema común (`prueba:`) |
+| Prueba | Tiene Situación inicial / Ensayo / Situación final (o sus equivalentes) o al menos 3 campos de prueba | Pasa al esquema común (`prueba:`) |
 | Dudosa | 1 o 2 campos de prueba, o la cabecera parece un ID sin campos | Se conserva como tabla y se avisa para revisarla |
 | No prueba | Ningún campo de prueba (historial de cambios, parámetros…) | Se conserva tal cual (`tabla:`), sin avisos de prueba |
 
@@ -110,7 +114,34 @@ repetidos (con la tabla donde apareció antes) o con espacios.
 
 ## Revisar y validar la importación
 
-Antes de adoptar los YAML como datos oficiales:
+Antes de adoptar los YAML como datos oficiales, comprueba que no se pierde
+nada con `auditar.py`:
+
+```bash
+python auditar.py "/ruta/privada/documento.docx" importacion/yaml -o importacion/auditoria.html
+```
+
+Compara las palabras del Word con las de los YAML, tabla a tabla y párrafo a
+párrafo (sin mirar el formato ni el orden de los campos), y clasifica cada
+tabla:
+
+- ✖ **pérdida**: faltan palabras que ninguna regla quita, hay tablas dentro
+  de celdas (su texto no se importa) o faltan imágenes. Hay que revisarlas.
+- ⚠ **solo eliminaciones**: falta solo texto de campos que el esquema elimina
+  (componente, resultado esperado, resultados…) o valores que no son una
+  opción (HIL, Triplex…).
+- ✔ **completa**. Las conversiones (A → Automático, S → Simplex, la
+  situación final que pasa al ensayo) no cuentan como faltas.
+
+`auditoria.html` muestra los recuentos (pruebas, tablas, imágenes, IDs), las
+familias de tablas (las de `inventario.py`) y cada tabla con el original al
+lado de la nueva y las palabras que faltan marcadas; marca como **muestra** la
+primera, la central y la última de cada familia para revisar a ojo que cada
+texto ha ido a su campo. Lleva el texto del documento: no lo compartas.
+`auditoria.txt` solo tiene recuentos y estructura (familia, fila, columna y
+etiqueta de las celdas con pérdidas), sin contenido.
+
+Además:
 
 1. Revisa `importacion/avisos.txt`, agrupando los avisos por tipo e ID; no es
    necesario asumir que cada aviso significa pérdida de datos.
@@ -144,9 +175,10 @@ Abre una ventana local: no inicia ningún servidor ni abre el navegador. El
 editor modifica directamente los YAML de la carpeta (no hay base de datos
 aparte) y conserva sus comentarios y su formato.
 
-- Un único formulario para pruebas y secciones, con las listas (situación
-  inicial, pasos, situación final, contexto) como filas editables: añadir,
-  quitar, reordenar (Alt+↑/↓) y sangrar. Los pasos van numerados.
+- Un único formulario para pruebas y secciones, con los campos de la tabla
+  común (ver «Esquema de las pruebas») y las listas (contexto,
+  parametrización, situación inicial, ensayo) como filas editables: añadir,
+  quitar, reordenar (Alt+↑/↓) y sangrar. El ensayo va numerado.
 - Imágenes por elemento con miniatura: botón de añadir, pegar con Ctrl+V o
   soltar archivos. Se copian a `imagenes/`. Los EMF no tienen vista previa fuera
   de Windows, pero se conservan.
@@ -159,8 +191,9 @@ aparte) y conserva sus comentarios y su formato.
 - Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
   ajustan solos.
 - Vista YAML con resaltado y errores señalados en la línea exacta.
-- Panel de validación (IDs duplicados, imágenes que faltan, pruebas sin título
-  o sin pasos, saltos de nivel) y botón **Exportar DOCX**.
+- Panel de validación (IDs duplicados o vacíos, pruebas sin título, imágenes
+  que faltan, valores que no son opciones del esquema, campos que ya no
+  existen, saltos de nivel) y botón **Exportar DOCX**.
 - Recuerda la última carpeta abierta.
 - Al borrar una prueba solo se elimina esa prueba. Al borrar una sección
   desaparece su encabezado, pero su contexto se conserva como texto y sus
@@ -205,8 +238,8 @@ una *campaña*, que cada uno guarda donde quiera en su PC.
 
 **Crear una campaña.** Botón de la campaña → *Nueva campaña*: nombre, qué se
 prueba (versión), entorno, responsable y qué pruebas entran, marcando
-etiquetas, criticidad, automatizable, plataforma, entorno, componente o
-capítulos (dentro de un grupo basta con una opción; entre grupos, todas). La
+tags, automatizable, entorno de pruebas, maniobra o capítulos (dentro de un
+grupo basta con una opción; entre grupos, todas). La
 vista previa muestra las pruebas que entrarán. Después se elige la carpeta
 donde guardarla y se crea una subcarpeta con la fecha y el nombre. La lista de
 pruebas queda fijada; *Resincronizar* añade las que se etiqueten más tarde.
@@ -231,7 +264,7 @@ OK tras corregirlo»). Si una prueba se edita después de ejecutarse, se avisa.
 
 **Resumen.** El botón *Resumen* (o no tener ninguna prueba seleccionada)
 muestra el avance, los totales por estado, el porcentaje de OK sobre las
-pruebas que aplican, el desglose por capítulo y por criticidad, y avisos como
+pruebas que aplican, el desglose por capítulo y avisos como
 NO OK sin observaciones o pruebas que ya no existen.
 
 **Cerrar e informe.** *Cerrar campaña* exige que no quede nada pendiente,
@@ -304,26 +337,62 @@ contenido:
       id: LLAMADA_CAB_001
       titulo: Se valida el funcionamiento de las llamadas de cabina
       descripcion: Verificar que la llamada se atiende correctamente.
-      componente: CPU_A
-      plataforma: HIL
+      parametrizacion:
+        - "Número de paradas: 4."
       situacion_inicial:
         - Ascensor en reposo.
-      pasos:
+      pasos:                       # «Ensayo» en la tabla
         - Realizar una llamada de cabina.
-      situacion_final:
         - La llamada se atiende.
+      maniobra: [Simplex, Dúplex]
       automatizable: si
-      criticidad: ""
-      entorno: HIL
-      referencia: ""
-      fecha: ""
-      version: ""
-      etiquetas: [regresion, smoke]
+      entorno: [Automático, Maqueta]
+      requisitos: [REQ-LLAM-001]
+      etiquetas: [regresion, smoke]  # «Tags» en la tabla
+      fecha: "15/10/2026"
+      version: "1.2"
       contexto:
         - "Contexto que se aplica únicamente a esta prueba."
       campos_adicionales:
-        Resultado esperado: La llamada se atiende.
+        Datos de prueba: Bus CAN1 a 250 kbit/s.
 ```
+
+### Esquema de las pruebas
+
+Todas las pruebas tienen los mismos campos, en el orden de la tabla de
+`plantillas/tabla_prueba.docx`. Se definen en un solo sitio, `esquema.py`, que
+usan el importador, el editor (formulario y validación), el DOCX y las
+campañas:
+
+| Campo | En la tabla | Tipo |
+|---|---|---|
+| `id`, `titulo` | ID \| Título (cabecera verde) | texto, **obligatorios** |
+| `descripcion` | Descripción | texto |
+| `parametrizacion` | Parametrización | lista con viñetas |
+| `situacion_inicial` | Situación inicial | lista con viñetas |
+| `pasos` | Ensayo | lista numerada |
+| `maniobra` | Maniobra | varias de: Simplex, Dúplex |
+| `automatizable` | Automatizable | una de: si, no, corto, medio, largo, hecho |
+| `entorno` | Entorno de pruebas | varias de: Automático, Maqueta, Torre |
+| `requisitos` | Requisitos | lista de textos (uno por línea) |
+| `etiquetas` | Tags | lista de textos (separados por comas) |
+| `fecha`, `version` | Fecha \| Versión | texto |
+
+Además, `nombre` y `nivel` (título en el documento), `contexto`,
+`campos_adicionales` (filas al final de la tabla) e `imagenes`.
+
+**Cambiar un campo para todas las pruebas.** Se cambia en `esquema.py` (y, si
+el Word trae datos que convertir, la regla en `esquema.migrar_prueba`) y se
+vuelve a importar el Word.
+
+Al importar, el formato anterior se convierte así: *Situación final* pasa al final
+del *Ensayo*; *componente*, *plataforma*, *criticidad* y *referencia* se
+eliminan; *Maniobra(s)*, *Requisito(s)* y *Tags* de los campos adicionales
+pasan a su campo; *Resultado esperado*, *Criterio(s) de aceptación*,
+*Criterio validación*, *Observaciones* y los campos de resultado (*Ejecutor
+prueba*, *Fecha ejecución*, *Resultado obtenido*, *Decisión*, *Resultado*) se
+eliminan; *entorno* (A, M, T y mezclas como «A/M» o «AMT») y *maniobra*
+(S, D…) pasan a opciones y lo que no encaja se descarta con un aviso.
 
 Las listas pueden contener texto sencillo o mapas con `texto`, `nivel` e
 `imagenes`. En el resto de estructuras, las imágenes se referencian mediante
@@ -338,9 +407,8 @@ Consejos para crear una prueba:
   `seguridad`); son el criterio principal para elegir qué pruebas entran en una
   campaña de ejecución.
 - Usa un ID único salvo que la repetición sea deliberada y esté documentada.
-- Mantén `situacion_inicial`, `pasos` y `situacion_final` como listas.
-- Conserva los campos adicionales con su significado; no mezcles el resultado
-  esperado con la situación final salvo que el modelo del equipo lo defina así.
+- Mantén `parametrizacion`, `situacion_inicial` y `pasos` como listas, y
+  `maniobra`, `entorno`, `requisitos` y `etiquetas` como listas de textos.
 - Para añadir una imagen, guarda el archivo en la carpeta de imágenes del
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.

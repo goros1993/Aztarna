@@ -1,10 +1,12 @@
 "use strict";
 /* Formularios de pruebas y secciones, editores de lista, imágenes y vista YAML. */
 
-const CAMPOS_TEXTO = ["nombre", "id", "titulo", "descripcion", "componente", "plataforma",
-  "automatizable", "criticidad", "entorno", "referencia", "fecha", "version"];
-const LISTAS = ["contexto", "situacion_inicial", "pasos", "situacion_final"];
-const AUTOMATIZABLE = ["", "si", "no", "corto", "medio", "largo", "hecho"];
+/* Campos de la prueba (los define esquema.py; las opciones llegan con api.esquema()). */
+const CAMPOS_TEXTO = ["nombre", "id", "titulo", "descripcion", "automatizable", "fecha", "version"];
+const LISTAS = ["contexto", "parametrizacion", "situacion_inicial", "pasos"];
+const MULTIPLES = ["maniobra", "entorno"];
+const TEXTOS = ["requisitos", "etiquetas"];
+const opcionesDe = (clave) => (S.esquema && S.esquema.opciones[clave]) || [];
 
 /** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"seccion"|"tabla", indice, valores, cambios, nivel, vista}. */
 let F = null;
@@ -102,7 +104,7 @@ function valoresDePrueba(el = {}) {
   for (const k of LISTAS) v[k] = aLista(el[k]).map(filaDesde);
   v.campos_adicionales = extrasDesde(el.campos_adicionales);
   v.imagenes = aLista(el.imagenes).map(String);
-  v.etiquetas = aLista(el.etiquetas).map(String);
+  for (const k of [...MULTIPLES, ...TEXTOS]) v[k] = aLista(el[k]).map(String);
   return v;
 }
 
@@ -110,13 +112,13 @@ function serializar(clave) {
   const v = F.valores[clave];
   if (LISTAS.includes(clave)) return filasAPlano(v);
   if (clave === "campos_adicionales") return extrasAPlano(v);
-  if (clave === "imagenes" || clave === "etiquetas") return [...v];
+  if (clave === "imagenes" || MULTIPLES.includes(clave) || TEXTOS.includes(clave)) return [...v];
   return v;
 }
 
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
-    ? [...CAMPOS_TEXTO, ...LISTAS, "campos_adicionales", "imagenes", "etiquetas"]
+    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES, ...TEXTOS, "campos_adicionales", "imagenes"]
     : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
 }
@@ -211,52 +213,82 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
     h("label", { for: id, text: etiqueta }), input);
 }
 
-/** Etiquetas como fichas: Enter o coma añade, Retroceso en vacío quita la última. */
-function campoEtiquetas() {
-  const etiquetas = F.valores.etiquetas;
+/**
+ * Lista de textos como fichas (tags, requisitos): Enter añade (y la coma, si
+ * `conComas`), Retroceso en vacío quita la última.
+ */
+function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false } = {}) {
+  const valores = F.valores[clave];
+  const id = "f-" + clave;
   const fichas = h("div", { class: "fichas" });
-  const sugerencias = h("datalist", { id: "sugerencias-etiquetas" });
+  const sugerencias = h("datalist", { id: "sugerencias-" + clave });
   const entrada = h("input", {
-    id: "f-etiquetas", type: "text", autocomplete: "off", list: "sugerencias-etiquetas",
-    placeholder: "Añadir etiqueta…", "aria-label": "Añadir etiqueta",
+    id, type: "text", autocomplete: "off", list: "sugerencias-" + clave,
+    placeholder: "Añadir…", "aria-label": `Añadir a ${etiqueta}`,
     onkeydown: (e) => {
-      if ((e.key === "Enter" || e.key === ",") && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
+      if ((e.key === "Enter" || (conComas && e.key === ",")) && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
       else if (e.key === "Enter") e.preventDefault();
-      else if (e.key === "Backspace" && !entrada.value && etiquetas.length) { etiquetas.pop(); tocar("etiquetas"); pintar(); }
+      else if (e.key === "Backspace" && !entrada.value && valores.length) { valores.pop(); tocar(clave); pintar(); }
     },
-    oninput: () => { if (entrada.value.includes(",")) añadir(entrada.value); },
-    onchange: () => { if (entrada.value.trim()) añadir(entrada.value); },   // al elegir una sugerencia
+    oninput: () => { if (conComas && entrada.value.includes(",")) añadir(entrada.value); },
+    onchange: () => { if (entrada.value.trim()) añadir(entrada.value); },   // al elegir una sugerencia o salir del campo
   });
   function añadir(texto) {
-    for (const parte of texto.split(",").map((t) => t.trim()).filter(Boolean)) {
-      if (!etiquetas.includes(parte)) etiquetas.push(parte);
+    for (const parte of (conComas ? texto.split(",") : [texto]).map((t) => t.trim()).filter(Boolean)) {
+      if (!valores.includes(parte)) valores.push(parte);
     }
     entrada.value = "";
-    tocar("etiquetas");
+    tocar(clave);
     pintar();
   }
   function pintar() {
-    fichas.replaceChildren(...etiquetas.map((t, i) => h("span", { class: "ficha" }, t,
+    fichas.replaceChildren(...valores.map((t, i) => h("span", { class: "ficha" }, t,
       h("button", {
-        type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar etiqueta ${t}`,
-        onclick: () => { etiquetas.splice(i, 1); tocar("etiquetas"); pintar(); entrada.focus(); },
+        type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar ${t}`,
+        onclick: () => { valores.splice(i, 1); tocar(clave); pintar(); entrada.focus(); },
       }, "×"))), entrada);
   }
   pintar();
-  api.etiquetas().then((lista) => {
-    sugerencias.replaceChildren(...lista.map((t) => h("option", { value: t })));
-  }, () => {});
-  return h("div", { class: "campo completo" },
-    h("label", { for: "f-etiquetas", text: "Etiquetas" }), fichas, sugerencias,
-    h("span", { class: "ayuda", text: "Sirven para elegir qué pruebas entran en una campaña de ejecución." }));
+  if (sugerir) sugerir().then((lista) => sugerencias.replaceChildren(...lista.map((t) => h("option", { value: t }))), () => {});
+  return h("div", { class: "campo" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
+    h("label", { for: id, text: etiqueta }), fichas, sugerencias,
+    ayuda ? h("span", { class: "ayuda", text: ayuda }) : null);
 }
 
+const campoEtiquetas = () => campoFichas("etiquetas", "Tags", {
+  conComas: true, sugerir: () => api.etiquetas(), completo: false, ancho: true,
+  ayuda: "Sirven para elegir qué pruebas entran en una campaña de ejecución.",
+});
+
+/** Varias opciones de una lista cerrada (maniobra, entorno): casillas. */
+function campoOpciones(clave, etiqueta) {
+  const valores = F.valores[clave];
+  const opciones = opcionesDe(clave);
+  // Un valor que ya no es opción se enseña (marcado) para que se vea y se pueda quitar.
+  const todas = [...opciones, ...valores.filter((v) => !opciones.includes(v))];
+  return h("fieldset", { class: "campo opciones" },
+    h("legend", { text: etiqueta }),
+    h("div", { class: "casillas" }, todas.map((o) => h("label", { class: "casilla" + (opciones.includes(o) ? "" : " no-valida"), title: opciones.includes(o) ? "" : "No es una opción del esquema" },
+      h("input", {
+        type: "checkbox", checked: valores.includes(o),
+        onchange: (e) => {
+          const i = valores.indexOf(o);
+          if (e.target.checked && i < 0) valores.push(o);
+          if (!e.target.checked && i >= 0) valores.splice(i, 1);
+          valores.sort((a, b) => (todas.indexOf(a) - todas.indexOf(b)));
+          tocar(clave);
+        },
+      }), " ", o))));
+}
+
+/** Una opción: `opciones` es una lista de {valor, texto}. */
 function campoSelect(clave, etiqueta, opciones) {
   const id = "f-" + clave;
-  const lista = opciones.includes(F.valores[clave]) ? opciones : [...opciones, F.valores[clave]];
+  const lista = [{ valor: "", texto: "(sin indicar)" }, ...opciones];
+  if (!lista.some((o) => o.valor === F.valores[clave])) lista.push({ valor: F.valores[clave], texto: `${F.valores[clave]} (no es una opción)` });
   const select = h("select", {
     id, onchange: (e) => { F.valores[clave] = e.target.value; tocar(clave); },
-  }, lista.map((o) => h("option", { value: o, selected: o === F.valores[clave], text: o || "(sin indicar)" })));
+  }, lista.map((o) => h("option", { value: o.valor, selected: o.valor === F.valores[clave], text: o.texto })));
   return h("div", { class: "campo" }, h("label", { for: id, text: etiqueta }), select);
 }
 
@@ -505,7 +537,7 @@ function editorExtras() {
   const bloque = h("section", { class: "bloque", "aria-label": "Campos adicionales" },
     h("div", { class: "bloque-cab" },
       h("h3", { text: "Campos adicionales" }),
-      h("p", { class: "ayuda", text: "Información propia de esta prueba, como el resultado esperado." }),
+      h("p", { class: "ayuda", text: "Información propia de esta prueba que no tiene campo en la tabla; sale en filas al final de la tabla." }),
       h("button", {
         class: "btn ghost peq", type: "button",
         onclick: () => { filas.push({ clave: "", valor: "", tipo: "texto", orig: undefined }); tocar("campos_adicionales"); pintar(filas.length - 1); },
@@ -588,27 +620,27 @@ function cuerpoPrueba(ubicacion) {
   cont.appendChild(h("section", { class: "bloque", "aria-label": "Datos de la prueba" },
     h("div", { class: "bloque-cab" }, h("h3", { text: "Datos de la prueba" })),
     h("div", { class: "rejilla" },
-      campoTexto("id", "ID", { mono: true }),
+      campoTexto("id", "ID *", { mono: true }),
       campoTexto("nombre", "Encabezado en el documento", { ancho: true }),
-      campoTexto("titulo", "Título", { completo: true }),
-      campoTexto("componente", "Componente"),
-      campoTexto("plataforma", "Plataforma"),
-      campoTexto("entorno", "Entorno de pruebas"),
-      campoTexto("criticidad", "Criticidad"),
-      campoSelect("automatizable", "Automatizable", AUTOMATIZABLE),
-      campoTexto("referencia", "Referencia"),
-      campoTexto("fecha", "Fecha"),
-      campoTexto("version", "Versión"),
-      campoEtiquetas(),
+      campoTexto("titulo", "Título *", { completo: true }),
       campoArea("descripcion", "Descripción"))));
-  cont.append(
+  append(cont, [
     editorLista("contexto", "Contexto", { ayuda: "Texto y tablas que aparecen antes de la tabla de la prueba.", conTablas: true }),
+    editorLista("parametrizacion", "Parametrización"),
     editorLista("situacion_inicial", "Situación inicial"),
-    editorLista("pasos", "Pasos", { numerada: true, ayuda: "Pulsa Enter para añadir otro paso; Mayús+Enter inserta un salto de línea." }),
-    editorLista("situacion_final", "Situación final"),
+    editorLista("pasos", "Ensayo", { numerada: true, ayuda: "Pulsa Enter para añadir otro paso; Mayús+Enter inserta un salto de línea." }),
+    h("section", { class: "bloque", "aria-label": "Clasificación" },
+      h("div", { class: "rejilla" },
+        campoOpciones("maniobra", "Maniobra"),
+        campoSelect("automatizable", "Automatizable", (S.esquema && S.esquema.automatizable) || []),
+        campoOpciones("entorno", "Entorno de pruebas"),
+        campoFichas("requisitos", "Requisitos", { ayuda: "Uno por ficha: escribe y pulsa Enter.", completo: false }),
+        campoEtiquetas(),
+        campoTexto("fecha", "Fecha"),
+        campoTexto("version", "Versión", { ancho: true }))),
     editorExtras(),
     galeria(),
-    bloqueAutomatizacion(F.idOriginal || F.valores.id));
+    bloqueAutomatizacion(F.idOriginal || F.valores.id)]);    // null si Robot no está configurado
   return cont;
 }
 
