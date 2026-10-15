@@ -308,3 +308,38 @@ práctica y auditable es:
 
 5. Mantener siempre un aviso por tabla clasificada como informativa o dudosa, y
    comparar conteos con el documento original antes de aceptar la importación.
+
+## Gestión de requisitos (rama `requisitos`)
+
+La trazabilidad vive en un único sitio: el campo `requisitos` de cada prueba
+(lista de IDs). Matriz, cobertura e impacto de cambios se calculan a partir de
+ahí.
+
+Fases:
+
+1. Inventario del Word de requisitos (`inventario`) y elección de plantilla de
+   tabla. Campos propuestos: `id`, `titulo` (obligatorios), `texto`, `tipo`,
+   `verificacion` (ensayo / inspección / análisis / demostración), `estado`
+   (borrador / aprobado / obsoleto), `padre`, `origen`, `version`,
+   `etiquetas`, `notas`.
+2. Importación + auditoría a `requisitos/*.yaml`; orden
+   `herramientas.py trazabilidad`: matriz, requisitos sin cobertura,
+   referencias huérfanas y pruebas sin requisito.
+3. Editor: pestaña Requisitos (árbol con estado, ficha con pruebas que lo
+   cubren), sugerencias de IDs y validación en el formulario de prueba, matriz
+   exportable (CSV/DOCX), panel de cobertura.
+4. Cambios: huella del `texto`, comparación entre revisiones (nuevos,
+   eliminados, modificados con diff, posibles renombrados), enlaces sospechosos
+   con revisión en `requisitos/revisiones.yaml`, campaña de impacto, líneas
+   base.
+5. Campañas: estado de verificación por requisito (sin cobertura / cubierto /
+   verificado / fallido / sospechoso / no aplica) y sección en el informe.
+
+Decisiones abiertas:
+
+- ¿El Word de requisitos lo mantiene otro (solo lectura + reimportar) o pasa a
+  editarse en la herramienta?
+- ¿Hay jerarquía? ¿Cubrir los hijos cubre al padre?
+- ¿Una prueba basta para cubrir un requisito o hace falta marca manual de
+  cobertura completa?
+- ¿Los IDs actuales del campo `requisitos` coinciden con los del Word?
