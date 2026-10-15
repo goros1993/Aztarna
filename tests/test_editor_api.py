@@ -210,6 +210,96 @@ class MoverTests(ApiBase):
         self.assertEqual(ids, ["T-1", "T-2", "T-3"])
 
 
+class TablasTests(ApiBase):
+    """Tablas que no son pruebas: se ven en el árbol, se editan, crean, mueven y borran."""
+
+    def nodos(self):
+        return ok(self, self.api.navegacion(0))
+
+    def crear(self, ubicacion, filas=None):
+        return ok(self, self.api.crear_tabla(0, ubicacion, {"filas": filas} if filas else None))["indice"]
+
+    def leer(self):
+        return YAML().load((self.dir / "01_demo.yaml").read_text(encoding="utf-8"))["contenido"]
+
+    def test_crear_editar_y_borrar(self):
+        indice = self.crear({"tipo": "seccion", "indice": 0})            # al final de la sección A
+        self.assertEqual(indice, 2)
+        nodo = self.nodos()[2]
+        self.assertEqual((nodo["tipo"], nodo["padre"], nodo["filas"], nodo["columnas"]), ("tabla", 0, 2, 2))
+        ok(self, self.api.guardar_tabla(0, indice, {"filas": [
+            [{"texto": "**Parámetro**", "columnas": 2}],
+            ["Velocidad", {"texto": "1 m/s", "imagenes": [], "columnas": 1}],
+        ]}))
+        self.assertEqual(self.leer()[2]["tabla"]["filas"],
+                         [[{"texto": "**Parámetro**", "columnas": 2}], ["Velocidad", "1 m/s"]])
+        datos = ok(self, self.api.obtener(0, indice))
+        self.assertEqual(datos["tipo"], "tabla")
+        self.assertEqual(self.nodos()[2]["titulo"], "Parámetro")             # sin marcas de formato
+        self.assertEqual([n["tipo"] for n in ok(self, self.api.navegacion(0, "velocidad"))], ["seccion", "tabla"])
+        self.assertFalse(self.api.guardar_tabla(0, indice, {"filas": []})["ok"])
+        self.assertFalse(self.api.guardar_tabla(0, 1, {"filas": [["x"]]})["ok"])   # 1 es una prueba
+        ok(self, self.api.borrar_tabla(0, indice))
+        self.assertFalse(any("tabla" in e for e in self.leer()))
+
+    def test_crear_despues_y_al_final(self):
+        self.assertEqual(self.crear({"tipo": "despues", "indice": 1}, [["a"]]), 2)
+        self.assertEqual(self.crear({"tipo": "final"}), len(self.leer()) - 1)
+        self.assertFalse(self.api.crear_tabla(0, {"tipo": "seccion", "indice": 1}, None)["ok"])
+
+    def test_mover_tablas_y_mover_junto_a_una_tabla(self):
+        tabla = self.crear({"tipo": "final"}, [["t"]])
+        nuevo = ok(self, self.api.mover(0, tabla, 0, "dentro"))["indice"]      # al final de la sección A
+        self.assertEqual(nuevo, 2)
+        self.assertIn("tabla", self.leer()[2])
+        # Una prueba que se suelta antes de la tabla toma el nivel de lo que hay en esa sección.
+        nuevo = ok(self, self.api.mover(0, 5, 2, "antes"))["indice"]           # T-2 (nivel 4)
+        contenido = self.leer()
+        self.assertEqual(contenido[nuevo]["prueba"]["id"], "T-2")
+        self.assertEqual(contenido[nuevo]["prueba"]["nivel"], 3)
+        # Mover la sección A arrastra su tabla con ella.
+        ok(self, self.api.mover(0, 0, len(contenido) - 1, "despues"))
+        claves = [next(iter(e)) for e in self.leer()]
+        self.assertEqual(claves[-4:], ["seccion", "prueba", "prueba", "tabla"])
+
+    def test_yaml_y_validacion(self):
+        indice = self.crear({"tipo": "final"}, [["a", "b"]])
+        texto = ok(self, self.api.obtener_yaml(0, indice))["texto"]
+        self.assertTrue(texto.startswith("filas:"))
+        ok(self, self.api.aplicar_yaml(0, indice, "filas:\n- [x, y]\n- [z]\nmotivo: importada\n"))
+        self.assertEqual(self.leer()[indice]["tabla"], {"filas": [["x", "y"], ["z"]], "motivo": "importada"})
+        self.assertFalse(self.api.aplicar_yaml(0, indice, "filas: []\n")["ok"])
+        contenido = self.leer()
+        contenido.append({"tabla": {"filas": "no es una lista"}})
+        datos = YAML().load((self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
+        datos["contenido"] = contenido
+        with (self.dir / "01_demo.yaml").open("w", encoding="utf-8") as f:
+            YAML().dump(datos, f)
+        ok(self, self.api.recargar())
+        mensajes = [p["mensaje"] for p in ok(self, self.api.validar())["problemas"]]
+        self.assertTrue(any("filas" in m for m in mensajes))
+
+
+class TablasEnContextoTests(ApiBase):
+    def test_guardar_contexto_con_tabla_no_la_pierde(self):
+        contexto = ["Antes de la tabla.", {"tabla": {"filas": [["a", {"texto": "b", "columnas": 1}]], "motivo": "importada"}}, ""]
+        ok(self, self.api.guardar_seccion(0, 0, {"contexto": contexto}))
+        guardado = self.contenido()[0]["contexto"]
+        self.assertEqual(guardado, ["Antes de la tabla.", {"tabla": {"motivo": "importada", "filas": [["a", "b"]]}}])
+        ok(self, self.api.guardar_prueba(0, 1, {"contexto": [{"tabla": {"filas": [["x"]]}}]}))
+        self.assertEqual(self.contenido()[1]["prueba"]["contexto"], [{"tabla": {"filas": [["x"]]}}])
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"contexto": [{"tabla": {"filas": []}}]})["ok"])
+
+    def test_validacion_de_tablas_del_contexto(self):
+        datos = YAML().load((self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
+        datos["contenido"][0]["contexto"] = [{"tabla": {"filas": "mal"}}]
+        with (self.dir / "01_demo.yaml").open("w", encoding="utf-8") as f:
+            YAML().dump(datos, f)
+        ok(self, self.api.recargar())
+        mensajes = [p["mensaje"] for p in ok(self, self.api.validar())["problemas"]]
+        self.assertTrue(any("Tabla del contexto" in m for m in mensajes))
+
+
 class ValidacionTests(ApiBase):
     def test_validar_detecta_duplicados_imagenes_y_campos_vacios(self):
         ok(self, self.api.guardar_prueba(0, 1, {

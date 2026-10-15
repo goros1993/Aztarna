@@ -1,5 +1,5 @@
 "use strict";
-/* Árbol de secciones y pruebas: selección, plegado, teclado y arrastre. */
+/* Árbol de secciones, pruebas y tablas: selección, plegado, teclado y arrastre. */
 
 function profundidades(nodos) {
   const prof = new Map();
@@ -42,7 +42,7 @@ function renderArbol() {
   if (!S.nodos.length) {
     const texto = S.modo === "ejecucion"
       ? (S.campana ? "Ninguna prueba de la campaña en este capítulo con este filtro." : "Abre o crea una campaña.")
-      : S.consulta ? "Ninguna prueba coincide con la búsqueda." : "Este capítulo no tiene pruebas todavía.";
+      : S.consulta ? "Nada coincide con la búsqueda." : "Este capítulo no tiene pruebas todavía.";
     ul.appendChild(h("li", { class: "arbol-vacio", text: texto }));
     return;
   }
@@ -91,6 +91,13 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
     append(li, [
       h("span", { class: "tit", text: n.titulo || "(sin nombre)" }),
       cuenta ? h("span", { class: "cuenta", text: String(cuenta), title: plural(cuenta, "prueba", "pruebas") }) : null,
+    ]);
+  } else if (n.tipo === "tabla") {
+    li.title = `Tabla de ${n.filas} × ${n.columnas}`;
+    append(li, [
+      h("span", { class: "hueco" }),
+      h("span", { class: "icono-tabla" }, icon("table")),
+      h("span", { class: "tit", text: n.titulo || "(tabla vacía)" }),
     ]);
   } else {
     append(li, [
@@ -208,7 +215,7 @@ async function moverElemento(origen, destino, zona) {
   try {
     const r = await api.mover(S.capitulo, origen.indice, destino, zona);
     await refrescarTodo({ seleccionar: { tipo: origen.tipo, indice: r.indice } });
-    aviso(origen.tipo === "seccion" ? "Sección movida" : "Prueba movida", "ok");
+    aviso({ seccion: "Sección movida", prueba: "Prueba movida", tabla: "Tabla movida" }[origen.tipo], "ok");
   } catch (e) {
     fallo(e);
     await refrescarTodo({});

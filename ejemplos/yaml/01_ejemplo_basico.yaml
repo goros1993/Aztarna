@@ -1,8 +1,14 @@
 # Capítulo 1: llamadas y desplazamientos (datos ficticios).
 # Muestra lo esencial: texto de capítulo, secciones en dos niveles, pruebas
 # con listas sencillas, subpuntos con «nivel» y una imagen en un paso.
+# Empieza con una tabla que no es una prueba (historial de cambios).
 capitulo: Ejemplo básico
 contenido:
+- tabla:
+    filas:
+    - ['**Modificado por**', '**Fecha**', '**Edición**', '**Cambio**']
+    - [Ana Pérez, 12/01/2026, '1.0', Primera versión del capítulo.]
+    - [Luis Gómez, 03/03/2026, '1.1', Añadida la prueba de nivelación DEMO-NIV-001.]
 - texto: >-
     Este capítulo reúne las pruebas **funcionales básicas** del controlador
     DEMO-A1: registro de llamadas, servicio de plantas y nivelación. Todas se

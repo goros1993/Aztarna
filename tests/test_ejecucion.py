@@ -93,7 +93,7 @@ class CrearTests(CampañaBase):
 
     def test_rechaza_ids_repetidos(self):
         capitulo = self.capitulos()[0]
-        capitulo["data"]["contenido"][2]["prueba"]["id"] = "DEMO-LLAM-002"
+        capitulo["data"]["contenido"][3]["prueba"]["id"] = "DEMO-LLAM-002"
         save_chapter(capitulo)
         with self.assertRaisesRegex(ValueError, "repetido"):
             self.crear()
@@ -168,8 +168,8 @@ class ResumenTests(CampañaBase):
         ej.registrar(self.campaña, "DEMO-LLAM-001", "ok", huella_actual=self.campaña["datos"]["pruebas"][0]["huella"])
         ej.registrar(self.campaña, "DEMO-LLAM-002", "no_ok")
         capitulos = self.capitulos()
-        capitulos[0]["data"]["contenido"][2]["prueba"]["titulo"] = "Título cambiado"
-        del capitulos[0]["data"]["contenido"][3]          # DEMO-LLAM-002 desaparece
+        capitulos[0]["data"]["contenido"][3]["prueba"]["titulo"] = "Título cambiado"
+        del capitulos[0]["data"]["contenido"][4]          # DEMO-LLAM-002 desaparece
         mensajes = {(p["id"], p["mensaje"]) for p in ej.resumen(self.campaña, capitulos)["problemas"]}
         self.assertIn(("DEMO-LLAM-001", "La prueba ha cambiado después de ejecutarse."), mensajes)
         self.assertIn(("DEMO-LLAM-002", "La prueba ya no existe en los YAML de pruebas."), mensajes)
@@ -259,7 +259,7 @@ class CongelarTests(CampañaBase):
     def test_cambiar_las_pruebas_despues_no_afecta_a_una_campaña_cerrada(self):
         campaña = self.cerrar_todo({"etiquetas": ["smoke"]})
         capitulo = self.capitulos()[0]
-        capitulo["data"]["contenido"][2]["prueba"]["titulo"] = "Otro título"
+        capitulo["data"]["contenido"][3]["prueba"]["titulo"] = "Otro título"
         save_chapter(capitulo)
         self.assertEqual(ej.resumen(campaña, ej.capitulos_de(campaña))["problemas"], [])
 
@@ -336,7 +336,7 @@ class ApiTests(CampañaBase):
     def test_detecta_prueba_cambiada_despues_de_ejecutar(self):
         self.crear_por_api()
         ok(self, self.api.campana_registrar("DEMO-LLAM-001", "ok"))
-        ok(self, self.api.guardar_prueba(0, 2, {"titulo": "Título nuevo"}))
+        ok(self, self.api.guardar_prueba(0, 3, {"titulo": "Título nuevo"}))
         self.assertTrue(ok(self, self.api.campana_resultado("DEMO-LLAM-001"))["prueba_cambiada"])
 
     def test_evidencias_se_guardan_en_la_campaña(self):
@@ -384,7 +384,7 @@ class ApiTests(CampañaBase):
         self.assertTrue(Path(informe["archivo"]).is_file())
         # al abrir otra carpeta se puede volver a editar
         ok(self, self.api.abrir_carpeta(str(self.pruebas)))
-        ok(self, self.api.guardar_prueba(0, 2, {"titulo": "Editable de nuevo"}))
+        ok(self, self.api.guardar_prueba(0, 3, {"titulo": "Editable de nuevo"}))
 
     def test_abrir_sin_encontrar_las_pruebas_y_reubicarlas(self):
         self.crear_por_api()

@@ -212,12 +212,14 @@ regenerando el DOCX cuando sea necesario.
 ## Clasificación de tablas no prueba
 
 *Hecho:* `convertir.py` clasifica cada tabla (prueba, dudosa o no prueba) con
-las reglas de abajo; las que no son pruebas se conservan como `tabla:` en su
-sitio y `yaml_a_docx.py` las vuelve a pintar. `inventario.py` usa la misma
+las reglas de abajo; las que no son pruebas se conservan como `tabla:` en el
+contexto de la sección o prueba donde están (o en el capítulo, antes del
+primer título) y `yaml_a_docx.py` las vuelve a pintar. `inventario.py` usa la misma
 clasificación. Los avisos van agrupados por tipo (`avisos.txt`) y uno por
-línea con capítulo, nº de tabla e ID (`avisos.csv`). Pendiente: mostrar las
-tablas en el editor (ahora solo se conservan) y revisar con el documento real
-las dudosas y los umbrales.
+línea con capítulo, nº de tabla e ID (`avisos.csv`). El editor las muestra
+en el contexto y las edita al hacer clic (cuadrícula con filas, columnas,
+celdas unidas, formato e imágenes). Pendiente: revisar con el documento real las dudosas y los
+umbrales; las celdas unidas en vertical se importan repetidas en cada fila.
 
 Propuesta original:
 

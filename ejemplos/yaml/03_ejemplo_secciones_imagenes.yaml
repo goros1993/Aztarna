@@ -3,13 +3,22 @@
 # posibles: contexto de sección y de prueba, situación inicial, pasos,
 # situación final e imágenes de la prueba. Incluye PNG, JPG y un EMF
 # vectorial (en Linux y macOS el editor no muestra su miniatura, pero lo
-# conserva y lo exporta al DOCX).
+# conserva y lo exporta al DOCX). El contexto de la sección Puertas lleva
+# una tabla de parámetros (no es una prueba) con una cabecera que ocupa dos
+# columnas.
 capitulo: Ejemplo de secciones e imágenes
 contenido:
 - seccion: Puertas
   nivel: 2
   contexto:
   - Las puertas de cabina y de piso se mueven juntas con el operador de puertas.
+  - tabla:
+      filas:
+      - - texto: '**Parámetros del operador de puertas**'
+          columnas: 2
+      - [Tiempo máximo de apertura, '3,0 s']
+      - [Tiempo máximo de cierre, '3,5 s']
+      - [Fuerza máxima de cierre, '[[rojo|150 N]]']
   - texto: Secuencia de señales durante una apertura con reapertura por obstáculo.
     imagenes:
     - imagenes/cronograma_puertas.png

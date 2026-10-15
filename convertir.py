@@ -5,7 +5,9 @@ Las imágenes se guardan en salida/yaml/imagenes y se referencian desde el YAML.
 
 Cada tabla se clasifica antes de leerla: las pruebas pasan al esquema común
 (`prueba:`) y las demás (historial de cambios, tablas de parámetros…) se
-conservan tal cual, en su sitio, como `tabla:` con sus filas. Los avisos se
+conservan tal cual como `tabla:` con sus filas, en el mismo sitio que el
+texto que las rodea: en el contexto de la sección o de la prueba siguiente,
+o en el capítulo si aún no hay ningún título. Los avisos se
 agrupan por tipo en avisos.txt (y avisos.csv para filtrarlos en Excel).
 
 Uso:
@@ -505,7 +507,6 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
     pendiente = None
     texto_pendiente = []
     grupos = []
-    tras_tabla = False          # el texto que sigue a una tabla informativa va detrás de ella
     numero_tabla = 0
     ids_vistos = {}
 
@@ -524,9 +525,7 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             texto_pendiente = []
 
     def guardar_texto(texto):
-        if tras_tabla:
-            capitulos[-1]["contenido"].append({"texto": texto})
-        elif grupos:
+        if grupos:
             grupos[-1]["entrada"].setdefault("contexto", []).append(texto)
         else:
             capitulos[-1]["contenido"].append({"texto": texto, "alcance": "capitulo"})
@@ -539,8 +538,6 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             if not tiene_texto and not isinstance(texto, dict):
                 continue
             nivel = nivel_titulo(p)
-            if nivel:
-                tras_tabla = False
             if nivel == 1:
                 volcar()
                 capitulos.append({"capitulo": p.text.strip(), "contenido": []})
@@ -565,17 +562,21 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             antes = len(avisos)
             clase, motivo = clasificar_tabla(tabla)
             if clase != "prueba":
-                # Si había un título pendiente, pasa a ser la sección que contiene la tabla.
-                volcar()
                 if clase == "dudosa":
                     cabecera = " ".join(tabla.rows[0].cells[0].text.split())[:60] if tabla.rows else ""
                     avisos.append(Aviso("tabla_dudosa", f"«{cabecera}»: {motivo}"))
                 else:
                     avisos.append(Aviso("tabla_informativa", motivo))
-                capitulos[-1]["contenido"].append({"tabla": tabla_informativa(tabla, motivo, guardar_imagen)})
-                tras_tabla = True
+                # La tabla va donde iría un párrafo en ese punto: contexto del
+                # título pendiente, de la sección actual o, si no hay, del capítulo.
+                elemento = {"tabla": tabla_informativa(tabla, motivo, guardar_imagen)}
+                if pendiente:
+                    texto_pendiente.append(elemento)
+                elif grupos:
+                    grupos[-1]["entrada"].setdefault("contexto", []).append(elemento)
+                else:
+                    capitulos[-1]["contenido"].append(elemento)
             else:
-                tras_tabla = False
                 prueba = parsear(tabla, avisos, guardar_imagen)
                 if pendiente:
                     cab = {"nombre": pendiente[0], "nivel": pendiente[1]}

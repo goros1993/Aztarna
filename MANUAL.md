@@ -183,7 +183,8 @@ exactamente los mismos pasos, y será más fácil automatizarlas.
 
 ![Nueva prueba](docs/manual/04_nueva_prueba.png)
 
-Usa **+ Prueba** o **+ Sección** del panel izquierdo. Elige **dónde** crearla:
+Usa **+ Prueba** o **+ Sección** del panel izquierdo (las tablas se añaden en
+el contexto, ver [4.9](#49-tablas-que-no-son-pruebas)). Elige **dónde** crearla:
 justo después de la prueba seleccionada, dentro de una sección (al final) o
 al final del capítulo. El nivel de título se calcula solo. Rellena los datos
 y pulsa **Crear prueba** (o **Crear sección**).
@@ -192,8 +193,8 @@ y pulsa **Crear prueba** (o **Crear sección**).
 
 Arrastra pruebas y secciones en el árbol. Al soltar sobre una sección, según
 la posición, el elemento queda **antes**, **dentro** (al final) o **después**
-de ella. Una sección se mueve con todo su contenido y los niveles se ajustan
-solos.
+de ella. Una sección se mueve con todo su contenido (también las tablas de su
+contexto) y los niveles se ajustan solos.
 
 ### 4.6 Vista YAML
 
@@ -227,6 +228,43 @@ en el capítulo 8). El documento es una copia para leer o compartir: los
 cambios se hacen siempre en el editor.
 
 ---
+
+### 4.9 Tablas que no son pruebas
+
+El documento también tiene tablas que no son pruebas: historial de cambios,
+tablas de parámetros… Van en el **contexto** de una sección o de una prueba,
+entre sus párrafos, igual que en el Word, y se exportan tal cual. Al importar
+el Word original se colocan ahí solas.
+
+![Tabla en el contexto de una sección](docs/manual/25_tabla_contexto.png)
+
+- Se ven como una tabla normal. **Haz clic en ella para editarla**; para
+  terminar, **Hecho** o **Esc**.
+- **Tabla** (en la cabecera del contexto) añade una tabla nueva de 2 × 2.
+  Las flechas la suben o bajan entre los párrafos y la papelera la quita.
+
+![Editar una tabla](docs/manual/26_tabla_edicion.png)
+
+Mientras se edita:
+
+- Haz clic en una celda para escribir; **Tab** pasa a la siguiente. Las
+  celdas admiten el mismo formato que el resto del texto (negrita, colores,
+  resaltado) y saltos de línea con **Intro**.
+- Con una celda elegida, los botones de encima añaden **filas** (encima o
+  debajo) y **columnas** (a la izquierda o a la derecha) o las borran.
+- **Unir con la derecha** junta una celda con la siguiente (por ejemplo, para
+  un título que ocupa toda la fila); **Separar** lo deshace.
+- **Imagen** añade una imagen a la celda; también se puede pegar una captura
+  (**Ctrl+V**) o soltar el archivo encima.
+
+Como el resto del contexto, los cambios se guardan con **Guardar**.
+
+Las tablas que van **antes del primer título** del capítulo (por ejemplo, el
+historial de cambios al principio) no tienen sección: aparecen en el árbol
+con un icono de tabla y se editan igual.
+
+En modo Ejecución, las tablas del contexto se ven (sin editar) en la ficha
+de la prueba o de la sección.
 
 ## 5. Ejecutar pruebas (modo Ejecución)
 

@@ -87,6 +87,42 @@ def headings_in_chapter(chapter: dict[str, Any]) -> list[tuple[int, str, int]]:
     return headings
 
 
+def is_table(element: Any) -> bool:
+    """Tabla que no es una prueba (historial, parámetros…), conservada del Word."""
+    return isinstance(element, dict) and isinstance(element.get("tabla"), dict)
+
+
+def cell_text(cell: Any) -> str:
+    if isinstance(cell, dict):
+        return str(cell.get("texto") or "")
+    return "" if cell is None else str(cell)
+
+
+def table_rows(table: dict[str, Any]) -> list[list[Any]]:
+    return [row for row in (table.get("filas") or []) if isinstance(row, list)]
+
+
+def table_title(table: dict[str, Any]) -> str:
+    """Primer texto de la tabla (sin marcas de formato), para mostrarla en el árbol."""
+    for row in table_rows(table):
+        for cell in row:
+            text = re.sub(r"\[\[[^\]|]+\||\]\]|\*", "", cell_text(cell))
+            text = " ".join(text.split())
+            if text:
+                return text[:80]
+    return ""
+
+
+def table_level(contents: list[Any], index: int) -> int:
+    """Nivel con el que se muestra una tabla: el de lo que cuelga del encabezado anterior."""
+    for element in reversed(contents[:index]):
+        if isinstance(element, dict) and isinstance(element.get("seccion"), str):
+            return min(normalize_level(element.get("nivel"), 2) + 1, 6)
+        if isinstance(element, dict) and isinstance(element.get("prueba"), dict):
+            return normalize_level(element["prueba"].get("nivel"), 3)
+    return 3
+
+
 def navigation_entries(
     chapter: dict[str, Any],
     query: str = "",
@@ -107,6 +143,17 @@ def navigation_entries(
             title = element["seccion"]
             records.append(("section", index, title, parent_index, level, False))
             heading_stack.append((level, index))
+            continue
+
+        if is_table(element):
+            ancestors = [heading[1] for heading in heading_stack]
+            searchable = " ".join(cell_text(c) for row in table_rows(element["tabla"]) for c in row).casefold()
+            matches = not query or query in searchable
+            if matches:
+                matching_heading_ids.update(ancestors)
+            records.append(("table", index, table_title(element["tabla"]) or "(tabla vacía)",
+                            ancestors[-1] if ancestors else None,
+                            min(heading_stack[-1][0] + 1, 6) if heading_stack else 3, matches))
             continue
 
         test = element.get("prueba")
@@ -132,7 +179,7 @@ def navigation_entries(
         for kind, index, label, parent_index, level, matches in records
         if (
             not query
-            or (kind == "test" and matches)
+            or (kind in ("test", "table") and matches)
             or (kind == "section" and index in matching_heading_ids)
         )
     ]
@@ -175,6 +222,22 @@ def insert_test(chapter: dict[str, Any], test: dict[str, Any],
     contents.insert(section_end_index(contents, heading_index), {"prueba": test})
 
 
+def insert_table(chapter: dict[str, Any], table: dict[str, Any],
+                 heading_index: int | None, after_index: int | None = None) -> int:
+    """Inserta una tabla al final de una sección, tras un elemento o al final; devuelve su índice."""
+    contents = chapter["data"]["contenido"]
+    if after_index is not None:
+        if not 0 <= after_index < len(contents):
+            raise ValueError("La posición seleccionada ya no existe.")
+        position = after_index + 1
+    elif heading_index is None:
+        position = len(contents)
+    else:
+        position = section_end_index(contents, heading_index)
+    contents.insert(position, {"tabla": table})
+    return position
+
+
 def element_level(element: Any) -> int | None:
     """Nivel de encabezado de una sección o prueba; None si no es ninguna."""
     if not isinstance(element, dict):
@@ -207,6 +270,8 @@ def section_end_index(contents: list[Any], heading_index: int) -> int:
 
 def block_range(contents: list[Any], index: int) -> tuple[int, int]:
     """Rango [inicio, fin) que se mueve junto con el elemento `index`."""
+    if 0 <= index < len(contents) and is_table(contents[index]):
+        return index, index + 1
     if index < 0 or index >= len(contents) or element_level(contents[index]) is None:
         raise ValueError("La posición seleccionada ya no es una sección ni una prueba.")
     if isinstance(contents[index].get("seccion"), str):
@@ -239,14 +304,17 @@ def move_block(
     if target_index < 0 or target_index >= len(contents):
         raise ValueError("El destino ya no existe.")
     target_level = element_level(contents[target_index])
+    if target_level is None and is_table(contents[target_index]):
+        target_level = table_level(contents, target_index)
     if target_level is None:
-        raise ValueError("El destino no es una sección ni una prueba.")
+        raise ValueError("El destino no es una sección, una prueba ni una tabla.")
     if start <= target_index < end:
         raise ValueError("No se puede mover un elemento dentro de sí mismo.")
     target_is_section = isinstance(contents[target_index].get("seccion"), str)
     if position == "dentro" and not target_is_section:
         raise ValueError("Solo se puede mover dentro de una sección.")
 
+    # Una tabla no tiene nivel: se mueve sin tocar niveles.
     old_level = element_level(contents[index])
     if position == "antes":
         new_level = target_level
@@ -260,9 +328,9 @@ def move_block(
         new_level = target_level + 1
         insert_at = section_end_index(contents, target_index)
 
-    delta = new_level - old_level
+    delta = new_level - old_level if old_level is not None else 0
     block_levels = [element_level(contents[i]) for i in range(start, end)]
-    if any(not 1 <= level + delta <= 6 for level in block_levels):
+    if any(level is not None and not 1 <= level + delta <= 6 for level in block_levels):
         raise ValueError(
             "El movimiento dejaría algún nivel fuera del rango 1-6. "
             "Elige otro destino."
@@ -270,7 +338,7 @@ def move_block(
 
     block = [contents[i] for i in range(start, end)]
     for element, level in zip(block, block_levels):
-        if delta:
+        if delta and level is not None:
             _set_level(element, level + delta)
     if insert_at > start:
         insert_at -= end - start

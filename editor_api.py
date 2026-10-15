@@ -37,7 +37,9 @@ from editor_core import (
     find_duplicate_id,
     headings_in_chapter,
     insert_section_after_test,
+    insert_table,
     insert_test,
+    is_table,
     move_block,
     navigation_entries,
     normalize_level,
@@ -46,6 +48,8 @@ from editor_core import (
     save_chapter,
     save_uploaded_images,
     section_end_index,
+    table_rows,
+    table_title,
     tests_in_chapter,
     yaml_to_string,
 )
@@ -154,6 +158,10 @@ def _clean_item(item: Any) -> Any:
         return item.strip()
     if not isinstance(item, dict):
         raise ValueError("Cada elemento de una lista debe ser texto o un mapa.")
+    if "tabla" in item:
+        # Tabla dentro del contexto (historial, parámetros…): se conserva con sus demás claves (motivo).
+        tabla = item["tabla"] if isinstance(item["tabla"], dict) else {}
+        return {"tabla": {**{k: v for k, v in tabla.items() if k != "filas"}, "filas": _clean_table(tabla.get("filas"))}}
     cleaned: dict[str, Any] = {}
     for key, value in item.items():
         if key == "texto":
@@ -179,7 +187,7 @@ def _clean_list(items: Any, field: str) -> list[Any]:
     for item in items:
         cleaned = _clean_item(item)
         empty_text = isinstance(cleaned, str) and not cleaned
-        empty_map = isinstance(cleaned, dict) and not cleaned.get("texto") and not cleaned.get("imagenes")
+        empty_map = isinstance(cleaned, dict) and not cleaned.get("texto") and not cleaned.get("imagenes") and "tabla" not in cleaned
         if not (empty_text or empty_map):
             result.append(cleaned)
     return result
@@ -199,6 +207,38 @@ def _clean_extras(extras: Any) -> dict[str, Any]:
             raise ValueError(f"El campo adicional «{name}» está repetido.")
         cleaned[name] = value
     return cleaned
+
+
+def _clean_table(filas: Any) -> list[list[Any]]:
+    """Filas de una tabla: cada celda es un texto o {texto, imagenes, columnas}."""
+    if not isinstance(filas, list) or not filas:
+        raise ValueError("La tabla necesita al menos una fila.")
+    limpias = []
+    for fila in filas:
+        if not isinstance(fila, list) or not fila:
+            raise ValueError("Cada fila de la tabla necesita al menos una celda.")
+        celdas = []
+        for celda in fila:
+            if isinstance(celda, dict):
+                texto = str(celda.get("texto") or "").replace("\r\n", "\n")
+                imagenes = [str(i).strip() for i in (celda.get("imagenes") or []) if str(i).strip()]
+                try:
+                    columnas = max(int(celda.get("columnas") or 1), 1)
+                except (TypeError, ValueError):
+                    columnas = 1
+            else:
+                texto, imagenes, columnas = ("" if celda is None else str(celda)).replace("\r\n", "\n"), [], 1
+            if not imagenes and columnas == 1:
+                celdas.append(texto)
+                continue
+            limpia: dict[str, Any] = {"texto": texto}
+            if imagenes:
+                limpia["imagenes"] = imagenes
+            if columnas > 1:
+                limpia["columnas"] = columnas
+            celdas.append(limpia)
+        limpias.append(celdas)
+    return limpias
 
 
 def _clean_tags(tags: Any) -> list[str]:
@@ -294,6 +334,8 @@ class EditorApi:
             raise ValueError("La posición seleccionada ya no corresponde a una prueba.")
         if tipo == "seccion" and not (isinstance(element, dict) and isinstance(element.get("seccion"), str)):
             raise ValueError("La posición seleccionada ya no corresponde a una sección.")
+        if tipo == "tabla" and not is_table(element):
+            raise ValueError("La posición seleccionada ya no corresponde a una tabla.")
         return chapter, element
 
     def _load(self, yaml_dir: Path) -> None:
@@ -410,6 +452,13 @@ class EditorApi:
                     "tipo": "seccion", "indice": index, "padre": parent,
                     "nivel": level, "titulo": element["seccion"],
                 })
+            elif kind == "table":
+                filas = table_rows(element["tabla"])
+                nodes.append({
+                    "tipo": "tabla", "indice": index, "padre": parent, "nivel": level,
+                    "titulo": table_title(element["tabla"]), "filas": len(filas),
+                    "columnas": max((len(f) for f in filas), default=0),
+                })
             else:
                 test = element["prueba"]
                 nodes.append({
@@ -452,12 +501,19 @@ class EditorApi:
             section = to_plain(element)
             section["nivel"] = normalize_level(section.get("nivel"), 2)
             return {"tipo": "seccion", "indice": indice, "elemento": section}
-        raise ValueError("La posición seleccionada no es una sección ni una prueba.")
+        if is_table(element):
+            return {"tipo": "tabla", "indice": indice, "elemento": to_plain(element["tabla"])}
+        raise ValueError("La posición seleccionada no es una sección, una prueba ni una tabla.")
 
     @respuesta
     def obtener_yaml(self, capitulo: int, indice: int) -> dict[str, Any]:
         _chapter, element = self._element(capitulo, indice, "cualquiera")
-        target = element["prueba"] if isinstance(element.get("prueba"), dict) else element
+        if isinstance(element.get("prueba"), dict):
+            target = element["prueba"]
+        elif is_table(element):
+            target = element["tabla"]
+        else:
+            target = element
         return {"texto": yaml_to_string(target)}
 
     @respuesta
@@ -588,6 +644,41 @@ class EditorApi:
         self._persist(chapter)
         return {}
 
+    # --- tablas que no son pruebas -----------------------------------------
+    @respuesta
+    def guardar_tabla(self, capitulo: int, indice: int, cambios: dict[str, Any]) -> dict[str, Any]:
+        chapter, element = self._element(capitulo, indice, "tabla")
+        if "filas" in cambios:
+            element["tabla"]["filas"] = _clean_table(cambios["filas"])
+        self._persist(chapter)
+        return {"indice": indice}
+
+    @respuesta
+    def crear_tabla(self, capitulo: int, ubicacion: dict[str, Any], datos: dict[str, Any] | None = None) -> dict[str, Any]:
+        chapter = self._require_chapter(capitulo)
+        contents = chapter["data"]["contenido"]
+        filas = (datos or {}).get("filas") or [["", ""], ["", ""]]
+        tabla = {"filas": _clean_table(filas)}
+        kind = ubicacion.get("tipo")
+        index = ubicacion.get("indice")
+        if kind in ("seccion", "despues") and not (isinstance(index, int) and 0 <= index < len(contents)):
+            raise ValueError("La ubicación elegida ya no existe.")
+        if kind == "seccion" and not isinstance(contents[index].get("seccion"), str):
+            raise ValueError("La ubicación elegida ya no es una sección.")
+        if kind not in ("seccion", "despues", "final"):
+            raise ValueError("Ubicación no válida.")
+        new_index = insert_table(chapter, tabla, index if kind == "seccion" else None,
+                                 after_index=index if kind == "despues" else None)
+        self._persist(chapter)
+        return {"indice": new_index}
+
+    @respuesta
+    def borrar_tabla(self, capitulo: int, indice: int) -> dict[str, Any]:
+        chapter, _element = self._element(capitulo, indice, "tabla")
+        del chapter["data"]["contenido"][indice]
+        self._persist(chapter)
+        return {}
+
     # --- mover ------------------------------------------------------------
     @respuesta
     def mover(self, capitulo: int, indice: int, destino: int, posicion: str) -> dict[str, Any]:
@@ -614,6 +705,9 @@ class EditorApi:
             if not isinstance(parsed.get("nivel"), int):
                 parsed["nivel"] = element["prueba"].get("nivel", 3)
             element["prueba"] = parsed
+        elif is_table(element):
+            parsed["filas"] = _clean_table(parsed.get("filas"))
+            element["tabla"] = parsed
         else:
             if not isinstance(parsed.get("seccion"), str) or not parsed["seccion"].strip():
                 raise ValueError("La sección necesita la clave 'seccion' con un nombre.")
@@ -737,10 +831,18 @@ class EditorApi:
                     continue
                 if isinstance(element.get("seccion"), str):
                     self._check_images(add, base, ci, index, "", _image_values(element))
+                    self._check_context_tables(add, ci, index, "", element.get("contexto"))
+                    continue
+                if "tabla" in element:
+                    if not is_table(element) or not table_rows(element["tabla"]):
+                        add("error", ci, index, "", "La tabla necesita 'filas': una lista de filas con sus celdas.")
+                    elif len(table_rows(element["tabla"])) != len(element["tabla"].get("filas") or []):
+                        add("error", ci, index, "", "Cada fila de la tabla debe ser una lista de celdas.")
+                    self._check_images(add, base, ci, index, "", _image_values(element))
                     continue
                 test = element.get("prueba")
                 if not isinstance(test, dict):
-                    if "texto" not in element and "tabla" not in element:
+                    if "texto" not in element:
                         add("aviso", ci, index, "", "Elemento sin 'seccion', 'prueba', 'tabla' ni 'texto'.")
                     continue
                 test_id = str(test.get("id") or "").strip()
@@ -753,6 +855,7 @@ class EditorApi:
                 for field in (*LIST_FIELDS, "etiquetas"):
                     if field in test and test[field] not in (None, "") and not isinstance(test[field], list):
                         add("error", ci, index, test_id, f"'{field}' debe ser una lista.")
+                self._check_context_tables(add, ci, index, test_id, test.get("contexto"))
                 if not any(test.get(f) for f in ("pasos", "situacion_inicial", "situacion_final")):
                     add("aviso", ci, index, test_id, "La prueba no tiene pasos ni situaciones.")
                 level = test.get("nivel")
@@ -770,6 +873,15 @@ class EditorApi:
             "errores": sum(1 for i in issues if i["severidad"] == "error"),
             "avisos": sum(1 for i in issues if i["severidad"] == "aviso"),
         }
+
+    @staticmethod
+    def _check_context_tables(add: Callable[..., None], ci: int, index: int, test_id: str, context: Any) -> None:
+        for item in context if isinstance(context, list) else []:
+            if isinstance(item, dict) and "tabla" in item:
+                table = item["tabla"]
+                rows = table_rows(table) if isinstance(table, dict) else []
+                if not rows or len(rows) != len(table.get("filas") or []):
+                    add("error", ci, index, test_id, "Tabla del contexto sin 'filas' válidas (una lista de filas con sus celdas).")
 
     @staticmethod
     def _check_images(add: Callable[..., None], base: Path, ci: int, index: int,

@@ -6,7 +6,7 @@ const CAMPOS_TEXTO = ["nombre", "id", "titulo", "descripcion", "componente", "pl
 const LISTAS = ["contexto", "situacion_inicial", "pasos", "situacion_final"];
 const AUTOMATIZABLE = ["", "si", "no", "corto", "medio", "largo", "hecho"];
 
-/** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"seccion", indice, valores, cambios, nivel, vista}. */
+/** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"seccion"|"tabla", indice, valores, cambios, nivel, vista}. */
 let F = null;
 const formularioActual = () => F;
 
@@ -38,6 +38,9 @@ function mostrarVacio() {
 const aLista = (x) => (Array.isArray(x) ? x : x === null || x === undefined || x === "" ? [] : [x]);
 
 function filaDesde(item) {
+  if (item && typeof item === "object" && !Array.isArray(item) && item.tabla && typeof item.tabla === "object") {
+    return { texto: "", imagenes: [], nivel: 0, forma: "tabla", extra: {}, tabla: valoresDeTabla(item.tabla) };
+  }
   if (item && typeof item === "object" && !Array.isArray(item)) {
     const { texto, imagenes, imagen, nivel, ...extra } = item;
     return {
@@ -52,6 +55,7 @@ function filaDesde(item) {
 
 function filasAPlano(filas) {
   return filas.map((f) => {
+    if (f.forma === "tabla") return { tabla: { ...f.tabla.resto, filas: tablaAPlano(f.tabla.filas) } };
     const mapa = f.forma === "map" || f.imagenes.length || f.nivel || Object.keys(f.extra).length;
     if (!mapa) return f.texto;
     const o = { texto: f.texto };
@@ -125,10 +129,12 @@ function tocar(clave) {
 /* ---- cabecera con la placa del ID ---- */
 function textoPlaca() {
   if (F.tipo === "seccion") return "Sección";
+  if (F.tipo === "tabla") return "Tabla";
   return F.valores.id || (F.modo === "nueva" ? "Nueva prueba" : "Sin ID");
 }
 
 function nombreCabecera() {
+  if (F.tipo === "tabla") return tituloDeTabla(F.valores.filas) || (F.modo === "nueva" ? "Nueva tabla" : "(tabla vacía)");
   if (F.tipo === "seccion") return F.valores.nombre || (F.modo === "nueva" ? "Nueva sección" : "(sin nombre)");
   return F.valores.titulo || F.valores.nombre || (F.modo === "nueva" ? "Prueba sin título" : "(sin título)");
 }
@@ -149,7 +155,7 @@ function rutaDe(indice) {
 function actualizarCabecera() {
   const placa = $("#placa-texto"); if (placa) placa.textContent = textoPlaca();
   const nombre = $("#cab-nombre"); if (nombre) nombre.textContent = nombreCabecera();
-  const nivel = $("#placa-nivel"); if (nivel) nivel.textContent = String(F.nivel);
+  const nivel = $("#placa-nivel"); if (nivel && F.nivel !== null) nivel.textContent = String(F.nivel);
 }
 
 function botonIcono(nombre, etiqueta, fn, extra = "") {
@@ -164,7 +170,7 @@ function cabecera() {
     h("span", { class: "ruta", text: editando ? rutaDe(F.indice) : "Todavía sin guardar" }));
   const placa = h("div", { class: "placa" + (esPrueba ? "" : " seccion") },
     h("span", { class: "texto-placa", id: "placa-texto", text: textoPlaca() }),
-    h("span", { class: "nivel", id: "placa-nivel", title: "Nivel de encabezado", text: String(F.nivel) }));
+    F.nivel === null ? null : h("span", { class: "nivel", id: "placa-nivel", title: "Nivel de encabezado", text: String(F.nivel) }));
   const sinGuardar = h("span", { class: "sin-guardar", id: "cab-sin-guardar", hidden: !S.dirty, text: "Sin guardar" });
   const botones = [];
   if (editando) {
@@ -344,7 +350,7 @@ function aceptarArchivos(el, destino, alCambiar) {
 /* ---- editor de listas (contexto, situaciones, pasos) ---- */
 let filaArrastrada = null;
 
-function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
+function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = false } = {}) {
   const filas = F.valores[clave];
   const conKeywords = clave !== "contexto" && hayKeywords();
   if (conKeywords) ayuda = (ayuda ? ayuda + " " : "") + "Al escribir se proponen las keywords de Robot.";
@@ -368,7 +374,58 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
   };
   const sangria = (i, d) => { filas[i].nivel = Math.min(Math.max(filas[i].nivel + d, 0), 4); tocar(clave); pintar(i); };
 
+  /** Tabla dentro del contexto: se ve como tabla y se edita al hacer clic. */
+  function crearFilaTabla(fila, i) {
+    const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
+    const li = h("li", { class: "elemento elemento-tabla" },
+      asa,
+      h("div", { class: "contenido" }, componenteTabla(fila.tabla, { alCambiar: () => tocar(clave), editando: Boolean(fila.nueva) })),
+      h("div", { class: "herramientas" },
+        botonIcono("up", "Subir (Alt+↑)", () => mover(i, -1)),
+        botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
+        botonIcono("trash", "Quitar la tabla", async () => {
+          if (await confirmar("Quitar la tabla", `Se quitará la tabla «${tituloDeTabla(fila.tabla.filas) || "vacía"}» del contexto (al guardar).`, "Quitar tabla", true)) quitar(i);
+        }, "peligro")));
+    delete fila.nueva;
+    arrastrable(li, asa, fila, i);
+    return li;
+  }
+
+  function arrastrable(li, asa, fila, i) {
+    asa.addEventListener("pointerdown", () => { li.draggable = true; });
+    li.addEventListener("dragstart", (e) => {
+      if (!li.draggable) return;
+      filaArrastrada = { clave, i };
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", fila.texto);
+    });
+    li.addEventListener("dragend", () => { li.draggable = false; filaArrastrada = null; lista.querySelectorAll(".drop-antes,.drop-despues").forEach((x) => x.classList.remove("drop-antes", "drop-despues")); });
+    li.addEventListener("dragover", (e) => {
+      if (!filaArrastrada || filaArrastrada.clave !== clave) return;
+      e.preventDefault();
+      const caja = li.getBoundingClientRect();
+      const antes = e.clientY < caja.top + caja.height / 2;
+      li.classList.toggle("drop-antes", antes);
+      li.classList.toggle("drop-despues", !antes);
+    });
+    li.addEventListener("dragleave", () => li.classList.remove("drop-antes", "drop-despues"));
+    li.addEventListener("drop", (e) => {
+      if (!filaArrastrada || filaArrastrada.clave !== clave) return;
+      e.preventDefault();
+      const caja = li.getBoundingClientRect();
+      let destino = e.clientY < caja.top + caja.height / 2 ? i : i + 1;
+      const origen = filaArrastrada.i;
+      filaArrastrada = null;
+      if (destino === origen || destino === origen + 1) { pintar(); return; }
+      const [movida] = filas.splice(origen, 1);
+      if (destino > origen) destino -= 1;
+      filas.splice(destino, 0, movida);
+      tocar(clave); pintar(destino);
+    });
+  }
+
   function crearFila(fila, i) {
+    if (fila.forma === "tabla") return crearFilaTabla(fila, i);
     let sugerencias = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
@@ -400,36 +457,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
         botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
         botonIcono("trash", "Quitar elemento", () => quitar(i), "peligro")));
     aceptarArchivos(li, fila.imagenes, () => { tocar(clave); pintar(i); });
-    asa.addEventListener("pointerdown", () => { li.draggable = true; });
-    li.addEventListener("dragstart", (e) => {
-      if (!li.draggable) return;
-      filaArrastrada = { clave, i };
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", fila.texto);
-    });
-    li.addEventListener("dragend", () => { li.draggable = false; filaArrastrada = null; lista.querySelectorAll(".drop-antes,.drop-despues").forEach((x) => x.classList.remove("drop-antes", "drop-despues")); });
-    li.addEventListener("dragover", (e) => {
-      if (!filaArrastrada || filaArrastrada.clave !== clave) return;
-      e.preventDefault();
-      const caja = li.getBoundingClientRect();
-      const antes = e.clientY < caja.top + caja.height / 2;
-      li.classList.toggle("drop-antes", antes);
-      li.classList.toggle("drop-despues", !antes);
-    });
-    li.addEventListener("dragleave", () => li.classList.remove("drop-antes", "drop-despues"));
-    li.addEventListener("drop", (e) => {
-      if (!filaArrastrada || filaArrastrada.clave !== clave) return;
-      e.preventDefault();
-      const caja = li.getBoundingClientRect();
-      let destino = e.clientY < caja.top + caja.height / 2 ? i : i + 1;
-      const origen = filaArrastrada.i;
-      filaArrastrada = null;
-      if (destino === origen || destino === origen + 1) { pintar(); return; }
-      const [movida] = filas.splice(origen, 1);
-      if (destino > origen) destino -= 1;
-      filas.splice(destino, 0, movida);
-      tocar(clave); pintar(destino);
-    });
+    arrastrable(li, asa, fila, i);
     return li;
   }
 
@@ -437,7 +465,11 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "" } = {}) {
     h("div", { class: "bloque-cab" },
       h("h3", { text: titulo }),
       ayuda ? h("p", { class: "ayuda", text: ayuda }) : null,
-      h("button", { class: "btn ghost peq", type: "button", onclick: () => insertar(filas.length) }, icon("plus"), "Añadir")),
+      h("button", { class: "btn ghost peq", type: "button", onclick: () => insertar(filas.length) }, icon("plus"), "Añadir"),
+      conTablas ? h("button", {
+        class: "btn ghost peq", type: "button", title: "Tabla que no es una prueba (historial, parámetros…)",
+        onclick: () => { filas.push({ ...nuevaFila(), forma: "tabla", tabla: tablaNueva(), nueva: true }); tocar(clave); pintar(); },
+      }, icon("table"), "Tabla") : null),
     lista);
   pintar();
   return bloque;
@@ -570,7 +602,7 @@ function cuerpoPrueba(ubicacion) {
       campoEtiquetas(),
       campoArea("descripcion", "Descripción"))));
   cont.append(
-    editorLista("contexto", "Contexto", { ayuda: "Texto que aparece antes de la tabla de la prueba." }),
+    editorLista("contexto", "Contexto", { ayuda: "Texto y tablas que aparecen antes de la tabla de la prueba.", conTablas: true }),
     editorLista("situacion_inicial", "Situación inicial"),
     editorLista("pasos", "Pasos", { numerada: true, ayuda: "Pulsa Enter para añadir otro paso; Mayús+Enter inserta un salto de línea." }),
     editorLista("situacion_final", "Situación final"),
@@ -585,13 +617,14 @@ function cuerpoSeccion(ubicacion) {
   cont.appendChild(h("section", { class: "bloque", "aria-label": "Datos de la sección" },
     h("div", { class: "rejilla" }, campoTexto("nombre", "Nombre de la sección", { completo: true }))));
   if (F.modo === "editar") {
-    cont.appendChild(editorLista("contexto", "Contexto", { ayuda: "Texto compartido por todas las pruebas de la sección." }));
+    cont.appendChild(editorLista("contexto", "Contexto", { ayuda: "Texto y tablas de la sección, que aparecen tras su título.", conTablas: true }));
   }
   return cont;
 }
 
 function mostrarElemento(datos) {
   const el = datos.elemento;
+  if (datos.tipo === "tabla") { mostrarTabla(datos); return; }
   if (datos.tipo === "prueba") {
     F = { modo: "editar", tipo: "prueba", indice: datos.indice, valores: valoresDePrueba(el), cambios: new Set(), nivel: el.nivel, vista: "form", idOriginal: String(el.id || "") };
     mostrar(cuerpoPrueba(null));
@@ -643,6 +676,13 @@ async function guardarActual() {
     }
     if (modo === "nueva") return await crearActual();
     if (!F.cambios.size) { aviso("No hay cambios que guardar"); return true; }
+    if (tipo === "tabla") {
+      await api.guardar_tabla(S.capitulo, indice, { filas: tablaAPlano(F.valores.filas) });
+      setDirty(false);
+      await refrescarTodo({ seleccionar: { tipo, indice } });
+      aviso("Tabla guardada", "ok");
+      return true;
+    }
     const cambios = recogerCambios();
     if (tipo === "prueba" && F.idOriginal && "id" in cambios && String(cambios.id).trim() !== F.idOriginal) {
       const r = await dialogo({
@@ -701,8 +741,11 @@ async function borrarActual() {
   if (!F || F.modo !== "editar") return;
   const { tipo, indice } = F;
   let titulo, cuerpo, boton;
-  if (tipo === "prueba") {
-    titulo = "Borrar prueba";
+  if (tipo === "tabla") {
+    titulo = "Borrar tabla";
+    cuerpo = `Vas a borrar la tabla «${tituloDeTabla(F.valores.filas) || "vacía"}» (${plural(F.valores.filas.length, "fila", "filas")}). Esta acción no se puede deshacer.`;
+    boton = "Borrar tabla";
+  } else if (tipo === "prueba") {
     cuerpo = `Vas a borrar «${F.valores.id || "sin ID"}: ${F.valores.titulo || F.valores.nombre || "sin título"}». Esta acción no se puede deshacer.`;
     boton = "Borrar prueba";
   } else {
@@ -715,12 +758,13 @@ async function borrarActual() {
   }
   if (!(await confirmar(titulo, cuerpo, boton, true))) return;
   try {
-    if (tipo === "prueba") await api.borrar_prueba(S.capitulo, indice);
+    if (tipo === "tabla") await api.borrar_tabla(S.capitulo, indice);
+    else if (tipo === "prueba") await api.borrar_prueba(S.capitulo, indice);
     else await api.borrar_seccion(S.capitulo, indice);
     setDirty(false);
     S.seleccion = null;
     await refrescarTodo({});
-    aviso(tipo === "prueba" ? "Prueba borrada" : "Sección borrada", "ok");
+    aviso({ prueba: "Prueba borrada", seccion: "Sección borrada", tabla: "Tabla borrada" }[tipo], "ok");
   } catch (error) { fallo(error); }
 }
 

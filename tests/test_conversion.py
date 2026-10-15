@@ -337,16 +337,20 @@ class ClasificarTablasTests(unittest.TestCase):
         self.assertEqual(clases, ["informativa", "informativa", "prueba", "prueba", "prueba", "informativa", "dudosa"])
         self.assertEqual(convertir.clasificar_tabla(tablas[5])[1], "tabla vacía")
 
-    def test_conserva_las_tablas_que_no_son_pruebas_en_su_sitio(self):
+    def test_conserva_las_tablas_que_no_son_pruebas_en_su_contexto(self):
         avisos = []
         capitulo = convertir.extraer_capitulos(documento_mixto(), avisos)[0]
         contenido = capitulo["contenido"]
         claves = [next(iter(e)) for e in contenido]
-        self.assertEqual(claves[:5], ["tabla", "texto", "seccion", "tabla", "texto"])
+        # Antes de cualquier título, la tabla y el texto son del capítulo, en orden.
+        self.assertEqual(claves[:3], ["tabla", "texto", "seccion"])
         self.assertEqual(contenido[0]["tabla"]["filas"][1], ["Ana", "Primera versión", "1"])
-        self.assertEqual(contenido[1], {"texto": "Texto después del historial."})
-        self.assertEqual(contenido[2]["seccion"], "Parámetros de rescate")
-        self.assertEqual(contenido[3]["tabla"]["filas"][0], [{"texto": "Parametros de Rescates CPU", "columnas": 2}])
+        self.assertEqual(contenido[1]["texto"], "Texto después del historial.")
+        # Tras un título, la tabla queda en el contexto de la sección, con el texto que la sigue.
+        seccion = contenido[2]
+        self.assertEqual(seccion["seccion"], "Parámetros de rescate")
+        self.assertEqual(seccion["contexto"][0]["tabla"]["filas"][0], [{"texto": "Parametros de Rescates CPU", "columnas": 2}])
+        self.assertEqual(seccion["contexto"][1], "Notas sobre los parámetros.")
         pruebas = [e["prueba"] for e in contenido if "prueba" in e]
         self.assertEqual([p["id"] for p in pruebas], ["LLAM_001", "LLAM_001", "BOR_LLAM _002"])
         self.assertEqual(pruebas[0]["nombre"], "Prueba de llamada")
@@ -377,4 +381,23 @@ class ClasificarTablasTests(unittest.TestCase):
             self.assertIn("Primera versión", textos)
             self.assertIn("Parametros de Rescates CPU", textos)
             self.assertEqual(len(doc.tables), 7)
-            self.assertIn("Texto después del historial.", [p.text for p in doc.paragraphs])
+            parrafos = [p.text for p in doc.paragraphs]
+            self.assertIn("Texto después del historial.", parrafos)
+            self.assertLess(parrafos.index("Parámetros de rescate"), parrafos.index("Notas sobre los parámetros."))
+
+    def test_tabla_en_el_contexto_de_la_prueba_siguiente(self):
+        doc = Document()
+        doc.add_heading("Capítulo", level=1)
+        doc.add_heading("Prueba con tabla previa", level=2)
+        doc.add_paragraph("Valores de partida:")
+        valores = doc.add_table(rows=2, cols=2)
+        valores.cell(0, 0).text, valores.cell(0, 1).text = "Parámetro", "Valor"
+        valores.cell(1, 0).text, valores.cell(1, 1).text = "Velocidad", "1 m/s"
+        prueba = doc.add_table(rows=2, cols=2)
+        prueba.cell(0, 0).text, prueba.cell(0, 1).text = "T_001", "Prueba"
+        prueba.cell(1, 0).text = "Pasos:\nHacerlo."
+        contenido = convertir.extraer_capitulos(doc, [])[0]["contenido"]
+        self.assertEqual(len(contenido), 1)
+        contexto = contenido[0]["prueba"]["contexto"]
+        self.assertEqual(contexto[0], "Valores de partida:")
+        self.assertEqual(contexto[1]["tabla"]["filas"][1], ["Velocidad", "1 m/s"])

@@ -97,8 +97,10 @@ Antes de leer cada tabla, el importador decide si es una prueba:
 | Dudosa | 1 o 2 campos de prueba, o la cabecera parece un ID sin campos | Se conserva como tabla y se avisa para revisarla |
 | No prueba | Ningún campo de prueba (historial de cambios, parámetros…) | Se conserva tal cual (`tabla:`), sin avisos de prueba |
 
-Las tablas que no son pruebas quedan en su sitio, con el texto que las sigue
-detrás, y el DOCX generado las vuelve a pintar: el documento queda completo.
+Las tablas que no son pruebas van donde iría un párrafo en ese punto: en el
+`contexto` de la sección o de la prueba siguiente, entre su texto, o en el
+capítulo si están antes del primer título. El DOCX generado las vuelve a
+pintar en su sitio: el documento queda completo.
 `python inventario.py documento.docx` usa la misma clasificación y resume
 cuántas tablas hay de cada clase y variante, sin generar los YAML.
 
@@ -278,10 +280,12 @@ su carpeta de pruebas.
 ## Edición de pruebas en YAML
 
 Los capítulos tienen una secuencia ordenada en `contenido`. Sus elementos
-actuales pueden ser secciones, pruebas, texto contextual o tablas que no son
-pruebas (`tabla:` con sus `filas`; cada celda es un texto o un mapa con
-`texto`, `imagenes` y `columnas` si ocupa varias). El editor conserva las
-tablas, aunque todavía no las muestra:
+actuales pueden ser secciones, pruebas o texto contextual. Las tablas que no
+son pruebas (`tabla:` con sus `filas`; cada celda es un texto o un mapa con
+`texto`, `imagenes` y `columnas` si ocupa varias) van dentro del `contexto`
+de una sección o de una prueba, o en `contenido` si están antes del primer
+título. El editor las muestra como tabla y, al hacer clic, las edita como una
+cuadrícula (filas, columnas, celdas unidas, formato e imágenes):
 
 ```yaml
 capitulo: Funciones básicas
@@ -290,6 +294,10 @@ contenido:
     nivel: 2
     contexto:
       - "Texto explicativo aplicable al grupo."
+      - tabla:
+          filas:
+            - ["**Parámetro**", "**Valor**"]
+            - [Velocidad nominal, 1 m/s]
   - prueba:
       nombre: Llamada de cabina
       nivel: 3

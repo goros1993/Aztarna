@@ -485,10 +485,11 @@ function textoConFormato(texto, clase = "") {
 }
 
 function listaLectura(items, numerada) {
-  const filas = aLista(items).map(filaDesde).filter((f) => f.texto || f.imagenes.length);
+  const filas = aLista(items).map(filaDesde).filter((f) => f.texto || f.imagenes.length || f.forma === "tabla");
   if (!filas.length) return h("p", { class: "muted", text: "—" });
   let n = 0;
   return h("ol", { class: "lectura" }, filas.map((f) => {
+    if (f.forma === "tabla") return h("li", { class: "con-tabla" }, h("div", {}, vistaTabla(f.tabla)));
     const marca = numerada && !f.nivel ? `${++n}.` : f.nivel ? "–" : "•";
     return h("li", { style: { "--nivel": String(f.nivel) } },
       h("span", { class: "vineta", text: marca }),

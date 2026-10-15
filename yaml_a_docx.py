@@ -441,6 +441,9 @@ def titulo(doc, texto, nivel):
 
 def escribir_contexto(doc, textos, base_dir=Path(".")):
     for texto in textos or []:
+        if isinstance(texto, dict) and isinstance(texto.get("tabla"), dict):
+            tabla_informativa(doc, texto["tabla"], base_dir)
+            continue
         p = doc.add_paragraph()
         compactar(p)
         if isinstance(texto, dict):
