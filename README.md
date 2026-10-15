@@ -1,5 +1,11 @@
 # Validación: Word y YAML
 
+> **Nombre futuro: Aztarna** (en euskera, «huella, rastro»). La herramienta va a
+> crecer hacia la gestión de requisitos con trazabilidad requisito → prueba →
+> campaña → resultado (rama `requisitos`, plan en `PENDIENTE.md`). El cambio de
+> nombre (ventana, ejecutable, repositorio y documentación) se hará al integrar
+> esa rama.
+
 Herramientas para importar la información de un documento Word a YAML, editar
 las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML.
 
