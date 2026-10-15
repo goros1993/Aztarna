@@ -80,8 +80,8 @@ def main() -> None:
     )
     api._window = ventana
     ventana.events.closing += api._al_cerrar_ventana   # pregunta si hay cambios sin guardar
-    icono = recurso("recursos/icono.png")
-    # El icono de la ventana: en Linux se indica aquí; en Windows se usa el del .exe.
+    # Icono de la ventana. En Windows pywebview usa un Icon de .NET, que solo admite .ico.
+    icono = recurso("recursos/icono.ico" if sys.platform.startswith("win") else "recursos/icono.png")
     webview.start(debug=args.depurar, icon=str(icono) if icono.is_file() else None)
 
 

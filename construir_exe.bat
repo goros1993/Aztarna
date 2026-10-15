@@ -18,7 +18,7 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
     --name EditorPruebas ^
     --icon recursos\icono.ico ^
     --add-data "web;web" ^
-    --add-data "recursos\icono.png;recursos" ^
+    --add-data "recursos\icono.ico;recursos" ^
     --collect-submodules webview ^
     --collect-submodules app ^
     editor_web.py || goto :error
