@@ -304,7 +304,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
 const campoEtiquetas = () => campoFichas("etiquetas", "Tags", {
   conComas: true, completo: false, ancho: true,
   sugerir: () => api.etiquetas_uso().then((l) => l.map((x) => ({ texto: x.etiqueta, usos: x.usos }))),
-  ayuda: "Sirven para elegir qué pruebas entran en una campaña de ejecución.",
+  ayuda: "Sirven para elegir qué pruebas entran en una ejecución de pruebas.",
 });
 
 /** Varias opciones de una lista cerrada (maniobra, entorno): casillas. */
@@ -771,7 +771,7 @@ async function guardarActual() {
         titulo: "¿Cambiar el ID de la prueba?",
         cuerpo: h("div", {},
           h("p", { text: `El ID pasará de «${F.idOriginal}» a «${String(cambios.id).trim()}».` }),
-          h("p", { text: "Las campañas de ejecución reconocen cada prueba por su ID. Si esta prueba ya tiene resultados en alguna campaña, allí aparecerá como «ya no existe» y el ID nuevo contará como una prueba distinta. Cambia el ID solo si es un error o si de verdad es otra prueba." })),
+          h("p", { text: "Las ejecuciones de pruebas reconocen cada prueba por su ID. Si esta prueba ya tiene resultados en alguna ejecución, allí aparecerá como «ya no existe» y el ID nuevo contará como una prueba distinta. Cambia el ID solo si es un error o si de verdad es otra prueba." })),
         botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cambiar el ID", valor: "si", tipo: "peligro" }],
       });
       if (r !== "si") return false;

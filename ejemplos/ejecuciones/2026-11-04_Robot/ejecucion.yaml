@@ -1,0 +1,21 @@
+nombre: Regresión v2.3 automática
+objeto: Firmware 2.3.0-rc2
+entorno_pruebas: Automático
+entorno: PC de integración continua
+responsable: Equipo de automatización
+inicio: 2026-11-04T20:00
+estado: cerrada
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  etiquetas:
+  - regresion
+  entorno:
+  - Automático
+pruebas:
+- id: DEMO-LLAM-001
+  huella: b54b9a273040
+- id: DEMO-LLAM-002
+  huella: 95604739cbec
+- id: DEMO-NIV-001
+  huella: c40a46daee20
+fin: 2026-11-04T20:15

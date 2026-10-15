@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""Informe de la validación de una versión: DOCX (y PDF si hay con qué convertirlo).
+
+Resume las ejecuciones de la validación y da, para cada prueba, su resultado en
+cada entorno de pruebas y el de la versión (ver validacion_core.py). El detalle
+de cada prueba está en el informe de cada ejecución.
+
+Uso:
+    python herramientas.py validacion ruta/a/la/validación [-o informe.docx] [--pdf]
+"""
+from __future__ import annotations
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from docx.enum.section import WD_ORIENT
+from docx.shared import Cm, Pt, RGBColor
+
+from app import informe_docx as inf
+from app import validacion_core as vc
+from app import yaml_a_docx as yd
+
+CELDA_TXT = {"ok": "OK", "no_ok": "NO OK", "bloqueada": "Bloqueada", "no_aplica": "No aplica",
+             "pendiente": "Pendiente", vc.SIN_PLANIFICAR: "Sin planificar"}
+_CLASE = {"validada": "ok", vc.SIN_PLANIFICAR: "pendiente"}
+
+
+def _clase(estado: str) -> str:
+    return _CLASE.get(estado, estado)
+
+
+def _colorear(celda, estado: str, cuenta: bool = True) -> None:
+    """Fondo y color del texto de una celda según el estado."""
+    clase = _clase(estado)
+    yd.sombrear(celda, inf.FONDO_ESTADO.get(clase, "FFFFFF") if cuenta else "FFFFFF")
+    for p in celda.paragraphs:
+        for run in p.runs:
+            run.font.color.rgb = RGBColor.from_string(inf.COLOR_ESTADO.get(clase, "18242B"))
+            run.bold = cuenta or None
+            run.italic = (not cuenta) or None
+
+
+def _apaisado(doc) -> None:
+    """Página apaisada para que quepa la tabla prueba × entorno."""
+    seccion = doc.sections[0]
+    seccion.orientation = WD_ORIENT.LANDSCAPE
+    seccion.page_width, seccion.page_height = Cm(29.7), Cm(21)
+
+
+def escribir_resumen(doc, d: dict[str, Any]) -> None:
+    datos = d["datos"]
+    inf._parrafo(doc, "Informe de validación", negrita=True, tamaño=22, despues=2)
+    inf._parrafo(doc, str(datos.get("nombre") or ""), tamaño=15, color="485862", despues=10)
+    if d["borrador"]:
+        abiertas = sum(1 for e in d["ejecuciones"] if e["encontrada"] and not e["cerrada"])
+        inf._parrafo(doc, f"BORRADOR: {abiertas} de {len(d['ejecuciones'])} ejecuciones siguen abiertas." if d["ejecuciones"]
+                     else "BORRADOR: la validación no tiene ejecuciones.",
+                     negrita=True, color=inf.COLOR_ESTADO["no_ok"], despues=8)
+
+    criterio = "; ".join(f"{k}: {', '.join(map(str, v)) if isinstance(v, list) else v}"
+                         for k, v in dict(datos.get("seleccion") or {}).items()) or "todas las pruebas"
+    t = d["totales"]
+    filas = [
+        ["Versión", datos.get("version", "")],
+        ["Criterio de selección", criterio],
+        ["Pruebas", str(d["total"])],
+        ["Validadas", f"{t['validada']} ({d['porcentaje_validadas']} % de las que aplican)"],
+        ["Informe generado", datetime.now().strftime("%d/%m/%Y %H:%M")],
+    ]
+    inf._tabla(doc, ["Validación", ""], [f for f in filas if str(f[1]).strip()], [6, 19])
+
+    inf._apartado(doc, "Resultado de la versión")
+    inf._parrafo(doc, "Una prueba está validada cuando su resultado es OK (o No aplica) en todos los entornos "
+                      "de pruebas que indica. En cada entorno cuenta el resultado más reciente.", color="485862")
+    tabla = inf._tabla(doc, ["Resultado", "Pruebas"],
+                       [[vc.ESTADOS_VISIBLES[e], str(t[e])] for e in ("validada", "no_ok", "bloqueada", "pendiente", "no_aplica")],
+                       [8, 4])
+    for fila, e in zip(tabla.rows[1:], ("validada", "no_ok", "bloqueada", "pendiente", "no_aplica")):
+        _colorear(fila.cells[0], e)
+
+    inf._apartado(doc, "Ejecuciones")
+    if d["ejecuciones"]:
+        filas = []
+        for e in d["ejecuciones"]:
+            if not e["encontrada"]:
+                filas.append([f"{e['ruta']} (no se encuentra)", "", "", "", ""])
+                continue
+            tot = e["totales"]
+            resultado = ", ".join(f"{n} {CELDA_TXT[k]}" for k, n in tot.items() if n)
+            periodo = f"{inf._fecha(e['inicio'])} – {inf._fecha(e['fin'])}" if e["cerrada"] else f"{inf._fecha(e['inicio'])} – (abierta)"
+            filas.append([e["nombre"], e["entorno_pruebas"] or "(sin indicar)", e["responsable"], periodo, resultado])
+        inf._tabla(doc, ["Ejecución", "Entorno", "Responsable", "Periodo", "Resultados"], filas, [6.5, 3, 4, 5.5, 6])
+    else:
+        inf._parrafo(doc, "Sin ejecuciones.")
+
+    inf._apartado(doc, "Por entorno de pruebas")
+    claves = ("ok", "no_ok", "bloqueada", "no_aplica", "pendiente", vc.SIN_PLANIFICAR)
+    inf._tabla(doc, ["Entorno", "Pruebas", *[CELDA_TXT[k] for k in claves]],
+               [[e, str(c["necesitan"]), *[str(c[k] or "·") for k in claves]] for e, c in d["por_entorno"].items()],
+               [4, 2.5, 2.5, 2.5, 3, 3, 3, 3.5])
+
+    if d["avisos"]:
+        inf._apartado(doc, "Avisos")
+        inf._tabla(doc, ["Prueba", "Aviso"], [[a["id"] or "—", a["mensaje"]] for a in d["avisos"]], [4, 21])
+
+
+def escribir_matriz(doc, d: dict[str, Any]) -> None:
+    inf._apartado(doc, "Resultado por prueba y entorno")
+    inf._parrafo(doc, "En cursiva, sin fondo: resultados en un entorno que la prueba no indica (se muestran, pero no cuentan). "
+                      "«—»: la prueba no pide ese entorno.", color="485862")
+    entornos = d["entornos"]
+    ancho_entorno = 2.6
+    anchos = [3.2, 25 - 3.2 - 2.8 - ancho_entorno * len(entornos), *[ancho_entorno] * len(entornos), 2.8]
+    filas = []
+    for p in d["pruebas"]:
+        celdas = []
+        for e in entornos:
+            c = p["entornos"].get(e)
+            celdas.append(CELDA_TXT.get(c["estado"], c["estado"]) if c else "—")
+        filas.append([p["id"], p["titulo"], *celdas, vc.ESTADOS_VISIBLES[p["estado"]]])
+    tabla = inf._tabla(doc, ["Prueba", "Título", *entornos, "Versión"], filas, anchos)
+    for fila, p in zip(tabla.rows[1:], d["pruebas"]):
+        for i, e in enumerate(entornos):
+            c = p["entornos"].get(e)
+            if c:
+                _colorear(fila.cells[2 + i], c["estado"], c["cuenta"])
+        _colorear(fila.cells[-1], p["estado"])
+
+
+def escribir_detalle(doc, d: dict[str, Any]) -> None:
+    """Pruebas que no están validadas, con el resultado de cada entorno."""
+    pendientes = [p for p in d["pruebas"] if p["estado"] in ("no_ok", "bloqueada", "pendiente")]
+    if not pendientes:
+        return
+    inf._apartado(doc, "Pruebas no validadas")
+    filas, estados = [], []
+    for p in pendientes:
+        for e, c in p["entornos"].items():
+            if not c["cuenta"] or c["estado"] in ("ok", "no_aplica"):
+                continue
+            v = c["vigente"] or {}
+            nota = " · ".join(x for x in (v.get("observaciones"), f"Incidencia: {v['incidencia']}" if v.get("incidencia") else "") if x)
+            donde = f"{v.get('ejecucion', '')}, {inf._fecha(v.get('fecha'))}" if v.get("fecha") else (v.get("ejecucion") or "ninguna ejecución la incluye")
+            filas.append([p["id"], e, CELDA_TXT[c["estado"]], donde, nota])
+            estados.append(c["estado"])
+    tabla = inf._tabla(doc, ["Prueba", "Entorno", "Resultado", "Ejecución", "Observaciones"], filas, [3.2, 2.8, 2.8, 6.5, 9.7])
+    for fila, e in zip(tabla.rows[1:], estados):
+        _colorear(fila.cells[2], e)
+
+
+def generar_informe(validacion: dict[str, Any], salida: str | Path,
+                    capitulos: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    d = vc.consolidar(validacion, capitulos)
+    salida = Path(salida)
+    if salida.suffix.lower() != ".docx":
+        salida = salida.with_suffix(".docx")
+    salida.parent.mkdir(parents=True, exist_ok=True)
+    doc = yd.preparar_documento(1)
+    _apaisado(doc)
+    escribir_resumen(doc, d)
+    escribir_detalle(doc, d)
+    doc.add_page_break()
+    escribir_matriz(doc, d)
+    pie = doc.sections[0].footer.paragraphs[0]
+    pie.text = f"{validacion['datos'].get('nombre', '')} · informe de validación"
+    for run in pie.runs:
+        run.font.size = Pt(8)
+        run.font.color.rgb = RGBColor.from_string("72838D")
+    doc.save(salida)
+    return {"archivo": str(salida), "pruebas": d["total"], "resumen": d}
+
+
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Informe de la validación de una versión")
+    ap.add_argument("validacion", help="carpeta de la validación (con validacion.yaml)")
+    ap.add_argument("-o", "--salida", help="archivo DOCX de salida (por defecto, dentro de la validación)")
+    ap.add_argument("--pdf", action="store_true", help="genera también el PDF (con LibreOffice o Word)")
+    args = ap.parse_args(argv)
+    try:
+        validacion = vc.cargar(args.validacion)
+        salida = Path(args.salida) if args.salida else validacion["carpeta"] / f"Informe_{validacion['carpeta'].name}.docx"
+        datos = generar_informe(validacion, salida)
+    except ValueError as error:
+        raise SystemExit(str(error))
+    t = datos["resumen"]["totales"]
+    print(f"{datos['pruebas']} pruebas: {t['validada']} validadas, {t['no_ok']} NO OK, {t['bloqueada']} bloqueadas, "
+          f"{t['pendiente']} pendientes -> {datos['archivo']}")
+    if args.pdf:
+        print(f"PDF -> {inf.convertir_a_pdf(datos['archivo'])}")
+
+
+if __name__ == "__main__":
+    main()

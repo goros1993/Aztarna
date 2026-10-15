@@ -2,7 +2,7 @@
 """Esquema de las pruebas y de los requisitos: qué campos tienen, cómo se llaman y qué valores admiten.
 
 Es el único sitio donde se definen. Lo usan el importador del Word, el
-editor (formulario y validación), la generación del DOCX y las campañas.
+editor (formulario y validación), la generación del DOCX y las ejecuciones.
 Para añadir, quitar o cambiar un campo en todas las pruebas: cámbialo aquí
 (y, si el Word trae datos que convertir, la regla en `migrar_prueba`) y
 vuelve a importar el Word.

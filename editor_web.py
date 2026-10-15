@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from app import ajustes
-from app.ejecucion_api import EditorEjecucionApi as EditorApi
+from app.validacion_api import EditorValidacionApi as EditorApi
 
 
 def recurso(relativa: str) -> Path:
@@ -80,7 +80,9 @@ def main() -> None:
     )
     api._window = ventana
     ventana.events.closing += api._al_cerrar_ventana   # pregunta si hay cambios sin guardar
-    webview.start(debug=args.depurar)
+    icono = recurso("recursos/icono.png")
+    # El icono de la ventana: en Linux se indica aquí; en Windows se usa el del .exe.
+    webview.start(debug=args.depurar, icon=str(icono) if icono.is_file() else None)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 "use strict";
-/* Modo «Ejecución»: campañas, resultado de cada prueba y resumen.
+/* Modo «Ejecución»: ejecuciones, resultado de cada prueba y resumen.
    Los YAML de pruebas solo se leen; los resultados van a la carpeta de la
-   campaña (ver ejecucion_core.py). */
+   ejecución (ver ejecucion_core.py). */
 
 const ESTADOS = ["ok", "no_ok", "bloqueada", "no_aplica", "pendiente"];
 const ESTADO_TXT = { pendiente: "Pendiente", ok: "OK", no_ok: "NO OK", bloqueada: "Bloqueada", no_aplica: "No aplica" };
@@ -19,8 +19,10 @@ let R = null;   // resultado que se está editando: {id, estado, observaciones, 
 const enEjecucion = () => S.modo === "ejecucion";
 const cerrada = () => Boolean(S.campana && S.campana.cerrada);
 
+/** Estado de cada prueba: el de la ejecución abierta o, sin ejecución, el consolidado de la validación. */
 function mapaEstados() {
-  return new Map(S.campana ? S.campana.resumen.pruebas.map((p) => [p.id, p.estado]) : []);
+  if (S.campana) return new Map(S.campana.resumen.pruebas.map((p) => [p.id, p.estado]));
+  return new Map(S.validacion ? S.validacion.pruebas.map((p) => [p.id, claseEstado(p.estado)]) : []);
 }
 
 /* ---- modo ---- */
@@ -33,9 +35,11 @@ function pintarModo() {
   $("#modo-ejecucion").setAttribute("aria-pressed", String(ej));
   $("#txt-nueva").textContent = enRequisitos() ? "Requisito" : "Prueba";
   $("#buscar").placeholder = enRequisitos() ? "Buscar requisito por ID o texto" : "Buscar por ID o texto";
+  $("#validacion-nombre").textContent = S.validacion ? S.validacion.datos.nombre : "Sin validación";
+  $("#btn-validacion").title = S.validacion ? S.validacion.carpeta : "Crear o abrir la validación de una versión";
   const nombre = $("#campana-nombre");
-  nombre.textContent = S.campana ? S.campana.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin campaña";
-  $("#btn-campana").title = S.campana ? S.campana.carpeta : "Crear o abrir una campaña";
+  nombre.textContent = S.campana ? S.campana.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin ejecución";
+  $("#btn-campana").title = S.campana ? S.campana.carpeta : "Crear o abrir una ejecución";
   $("#filtro-estado").value = S.filtroEstado;
   etiquetarCapitulos();
 }
@@ -62,18 +66,25 @@ async function cambiarModo(modo) {
       S.problemas = []; S.resumen = null; renderResumenProblemas(); renderProblemas();
     } catch (e) { fallo(e); }
   }
-  if (modo === "ejecucion" && !S.campana) await recuperarCampana();
+  if (modo === "ejecucion" && !S.validacion) await recuperarValidacion();
+  if (modo === "ejecucion" && !S.campana && !S.validacion) await recuperarCampana();
   pintarModo();
   await cargarNavegacion();
   mostrarVacio();
   if (cambiaColeccion) validarEnSegundoPlano();
 }
 
-/** Texto de cada capítulo en el selector: en ejecución, cuántas pruebas de la campaña quedan. */
+/** Texto de cada capítulo en el selector: en ejecución, cuántas pruebas de la ejecución quedan. */
 function textoCapitulo(c) {
+  if (enEjecucion() && !S.campana && S.validacion) {
+    const suyas = S.validacion.pruebas.filter((p) => p.archivo === c.archivo);
+    if (!suyas.length) return `${c.nombre} (fuera de la validación)`;
+    const validadas = suyas.filter((p) => p.estado === "validada").length;
+    return `${c.nombre} (${validadas} de ${suyas.length} validadas)`;
+  }
   if (!enEjecucion() || !S.campana) return `${c.nombre} (${c.pruebas})`;
   const suyas = S.campana.resumen.pruebas.filter((p) => p.archivo === c.archivo);
-  if (!suyas.length) return `${c.nombre} (fuera de la campaña)`;
+  if (!suyas.length) return `${c.nombre} (fuera de la ejecución)`;
   const pendientes = suyas.filter((p) => p.estado === "pendiente").length;
   return `${c.nombre} (${pendientes ? `${pendientes} de ${suyas.length} pendientes` : `${suyas.length} ejecutadas`})`;
 }
@@ -83,9 +94,9 @@ function etiquetarCapitulos() {
   for (const c of S.capitulos) if (opciones[c.indice]) opciones[c.indice].textContent = textoCapitulo(c);
 }
 
-/** En ejecución el árbol solo muestra las pruebas de la campaña (y las secciones que las contienen). */
+/** En ejecución el árbol solo muestra las pruebas de la ejecución (y las secciones que las contienen). */
 function filtrarNodosEjecucion(nodos) {
-  if (!S.campana) return [];
+  if (!S.campana && !S.validacion) return [];
   const estados = mapaEstados();
   const padres = new Map(nodos.map((n) => [n.indice, n.padre]));
   const quedan = new Set();
@@ -100,10 +111,11 @@ function filtrarNodosEjecucion(nodos) {
 
 function marcaEstado(id) {
   const estado = mapaEstados().get(id) || "pendiente";
-  return h("span", { class: "punto-estado e-" + estado, title: ESTADO_TXT[estado], role: "img", "aria-label": ESTADO_TXT[estado] });
+  const texto = !S.campana && S.validacion ? VAL_TXT[(S.validacion.pruebas.find((p) => p.id === id) || {}).estado] || ESTADO_TXT[estado] : ESTADO_TXT[estado];
+  return h("span", { class: "punto-estado e-" + estado, title: texto, role: "img", "aria-label": texto });
 }
 
-/* ---- campañas: abrir, crear, recientes ---- */
+/* ---- ejecuciones: abrir, crear, recientes ---- */
 function recientes() {
   try { return JSON.parse(leerLocal("campanas-recientes") || "[]"); } catch (_e) { return []; }
 }
@@ -114,14 +126,14 @@ function recordarReciente() {
   guardarLocal("campanas-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
-/** Al entrar en ejecución: la campaña que tenga abierta Python o, si no, la última usada. */
+/** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada. */
 async function recuperarCampana() {
   try {
     const actual = await api.campana_estado();
     if (actual) { S.campana = actual; return; }
     const ultima = recientes()[0];
     if (ultima) await usarCampana(await api.campana_abrir(ultima.carpeta), { silencio: true });
-  } catch (_e) { /* la última campaña ya no existe: se elegirá otra */ }
+  } catch (_e) { /* la última ejecución ya no existe: se elegirá otra */ }
 }
 
 async function usarCampana(r, { silencio = false } = {}) {
@@ -129,18 +141,18 @@ async function usarCampana(r, { silencio = false } = {}) {
   if (r.faltan_pruebas) {
     if (silencio) return;
     const respuesta = await dialogo({
-      titulo: "No se encuentran las pruebas de la campaña",
+      titulo: "No se encuentran las pruebas de la ejecución",
       cuerpo: h("div", {},
-        h("p", {}, "La campaña ", h("strong", { text: r.nombre }), " no encuentra su carpeta de pruebas. Puede que se haya movido o que la campaña venga de otro PC."),
+        h("p", {}, "La ejecución ", h("strong", { text: r.nombre }), " no encuentra su carpeta de pruebas. Puede que se haya movido o que la ejecución venga de otro PC."),
         h("p", { class: "muted", text: "Se buscó en: " + r.rutas.join("  ·  ") }),
-        h("p", { text: "Indica dónde está ahora la carpeta de pruebas (la que contiene indice.yaml). La campaña lo recordará." })),
+        h("p", { text: "Indica dónde está ahora la carpeta de pruebas (la que contiene indice.yaml). La ejecución lo recordará." })),
       botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Buscar la carpeta…", valor: "si", tipo: "primary" }],
     });
     if (respuesta !== "si") return;
     try { await usarCampana(await api.campana_reubicar(r.carpeta), { silencio }); } catch (e) { fallo(e); }
     return;
   }
-  if (r.carpeta_pruebas) {      // la campaña usa otra carpeta de pruebas: se abre esa
+  if (r.carpeta_pruebas) {      // la ejecución usa otra carpeta de pruebas: se abre esa
     cacheImagenes.clear();
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = ""; S.colapsadas.clear();
     aplicarResumen(r.carpeta_pruebas);
@@ -156,7 +168,7 @@ async function usarCampana(r, { silencio = false } = {}) {
     await cargarNavegacion();
     mostrarVacio();
     validarEnSegundoPlano();
-    aviso(`Campaña «${r.datos.nombre}» abierta`, "ok");
+    aviso(`Ejecución «${r.datos.nombre}» abierta`, "ok");
   }
 }
 
@@ -176,11 +188,11 @@ async function menuCampana() {
       onclick: (e) => e.target.closest("dialog").close("reciente:" + r.carpeta),
     }, h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta }))));
   const r = await dialogo({
-    titulo: "Campañas de ejecución", cuerpo,
+    titulo: "Ejecuciones", cuerpo,
     botones: [
       { texto: "Cerrar", valor: "", tipo: "ghost" },
-      { texto: "Abrir campaña…", valor: "abrir", tipo: "" },
-      { texto: "Nueva campaña…", valor: "nueva", tipo: "primary" },
+      { texto: "Abrir ejecución…", valor: "abrir", tipo: "" },
+      { texto: "Nueva ejecución…", valor: "nueva", tipo: "primary" },
     ],
   });
   if (r === "nueva") await nuevaCampana();
@@ -188,18 +200,13 @@ async function menuCampana() {
   else if (r && r.startsWith("reciente:")) await abrirCampana(r.slice(9));
 }
 
-/* ---- nueva campaña ---- */
-async function nuevaCampana() {
-  if (!S.capitulos.length) { aviso("Abre primero la carpeta de pruebas", "error"); return; }
-  if (!(await guardia())) return;
-  setDirty(false);
-  let opciones;
-  try { opciones = await api.campana_opciones(); } catch (e) { fallo(e); return; }
-  const filtro = {};
-  const campo = (id, etiqueta, ayuda = "") => h("div", { class: "campo" },
-    h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", placeholder: ayuda }));
+/**
+ * Fichas para elegir qué pruebas entran (tags, automatizable, entorno…) y la
+ * vista previa de las que cumplen el criterio. Cambia `filtro` en el sitio.
+ */
+function selectorFiltro(opciones, filtro, textoLista) {
   const nombres = Object.fromEntries(S.capitulos.map((c) => [c.archivo, c.nombre]));
-  const grupos = [
+  const claves = [
     ["etiquetas", "Tags (basta con uno)"], ["automatizable", "Automatizable"], ["entorno", "Entorno de pruebas (basta con uno)"],
     ["maniobra", "Maniobra (basta con una)"], ["capitulos", "Capítulos"], ["robot", "Automatización"],
   ].filter(([clave]) => (opciones[clave] || []).length);
@@ -208,12 +215,12 @@ async function nuevaCampana() {
     try {
       const lista = await api.campana_previsualizar(filtro);
       vista.replaceChildren(
-        h("p", {}, h("strong", { text: plural(lista.length, "prueba", "pruebas") }), lista.length ? " entrarán en la campaña:" : " cumplen el criterio."),
+        h("p", {}, h("strong", { text: plural(lista.length, "prueba", "pruebas") }), lista.length ? textoLista : " cumplen el criterio."),
         h("ul", {}, lista.slice(0, 300).map((p) => h("li", {}, h("span", { class: "tid", text: p.id }), " ", p.titulo))));
     } catch (e) { vista.replaceChildren(h("p", { class: "error-campo", text: e.message })); }
   }, 150);
   const fichasGrupo = (clave, valores) => h("div", { class: "fichas-filtro" }, valores.map((v) => h("button", {
-    type: "button", class: "ficha-filtro", "aria-pressed": "false",
+    type: "button", class: "ficha-filtro", "aria-pressed": String((filtro[clave] || []).includes(v)), dataset: { grupo: clave, valor: v },
     text: clave === "capitulos" ? nombres[v] || v : clave === "automatizable" ? AUTOMATIZABLE_TXT[v] || v
       : clave === "robot" ? { con: "Con test de Robot", sin: "Sin test de Robot" }[v] : v,
     onclick: (e) => {
@@ -225,38 +232,113 @@ async function nuevaCampana() {
       actualizar();
     },
   })));
+  actualizar();
+  const grupos = claves.map(([clave, titulo]) => h("div", { class: "grupo-filtro" }, h("span", { class: "etiqueta", text: titulo }), fichasGrupo(clave, opciones[clave])));
+  return { grupos, vista };
+}
+
+/* ---- nueva ejecución ---- */
+/** Nueva ejecución. Desde una validación (`enValidacion`) parte de su criterio y se guarda dentro de ella. */
+async function nuevaCampana({ enValidacion = false } = {}) {
+  if (!S.capitulos.length) { aviso("Abre primero la carpeta de pruebas", "error"); return; }
+  if (!(await guardia())) return;
+  setDirty(false);
+  let opciones;
+  try { opciones = await api.campana_opciones(); } catch (e) { fallo(e); return; }
+  const filtro = enValidacion && S.validacion ? JSON.parse(JSON.stringify(S.validacion.datos.seleccion || {})) : {};
+  const campo = (id, etiqueta, ayuda = "") => h("div", { class: "campo" },
+    h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", placeholder: ayuda }));
+  const { grupos, vista } = selectorFiltro(opciones, filtro, " entrarán en la ejecución:");
+  // El entorno de pruebas de la ejecución marca (o desmarca) el mismo entorno en el filtro de pruebas.
+  const selEntorno = selectorEntorno("c-entorno-pruebas", "", (anterior, nuevo) => {
+    for (const [v, marcar] of [[anterior, false], [nuevo, true]]) {
+      const ficha = v && cuerpo.querySelector(`.ficha-filtro[data-grupo="entorno"][data-valor="${v}"]`);
+      if (ficha && (ficha.getAttribute("aria-pressed") === "true") !== marcar) ficha.click();
+    }
+  });
   const cuerpo = h("div", { class: "nueva-campana" },
     h("div", { class: "rejilla" },
-      Object.assign(campo("c-nombre", "Nombre *", "Regresión v2.3"), { className: "campo completo" }),
+      Object.assign(campo("c-nombre", "Nombre *", "Regresión v2.3 en Torre"), { className: "campo completo" }),
       campo("c-objeto", "Qué se prueba", "Firmware 2.3.0-rc2"),
-      campo("c-entorno", "Entorno", "Banco HIL nº 2"),
+      selEntorno,
+      campo("c-entorno", "Banco / instalación", "Banco HIL nº 2"),
       campo("c-responsable", "Responsable")),
     h("h3", { text: "Qué pruebas entran" }),
-    h("p", { class: "muted", text: "Sin marcar nada entran todas. Dentro de cada grupo basta con cumplir una opción; entre grupos, todas." }),
-    grupos.map(([clave, titulo]) => h("div", { class: "grupo-filtro" }, h("span", { class: "etiqueta", text: titulo }), fichasGrupo(clave, opciones[clave]))),
+    h("p", { class: "muted", text: (enValidacion ? "Parte del criterio de la validación; al elegir el entorno se marcan las pruebas que lo piden. " : "")
+      + "Sin marcar nada entran todas. Dentro de cada grupo basta con cumplir una opción; entre grupos, todas." }),
+    grupos,
     vista);
-  actualizar();
   const responsable = cuerpo.querySelector("#c-responsable");
   responsable.value = leerLocal("ejecutor") || "";
   const r = await dialogo({
-    titulo: "Nueva campaña", cuerpo, ancho: true,
-    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir carpeta y crear…", valor: "si", tipo: "primary" }],
+    titulo: enValidacion ? `Nueva ejecución en «${S.validacion.datos.nombre}»` : "Nueva ejecución", cuerpo, ancho: true,
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" },
+      { texto: enValidacion ? "Crear ejecución" : "Elegir carpeta y crear…", valor: "si", tipo: "primary" }],
   });
   if (r !== "si") return;
   const nombre = cuerpo.querySelector("#c-nombre").value.trim();
-  if (!nombre) { aviso("La campaña necesita un nombre", "error"); return; }
+  if (!nombre) { aviso("La ejecución necesita un nombre", "error"); return; }
+  const entornoPruebas = cuerpo.querySelector("#c-entorno-pruebas").value;
+  if (!entornoPruebas) { aviso("Indica en qué entorno de pruebas se ejecuta", "error"); return; }
   const datos = {
     objeto: cuerpo.querySelector("#c-objeto").value,
+    entorno_pruebas: entornoPruebas,
     entorno: cuerpo.querySelector("#c-entorno").value,
     responsable: responsable.value,
   };
   try {
-    aviso("Elige la carpeta donde guardar la campaña (se creará una subcarpeta)…");
+    if (enValidacion) {
+      await usarCampana(await api.validacion_nueva_ejecucion(nombre, filtro, datos));
+      await refrescarValidacion();
+      return;
+    }
+    aviso("Elige la carpeta donde guardar la ejecución (se creará una subcarpeta)…");
     await usarCampana(await api.campana_crear(nombre, filtro, datos));
   } catch (e) { fallo(e); }
 }
 
-/* ---- navegación entre pruebas de la campaña ---- */
+/** Selector del entorno de pruebas de una ejecución (Automático, Maqueta, Torre). */
+function selectorEntorno(id, valor, alCambiar = null) {
+  const opciones = (S.esquema && S.esquema.opciones.entorno) || [];
+  let anterior = valor;
+  const select = h("select", {
+    id, onchange: (e) => { if (alCambiar) alCambiar(anterior, e.target.value); anterior = e.target.value; },
+  }, h("option", { value: "", text: "(elige uno)", selected: !valor }),
+  opciones.map((o) => h("option", { value: o, text: o, selected: o === valor })));
+  return h("div", { class: "campo" }, h("label", { for: id, text: "Entorno de pruebas *" }), select,
+    h("span", { class: "ayuda", text: "Dónde se pasan las pruebas. Para validar una versión, cada prueba tiene que pasarse en sus entornos." }));
+}
+
+/** Cambiar los datos de la ejecución abierta. */
+async function editarDatosCampana() {
+  if (!S.campana || S.campana.cerrada) return;
+  const d = S.campana.datos;
+  const campo = (id, etiqueta, valor) => h("div", { class: "campo" },
+    h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", value: valor || "" }));
+  const cuerpo = h("div", { class: "rejilla" },
+    campo("d-objeto", "Qué se prueba", d.objeto),
+    selectorEntorno("d-entorno-pruebas", d.entorno_pruebas || ""),
+    campo("d-entorno", "Banco / instalación", d.entorno),
+    campo("d-responsable", "Responsable", d.responsable));
+  const r = await dialogo({
+    titulo: "Datos de la ejecución", cuerpo,
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  try {
+    S.campana = await api.campana_editar_datos({
+      objeto: cuerpo.querySelector("#d-objeto").value,
+      entorno_pruebas: cuerpo.querySelector("#d-entorno-pruebas").value,
+      entorno: cuerpo.querySelector("#d-entorno").value,
+      responsable: cuerpo.querySelector("#d-responsable").value,
+    });
+    pintarModo();
+    mostrarVacio();
+    aviso("Datos de la ejecución guardados", "ok");
+  } catch (e) { fallo(e); }
+}
+
+/* ---- navegación entre pruebas de la ejecución ---- */
 async function irAPruebaCampana(id) {
   const p = S.campana && S.campana.resumen.pruebas.find((x) => x.id === id);
   if (!p || !p.archivo) { aviso(`La prueba ${id} ya no está en los YAML de pruebas`, "error"); return; }
@@ -304,17 +386,22 @@ async function siguientePendiente(desdeId = null) {
   await irAPruebaCampana(siguiente.id);
 }
 
-/* ---- panel de la campaña (sin prueba seleccionada) ---- */
+/* ---- panel de la ejecución (sin prueba seleccionada) ---- */
 function mostrarPanelCampana() {
   R = null;
+  if (!S.campana && S.validacion) { mostrarPanelValidacion(); return; }
   if (!S.campana) {
     const lista = recientes();
     mostrar(h("div", { class: "centro" },
-      h("h2", { text: "Ejecución de pruebas" }),
-      h("p", { text: "Crea una campaña eligiendo qué pruebas pasar (por tags, entorno, maniobra…) o abre una que ya exista. Los resultados se guardan en la carpeta de la campaña; los YAML de pruebas no se tocan." }),
+      h("h2", { text: "Validación de una versión" }),
+      h("p", { text: "Una validación agrupa las ejecuciones de una versión (una por entorno: Automático, Maqueta, Torre) y da el resultado de cada prueba en cada entorno. Cada ejecución guarda sus resultados en su carpeta; los YAML de pruebas no se tocan." }),
       h("div", { class: "fila-botones" },
-        h("button", { class: "btn primary", type: "button", onclick: nuevaCampana, text: "Nueva campaña" }),
-        h("button", { class: "btn", type: "button", onclick: () => abrirCampana(), text: "Abrir campaña…" })),
+        h("button", { class: "btn primary", type: "button", onclick: nuevaValidacion, text: "Nueva validación" }),
+        h("button", { class: "btn", type: "button", onclick: () => abrirValidacion(), text: "Abrir validación…" })),
+      h("p", { class: "muted", text: "También puedes trabajar con una ejecución suelta, sin validación:" }),
+      h("div", { class: "fila-botones" },
+        h("button", { class: "btn", type: "button", onclick: () => nuevaCampana(), text: "Nueva ejecución" }),
+        h("button", { class: "btn", type: "button", onclick: () => abrirCampana(), text: "Abrir ejecución…" })),
       lista.length ? h("div", { class: "recientes" }, h("p", { class: "muted", text: "Recientes" }),
         lista.map((r) => h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: () => abrirCampana(r.carpeta) },
           h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta })))) : null));
@@ -341,14 +428,16 @@ function mostrarPanelCampana() {
       h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id }), h("span", { text: p.mensaje }))))
     : h("p", { class: "muted", text: "Sin avisos." });
   mostrar(h("div", { class: "formulario panel-campana" },
+    S.validacion ? h("button", { class: "btn ghost peq volver", type: "button", onclick: volverAValidacion },
+      icon("up"), `Validación «${S.validacion.datos.nombre}»`) : null,
     h("div", { class: "acciones" },
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
-        h("span", { class: "ruta", text: [d.objeto, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),
+        h("span", { class: "ruta", text: [d.objeto, d.entorno_pruebas, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),
       h("span", { class: "chip-estado " + (c.cerrada ? "cerrada" : "abierta"), text: c.cerrada ? "Cerrada" : "Abierta" }),
-      c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la campaña que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
+      c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la ejecución que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
-      h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la campaña sigue abierta" }),
-      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar campaña…" }),
+      h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la ejecución sigue abierta" }),
+      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar ejecución…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Avance" }),
@@ -363,11 +452,15 @@ function mostrarPanelCampana() {
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por capítulo" })), tabla("Capítulo", r.por_capitulo)),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Avisos" })), problemas),
     h("section", { class: "bloque" },
-      h("div", { class: "bloque-cab" }, h("h3", { text: "Campaña" }),
+      h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecución" }),
+        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: editarDatosCampana, text: "Cambiar datos…", title: "Qué se prueba, entorno de pruebas, banco y responsable" }),
         c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: resincronizar, text: "Resincronizar", title: "Añadir las pruebas nuevas que cumplen el criterio" })),
+      d.entorno_pruebas ? null : h("p", { class: "aviso-panel", text: "Esta ejecución no indica su entorno de pruebas (Automático, Maqueta o Torre): en la validación de la versión sus resultados no contarán para ningún entorno. Indícalo con «Cambiar datos…»." }),
       h("dl", { class: "datos-campana" },
+        h("dt", { text: "Entorno de pruebas" }), h("dd", { text: d.entorno_pruebas || "(sin indicar)" }),
+        d.entorno ? [h("dt", { text: "Banco / instalación" }), h("dd", { text: d.entorno })] : null,
         h("dt", { text: "Criterio" }), h("dd", { text: criterio }),
-        h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: c.carpeta, onclick: () => api.mostrar_en_carpeta(c.carpeta + "/campaña.yaml").catch(fallo) })),
+        h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: c.carpeta, onclick: () => api.mostrar_en_carpeta(c.archivo).catch(fallo) })),
         h("dt", { text: "Pruebas" }), h("dd", { text: String(d.pruebas_yaml || "") })))));
 }
 
@@ -393,12 +486,12 @@ async function importarRobot(ruta = null) {
             h("td", {}, h("span", { class: "chip-estado e-" + r.estado, text: ESTADO_TXT[r.estado] })),
             h("td", { class: "muted", text: r.anterior ? ESTADO_TXT[r.anterior] || r.anterior : "—" }),
             h("td", { text: r.tests.join(" · ") })))))
-        : h("p", { class: "aviso-panel", text: "Ninguna prueba de esta campaña tiene resultados en ese archivo. ¿Llevan los tests de Robot la etiqueta id:<ID>?" }),
+        : h("p", { class: "aviso-panel", text: "Ninguna prueba de esta ejecución tiene resultados en ese archivo. ¿Llevan los tests de Robot la etiqueta id:<ID>?" }),
       lista("Sustituyen un resultado manual (el manual queda en el historial)", plan.sustituyen_manual, "atencion"),
       lista("Tests de Robot sin etiqueta id:", plan.sin_id),
       lista("IDs que no existen en las pruebas", plan.inexistentes, "atencion"),
-      lista("IDs que no están en esta campaña", plan.fuera_de_campaña),
-      lista("Pruebas de la campaña sin resultado en este archivo (siguen como están)", plan.sin_robot));
+      lista("IDs que no están en esta ejecución", plan.fuera_de_campaña),
+      lista("Pruebas de la ejecución sin resultado en este archivo (siguen como están)", plan.sin_robot));
     const r = await dialogo({
       titulo: "Importar resultados de Robot Framework", cuerpo, ancho: true,
       botones: [
@@ -427,20 +520,20 @@ async function cerrarCampana() {
   if (t.pendiente) {
     await dialogo({
       titulo: "Aún no se puede cerrar",
-      cuerpo: `Quedan ${plural(t.pendiente, "prueba pendiente", "pruebas pendientes")}. Ejecútalas o márcalas como «No aplica» antes de cerrar la campaña.`,
+      cuerpo: `Quedan ${plural(t.pendiente, "prueba pendiente", "pruebas pendientes")}. Ejecútalas o márcalas como «No aplica» antes de cerrar la ejecución.`,
       botones: [{ texto: "Entendido", valor: "", tipo: "primary" }],
     });
     return;
   }
   const r = await dialogo({
-    titulo: "Cerrar la campaña",
+    titulo: "Cerrar la ejecución",
     cuerpo: h("div", {},
       h("p", { text: "Al cerrarla:" }),
       h("ul", {},
-        h("li", { text: "Se guarda una copia de sus pruebas tal como están ahora (con sus imágenes) dentro de la carpeta de la campaña. El informe y la revisión usarán esa copia aunque las pruebas cambien después." }),
+        h("li", { text: "Se guarda una copia de sus pruebas tal como están ahora (con sus imágenes) dentro de la carpeta de la ejecución. El informe y la revisión usarán esa copia aunque las pruebas cambien después." }),
         h("li", { text: "Los resultados ya no se podrán cambiar." })),
       h("p", { text: `Resultado: ${t.ok} OK, ${t.no_ok} NO OK, ${plural(t.bloqueada, "bloqueada", "bloqueadas")}, ${plural(t.no_aplica, "no aplica", "no aplican")}.` })),
-    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cerrar campaña", valor: "si", tipo: "primary" }],
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Cerrar ejecución", valor: "si", tipo: "primary" }],
   });
   if (r !== "si") return;
   try {
@@ -452,7 +545,7 @@ async function cerrarCampana() {
     pintarModo();
     await cargarNavegacion();
     mostrarVacio();
-    aviso("Campaña cerrada", "ok");
+    aviso("Ejecución cerrada", "ok");
     await generarInforme();
   } catch (e) { fallo(e); }
 }
@@ -466,10 +559,10 @@ async function generarInforme() {
   const casilla = h("input", { type: "checkbox", id: "informe-pdf", disabled: !conPdf });
   casilla.checked = Boolean(conPdf) && leerLocal("informe-pdf") === "si";
   const r = await dialogo({
-    titulo: S.campana.cerrada ? "Informe de la campaña" : "Informe (borrador)",
+    titulo: S.campana.cerrada ? "Informe de la ejecución" : "Informe (borrador)",
     cuerpo: h("div", {},
-      h("p", { text: "Un documento de Word con un resumen al principio (datos de la campaña, totales, desglose por capítulo, fallos y bloqueos) y después cada prueba con su resultado, observaciones, evidencias e intentos anteriores." }),
-      S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La campaña sigue abierta: el informe saldrá marcado como BORRADOR." }),
+      h("p", { text: "Un documento de Word con un resumen al principio (datos de la ejecución, totales, desglose por capítulo, fallos y bloqueos) y después cada prueba con su resultado, observaciones, evidencias e intentos anteriores." }),
+      S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }),
       h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
         conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
@@ -569,6 +662,7 @@ const esImagen = (ruta) => /\.(png|jpe?g|gif|bmp|tiff?)$/i.test(ruta);
 
 async function mostrarEnEjecucion(datos) {
   F = null;
+  if (!S.campana && S.validacion && datos.tipo === "prueba") { mostrarPruebaValidacion(datos); return; }
   if (datos.tipo !== "prueba") {
     const sec = datos.elemento;
     R = null;
@@ -617,8 +711,8 @@ function panelResultado() {
     }));
     panel.replaceChildren();
     append(panel, [
-      !R.enCampana ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la campaña." }) : null,
-      cerrada() ? h("p", { class: "aviso-panel", text: "La campaña está cerrada: los resultados no se pueden cambiar." }) : null,
+      !R.enCampana ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la ejecución." }) : null,
+      cerrada() ? h("p", { class: "aviso-panel", text: "La ejecución está cerrada: los resultados no se pueden cambiar." }) : null,
       R.origen === "robot" ? h("p", { class: "origen-panel", text: "Resultado importado de Robot Framework. Si lo cambias a mano, el importado queda en el historial." }) : null,
       tieneRobot(R.id) ? h("div", { class: "seccion-panel robot-panel" },
         h("div", { class: "cab-panel" }, h("h3", {}, icon("robot"), " Tests de Robot")), listaTestsRobot(R.id)) : null,
@@ -772,6 +866,7 @@ function iniciarEjecucion() {
   $("#modo-requisitos").addEventListener("click", () => cambiarModo("requisitos"));
   $("#modo-ejecucion").addEventListener("click", () => cambiarModo("ejecucion"));
   $("#btn-campana").addEventListener("click", menuCampana);
+  $("#btn-validacion").addEventListener("click", menuValidacion);
   $("#btn-panel-campana").addEventListener("click", async () => {
     if (!(await guardia())) return;
     setDirty(false);

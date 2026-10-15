@@ -1,7 +1,7 @@
 # Robot Framework y las pruebas YAML
 
 Cómo enlazar los tests automáticos de Robot Framework con las pruebas del
-editor para que sus resultados entren en las campañas de ejecución.
+editor para que sus resultados entren en las ejecuciones.
 
 ## La convención: la etiqueta `id:`
 
@@ -33,7 +33,7 @@ es una etiqueta por test.
 
 ## Cómo se convierte cada resultado
 
-| Robot | Campaña |
+| Robot | Ejecución |
 |---|---|
 | PASS | OK |
 | FAIL | NO OK (el mensaje de error va a *Observaciones*) |
@@ -53,27 +53,27 @@ observaciones indican qué tests se ejecutaron y por qué falló cada uno.
    robot --outputdir resultados pruebas_robot/
    ```
 
-2. En el editor, modo **Ejecución**, abre la campaña y pulsa **Importar
+2. En el editor, modo **Validación**, abre la ejecución y pulsa **Importar
    Robot…** en el resumen. Elige el `output.xml`. Antes de cambiar nada verás
    qué resultado tendrá cada prueba y los avisos:
    - pruebas que ya tenían un resultado manual (el manual no se pierde: queda
      en el historial),
    - tests de Robot sin etiqueta `id:`,
    - IDs que no existen en las pruebas (erratas o pruebas borradas),
-   - IDs que existen pero no están en esta campaña,
-   - pruebas de la campaña sin resultado en ese archivo (se quedan como
+   - IDs que existen pero no están en esta ejecución,
+   - pruebas de la ejecución sin resultado en ese archivo (se quedan como
      están, para pasarlas a mano o en otra ejecución).
 3. Pulsa **Importar**. Se copian `output.xml`, `log.html`, `report.html` y
    las capturas enlazadas en el log a `evidencias/robot/<fecha>/` dentro de la
-   campaña, y cada prueba queda con su resultado, el ejecutor «Robot
+   ejecución, y cada prueba queda con su resultado, el ejecutor «Robot
    Framework», la captura y el `log.html` como evidencias.
 
 También desde la línea de comandos (útil en un PC sin el editor abierto o,
 más adelante, en integración continua):
 
 ```bash
-python herramientas.py robot ruta/a/la/campaña resultados/output.xml --simular   # solo mira
-python herramientas.py robot ruta/a/la/campaña resultados/output.xml             # importa
+python herramientas.py robot ruta/a/la/ejecución resultados/output.xml --simular   # solo mira
+python herramientas.py robot ruta/a/la/ejecución resultados/output.xml             # importa
 ```
 
 Volver a importar el mismo `output.xml` no duplica nada. Si se repiten los
@@ -107,7 +107,7 @@ Con la carpeta configurada, el editor lee las etiquetas `id:` de los `.robot`
 - avisa en la validación de las pruebas con `automatizable: hecho` sin test
   de Robot;
 - en la configuración muestra los tests sin `id:` y los `id:` que no existen;
-- al crear una campaña permite filtrar por **Automatización: con / sin test
+- al crear una ejecución permite filtrar por **Automatización: con / sin test
   de Robot**.
 
 ## Escribir los pasos con las keywords
@@ -151,19 +151,19 @@ vez de paso manual y de paso de Robot: se leen como una frase
 primer paso de la propuesta de pasos ejecutables (ver
 [PENDIENTE.md](../PENDIENTE.md)).
 
-## Ejecutar Robot desde una campaña
+## Ejecutar Robot desde una ejecución
 
-**Ejecutar Robot…** (en el resumen de la campaña) lanza Robot solo con los
-tests de las pruebas elegidas: las pendientes o todas las de la campaña que
+**Ejecutar Robot…** (en el resumen de la ejecución) lanza Robot solo con los
+tests de las pruebas elegidas: las pendientes o todas las de la ejecución que
 tienen test de Robot. El editor:
 
-1. crea `evidencias/robot/<fecha>/` dentro de la campaña y lanza Robot con
+1. crea `evidencias/robot/<fecha>/` dentro de la ejecución y lanza Robot con
    `--include id:<id>` por cada prueba (en un archivo de argumentos), las
    suites y los argumentos configurados;
 2. muestra el avance test a test (con un *listener* que escribe en
    `progreso.jsonl`) y permite cancelar;
 3. al terminar abre la vista previa de la importación; los resultados ya
-   están en la campaña (`output.xml`, `log.html`, `report.html`, la salida de
+   están en la ejecución (`output.xml`, `log.html`, `report.html`, la salida de
    la consola en `consola.txt`), así que no se copian otra vez.
 
 Si Robot termina sin `output.xml` (comando mal configurado, argumentos
@@ -188,4 +188,4 @@ los casos (OK, NO OK, SKIP, un test para dos pruebas, dos tests para la misma
 prueba, un test sin `id:` y un ID que no existe). `banco.resource` y
 `banco_hil.py` son keywords de ejemplo (Robot y Python) que coinciden con
 pasos de las pruebas de ejemplo. Sus resultados ya generados están en `ejemplos/robot/resultados/output.xml`; se pueden importar en la
-campaña de ejemplo `ejemplos/ejecuciones/regresion_v2.3`.
+ejecución de ejemplo `ejemplos/ejecuciones/regresion_v2.3`.

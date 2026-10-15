@@ -341,7 +341,7 @@ class EditorApi:
         self._lock = threading.RLock()
         self._window: Any = None
         self._yaml_dir: Path | None = None
-        self._chapters: list[dict[str, Any]] = []          # siempre las pruebas (también para campañas)
+        self._chapters: list[dict[str, Any]] = []          # siempre las pruebas (también para ejecuciones)
         self._req_chapters: list[dict[str, Any]] = []      # requisitos (subcarpeta requisitos/)
         self._req_error: str | None = None                 # por qué no se pudieron leer los requisitos
         self._coleccion = "pruebas"                        # lo que se edita: "pruebas" o "requisitos"
@@ -349,7 +349,7 @@ class EditorApi:
         self._thumbs: dict[tuple[str, int, int, int], dict[str, Any]] = {}
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
         self._al_cargar: Callable[[Path], None] | None = None   # p. ej. recordar la carpeta
-        self._solo_lectura = False     # p. ej., las pruebas congeladas de una campaña cerrada
+        self._solo_lectura = False     # p. ej., las pruebas congeladas de una ejecución cerrada
         self._sin_guardar = False      # la interfaz avisa cuando hay cambios pendientes
         self._cierre_aceptado = False
 
@@ -440,7 +440,7 @@ class EditorApi:
     def _exigir_escritura(self) -> None:
         if self._solo_lectura:
             raise ValueError(
-                "Esta carpeta es la copia congelada de una campaña cerrada y no se puede modificar. "
+                "Esta carpeta es la copia congelada de una ejecución cerrada y no se puede modificar. "
                 "Para editar las pruebas, abre su carpeta de pruebas."
             )
 

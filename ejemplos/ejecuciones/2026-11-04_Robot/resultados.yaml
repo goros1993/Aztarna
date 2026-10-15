@@ -1,0 +1,20 @@
+DEMO-LLAM-001:
+  estado: ok
+  fecha: 2026-11-04T20:05
+  ejecutor: Robot
+  origen: robot
+  huella: b54b9a273040
+DEMO-LLAM-002:
+  estado: ok
+  fecha: 2026-11-04T20:07
+  ejecutor: Robot
+  origen: robot
+  huella: 95604739cbec
+DEMO-NIV-001:
+  estado: no_ok
+  fecha: 2026-11-04T20:12
+  ejecutor: Robot
+  origen: robot
+  huella: c40a46daee20
+  observaciones: Desnivel de 6 mm con carga al 100 % (límite ±5 mm).
+  incidencia: BUG-130

@@ -17,7 +17,8 @@ const S = {
   capituloPorModo: {},  // último capítulo abierto en pruebas y en requisitos
   hayRequisitos: false, // si la carpeta tiene requisitos (subcarpeta requisitos/)
   filtroCobertura: "",  // en requisitos: mostrar solo los de este estado de cobertura
-  campana: null,        // estado de la campaña abierta (ver ejecucion_api.py)
+  campana: null,        // estado de la ejecución abierta (ver ejecucion_api.py)
+  validacion: null,     // validación de versión abierta: resultado consolidado (ver validacion_core.py)
   cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
   keywords: null,       // keywords de Robot que se proponen al escribir los pasos
   esquema: null,        // campos de las pruebas y sus opciones (esquema.py)
@@ -79,8 +80,9 @@ function aplicarResumen(resumen) {
   S.soloLectura = Boolean(resumen.solo_lectura);
   boton.textContent = S.carpeta ? (S.soloLectura ? "Pruebas congeladas (solo lectura)" : S.carpeta) : "Sin carpeta";
   boton.title = S.soloLectura
-    ? "Pruebas tal como estaban al cerrar la campaña. No se pueden editar; para editar, abre la carpeta de pruebas."
+    ? "Pruebas tal como estaban al cerrar la ejecución. No se pueden editar; para editar, abre la carpeta de pruebas."
     : S.carpeta || "";
+  $("#btn-carpeta").title = S.carpeta ? `Carpeta de pruebas: ${S.carpeta}\nPulsa para cambiarla.` : "Cambiar de carpeta";
   const sel = $("#sel-capitulo");
   sel.replaceChildren(...S.capitulos.map((c) => h("option", {
     value: String(c.indice), text: textoCapitulo(c), selected: c.indice === S.capitulo,
@@ -400,7 +402,7 @@ async function arrancar() {
     const resumen = await api.iniciar();
     aplicarResumen(enRequisitos() && resumen.carpeta ? await api.coleccion("requisitos") : resumen);
     if (resumen.aviso) aviso(resumen.aviso, "error");
-    if (S.modo === "ejecucion") await recuperarCampana();
+    if (S.modo === "ejecucion") { await recuperarValidacion(); if (!S.validacion) await recuperarCampana(); }
     if (S.capitulos.length) {
       await cargarCobertura();
       await cargarNavegacion();

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resultados de Robot Framework en las campañas de ejecución.
+"""Resultados de Robot Framework en las ejecuciones de pruebas.
 
 Convención: cada test de Robot lleva la etiqueta `id:<ID de la prueba YAML>`
 (puede llevar varias). Se lee el `output.xml` directamente, sin depender de
@@ -172,7 +172,7 @@ def plan(campaña: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[s
             por_id.setdefault(test_id, []).append(test)
 
     resultados = []
-    for test_id in ej.ids_de(campaña):            # en el orden de la campaña
+    for test_id in ej.ids_de(campaña):            # en el orden de la ejecución
         tests = [t for t in por_id.get(test_id, []) if t["estado"] in ESTADO_ROBOT]
         estado = estado_consolidado([t["estado"] for t in tests])
         if estado is None:
@@ -214,7 +214,7 @@ def _copiar_resultados(campaña: dict[str, Any], robot: dict[str, Any], imagenes
     evidencias = (campaña["carpeta"] / ej.CARPETA_EVIDENCIAS).resolve()
     origen = robot["carpeta"].resolve()
     if evidencias in origen.parents:
-        # Robot se lanzó desde el editor y ya dejó sus resultados dentro de la campaña.
+        # Robot se lanzó desde el editor y ya dejó sus resultados dentro de la ejecución.
         return origen.relative_to(campaña["carpeta"].resolve()).as_posix()
     marca = (robot["generado"] or datetime.now()).strftime("%Y-%m-%d_%H%M%S")
     relativa = f"{ej.CARPETA_EVIDENCIAS}/robot/{marca}"
@@ -232,9 +232,9 @@ def _copiar_resultados(campaña: dict[str, Any], robot: dict[str, Any], imagenes
 
 def importar(campaña: dict[str, Any], ruta_output: str | Path, capitulos: list[dict[str, Any]],
              ejecutor: str = EJECUTOR) -> dict[str, Any]:
-    """Apunta en la campaña los resultados de un output.xml. El resultado anterior queda en el historial."""
+    """Apunta en la ejecución los resultados de un output.xml. El resultado anterior queda en el historial."""
     if campaña["datos"].get("estado") == "cerrada":
-        raise ValueError("La campaña está cerrada; no se pueden importar resultados.")
+        raise ValueError("La ejecución está cerrada; no se pueden importar resultados.")
     robot = leer_output(ruta_output)
     propuesta = plan(campaña, robot, capitulos)
     if not propuesta["resultados"]:

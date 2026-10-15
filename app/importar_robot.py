@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Importa en una campaña los resultados de Robot Framework (output.xml).
+"""Importa en una ejecución los resultados de Robot Framework (output.xml).
 
 Uso:
-    python herramientas.py robot ruta/a/la/campaña ruta/a/output.xml            # importa
-    python herramientas.py robot ruta/a/la/campaña ruta/a/output.xml --simular  # solo muestra qué haría
+    python herramientas.py robot ruta/a/la/ejecución ruta/a/output.xml            # importa
+    python herramientas.py robot ruta/a/la/ejecución ruta/a/output.xml --simular  # solo muestra qué haría
 
 Cada test de Robot debe llevar la etiqueta id:<ID de la prueba YAML>.
 PASS -> OK, FAIL -> NO OK, SKIP -> No aplica. Ver docs/robot.md.
@@ -19,8 +19,8 @@ VISIBLE = {"ok": "OK", "no_ok": "NO OK", "no_aplica": "No aplica"}
 
 
 def main(argv=None, prog=None) -> None:
-    ap = argparse.ArgumentParser(prog=prog, description="Importa resultados de Robot Framework en una campaña")
-    ap.add_argument("campaña", help="carpeta de la campaña (con campaña.yaml)")
+    ap = argparse.ArgumentParser(prog=prog, description="Importa resultados de Robot Framework en una ejecución")
+    ap.add_argument("campaña", help="carpeta de la ejecución (con ejecucion.yaml)")
     ap.add_argument("output", help="output.xml generado por Robot Framework")
     ap.add_argument("--simular", action="store_true", help="no cambia nada; solo muestra qué se importaría")
     ap.add_argument("--ejecutor", default=robot_core.EJECUTOR, help="nombre del ejecutor (por defecto: Robot Framework)")
@@ -45,8 +45,8 @@ def main(argv=None, prog=None) -> None:
         ("Sustituyen un resultado manual (queda en el historial)", datos["sustituyen_manual"]),
         ("Tests de Robot sin etiqueta id:", datos["sin_id"]),
         ("IDs que no existen en las pruebas", datos["inexistentes"]),
-        ("IDs que no están en esta campaña", datos["fuera_de_campaña"]),
-        ("Pruebas de la campaña sin resultado en este archivo", datos["sin_robot"]),
+        ("IDs que no están en esta ejecución", datos["fuera_de_campaña"]),
+        ("Pruebas de la ejecución sin resultado en este archivo", datos["sin_robot"]),
     ]
     for titulo, lista in avisos:
         if lista:
