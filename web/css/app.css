@@ -643,3 +643,22 @@ fieldset.campo.opciones { border: 0; padding: 0; margin: 0; min-width: 0; }
 fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5px; color: var(--ink-2); }
 .casillas { display: flex; flex-wrap: wrap; gap: 4px 14px; min-height: 32px; align-items: center; }
 .casilla.no-valida { color: var(--warn); text-decoration: line-through; }
+
+/* ---- espera (exportar el Word, generar el informe) ---- */
+.espera {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
+  background: rgba(10, 16, 20, 0.35); cursor: progress; outline: none;
+}
+.espera-caja {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 26px 34px; border-radius: 10px; background: var(--paper);
+  border: 1px solid var(--rule-strong); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+.espera-caja p { margin: 0; color: var(--ink); font-weight: 600; }
+.ruleta {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 4px solid var(--accent-soft); border-top-color: var(--accent);
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ruleta { animation-duration: 2.4s; } }

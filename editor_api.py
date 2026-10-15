@@ -926,24 +926,35 @@ class EditorApi:
 
     # --- exportación -----------------------------------------------------------
     @respuesta
+    def elegir_destino_docx(self) -> dict[str, Any]:
+        """«Guardar como» para el DOCX; la interfaz muestra la espera solo mientras se genera."""
+        archivo = self._guardar_como(self._require_dir().parent, "pruebas.docx")
+        return {"archivo": archivo} if archivo else {"cancelado": True}
+
+    def _guardar_como(self, carpeta: Path, nombre: str) -> str | None:
+        """Diálogo «Guardar como» de un documento de Word; None si se cancela."""
+        import webview
+
+        if self._window is None:
+            raise ValueError("«Guardar como» solo está disponible en la aplicación.")
+        kind = getattr(getattr(webview, "FileDialog", None), "SAVE", None) or webview.SAVE_DIALOG
+        elegido = self._window.create_file_dialog(
+            kind, directory=str(carpeta), save_filename=nombre, file_types=("Documento de Word (*.docx)",),
+        )
+        if not elegido:
+            return None
+        return elegido if isinstance(elegido, str) else elegido[0]
+
+    @respuesta
     def exportar_docx(self, primer_capitulo: int = 1, salida: str | None = None) -> dict[str, Any]:
         """Genera el DOCX con `yaml_a_docx`. Sin `salida`, abre «Guardar como»."""
         import yaml_a_docx
 
         base = self._require_dir()
         if salida is None:
-            import webview
-
-            if self._window is None:
-                raise ValueError("«Guardar como» solo está disponible en la aplicación.")
-            kind = getattr(getattr(webview, "FileDialog", None), "SAVE", None) or webview.SAVE_DIALOG
-            chosen = self._window.create_file_dialog(
-                kind, directory=str(base.parent), save_filename="pruebas.docx",
-                file_types=("Documento de Word (*.docx)",),
-            )
-            if not chosen:
+            salida = self._guardar_como(base.parent, "pruebas.docx")
+            if salida is None:
                 return {"cancelado": True}
-            salida = chosen if isinstance(chosen, str) else chosen[0]
         output = Path(salida)
         if output.suffix.lower() != ".docx":
             output = output.with_suffix(".docx")

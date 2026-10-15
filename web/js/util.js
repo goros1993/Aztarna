@@ -97,6 +97,25 @@ function fallo(error) {
 }
 
 /* ---- diálogos ---- */
+/**
+ * Tapa la ventana con una ruleta y `mensaje` mientras dura `tarea()` (una
+ * promesa); no deja hacer clic en nada hasta que termina, bien o con error.
+ */
+async function conEspera(mensaje, tarea) {
+  const capa = h("div", { class: "espera", role: "alert", "aria-busy": "true", "aria-live": "assertive" },
+    h("div", { class: "espera-caja" }, h("div", { class: "ruleta", "aria-hidden": "true" }), h("p", { text: mensaje })));
+  const foco = document.activeElement;
+  document.body.appendChild(capa);
+  capa.tabIndex = -1;
+  capa.focus();
+  try {
+    return await tarea();
+  } finally {
+    capa.remove();
+    if (foco && foco.focus) foco.focus();
+  }
+}
+
 function dialogo({ titulo, cuerpo, botones, ancho = false }) {
   return new Promise((resolve) => {
     const dlg = h("dialog", { class: ancho ? "ancho" : "", "aria-label": titulo });

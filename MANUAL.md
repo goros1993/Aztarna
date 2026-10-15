@@ -233,8 +233,9 @@ que ya no existen (de un formato antiguo) y niveles de título fuera de rango.
 **Exportar DOCX** genera un documento de Word con todos los capítulos, en el
 orden del índice, con títulos numerados y una tabla por prueba. Puedes indicar
 el número del primer título (por ejemplo, 8 si el documento original empezaba
-en el capítulo 8). El documento es una copia para leer o compartir: los
-cambios se hacen siempre en el editor.
+en el capítulo 8). Después eliges dónde guardarlo; mientras se genera verás
+una ruleta (con muchas pruebas e imágenes puede tardar un poco). El documento
+es una copia para leer o compartir: los cambios se hacen siempre en el editor.
 
 ---
 
@@ -443,7 +444,8 @@ pruebas, abre su carpeta de pruebas con el botón de la carpeta.
 
 **Generar informe…** crea un documento de Word, y opcionalmente un **PDF**
 (hace falta tener instalado LibreOffice o Microsoft Word). Con la campaña
-todavía abierta, el informe sale marcado como **BORRADOR**.
+todavía abierta, el informe sale marcado como **BORRADOR**. Mientras se
+genera verás una ruleta; el PDF es lo que más tarda.
 
 | Primera página: resumen | Cada prueba con su resultado |
 |---|---|

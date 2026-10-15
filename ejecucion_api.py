@@ -248,24 +248,22 @@ class EditorEjecucionApi(EditorApi):
         return informe_docx.pdf_disponible()
 
     @respuesta
+    def campana_elegir_destino_informe(self) -> dict[str, Any]:
+        """«Guardar como» para el informe; la interfaz muestra la espera solo mientras se genera."""
+        campaña = self._requiere_campaña()
+        archivo = self._guardar_como(campaña["carpeta"], f"Informe_{campaña['carpeta'].name}.docx")
+        return {"archivo": archivo} if archivo else {"cancelado": True}
+
+    @respuesta
     def campana_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
         """Genera el informe DOCX (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
         import informe_docx
 
         campaña = self._requiere_campaña()
         if salida is None:
-            import webview
-
-            if self._window is None:
-                raise ValueError("«Guardar como» solo está disponible en la aplicación.")
-            kind = getattr(getattr(webview, "FileDialog", None), "SAVE", None) or webview.SAVE_DIALOG
-            elegido = self._window.create_file_dialog(
-                kind, directory=str(campaña["carpeta"]), save_filename=f"Informe_{campaña['carpeta'].name}.docx",
-                file_types=("Documento de Word (*.docx)",),
-            )
-            if not elegido:
+            salida = self._guardar_como(campaña["carpeta"], f"Informe_{campaña['carpeta'].name}.docx")
+            if salida is None:
                 return {"cancelado": True}
-            salida = elegido if isinstance(elegido, str) else elegido[0]
         datos = informe_docx.generar_informe(campaña, salida, self._chapters)
         resultado = {"archivo": datos["archivo"], "pruebas": datos["pruebas"], "pdf": None, "aviso_pdf": None}
         if pdf:

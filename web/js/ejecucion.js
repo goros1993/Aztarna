@@ -445,10 +445,11 @@ async function generarInforme() {
   });
   if (r !== "si") return;
   guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
-  aviso(casilla.checked ? "Generando el informe y el PDF…" : "Generando el informe…");
   try {
-    const d = await api.campana_informe(null, casilla.checked);
-    if (d.cancelado) return;
+    const destino = await api.campana_elegir_destino_informe();
+    if (destino.cancelado) return;
+    const d = await conEspera(casilla.checked ? "Generando el informe y el PDF…" : "Generando el informe…",
+      () => api.campana_informe(destino.archivo, casilla.checked));
     const respuesta = await dialogo({
       titulo: "Informe generado",
       cuerpo: h("div", {},

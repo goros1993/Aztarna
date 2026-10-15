@@ -273,12 +273,13 @@ async function exportarDocx() {
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
   });
   if (r !== "si") return;
-  aviso("Generando el documento…");
   try {
-    const d = await api.exportar_docx(Math.max(1, Number(campo.value) || 1));
-    if (d.cancelado) return;
+    const destino = await api.elegir_destino_docx();
+    if (destino.cancelado) return;
+    const d = await conEspera("Generando el documento de Word…",
+      () => api.exportar_docx(Math.max(1, Number(campo.value) || 1), destino.archivo));
     const cuerpo = h("div", {},
-      h("p", { text: d.resumen || "Documento generado." }),
+      h("p", { text: (d.resumen || "Documento generado.").replace(/\s*->.*$/, ".") }),   // la ruta va en la línea de abajo
       h("p", { class: "muted", text: d.archivo }),
       d.avisos.length ? h("div", {}, h("p", { text: plural(d.avisos.length, "aviso del exportador:", "avisos del exportador:") }),
         h("ul", { class: "avisos-docx" }, d.avisos.slice(0, 40).map((a) => h("li", { text: a.replace(/^AVISO:\s*/, "") })))) : null);
