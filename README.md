@@ -16,7 +16,7 @@ migracion/         importación del Word original (hasta que los YAML son la fue
 web/               interfaz del editor (HTML, CSS y JavaScript)
 plantillas/        plantillas de la tabla de cada prueba y de cada requisito, y del informe de auditoría
 recursos/          icono de la aplicación (y el script que lo genera)
-ejemplos/          capítulos de pruebas y de requisitos, una ejecución y una suite de Robot ficticios
+ejemplos/          pruebas, requisitos, ejecuciones, una validación y una suite de Robot ficticios
 tests/             pruebas automatizadas (python -m unittest)
 docs/              capturas del manual y documentación de Robot Framework
 ```
