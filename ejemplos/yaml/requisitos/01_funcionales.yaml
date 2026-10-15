@@ -1,0 +1,152 @@
+# Capítulo 1 de requisitos (datos ficticios).
+# Muestra requisitos cubiertos por pruebas, uno sin cobertura (REQ-LLAM-004,
+# REQ-PUER-003), uno informativo que no necesita pruebas (REQ-GEN-001) y uno
+# cambiado con pruebas por revisar (REQ-PUER-002, ver revisiones.yaml).
+capitulo: Requisitos funcionales
+contenido:
+- tabla:
+    filas:
+    - ['**Modificado por**', '**Fecha**', '**Edición**', '**Cambio**']
+    - [Ana Pérez, 05/01/2026, '1.0', Primera versión.]
+    - [Luis Gómez, 20/03/2026, '1.1', Añadidos los requisitos de puertas.]
+- texto: >-
+    Requisitos funcionales del controlador DEMO-A1 tomados del pliego técnico del
+    cliente. Cada requisito indica cómo se valida; los que se validan con
+    **Test** necesitan al menos una prueba que los cite.
+  alcance: capitulo
+- seccion: Generales
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-GEN-001
+    titulo: Alcance del controlador
+    descripcion: El controlador DEMO-A1 gobierna ascensores eléctricos de una cabina y hasta 8 paradas.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 1.2
+    tipo: Informativo
+    criterio_validacion: []
+    fase: ''
+    fecha: '2026-01-05'
+    version: '1.0'
+- seccion: Llamadas
+  nivel: 2
+  contexto:
+  - Una llamada es cualquier petición de servicio desde la cabina o desde un piso.
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-LLAM-001
+    titulo: Atención de llamadas de cabina
+    descripcion: Una llamada registrada desde la botonera de cabina se atenderá llevando la cabina a la planta pedida y abriendo puertas.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 4.1
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-01-05'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-LLAM-002
+    titulo: Confirmación de llamadas de piso
+    descripcion: El pulsador de piso quedará iluminado desde que se registra la llamada hasta que la cabina llega a esa planta.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 4.2
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-01-05'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-LLAM-003
+    titulo: Servicio en el sentido de marcha
+    descripcion: Con varias llamadas registradas, la cabina atenderá primero las que estén en su sentido de marcha.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 4.3
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-01-05'
+    version: '1.0'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-LLAM-004
+    titulo: Cancelación de llamadas de cabina
+    descripcion: Pulsar dos veces seguidas un botón de cabina cancelará la llamada registrada, salvo que sea la planta de destino actual.
+    fuente: Interno
+    referencia: ''
+    tipo: Opcional
+    criterio_validacion:
+    - Test
+    fase: Fase 2
+    fecha: '2026-03-20'
+    version: '1.1'
+- seccion: Nivelación
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-NIV-001
+    titulo: Precisión de nivelación
+    descripcion: La cabina parará con un desnivel máximo de **±10 mm** respecto al piso, con cualquier carga entre 0 y 100 %.
+    fuente: Normativa
+    referencia: EN 81-20, 5.12.1
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    - Análisis
+    fase: Fase 1
+    fecha: '2026-01-05'
+    version: '1.0'
+- seccion: Puertas
+  nivel: 2
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-PUER-001
+    titulo: Apertura de puertas en planta
+    descripcion: Las puertas abrirán automáticamente al llegar a la planta de destino, solo con la cabina parada y nivelada.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 5.1
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-03-20'
+    version: '1.1'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-PUER-002
+    titulo: Reapertura por obstáculo
+    descripcion: Si la barrera fotoeléctrica detecta un obstáculo durante el cierre, las puertas se reabrirán en menos de **0,5 s** y volverán a cerrar tras 3 s sin obstáculo.
+    fuente: Normativa
+    referencia: EN 81-20, 5.3.6
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 1
+    fecha: '2026-03-20'
+    version: '1.2'
+- requisito:
+    nombre: ''
+    nivel: 3
+    id: REQ-PUER-003
+    titulo: Aviso acústico de cierre
+    descripcion: Un aviso acústico sonará durante el cierre de puertas.
+    fuente: Cliente
+    referencia: PT-DEMO-A1 v2, apartado 5.4
+    tipo: Obligatorio
+    criterio_validacion:
+    - Test
+    fase: Fase 2
+    fecha: '2026-03-20'
+    version: '1.1'

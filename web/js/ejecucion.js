@@ -27,8 +27,12 @@ function mapaEstados() {
 function pintarModo() {
   const ej = enEjecucion();
   $("#app").classList.toggle("modo-ejecucion", ej);
-  $("#modo-edicion").setAttribute("aria-pressed", String(!ej));
+  $("#app").classList.toggle("modo-requisitos", enRequisitos());
+  $("#modo-edicion").setAttribute("aria-pressed", String(S.modo === "edicion"));
+  $("#modo-requisitos").setAttribute("aria-pressed", String(enRequisitos()));
   $("#modo-ejecucion").setAttribute("aria-pressed", String(ej));
+  $("#txt-nueva").textContent = enRequisitos() ? "Requisito" : "Prueba";
+  $("#buscar").placeholder = enRequisitos() ? "Buscar requisito por ID o texto" : "Buscar por ID o texto";
   const nombre = $("#campana-nombre");
   nombre.textContent = S.campana ? S.campana.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin campaña";
   $("#btn-campana").title = S.campana ? S.campana.carpeta : "Crear o abrir una campaña";
@@ -40,15 +44,29 @@ async function cambiarModo(modo) {
   if (modo === S.modo) return;
   if (!(await guardia())) return;
   setDirty(false);
+  const cambiaColeccion = (modo === "requisitos") !== enRequisitos();
+  S.capituloPorModo[coleccionDe(S.modo)] = S.capitulo;
   S.modo = modo;
   guardarLocal("modo", modo);
   S.seleccion = null;
   S.filtroEstado = "";
+  S.filtroCobertura = "";
   R = null;
+  if (cambiaColeccion) {
+    try {
+      S.consulta = ""; $("#buscar").value = "";
+      S.capitulo = S.capituloPorModo[coleccionDe(modo)] || 0;
+      aplicarResumen(await api.coleccion(coleccionDe(modo)));
+      if (S.capitulo >= S.capitulos.length) S.capitulo = 0;
+      $("#sel-capitulo").value = String(S.capitulo);
+      S.problemas = []; S.resumen = null; renderResumenProblemas(); renderProblemas();
+    } catch (e) { fallo(e); }
+  }
   if (modo === "ejecucion" && !S.campana) await recuperarCampana();
   pintarModo();
   await cargarNavegacion();
   mostrarVacio();
+  if (cambiaColeccion) validarEnSegundoPlano();
 }
 
 /** Texto de cada capítulo en el selector: en ejecución, cuántas pruebas de la campaña quedan. */
@@ -738,6 +756,7 @@ async function guardarYSiguiente() {
 /* ---- arranque ---- */
 function iniciarEjecucion() {
   $("#modo-edicion").addEventListener("click", () => cambiarModo("edicion"));
+  $("#modo-requisitos").addEventListener("click", () => cambiarModo("requisitos"));
   $("#modo-ejecucion").addEventListener("click", () => cambiarModo("ejecucion"));
   $("#btn-campana").addEventListener("click", menuCampana);
   $("#btn-panel-campana").addEventListener("click", async () => {

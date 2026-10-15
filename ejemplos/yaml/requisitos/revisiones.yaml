@@ -1,0 +1,7 @@
+# Requisitos cambiados cuyas pruebas faltan por revisar (lo escribe el editor).
+# Guarda el texto que tenían cuando se revisaron sus pruebas por última vez;
+# al marcar «Pruebas revisadas» se quita su entrada.
+REQ-PUER-002:
+  huella: 'c6c7d0f27868d423'
+  titulo: Reapertura por obstáculo
+  descripcion: Si la barrera fotoeléctrica detecta un obstáculo durante el cierre, las puertas se reabrirán.

@@ -1,0 +1,8 @@
+# Orden de los capítulos de requisitos de ejemplo. Todos los datos son ficticios:
+# describen el mismo controlador de ascensor de demostración («DEMO-A1») que
+# las pruebas de la carpeta superior. Las pruebas citan estos IDs en su campo
+# «Requisitos»; de ahí sale la trazabilidad.
+- capitulo: Requisitos funcionales
+  archivo: 01_funcionales.yaml
+- capitulo: Comunicaciones, seguridad y mantenimiento
+  archivo: 02_comunicaciones_seguridad.yaml

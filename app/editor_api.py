@@ -28,7 +28,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import esquema
+from app import esquema, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -40,6 +40,8 @@ from app.editor_core import (
     insert_table,
     insert_test,
     is_table,
+    item_key,
+    items_in_chapter,
     move_block,
     navigation_entries,
     normalize_level,
@@ -290,6 +292,32 @@ def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
     return cleaned
 
 
+def clean_requirement_changes(changes: dict[str, Any]) -> dict[str, Any]:
+    """Valida y normaliza los campos de un requisito recibidos de la interfaz."""
+    cleaned: dict[str, Any] = {}
+    for field, value in changes.items():
+        if field == "tipo":
+            valor = str(value if value is not None else "").strip()
+            if valor and valor not in esquema.REQ_TIPOS:
+                raise ValueError(f"«Tipo» solo admite: {', '.join(esquema.REQ_TIPOS)}.")
+            cleaned[field] = valor
+        elif field in esquema.REQ_CAMPOS_TEXTO:
+            cleaned[field] = str(value if value is not None else "").strip()
+        elif field in esquema.REQ_OPCIONES_MULTIPLES:
+            opciones = esquema.REQ_OPCIONES_MULTIPLES[field]
+            valores = [str(v).strip() for v in (value or []) if str(v).strip()] if isinstance(value, list) else None
+            if valores is None or any(v not in opciones for v in valores):
+                raise ValueError(f"«{esquema.REQ_ETIQUETAS[field]}» solo admite: {', '.join(opciones)}.")
+            cleaned[field] = [o for o in opciones if o in valores]
+        elif field in esquema.REQ_CAMPOS_LISTA:
+            cleaned[field] = _clean_list(value, field)
+        elif field == "nivel":
+            cleaned[field] = normalize_level(value)
+        else:
+            raise ValueError(f"Campo desconocido: {field}")
+    return cleaned
+
+
 def apply_changes(target: Any, changes: dict[str, Any]) -> None:
     """Aplica cambios sobre un mapa ruamel tocando solo lo que difiere.
 
@@ -312,7 +340,10 @@ class EditorApi:
         self._lock = threading.RLock()
         self._window: Any = None
         self._yaml_dir: Path | None = None
-        self._chapters: list[dict[str, Any]] = []
+        self._chapters: list[dict[str, Any]] = []          # siempre las pruebas (también para campañas)
+        self._req_chapters: list[dict[str, Any]] = []      # requisitos (subcarpeta requisitos/)
+        self._req_error: str | None = None                 # por qué no se pudieron leer los requisitos
+        self._coleccion = "pruebas"                        # lo que se edita: "pruebas" o "requisitos"
         self._mtimes: dict[Path, int] = {}
         self._thumbs: dict[tuple[str, int, int, int], dict[str, Any]] = {}
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
@@ -322,17 +353,38 @@ class EditorApi:
         self._cierre_aceptado = False
 
     # --- estado ------------------------------------------------------
+    def _requisitos(self) -> bool:
+        return self._coleccion == "requisitos"
+
+    def _clave(self) -> str:
+        """Clave de los elementos de la colección activa: «prueba» o «requisito»."""
+        return "requisito" if self._requisitos() else "prueba"
+
+    def _activos(self) -> list[dict[str, Any]]:
+        return self._req_chapters if self._requisitos() else self._chapters
+
     def _require_chapter(self, capitulo: int) -> dict[str, Any]:
-        if not self._chapters:
-            raise ValueError("No hay ninguna carpeta cargada.")
-        if not isinstance(capitulo, int) or not 0 <= capitulo < len(self._chapters):
+        if not self._activos():
+            raise ValueError("No hay ningún capítulo de requisitos." if self._requisitos() else "No hay ninguna carpeta cargada.")
+        if not isinstance(capitulo, int) or not 0 <= capitulo < len(self._activos()):
             raise ValueError("El capítulo seleccionado ya no existe.")
-        return self._chapters[capitulo]
+        return self._activos()[capitulo]
 
     def _require_dir(self) -> Path:
+        """Carpeta de la colección activa (la de pruebas o su subcarpeta de requisitos)."""
+        if self._yaml_dir is None:
+            raise ValueError("No hay ninguna carpeta cargada.")
+        return self._req_dir() if self._requisitos() else self._yaml_dir
+
+    def _yaml_dir_or_fail(self) -> Path:
         if self._yaml_dir is None:
             raise ValueError("No hay ninguna carpeta cargada.")
         return self._yaml_dir
+
+    def _req_dir(self) -> Path:
+        if self._yaml_dir is None:
+            raise ValueError("No hay ninguna carpeta cargada.")
+        return trazabilidad.carpeta_requisitos(self._yaml_dir)
 
     def _element(self, capitulo: int, indice: int, tipo: str) -> tuple[dict[str, Any], Any]:
         chapter = self._require_chapter(capitulo)
@@ -342,6 +394,8 @@ class EditorApi:
         element = contents[indice]
         if tipo == "prueba" and not (isinstance(element, dict) and isinstance(element.get("prueba"), dict)):
             raise ValueError("La posición seleccionada ya no corresponde a una prueba.")
+        if tipo == "requisito" and not (isinstance(element, dict) and isinstance(element.get("requisito"), dict)):
+            raise ValueError("La posición seleccionada ya no corresponde a un requisito.")
         if tipo == "seccion" and not (isinstance(element, dict) and isinstance(element.get("seccion"), str)):
             raise ValueError("La posición seleccionada ya no corresponde a una sección.")
         if tipo == "tabla" and not is_table(element):
@@ -356,12 +410,25 @@ class EditorApi:
         self._yaml_dir = yaml_dir.resolve()
         self._chapters = chapters
         self._mtimes = {c["path"]: c["path"].stat().st_mtime_ns for c in chapters}
+        self._cargar_requisitos()
         self._thumbs.clear()
         if self._al_cargar is not None:
             try:
                 self._al_cargar(self._yaml_dir)
             except Exception:  # noqa: BLE001 - un fallo accesorio no debe impedir abrir la carpeta
                 traceback.print_exc()
+
+    def _cargar_requisitos(self) -> None:
+        """Lee los requisitos de la subcarpeta; un error se guarda y se enseña al abrirlos."""
+        self._req_chapters, self._req_error = [], None
+        if self._yaml_dir is None:
+            return
+        try:
+            self._req_chapters = trazabilidad.leer_requisitos(self._yaml_dir)
+        except (OSError, ValueError, YAMLError) as error:
+            self._req_error = f"No se pueden leer los requisitos: {error}"
+        for chapter in self._req_chapters:
+            self._mtimes[chapter["path"]] = chapter["path"].stat().st_mtime_ns
 
     def _reload_chapter(self, chapter: dict[str, Any]) -> None:
         with chapter["path"].open(encoding="utf-8") as source:
@@ -395,19 +462,51 @@ class EditorApi:
         self._mtimes[path] = path.stat().st_mtime_ns
 
     def _summary(self) -> dict[str, Any]:
+        clave = self._clave()
         return {
             "carpeta": str(self._yaml_dir) if self._yaml_dir else None,
             "solo_lectura": self._solo_lectura,
+            "coleccion": self._coleccion,
+            "hay_requisitos": bool(self._req_chapters),
+            "error_requisitos": self._req_error,
             "capitulos": [
                 {
                     "indice": i,
                     "nombre": str(c["data"].get("capitulo") or c["path"].name),
                     "archivo": c["path"].name,
-                    "pruebas": len(tests_in_chapter(c)),
+                    "pruebas": len(items_in_chapter(c, clave)),
                 }
-                for i, c in enumerate(self._chapters)
+                for i, c in enumerate(self._activos())
             ],
         }
+
+    @respuesta
+    def coleccion(self, nombre: str) -> dict[str, Any]:
+        """Elige qué se edita: «pruebas» o «requisitos» (el árbol, los capítulos y la validación)."""
+        if nombre not in ("pruebas", "requisitos"):
+            raise ValueError(f"Colección desconocida: {nombre}")
+        self._coleccion = nombre
+        return self._summary()
+
+    @respuesta
+    def crear_catalogo_requisitos(self) -> dict[str, Any]:
+        """Crea la carpeta de requisitos con un primer capítulo vacío."""
+        self._exigir_escritura()
+        carpeta = self._req_dir()
+        if self._req_chapters:
+            raise ValueError("Ya hay requisitos en esta carpeta.")
+        carpeta.mkdir(parents=True, exist_ok=True)
+        indice = carpeta / "indice.yaml"
+        if not indice.exists():
+            indice.write_text("- capitulo: Requisitos\n  archivo: 01_requisitos.yaml\n", encoding="utf-8")
+        primero = carpeta / "01_requisitos.yaml"
+        if not primero.exists():
+            primero.write_text("capitulo: Requisitos\ncontenido: []\n", encoding="utf-8")
+        self._cargar_requisitos()
+        if self._req_error:
+            raise ValueError(self._req_error)
+        self._coleccion = "requisitos"
+        return self._summary()
 
     @respuesta
     def iniciar(self) -> dict[str, Any]:
@@ -454,6 +553,7 @@ class EditorApi:
     def navegacion(self, capitulo: int, consulta: str = "") -> list[dict[str, Any]]:
         chapter = self._require_chapter(capitulo)
         contents = chapter["data"]["contenido"]
+        traza = self._traza_por_id() if self._requisitos() else {}
         nodes = []
         for kind, index, label, parent, level in navigation_entries(chapter, str(consulta or "")):
             element = contents[index]
@@ -469,6 +569,18 @@ class EditorApi:
                     "titulo": table_title(element["tabla"]), "filas": len(filas),
                     "columnas": max((len(f) for f in filas), default=0),
                 })
+            elif kind == "requirement":
+                req = element["requisito"]
+                rid = str(req.get("id") or "").strip()
+                info = traza.get(rid)
+                nodes.append({
+                    "tipo": "requisito", "indice": index, "padre": parent,
+                    "nivel": level, "id": rid,
+                    "titulo": str(req.get("titulo") or req.get("nombre") or ""),
+                    # Un requisito con el ID repetido no cuenta (lo avisa la validación).
+                    "cobertura": {"estado": info["estado"], "pruebas": len(info["pruebas"]), "modificado": info["modificado"]}
+                    if info and info["capitulo"] == capitulo and info["indice"] == index else None,
+                })
             else:
                 test = element["prueba"]
                 nodes.append({
@@ -477,6 +589,97 @@ class EditorApi:
                     "titulo": str(test.get("titulo") or test.get("nombre") or ""),
                 })
         return nodes
+
+    # --- trazabilidad ----------------------------------------------------
+    def _revisiones(self) -> dict[str, Any]:
+        return trazabilidad.leer_revisiones(self._req_dir()) if self._req_chapters else {}
+
+    def _traza(self) -> dict[str, Any]:
+        return trazabilidad.calcular(self._chapters, self._req_chapters, self._revisiones())
+
+    def _traza_por_id(self) -> dict[str, dict[str, Any]]:
+        return {r["id"]: r for r in self._traza()["requisitos"]}
+
+    @respuesta
+    def trazabilidad(self) -> dict[str, Any]:
+        """Cobertura de todos los requisitos, referencias huérfanas y resúmenes (ver trazabilidad.py)."""
+        self._require_dir()
+        datos = self._traza()
+        for bloque in (datos["total"], *datos["capitulos"]):
+            bloque["porcentaje"] = trazabilidad.porcentaje(bloque)
+        return datos
+
+    @respuesta
+    def requisitos_lista(self) -> list[dict[str, Any]]:
+        """Requisitos del catálogo (ID, título, estado), para proponerlos en las pruebas."""
+        if not self._req_chapters:
+            return []
+        return [{"id": r["id"], "titulo": r["titulo"], "estado": r["estado"], "modificado": r["modificado"],
+                 "pruebas": len(r["pruebas"])} for r in self._traza()["requisitos"]]
+
+    @respuesta
+    def ir_a_requisito(self, requisito_id: str) -> dict[str, Any]:
+        """Capítulo e índice de un requisito por su ID."""
+        for ci, chapter in enumerate(self._req_chapters):
+            for index, req in items_in_chapter(chapter, "requisito"):
+                if str(req.get("id") or "").strip() == str(requisito_id).strip():
+                    return {"capitulo": ci, "indice": index}
+        raise ValueError(f"No existe el requisito «{requisito_id}».")
+
+    @respuesta
+    def ir_a_prueba(self, prueba_id: str) -> dict[str, Any]:
+        """Capítulo e índice de una prueba por su ID."""
+        for ci, chapter in enumerate(self._chapters):
+            for index, test in tests_in_chapter(chapter):
+                if str(test.get("id") or "").strip() == str(prueba_id).strip():
+                    return {"capitulo": ci, "indice": index}
+        raise ValueError(f"No existe la prueba «{prueba_id}».")
+
+    @respuesta
+    def requisito_usos(self, requisito_id: str) -> dict[str, Any]:
+        """Cuántas pruebas citan un ID de requisito (para ofrecer cambiarlo también en ellas)."""
+        rid = str(requisito_id).strip()
+        ids = [str(test.get("id") or "") for chapter in self._chapters for _i, test in tests_in_chapter(chapter)
+               if rid in trazabilidad.lista(test.get("requisitos"))]
+        return {"pruebas": ids}
+
+    @respuesta
+    def revisar_requisito(self, requisito_id: str) -> dict[str, Any]:
+        """Marca como revisadas las pruebas de un requisito cambiado (quita su entrada de revisiones.yaml)."""
+        self._exigir_escritura()
+        revisiones = self._revisiones()
+        if revisiones.pop(str(requisito_id).strip(), None) is not None:
+            trazabilidad.guardar_revisiones(self._req_dir(), revisiones)
+        return {}
+
+    def _renombrar_en_pruebas(self, anterior: str, nuevo: str) -> int:
+        """Cambia un ID de requisito en el campo «requisitos» de todas las pruebas que lo citan."""
+        cambiadas = 0
+        for chapter in self._chapters:
+            tocado = False
+            for _index, test in tests_in_chapter(chapter):
+                refs = test.get("requisitos")
+                if isinstance(refs, list) and anterior in [str(r).strip() for r in refs]:
+                    nuevos: list[str] = []
+                    for r in refs:
+                        valor = nuevo if str(r).strip() == anterior else str(r).strip()
+                        if valor not in nuevos:
+                            nuevos.append(valor)
+                    test["requisitos"] = nuevos
+                    tocado = True
+                    cambiadas += 1
+            if tocado:
+                self._persist(chapter)
+        return cambiadas
+
+    def _anotar_cambio(self, anterior: dict[str, Any], actual: Any) -> None:
+        """Apunta el requisito como cambiado si tiene pruebas (ver trazabilidad.anotar_cambio)."""
+        revisiones = self._revisiones()
+        rid = str(anterior.get("id") or "").strip()
+        tiene_pruebas = any(rid in trazabilidad.lista(test.get("requisitos"))
+                            for chapter in self._chapters for _i, test in tests_in_chapter(chapter))
+        if (tiene_pruebas or rid in revisiones) and trazabilidad.anotar_cambio(revisiones, anterior, actual):
+            trazabilidad.guardar_revisiones(self._req_dir(), revisiones)
 
     @respuesta
     def ubicaciones(self, capitulo: int) -> list[dict[str, Any]]:
@@ -495,6 +698,11 @@ class EditorApi:
             "opciones": {k: list(v) for k, v in esquema.OPCIONES_MULTIPLES.items()},
             "automatizable": [{"valor": v, "texto": esquema.AUTOMATIZABLE_VISIBLE[v]} for v in esquema.AUTOMATIZABLE],
             "obligatorios": list(esquema.OBLIGATORIOS),
+            "requisito": {
+                "etiquetas": esquema.REQ_ETIQUETAS,
+                "opciones": {k: list(v) for k, v in esquema.REQ_OPCIONES_MULTIPLES.items()},
+                "tipos": list(esquema.REQ_TIPOS),
+            },
         }
 
     @respuesta
@@ -524,6 +732,17 @@ class EditorApi:
     @respuesta
     def obtener(self, capitulo: int, indice: int) -> dict[str, Any]:
         chapter, element = self._element(capitulo, indice, "cualquiera")
+        if isinstance(element.get("requisito"), dict):
+            req = to_plain(element["requisito"])
+            req["nivel"] = normalize_level(req.get("nivel"), 3)
+            rid = str(req.get("id") or "").strip()
+            info = self._traza_por_id().get(rid)
+            if info and (info["capitulo"], info["indice"]) != (capitulo, indice):
+                info = None                               # ID repetido: la traza es del otro
+            anterior = self._revisiones().get(rid) if info and info["modificado"] else None
+            return {"tipo": "requisito", "indice": indice, "elemento": req,
+                    "traza": {"estado": info["estado"], "necesita": info["necesita"], "pruebas": info["pruebas"],
+                              "modificado": info["modificado"], "anterior": anterior} if info else None}
         if isinstance(element.get("prueba"), dict):
             test = to_plain(element["prueba"])
             test["nivel"] = normalize_level(test.get("nivel"), 3)
@@ -539,8 +758,8 @@ class EditorApi:
     @respuesta
     def obtener_yaml(self, capitulo: int, indice: int) -> dict[str, Any]:
         _chapter, element = self._element(capitulo, indice, "cualquiera")
-        if isinstance(element.get("prueba"), dict):
-            target = element["prueba"]
+        if item_key(element):
+            target = element[item_key(element)]
         elif is_table(element):
             target = element["tabla"]
         else:
@@ -593,9 +812,9 @@ class EditorApi:
                 if not (isinstance(element, dict) and isinstance(element.get("seccion"), str)):
                     raise ValueError("La ubicación elegida ya no es una sección.")
                 return min(normalize_level(element.get("nivel"), 2) + 1, 6)
-            if not (isinstance(element, dict) and isinstance(element.get("prueba"), dict)):
-                raise ValueError("La ubicación elegida ya no es una prueba.")
-            return normalize_level(element["prueba"].get("nivel"), 3)
+            if item_key(element) is None:
+                raise ValueError("La ubicación elegida ya no es una prueba ni un requisito.")
+            return normalize_level(element[item_key(element)].get("nivel"), 3)
         if kind == "final":
             return default
         raise ValueError("Ubicación no válida.")
@@ -624,6 +843,62 @@ class EditorApi:
         chapter, _element = self._element(capitulo, indice, "prueba")
         delete_test(chapter, indice)
         self._persist(chapter)
+        return {}
+
+    # --- escritura de requisitos ---------------------------------------------
+    def _check_req_id(self, req_id: str, excluded: tuple[Path, int] | None) -> None:
+        problem = find_duplicate_id(self._req_chapters, req_id, excluded, key="requisito")
+        if problem:
+            raise ValueError(problem)
+
+    @respuesta
+    def guardar_requisito(self, capitulo: int, indice: int, cambios: dict[str, Any],
+                          renombrar_en_pruebas: bool = False) -> dict[str, Any]:
+        """Guarda un requisito. Si cambia su texto y tiene pruebas, quedan por revisar.
+
+        Con `renombrar_en_pruebas`, un cambio de ID se aplica también en las pruebas que lo citan.
+        """
+        self._exigir_escritura()
+        chapter, element = self._element(capitulo, indice, "requisito")
+        changes = clean_requirement_changes(cambios)
+        changes.pop("nivel", None)
+        if "id" in changes:
+            self._check_req_id(changes["id"], (chapter["path"], indice))
+        anterior = to_plain(element["requisito"])
+        apply_changes(element["requisito"], changes)
+        self._persist(chapter)
+        self._anotar_cambio(anterior, element["requisito"])
+        id_anterior, id_nuevo = str(anterior.get("id") or "").strip(), str(element["requisito"].get("id") or "").strip()
+        cambiadas = self._renombrar_en_pruebas(id_anterior, id_nuevo) if renombrar_en_pruebas and id_anterior and id_anterior != id_nuevo else 0
+        return {"indice": indice, "pruebas_actualizadas": cambiadas}
+
+    @respuesta
+    def crear_requisito(self, capitulo: int, ubicacion: dict[str, Any], datos: dict[str, Any]) -> dict[str, Any]:
+        chapter = self._require_chapter(capitulo)
+        if not self._requisitos():
+            raise ValueError("Abre los requisitos para crear uno.")
+        contents = chapter["data"]["contenido"]
+        data = clean_requirement_changes({k: v for k, v in datos.items() if k != "nivel"})
+        self._check_req_id(data.get("id", ""), None)
+        req = {**esquema.requisito_vacio(), **data, "nivel": self._level_for(contents, ubicacion, 3)}
+        kind = ubicacion.get("tipo")
+        insert_test(chapter, req, ubicacion["indice"] if kind == "seccion" else None,
+                    after_test_index=ubicacion["indice"] if kind == "despues" else None, key="requisito")
+        self._persist(chapter)
+        new_index = next(i for i, e in enumerate(chapter["data"]["contenido"])
+                         if isinstance(e, dict) and e.get("requisito") is req)
+        return {"indice": new_index}
+
+    @respuesta
+    def borrar_requisito(self, capitulo: int, indice: int) -> dict[str, Any]:
+        chapter, element = self._element(capitulo, indice, "requisito")
+        rid = str(element["requisito"].get("id") or "").strip()
+        delete_test(chapter, indice, key="requisito")
+        self._persist(chapter)
+        revisiones = self._revisiones()
+        if rid and not any(str(r.get("id") or "").strip() == rid for c in self._req_chapters
+                           for _i, r in items_in_chapter(c, "requisito")) and revisiones.pop(rid, None) is not None:
+            trazabilidad.guardar_revisiones(self._req_dir(), revisiones)
         return {}
 
     # --- secciones ------------------------------------------------------
@@ -730,6 +1005,16 @@ class EditorApi:
         if not isinstance(parsed, dict):
             raise ValueError("El YAML debe ser un mapa (clave: valor).")
         contents = chapter["data"]["contenido"]
+        if isinstance(element.get("requisito"), dict):
+            self._exigir_escritura()
+            self._check_req_id(str(parsed.get("id") or "").strip(), (chapter["path"], indice))
+            if not isinstance(parsed.get("nivel"), int):
+                parsed["nivel"] = element["requisito"].get("nivel", 3)
+            anterior = to_plain(element["requisito"])
+            element["requisito"] = parsed
+            self._persist(chapter)
+            self._anotar_cambio(anterior, parsed)
+            return {"indice": indice}
         if isinstance(element.get("prueba"), dict):
             test_id = str(parsed.get("id") or "").strip()
             self._check_id(test_id, (chapter["path"], indice))
@@ -842,8 +1127,12 @@ class EditorApi:
     # --- validación ---------------------------------------------------------
     @respuesta
     def validar(self) -> dict[str, Any]:
+        """Problemas de la colección activa (pruebas o requisitos)."""
+        if self._requisitos():
+            return self._validar_requisitos()
         base = self._require_dir()
         issues: list[dict[str, Any]] = []
+        catalogo = {str(r.get("id") or "").strip() for c in self._req_chapters for _i, r in items_in_chapter(c, "requisito")}
 
         def add(kind: str, chapter_index: int, index: int | None, test_id: str, message: str) -> None:
             issues.append({
@@ -891,6 +1180,12 @@ class EditorApi:
                     otros = [str(v) for v in test.get(field) or [] if str(v) not in opciones] if isinstance(test.get(field), list) else []
                     if otros:
                         add("aviso", ci, index, test_id, f"{esquema.ETIQUETAS[field]}: «{', '.join(otros)}» no es una opción ({', '.join(opciones)}).")
+                if catalogo and isinstance(test.get("requisitos"), list):
+                    faltan = [r for r in trazabilidad.lista(test["requisitos"]) if r not in catalogo]
+                    if faltan:
+                        add("aviso", ci, index, test_id,
+                            f"{'El requisito' if len(faltan) == 1 else 'Los requisitos'} «{', '.join(faltan)}» no "
+                            f"{'existe' if len(faltan) == 1 else 'existen'} en el catálogo de requisitos.")
                 if esquema.normalizar_automatizable(test.get("automatizable")) is None:
                     add("aviso", ci, index, test_id, f"Automatizable: «{test.get('automatizable')}» no es una opción.")
                 obsoletos = [c for c in esquema.OBSOLETOS if c in test]
@@ -907,12 +1202,78 @@ class EditorApi:
                 where = ", ".join(self._chapters[c]["path"].name for c, _i in places)
                 for ci, index in places:
                     add("error", ci, index, test_id, f"ID duplicado ({len(places)} veces): {where}.")
+        return self._informe(issues)
+
+    @staticmethod
+    def _informe(issues: list[dict[str, Any]]) -> dict[str, Any]:
         issues.sort(key=lambda i: (i["severidad"] != "error", i["capitulo"], i["indice"] or 0))
         return {
             "problemas": issues,
             "errores": sum(1 for i in issues if i["severidad"] == "error"),
             "avisos": sum(1 for i in issues if i["severidad"] == "aviso"),
         }
+
+    def _validar_requisitos(self) -> dict[str, Any]:
+        if self._req_error:
+            raise ValueError(self._req_error)
+        base = self._req_dir()
+        issues: list[dict[str, Any]] = []
+
+        def add(kind: str, chapter_index: int, index: int | None, req_id: str, message: str) -> None:
+            issues.append({
+                "severidad": kind, "capitulo": chapter_index, "indice": index, "id": req_id,
+                "mensaje": message, "archivo": self._req_chapters[chapter_index]["path"].name,
+            })
+
+        seen: dict[str, list[int]] = {}
+        for ci, chapter in enumerate(self._req_chapters):
+            if not chapter["data"].get("capitulo"):
+                add("aviso", ci, None, "", "El capítulo no tiene nombre ('capitulo').")
+            for index, element in enumerate(chapter["data"]["contenido"]):
+                if not isinstance(element, dict):
+                    add("error", ci, index, "", "Elemento del contenido que no es un mapa.")
+                    continue
+                if isinstance(element.get("seccion"), str) or "tabla" in element:
+                    self._check_images(add, base, ci, index, "", _image_values(element))
+                    self._check_context_tables(add, ci, index, "", element.get("contexto"))
+                    continue
+                req = element.get("requisito")
+                if not isinstance(req, dict):
+                    if "prueba" in element:
+                        add("error", ci, index, "", "Hay una prueba en la carpeta de requisitos.")
+                    elif "texto" not in element:
+                        add("aviso", ci, index, "", "Elemento sin 'seccion', 'requisito', 'tabla' ni 'texto'.")
+                    continue
+                req_id = str(req.get("id") or "").strip()
+                if not req_id:
+                    add("error", ci, index, "", "El requisito no tiene ID.")
+                else:
+                    seen.setdefault(req_id, []).append(ci)
+                    if any(c.isspace() for c in req_id):
+                        add("aviso", ci, index, req_id, "El ID tiene espacios: las pruebas no podrán citarlo bien.")
+                if not str(req.get("titulo") or "").strip():
+                    add("error", ci, index, req_id, "El requisito no tiene título.")
+                tipo = str(req.get("tipo") or "").strip()
+                if tipo and tipo not in esquema.REQ_TIPOS:
+                    add("aviso", ci, index, req_id, f"Tipo: «{tipo}» no es una opción ({', '.join(esquema.REQ_TIPOS)}).")
+                for field, opciones in esquema.REQ_OPCIONES_MULTIPLES.items():
+                    valor = req.get(field)
+                    if valor not in (None, "") and not isinstance(valor, list):
+                        add("error", ci, index, req_id, f"'{field}' debe ser una lista.")
+                        continue
+                    otros = [str(v) for v in valor or [] if str(v) not in opciones]
+                    if otros:
+                        add("aviso", ci, index, req_id, f"{esquema.REQ_ETIQUETAS[field]}: «{', '.join(otros)}» no es una opción ({', '.join(opciones)}).")
+                self._check_context_tables(add, ci, index, req_id, req.get("contexto"))
+                self._check_images(add, base, ci, index, req_id, _image_values(req))
+        for req_id, places in seen.items():
+            if len(places) > 1:
+                where = ", ".join(sorted({self._req_chapters[c]["path"].name for c in places}))
+                for ci, chapter in enumerate(self._req_chapters):
+                    for index, req in items_in_chapter(chapter, "requisito"):
+                        if str(req.get("id") or "").strip() == req_id:
+                            add("error", ci, index, req_id, f"ID duplicado ({len(places)} veces): {where}.")
+        return self._informe(issues)
 
     @staticmethod
     def _check_context_tables(add: Callable[..., None], ci: int, index: int, test_id: str, context: Any) -> None:
@@ -939,22 +1300,39 @@ class EditorApi:
     @respuesta
     def elegir_destino_docx(self) -> dict[str, Any]:
         """«Guardar como» para el DOCX; la interfaz muestra la espera solo mientras se genera."""
-        archivo = self._guardar_como(self._require_dir().parent, "pruebas.docx")
+        archivo = self._guardar_como(self._yaml_dir_or_fail().parent, "requisitos.docx" if self._requisitos() else "pruebas.docx")
         return {"archivo": archivo} if archivo else {"cancelado": True}
 
-    def _guardar_como(self, carpeta: Path, nombre: str) -> str | None:
-        """Diálogo «Guardar como» de un documento de Word; None si se cancela."""
+    def _guardar_como(self, carpeta: Path, nombre: str, tipo: str = "Documento de Word (*.docx)") -> str | None:
+        """Diálogo «Guardar como» (por defecto, de un documento de Word); None si se cancela."""
         import webview
 
         if self._window is None:
             raise ValueError("«Guardar como» solo está disponible en la aplicación.")
         kind = getattr(getattr(webview, "FileDialog", None), "SAVE", None) or webview.SAVE_DIALOG
         elegido = self._window.create_file_dialog(
-            kind, directory=str(carpeta), save_filename=nombre, file_types=("Documento de Word (*.docx)",),
+            kind, directory=str(carpeta), save_filename=nombre, file_types=(tipo,),
         )
         if not elegido:
             return None
         return elegido if isinstance(elegido, str) else elegido[0]
+
+    @respuesta
+    def exportar_matriz(self, salida: str | None = None) -> dict[str, Any]:
+        """Matriz de trazabilidad en CSV (una fila por requisito). Sin `salida`, abre «Guardar como»."""
+        base = self._yaml_dir_or_fail()
+        if not self._req_chapters:
+            raise ValueError("Esta carpeta no tiene requisitos.")
+        if salida is None:
+            salida = self._guardar_como(base.parent, "matriz_trazabilidad.csv", "CSV para Excel (*.csv)")
+            if salida is None:
+                return {"cancelado": True}
+        output = Path(salida)
+        if output.suffix.lower() != ".csv":
+            output = output.with_suffix(".csv")
+        datos = self._traza()
+        trazabilidad.escribir_matriz(datos, output)
+        return {"archivo": str(output), "requisitos": len(datos["requisitos"])}
 
     @respuesta
     def exportar_docx(self, primer_capitulo: int = 1, salida: str | None = None) -> dict[str, Any]:
@@ -963,7 +1341,7 @@ class EditorApi:
 
         base = self._require_dir()
         if salida is None:
-            salida = self._guardar_como(base.parent, "pruebas.docx")
+            salida = self._guardar_como(self._yaml_dir_or_fail().parent, "requisitos.docx" if self._requisitos() else "pruebas.docx")
             if salida is None:
                 return {"cancelado": True}
         output = Path(salida)

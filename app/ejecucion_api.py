@@ -421,7 +421,7 @@ class EditorEjecucionApi(EditorApi):
             cobertura = self._cobertura()
         except (OSError, ValueError):
             cobertura = None
-        if cobertura:
+        if cobertura and not self._requisitos():
             ubicacion = {}
             for ci, capitulo in enumerate(self._chapters):
                 for indice, prueba in ej.tests_in_chapter(capitulo):

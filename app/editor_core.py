@@ -18,6 +18,10 @@ from ruamel.yaml import YAML
 from app import esquema
 
 LIST_FIELDS = esquema.CAMPOS_LISTA
+# Claves de los elementos con ficha propia: pruebas y, en la carpeta de requisitos, requisitos.
+ITEM_KEYS = ("prueba", "requisito")
+# YAML de una carpeta que no son capítulos (revisiones.yaml: requisitos cambiados, ver trazabilidad.py).
+NOT_CHAPTERS = ("indice.yaml", "revisiones.yaml")
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 
@@ -52,7 +56,7 @@ def read_chapters(yaml_dir: Path) -> list[dict[str, Any]]:
                 raise ValueError(f"Ruta de capítulo no válida en indice.yaml: {entry['archivo']}")
             files.append(path)
     else:
-        files = sorted(path for path in yaml_dir.glob("*.yaml") if path.name != "indice.yaml")
+        files = sorted(path for path in yaml_dir.glob("*.yaml") if path.name not in NOT_CHAPTERS)
 
     chapters = []
     for path in files:
@@ -64,12 +68,25 @@ def read_chapters(yaml_dir: Path) -> list[dict[str, Any]]:
     return chapters
 
 
-def tests_in_chapter(chapter: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
+def item_key(element: Any) -> str | None:
+    """«prueba» o «requisito» si el elemento es uno de ellos; si no, None."""
+    if isinstance(element, dict):
+        for key in ITEM_KEYS:
+            if isinstance(element.get(key), dict):
+                return key
+    return None
+
+
+def items_in_chapter(chapter: dict[str, Any], key: str) -> list[tuple[int, dict[str, Any]]]:
     return [
-        (index, element["prueba"])
+        (index, element[key])
         for index, element in enumerate(chapter["data"]["contenido"])
-        if isinstance(element, dict) and isinstance(element.get("prueba"), dict)
+        if isinstance(element, dict) and isinstance(element.get(key), dict)
     ]
+
+
+def tests_in_chapter(chapter: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
+    return items_in_chapter(chapter, "prueba")
 
 
 def normalize_level(value: Any, default: int = 3) -> int:
@@ -119,8 +136,8 @@ def table_level(contents: list[Any], index: int) -> int:
     for element in reversed(contents[:index]):
         if isinstance(element, dict) and isinstance(element.get("seccion"), str):
             return min(normalize_level(element.get("nivel"), 2) + 1, 6)
-        if isinstance(element, dict) and isinstance(element.get("prueba"), dict):
-            return normalize_level(element["prueba"].get("nivel"), 3)
+        if item_key(element):
+            return normalize_level(element[item_key(element)].get("nivel"), 3)
     return 3
 
 
@@ -157,9 +174,10 @@ def navigation_entries(
                             min(heading_stack[-1][0] + 1, 6) if heading_stack else 3, matches))
             continue
 
-        test = element.get("prueba")
-        if not isinstance(test, dict):
+        key = item_key(element)
+        if key is None:
             continue
+        test = element[key]
         level = normalize_level(test.get("nivel"), 3)
         while heading_stack and heading_stack[-1][0] >= level:
             heading_stack.pop()
@@ -171,8 +189,8 @@ def navigation_entries(
         if matches:
             matching_heading_ids.update(ancestors)
         records.append(
-            ("test", index, f"{test_id} — {title}", ancestors[-1] if ancestors else None,
-             level, matches)
+            ("test" if key == "prueba" else "requirement", index, f"{test_id} — {title}",
+             ancestors[-1] if ancestors else None, level, matches)
         )
 
     return [
@@ -180,19 +198,19 @@ def navigation_entries(
         for kind, index, label, parent_index, level, matches in records
         if (
             not query
-            or (kind in ("test", "table") and matches)
+            or (kind in ("test", "requirement", "table") and matches)
             or (kind == "section" and index in matching_heading_ids)
         )
     ]
 
 
 def find_duplicate_id(chapters: list[dict[str, Any]], test_id: str,
-                      excluded: tuple[Path, int] | None = None) -> str | None:
+                      excluded: tuple[Path, int] | None = None, key: str = "prueba") -> str | None:
     if not test_id:
         return "El ID es obligatorio."
     matches = []
     for chapter in chapters:
-        for index, test in tests_in_chapter(chapter):
+        for index, test in items_in_chapter(chapter, key):
             if test.get("id") == test_id and (
                 excluded is None or (chapter["path"], index) != excluded
             ):
@@ -204,23 +222,26 @@ def find_duplicate_id(chapters: list[dict[str, Any]], test_id: str,
 
 def insert_test(chapter: dict[str, Any], test: dict[str, Any],
                 heading_index: int | None,
-                after_test_index: int | None = None) -> None:
+                after_test_index: int | None = None, key: str = "prueba") -> None:
     contents = chapter["data"]["contenido"]
     if after_test_index is not None:
         if (
             after_test_index < 0
             or after_test_index >= len(contents)
-            or not isinstance(contents[after_test_index], dict)
-            or not isinstance(contents[after_test_index].get("prueba"), dict)
+            or item_key(contents[after_test_index]) is None
         ):
-            raise ValueError("La posición seleccionada ya no corresponde a una prueba.")
-        contents.insert(after_test_index + 1, {"prueba": test})
+            raise ValueError(f"La posición seleccionada ya no corresponde a {_un(key)}.")
+        contents.insert(after_test_index + 1, {key: test})
         return
     if heading_index is None:
-        contents.append({"prueba": test})
+        contents.append({key: test})
         return
 
-    contents.insert(section_end_index(contents, heading_index), {"prueba": test})
+    contents.insert(section_end_index(contents, heading_index), {key: test})
+
+
+def _un(key: str) -> str:
+    return "una prueba" if key == "prueba" else "un requisito"
 
 
 def insert_table(chapter: dict[str, Any], table: dict[str, Any],
@@ -245,8 +266,8 @@ def element_level(element: Any) -> int | None:
         return None
     if isinstance(element.get("seccion"), str):
         return normalize_level(element.get("nivel"), 2)
-    if isinstance(element.get("prueba"), dict):
-        return normalize_level(element["prueba"].get("nivel"), 3)
+    if item_key(element):
+        return normalize_level(element[item_key(element)].get("nivel"), 3)
     return None
 
 
@@ -274,14 +295,14 @@ def block_range(contents: list[Any], index: int) -> tuple[int, int]:
     if 0 <= index < len(contents) and is_table(contents[index]):
         return index, index + 1
     if index < 0 or index >= len(contents) or element_level(contents[index]) is None:
-        raise ValueError("La posición seleccionada ya no es una sección ni una prueba.")
+        raise ValueError("La posición seleccionada ya no es una sección, una prueba ni un requisito.")
     if isinstance(contents[index].get("seccion"), str):
         return index, section_end_index(contents, index)
     return index, index + 1
 
 
 def _set_level(element: dict[str, Any], level: int) -> None:
-    target = element["prueba"] if isinstance(element.get("prueba"), dict) else element
+    target = element[item_key(element)] if item_key(element) else element
     target["nivel"] = level
 
 
@@ -308,7 +329,7 @@ def move_block(
     if target_level is None and is_table(contents[target_index]):
         target_level = table_level(contents, target_index)
     if target_level is None:
-        raise ValueError("El destino no es una sección, una prueba ni una tabla.")
+        raise ValueError("El destino no es una sección, una prueba, un requisito ni una tabla.")
     if start <= target_index < end:
         raise ValueError("No se puede mover un elemento dentro de sí mismo.")
     target_is_section = isinstance(contents[target_index].get("seccion"), str)
@@ -355,16 +376,11 @@ def insert_section_after_test(
     test_index: int,
 ) -> None:
     contents = chapter["data"]["contenido"]
-    if (
-        test_index < 0
-        or test_index >= len(contents)
-        or not isinstance(contents[test_index], dict)
-        or not isinstance(contents[test_index].get("prueba"), dict)
-    ):
-        raise ValueError("La posición seleccionada ya no corresponde a una prueba.")
+    if test_index < 0 or test_index >= len(contents) or item_key(contents[test_index]) is None:
+        raise ValueError("La posición seleccionada ya no corresponde a una prueba ni a un requisito.")
     if not section_name.strip():
         raise ValueError("El nombre de la sección es obligatorio.")
-    test = contents[test_index]["prueba"]
+    test = contents[test_index][item_key(contents[test_index])]
     level = normalize_level(test.get("nivel"), 3)
     if level >= 6:
         raise ValueError(
@@ -376,15 +392,15 @@ def insert_section_after_test(
     )
 
 
-def delete_test(chapter: dict[str, Any], test_index: int) -> None:
+def delete_test(chapter: dict[str, Any], test_index: int, key: str = "prueba") -> None:
     contents = chapter["data"]["contenido"]
     if (
         test_index < 0
         or test_index >= len(contents)
         or not isinstance(contents[test_index], dict)
-        or not isinstance(contents[test_index].get("prueba"), dict)
+        or not isinstance(contents[test_index].get(key), dict)
     ):
-        raise ValueError("La posición seleccionada ya no corresponde a una prueba.")
+        raise ValueError(f"La posición seleccionada ya no corresponde a {_un(key)}.")
     del contents[test_index]
 
 
@@ -413,8 +429,8 @@ def delete_section(chapter: dict[str, Any], section_index: int) -> None:
             if level <= section_level:
                 break
             element["nivel"] = max(1, level - 1)
-        elif isinstance(element.get("prueba"), dict):
-            test = element["prueba"]
+        elif item_key(element):
+            test = element[item_key(element)]
             level = normalize_level(test.get("nivel"), 3)
             if level > section_level:
                 test["nivel"] = max(1, level - 1)

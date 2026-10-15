@@ -1,5 +1,5 @@
 "use strict";
-/* Árbol de secciones, pruebas y tablas: selección, plegado, teclado y arrastre. */
+/* Árbol de secciones, pruebas (o requisitos) y tablas: selección, plegado, teclado y arrastre. */
 
 function profundidades(nodos) {
   const prof = new Map();
@@ -9,7 +9,7 @@ function profundidades(nodos) {
   return prof;
 }
 
-const claveColapso = (n) => `${S.capitulo}:${n.titulo}`;
+const claveColapso = (n) => `${coleccionDe(S.modo)}:${S.capitulo}:${n.titulo}`;
 
 /** Marca por elemento ("indice") con la peor gravedad del capítulo abierto. */
 function marcasProblemas() {
@@ -21,12 +21,12 @@ function marcasProblemas() {
   return marcas;
 }
 
-/** Cantidad de pruebas bajo cada sección. */
+/** Cantidad de pruebas (o requisitos) bajo cada sección. */
 function contarPruebas(nodos) {
   const cuenta = new Map();
   const padres = new Map(nodos.map((n) => [n.indice, n.padre]));
   for (const n of nodos) {
-    if (n.tipo !== "prueba") continue;
+    if (n.tipo !== "prueba" && n.tipo !== "requisito") continue;
     let p = n.padre;
     while (p !== null && p !== undefined) {
       cuenta.set(p, (cuenta.get(p) || 0) + 1);
@@ -42,13 +42,16 @@ function renderArbol() {
   if (!S.nodos.length) {
     const texto = S.modo === "ejecucion"
       ? (S.campana ? "Ninguna prueba de la campaña en este capítulo con este filtro." : "Abre o crea una campaña.")
-      : S.consulta ? "Nada coincide con la búsqueda." : "Este capítulo no tiene pruebas todavía.";
+      : S.consulta ? "Nada coincide con la búsqueda."
+        : enRequisitos() ? (S.filtroCobertura ? "Ningún requisito de este capítulo con este filtro." : "Este capítulo no tiene requisitos todavía.")
+          : "Este capítulo no tiene pruebas todavía.";
     ul.appendChild(h("li", { class: "arbol-vacio", text: texto }));
     return;
   }
   const prof = profundidades(S.nodos);
   const conHijos = new Set(S.nodos.map((n) => n.padre).filter((p) => p !== null && p !== undefined));
   const cuenta = contarPruebas(S.nodos);
+  const coberturas = enRequisitos() ? coberturaPorSeccion(S.nodos) : null;
   const marcas = marcasProblemas();
   const buscando = Boolean(S.consulta);
   const cerradas = new Set();
@@ -61,7 +64,9 @@ function renderArbol() {
     }
     const cerrada = n.tipo === "seccion" && !buscando && S.colapsadas.has(claveColapso(n));
     if (cerrada) cerradas.add(n.indice);
-    ul.appendChild(filaArbol(n, prof.get(n.indice), cerrada, conHijos.has(n.indice), cuenta.get(n.indice) || 0, marcas.get(n.indice)));
+    const fila = filaArbol(n, prof.get(n.indice), cerrada, conHijos.has(n.indice), cuenta.get(n.indice) || 0, marcas.get(n.indice));
+    if (coberturas && n.tipo === "seccion") ponerCoberturaSeccion(fila, coberturas.get(n.indice));
+    ul.appendChild(fila);
   }
 }
 
@@ -98,6 +103,14 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
       h("span", { class: "hueco" }),
       h("span", { class: "icono-tabla" }, icon("table")),
       h("span", { class: "tit", text: n.titulo || "(tabla vacía)" }),
+    ]);
+  } else if (n.tipo === "requisito") {
+    append(li, [
+      h("span", { class: "hueco" }),
+      marcaCobertura(n.cobertura),
+      h("span", { class: "tid", text: n.id || "(sin ID)" }),
+      h("span", { class: "tit", text: n.titulo || "(sin título)" }),
+      n.cobertura && n.cobertura.modificado ? h("span", { class: "marca-cambio", title: "Ha cambiado: revisa sus pruebas" }, icon("alert")) : null,
     ]);
   } else {
     append(li, [
@@ -227,7 +240,7 @@ async function moverElemento(origen, destino, zona) {
   try {
     const r = await api.mover(S.capitulo, origen.indice, destino, zona);
     await refrescarTodo({ seleccionar: { tipo: origen.tipo, indice: r.indice } });
-    aviso({ seccion: "Sección movida", prueba: "Prueba movida", tabla: "Tabla movida" }[origen.tipo], "ok");
+    aviso({ seccion: "Sección movida", prueba: "Prueba movida", requisito: "Requisito movido", tabla: "Tabla movida" }[origen.tipo], "ok");
   } catch (e) {
     fallo(e);
     await refrescarTodo({});

@@ -9,31 +9,38 @@ programar ni conocer el formato de los archivos.
 1. [Qué es y cómo se organiza](#1-qué-es-y-cómo-se-organiza)
 2. [Abrir el editor](#2-abrir-el-editor)
 3. [La ventana](#3-la-ventana)
-4. [Editar pruebas (modo Edición)](#4-editar-pruebas-modo-edición)
-5. [Ejecutar pruebas (modo Ejecución)](#5-ejecutar-pruebas-modo-ejecución)
-6. [Atajos de teclado](#6-atajos-de-teclado)
-7. [Preguntas frecuentes y problemas](#7-preguntas-frecuentes-y-problemas)
+4. [Editar pruebas (modo Pruebas)](#4-editar-pruebas-modo-pruebas)
+5. [Requisitos y trazabilidad (modo Requisitos)](#5-requisitos-y-trazabilidad-modo-requisitos)
+6. [Ejecutar pruebas (modo Ejecución)](#6-ejecutar-pruebas-modo-ejecución)
+7. [Atajos de teclado](#7-atajos-de-teclado)
+8. [Preguntas frecuentes y problemas](#8-preguntas-frecuentes-y-problemas)
 
 ---
 
 ## 1. Qué es y cómo se organiza
 
-El editor trabaja con dos cosas distintas:
+El editor trabaja con tres cosas distintas:
 
 - **Las pruebas.** Qué hay que probar: título, parametrización, situación
   inicial, ensayo, imágenes… Están en una **carpeta de pruebas** que mantiene
   el equipo, organizada en **capítulos**, y dentro de cada capítulo en
   **secciones** (que pueden tener subsecciones).
+- **Los requisitos.** Qué tiene que cumplir el producto. Están en la carpeta
+  `requisitos` dentro de la carpeta de pruebas, organizados también en
+  capítulos y secciones. Cada prueba indica qué requisitos cubre; con eso el
+  editor sabe qué requisitos tienen pruebas y cuáles no (la
+  **trazabilidad**).
 - **Las campañas de ejecución.** Una campaña es una tanda de pruebas que se
   pasan sobre una versión concreta (por ejemplo, «Regresión v2.3»). Guarda
   qué pruebas entran y el resultado de cada una. Cada persona guarda sus
   campañas donde quiera en su PC.
 
-Por eso el editor tiene dos modos, que se eligen arriba a la izquierda:
+Por eso el editor tiene tres modos, que se eligen arriba a la izquierda:
 
 | Modo | Para qué |
 |---|---|
-| **Edición** | Crear, cambiar, mover y borrar pruebas. |
+| **Pruebas** | Crear, cambiar, mover y borrar pruebas. |
+| **Requisitos** | Crear, cambiar, mover y borrar requisitos, y ver qué pruebas cubren cada uno. |
 | **Ejecución** | Pasar las pruebas de una campaña y apuntar el resultado. En este modo las pruebas no se pueden cambiar. |
 
 Los resultados **nunca** se escriben en las pruebas: se guardan en la carpeta
@@ -64,9 +71,9 @@ en Ubuntu, *Configuración → Apariencia*.
 
 ## 3. La ventana
 
-![Ventana del editor en modo Edición](docs/manual/01_ventana_edicion.png)
+![Ventana del editor en modo Pruebas](docs/manual/01_ventana_edicion.png)
 
-- **Barra superior:** modo (Edición / Ejecución), carpeta de pruebas,
+- **Barra superior:** modo (Pruebas / Requisitos / Ejecución), carpeta de pruebas,
   capítulo, *Robot* (configuración de Robot Framework y número de pruebas
   automatizadas), *Recargar* (vuelve a leer los archivos del disco) y
   *Exportar DOCX*.
@@ -81,7 +88,7 @@ en Ubuntu, *Configuración → Apariencia*.
 
 ---
 
-## 4. Editar pruebas (modo Edición)
+## 4. Editar pruebas (modo Pruebas)
 
 ### 4.1 Editar una prueba
 
@@ -98,7 +105,11 @@ El formulario sigue el orden de la tabla de la prueba en el documento:
 - **Maniobra** (Simplex, Dúplex) y **Entorno de pruebas** (Automático,
   Maqueta, Torre): marca todas las que correspondan. **Automatizable**: una
   opción de la lista.
-- **Requisitos:** escribe cada uno y pulsa **Intro**; la **×** lo quita.
+- **Requisitos:** los IDs de los requisitos que cubre la prueba. Al escribir
+  el ID o parte del título se proponen los del catálogo; **Intro** añade el
+  elegido y la **×** lo quita. Un requisito que no existe sale en **rojo** y
+  uno que ha cambiado desde la última revisión, en **ámbar** (ver
+  [5.4](#54-cuando-un-requisito-cambia)). Pulsa un requisito para abrirlo.
 - **Tags:** palabras para agrupar pruebas (`regresion`, `smoke`,
   `seguridad`…). Al entrar en el campo se proponen los que ya usan otras
   pruebas, los más usados primero y con cuántas pruebas los llevan; al
@@ -164,7 +175,7 @@ Cada elemento es una fila. Los pasos se numeran solos.
   `imagenes/` de las pruebas y aparece en miniatura; haz clic para verla en
   grande o en la × para quitarla.
 - **Keywords de Robot:** si está configurado Robot (ver
-  [5.7](#57-pruebas-automáticas-robot-framework)), al escribir una
+  [6.7](#67-pruebas-automáticas-robot-framework)), al escribir una
   situación o un paso se proponen las keywords de Robot que encajan con lo
   escrito. Ver [más abajo](#escribir-los-pasos-con-las-keywords-de-robot).
 
@@ -230,7 +241,8 @@ pruebas con problemas llevan un punto rojo (error) o ámbar (aviso).
 
 Revisa: IDs repetidos o vacíos, pruebas sin título, imágenes que no existen,
 valores de maniobra, entorno o automatizable que no son una opción, campos
-que ya no existen (de un formato antiguo) y niveles de título fuera de rango.
+que ya no existen (de un formato antiguo), niveles de título fuera de rango y
+requisitos citados que no existen en el catálogo.
 
 ### 4.8 Exportar a Word
 
@@ -282,9 +294,94 @@ con un icono de tabla y se editan igual.
 En modo Ejecución, las tablas del contexto se ven (sin editar) en la ficha
 de la prueba o de la sección.
 
-## 5. Ejecutar pruebas (modo Ejecución)
+## 5. Requisitos y trazabilidad (modo Requisitos)
 
-### 5.1 Los resultados posibles
+Los requisitos se editan igual que las pruebas: árbol con capítulos y
+secciones, **+ Requisito** y **+ Sección**, arrastrar para reordenar, vista
+YAML, validación y **Exportar DOCX** (un documento con una tabla por
+requisito). La diferencia es que el editor relaciona cada requisito con las
+pruebas que lo citan en su campo **Requisitos**.
+
+Si la carpeta todavía no tiene requisitos, el modo Requisitos ofrece
+**Crear requisitos**: crea la carpeta `requisitos` con un primer capítulo.
+
+### 5.1 Cobertura
+
+Cada requisito tiene un estado, que se calcula solo:
+
+| Estado | Marca | Significa |
+|---|---|---|
+| **Cubierto** | punto verde | Al menos una prueba lo cita. |
+| **Sin cobertura** | círculo rojo | Se valida con pruebas y ninguna lo cita. |
+| **No aplica** | círculo gris | Es *Informativo*, o se valida solo por inspección o análisis. |
+
+Un requisito se valida con pruebas si su **Criterio validación** incluye
+**Test** o si no tiene criterio. En el árbol, cada sección muestra cuántos de
+sus requisitos tienen pruebas (por ejemplo, `3/4`), en rojo si falta alguno.
+
+### 5.2 El panel de cobertura
+
+![Panel de cobertura](docs/manual/28_requisitos_panel.png)
+
+Al entrar en el modo Requisitos (o con el botón **Cobertura**) se ve el
+resumen de todos los capítulos:
+
+- el porcentaje de requisitos cubiertos y las cifras de cada estado; al
+  pulsar una cifra, el árbol muestra solo esos requisitos (también se puede
+  elegir en la lista de encima del árbol);
+- una tabla por capítulo (pulsa una fila para abrir el capítulo);
+- las listas de requisitos **sin cobertura** y **cambiados**, las pruebas que
+  citan un requisito **que no existe** y, plegadas, las **pruebas sin
+  requisito**. Pulsa un ID para ir a él;
+- **Exportar matriz…** guarda la matriz de trazabilidad en un CSV que se abre
+  con Excel: una fila por requisito con su estado y las pruebas que lo
+  cubren.
+
+### 5.3 Editar un requisito
+
+El formulario sigue la tabla del requisito en el documento: **ID** y
+**Título** (obligatorios), **Descripción**, **Fuente**, **Referencia**,
+**Tipo** (Informativo, Obligatorio u Opcional), **Criterio validación**
+(Inspección, Análisis o Test; se pueden marcar varios), **Fase**, **Fecha** y
+**Versión**, y el **Contexto** (texto y tablas que van antes de la tabla).
+
+Encima está el bloque **Pruebas que lo cubren**, con su estado y la lista de
+pruebas: pulsa una para abrirla (el editor pasa al modo Pruebas).
+
+Para cubrir un requisito, añade su ID en el campo **Requisitos** de la
+prueba:
+
+![Requisitos de una prueba](docs/manual/31_prueba_requisitos.png)
+
+### 5.4 Cuando un requisito cambia
+
+![Requisito cambiado](docs/manual/29_requisito_cambiado.png)
+
+Si cambias el **título**, la **descripción** o el **contexto** de un
+requisito que tiene pruebas, puede que esas pruebas ya no lo verifiquen
+bien. El editor lo marca como **cambiado** (⚠ en el árbol, ámbar en las
+pruebas que lo citan) y en su ficha muestra el texto que tenía en la última
+revisión.
+
+Revisa las pruebas de la lista, adáptalas si hace falta y pulsa **Pruebas
+revisadas**: el aviso desaparece. Si deshaces el cambio, el aviso se quita
+solo. Cambiar la fecha, la versión, el tipo o el criterio no cuenta como
+cambio.
+
+### 5.5 Cambiar el ID de un requisito
+
+![Cambiar el ID de un requisito](docs/manual/30_requisito_id.png)
+
+Las pruebas citan cada requisito por su ID. Al cambiarlo, el editor dice
+cuántas pruebas lo citan y ofrece **cambiarlo también en ellas**. Si cambias
+solo el requisito, esas pruebas quedan citando un ID que no existe (salen en
+el panel y en la validación).
+
+---
+
+## 6. Ejecutar pruebas (modo Ejecución)
+
+### 6.1 Los resultados posibles
 
 | Resultado | Significa | Tecla |
 |---|---|---|
@@ -296,7 +393,7 @@ de la prueba o de la sección.
 
 El porcentaje de OK se calcula sobre las pruebas que aplican.
 
-### 5.2 Crear una campaña
+### 6.2 Crear una campaña
 
 ![Modo Ejecución sin campaña](docs/manual/08_ejecucion_inicio.png)
 
@@ -318,7 +415,7 @@ la barra superior).
 La lista de pruebas queda fijada al crearla. Si después alguien etiqueta otra
 prueba, entra con **Resincronizar** (en el resumen).
 
-### 5.3 Abrir una campaña
+### 6.3 Abrir una campaña
 
 Botón de la campaña → **Abrir campaña…** o una de las **recientes**. Al
 entrar en el modo Ejecución se abre la última que usaste. Al abrir una
@@ -328,7 +425,7 @@ Si la carpeta de pruebas se ha movido (o la campaña viene de otro PC), el
 editor lo avisa y te pide que indiques dónde está; lo recuerda para la
 próxima vez.
 
-### 5.4 El resumen
+### 6.4 El resumen
 
 ![Resumen de la campaña](docs/manual/10_resumen_campana.png)
 
@@ -340,10 +437,10 @@ prueba seleccionada:
 - **avisos**: pruebas NO OK o bloqueadas sin observaciones, pruebas que
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);
-- botones **Ejecutar Robot…** e **Importar Robot…** (ver 5.7), **Generar
+- botones **Ejecutar Robot…** e **Importar Robot…** (ver 6.7), **Generar
   informe…**, **Cerrar campaña…** y **Siguiente pendiente**.
 
-### 5.5 Pasar una prueba
+### 6.5 Pasar una prueba
 
 ![Pasar una prueba](docs/manual/11_pasar_prueba.png)
 
@@ -367,7 +464,7 @@ A la izquierda está la prueba en solo lectura; a la derecha, su resultado:
 Si una prueba se editó después de ejecutarla, el panel avisa por si hay que
 repetirla. *Volver a pendiente* deshace el último resultado.
 
-### 5.6 Repetir una prueba
+### 6.6 Repetir una prueba
 
 ![Historial de intentos](docs/manual/12_historial.png)
 
@@ -376,7 +473,7 @@ resultado normalmente. El anterior **no se pierde**: queda en el
 **Historial** con sus observaciones, incidencia y evidencias, y aparecerá en
 el informe («NO OK con BUG-123; OK tras corregirlo»).
 
-### 5.7 Pruebas automáticas (Robot Framework)
+### 6.7 Pruebas automáticas (Robot Framework)
 
 Si parte de las pruebas se ejecutan con Robot Framework, sus resultados se
 pueden apuntar de golpe:
@@ -426,7 +523,7 @@ terminar aparece la misma vista previa de la importación.
 
 ![Avance de Robot](docs/manual/22_progreso_robot.png)
 
-### 5.8 Cerrar la campaña
+### 6.8 Cerrar la campaña
 
 ![Cerrar la campaña](docs/manual/13_cerrar_campana.png)
 
@@ -444,7 +541,7 @@ Una campaña cerrada se sigue pudiendo abrir para consultarla. La barra
 superior indica *Pruebas congeladas (solo lectura)*: para volver a editar las
 pruebas, abre su carpeta de pruebas con el botón de la carpeta.
 
-### 5.9 Generar el informe
+### 6.9 Generar el informe
 
 ![Generar el informe](docs/manual/14_informe_dialogo.png)
 
@@ -465,7 +562,7 @@ observaciones, incidencia, evidencias e intentos anteriores.
 
 ---
 
-## 6. Atajos de teclado
+## 7. Atajos de teclado
 
 | Atajo | Dónde | Hace |
 |---|---|---|
@@ -485,11 +582,11 @@ observaciones, incidencia, evidencias e intentos anteriores.
 
 ---
 
-## 7. Preguntas frecuentes y problemas
+## 8. Preguntas frecuentes y problemas
 
 **¿Dónde se guarda lo que hago?**
 Las pruebas, en su carpeta de pruebas (un archivo por capítulo, y las
-imágenes en `imagenes/`). Las campañas, en la carpeta que elegiste al
+imágenes en `imagenes/`); los requisitos, en su subcarpeta `requisitos/`. Las campañas, en la carpeta que elegiste al
 crearlas (`campaña.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
 `pruebas_congeladas/`). El editor no guarda nada en otro sitio.
 
@@ -499,8 +596,13 @@ editor lo vuelve a leer para no pisar esos cambios: revisa la prueba y repite
 tu cambio.
 
 **«El ID … ya existe».**
-Cada prueba necesita un ID distinto. Usa otro (por ejemplo, el siguiente
-número libre).
+Cada prueba (y cada requisito) necesita un ID distinto. Usa otro (por
+ejemplo, el siguiente número libre).
+
+**¿Dónde se apunta qué pruebas hay que revisar por un requisito cambiado?**
+En `requisitos/revisiones.yaml`, que escribe el editor. Guarda el texto que
+tenía cada requisito cambiado en su última revisión; al pulsar **Pruebas
+revisadas** se quita su entrada.
 
 **Una imagen dice «Sin vista previa».**
 Las imágenes EMF (diagramas de Word) no tienen miniatura fuera de Windows,
@@ -508,7 +610,7 @@ pero se conservan y salen bien en el documento y en el informe.
 
 **No me deja crear la campaña.**
 O ninguna prueba cumple el criterio elegido, o hay IDs repetidos o vacíos
-(revisa la validación en el modo Edición).
+(revisa la validación en el modo Pruebas).
 
 **No me deja cerrar la campaña.**
 Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.

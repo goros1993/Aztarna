@@ -4,11 +4,11 @@
 /* Campos de la prueba (los define esquema.py; las opciones llegan con api.esquema()). */
 const CAMPOS_TEXTO = ["nombre", "id", "titulo", "descripcion", "automatizable", "fecha", "version"];
 const LISTAS = ["contexto", "parametrizacion", "situacion_inicial", "pasos"];
-const MULTIPLES = ["maniobra", "entorno"];
+const MULTIPLES = ["maniobra", "entorno", "criterio_validacion"];
 const TEXTOS = ["requisitos", "etiquetas"];
-const opcionesDe = (clave) => (S.esquema && S.esquema.opciones[clave]) || [];
+const opcionesDe = (clave) => (S.esquema && (S.esquema.opciones[clave] || S.esquema.requisito.opciones[clave])) || [];
 
-/** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"seccion"|"tabla", indice, valores, cambios, nivel, vista}. */
+/** Formulario abierto: {modo: "editar"|"nueva", tipo: "prueba"|"requisito"|"seccion"|"tabla", indice, valores, cambios, nivel, vista}. */
 let F = null;
 const formularioActual = () => F;
 
@@ -28,6 +28,7 @@ function mostrarSinCarpeta() {
 function mostrarVacio() {
   F = null;
   if (S.modo === "ejecucion") { mostrarPanelCampana(); return; }
+  if (enRequisitos()) { mostrarPanelTrazabilidad(); return; }
   mostrar(h("div", { class: "centro" },
     h("h2", { text: "Elige qué editar" }),
     h("p", { text: "Selecciona una prueba o una sección en el panel izquierdo, o crea una nueva." }),
@@ -118,8 +119,9 @@ function serializar(clave) {
 
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
-    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES, ...TEXTOS, "campos_adicionales", "imagenes"]
-    : [...F.cambios];
+    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes"]
+    : F.modo === "nueva" && F.tipo === "requisito" ? [...REQ_CAMPOS_TEXTO, ...REQ_LISTAS, ...REQ_MULTIPLES]
+      : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
 }
 
@@ -132,13 +134,13 @@ function tocar(clave) {
 function textoPlaca() {
   if (F.tipo === "seccion") return "Sección";
   if (F.tipo === "tabla") return "Tabla";
-  return F.valores.id || (F.modo === "nueva" ? "Nueva prueba" : "Sin ID");
+  return F.valores.id || (F.modo === "nueva" ? (F.tipo === "requisito" ? "Nuevo requisito" : "Nueva prueba") : "Sin ID");
 }
 
 function nombreCabecera() {
   if (F.tipo === "tabla") return tituloDeTabla(F.valores.filas) || (F.modo === "nueva" ? "Nueva tabla" : "(tabla vacía)");
   if (F.tipo === "seccion") return F.valores.nombre || (F.modo === "nueva" ? "Nueva sección" : "(sin nombre)");
-  return F.valores.titulo || F.valores.nombre || (F.modo === "nueva" ? "Prueba sin título" : "(sin título)");
+  return F.valores.titulo || F.valores.nombre || (F.modo === "nueva" ? (F.tipo === "requisito" ? "Requisito sin título" : "Prueba sin título") : "(sin título)");
 }
 
 function rutaDe(indice) {
@@ -165,7 +167,8 @@ function botonIcono(nombre, etiqueta, fn, extra = "") {
 }
 
 function cabecera() {
-  const esPrueba = F.tipo === "prueba";
+  const esPrueba = F.tipo === "prueba" || F.tipo === "requisito";
+  const esReq = F.tipo === "requisito";
   const editando = F.modo === "editar";
   const bloqueTitulo = h("div", { class: "titulo" },
     h("span", { class: "nombre", id: "cab-nombre", text: nombreCabecera() }),
@@ -180,7 +183,7 @@ function cabecera() {
       h("button", { type: "button", "aria-pressed": String(F.vista !== "yaml"), onclick: () => cambiarVista("form"), text: "Formulario" }),
       h("button", { type: "button", "aria-pressed": String(F.vista === "yaml"), onclick: () => cambiarVista("yaml"), text: "YAML" })));
     if (esPrueba && F.vista !== "yaml") {
-      botones.push(h("button", { class: "btn ghost", type: "button", onclick: duplicarActual, title: "Crear una prueba nueva con estos datos" }, icon("copy"), "Duplicar"));
+      botones.push(h("button", { class: "btn ghost", type: "button", onclick: duplicarActual, title: esReq ? "Crear un requisito nuevo con estos datos" : "Crear una prueba nueva con estos datos" }, icon("copy"), "Duplicar"));
     }
     botones.push(h("button", { class: "btn ghost peligro", type: "button", onclick: borrarActual }, icon("trash"), "Borrar"));
     if (F.vista === "yaml") {
@@ -191,7 +194,7 @@ function cabecera() {
     }
   } else {
     botones.push(h("button", { class: "btn ghost", type: "button", onclick: cancelarNueva, text: "Cancelar" }));
-    botones.push(h("button", { class: "btn primary", type: "button", onclick: guardarActual, title: "Ctrl+S", text: esPrueba ? "Crear prueba" : "Crear sección" }));
+    botones.push(h("button", { class: "btn primary", type: "button", onclick: guardarActual, title: "Ctrl+S", text: esReq ? "Crear requisito" : esPrueba ? "Crear prueba" : "Crear sección" }));
   }
   return h("div", { class: "acciones" }, placa, bloqueTitulo, sinGuardar, botones);
 }
@@ -219,7 +222,7 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
  * [{texto, usos}]) propone, al entrar y al escribir, los valores ya usados en
  * otras pruebas: ↑ ↓ para elegir, Intro o Tab para añadir, Esc para cerrar.
  */
-function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false } = {}) {
+function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false, decorar = null } = {}) {
   const valores = F.valores[clave];
   const id = "f-" + clave;
   const fichas = h("div", { class: "fichas" });
@@ -250,7 +253,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
   function proponer() {
     if (!usadas.length) { cerrar(); return; }
     const escrito = norm(entrada.value.trim());
-    opciones = usadas.filter((u) => !valores.includes(u.texto) && (!escrito || norm(u.texto).includes(escrito)))
+    opciones = usadas.filter((u) => !valores.includes(u.texto) && (!escrito || norm(u.texto + " " + (u.detalle || "")).includes(escrito)))
       .sort((a, b) => (escrito ? norm(b.texto).startsWith(escrito) - norm(a.texto).startsWith(escrito) : 0) || b.usos - a.usos)
       .slice(0, 8);
     activa = escrito && opciones.length ? 0 : -1;
@@ -260,7 +263,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
     lista.replaceChildren(...opciones.map((o, i) => h("div", {
       class: "opcion" + (i === activa ? " activa" : ""), role: "option", "aria-selected": String(i === activa),
       onmousedown: (e) => e.preventDefault(), onclick: () => añadir(o.texto),
-    }, h("span", { text: o.texto }), h("span", { class: "usos", text: plural(o.usos, "prueba", "pruebas") }))));
+    }, h("span", { text: o.texto }), h("span", { class: "usos", text: o.detalle ?? plural(o.usos, "prueba", "pruebas") }))));
     lista.hidden = !opciones.length;
   }
   function cerrar() { lista.hidden = true; opciones = []; activa = -1; }
@@ -274,12 +277,17 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
     if (enfocar) { entrada.focus(); proponer(); }
   }
   function pintar() {
-    fichas.replaceChildren(...valores.map((t, i) => h("span", { class: "ficha" }, t,
-      h("button", {
+    fichas.replaceChildren(...valores.map((t, i) => {
+      const d = decorar ? decorar(t) : {};
+      return h("span", { class: "ficha " + (d.clase || ""), title: d.title || null },
+        d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
+        h("button", {
         type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar ${t}`,
         onclick: () => { valores.splice(i, 1); tocar(clave); pintar(); entrada.focus(); },
-      }, "×"))), entrada);
+      }, "×"));
+    }), entrada);
   }
+  if (decorar) fichas.repintar = pintar;      // las marcas dependen de datos que llegan después
   pintar();
   if (sugerir) sugerir().then((l) => { usadas = l; if (document.activeElement === entrada) proponer(); }, () => {});
   return h("div", { class: "campo con-sugerencias" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
@@ -608,9 +616,10 @@ async function selectorUbicacion(esSeccion, porDefecto) {
   F.secciones = secciones;
   const seleccion = S.seleccion;
   const opciones = [];
-  if (seleccion && seleccion.tipo === "prueba") {
+  const esFicha = (s) => s && (s.tipo === "prueba" || s.tipo === "requisito");
+  if (esFicha(seleccion)) {
     const nodo = S.nodos.find((n) => n.indice === seleccion.indice);
-    if (nodo) opciones.push({ tipo: "despues", indice: nodo.indice, texto: `Justo después de «${nodo.id || nodo.titulo || "la prueba seleccionada"}»` });
+    if (nodo) opciones.push({ tipo: "despues", indice: nodo.indice, texto: `Justo después de «${nodo.id || nodo.titulo || "el elemento seleccionado"}»` });
   }
   for (const s of secciones) {
     opciones.push({ tipo: "seccion", indice: s.indice, texto: `${"    ".repeat(Math.max(0, s.nivel - 2))}Dentro de «${s.titulo}», al final` });
@@ -619,7 +628,7 @@ async function selectorUbicacion(esSeccion, porDefecto) {
   let elegida = 0;
   if (porDefecto) elegida = Math.max(0, opciones.findIndex((o) => o.tipo === porDefecto.tipo && o.indice === porDefecto.indice));
   else if (seleccion && seleccion.tipo === "seccion") elegida = Math.max(0, opciones.findIndex((o) => o.tipo === "seccion" && o.indice === seleccion.indice));
-  else if (!(seleccion && seleccion.tipo === "prueba")) elegida = opciones.length - 1;
+  else if (!esFicha(seleccion)) elegida = opciones.length - 1;
 
   const aplicar = (o) => {
     F.ubicacion = o.tipo === "final" ? { tipo: "final" } : { tipo: o.tipo, indice: o.indice };
@@ -633,7 +642,7 @@ async function selectorUbicacion(esSeccion, porDefecto) {
   aplicar(opciones[elegida]);
   return h("section", { class: "bloque" },
     h("div", { class: "rejilla" },
-      h("div", { class: "campo completo" }, h("label", { for: "f-ubicacion", text: esSeccion ? "Dónde crear la sección" : "Dónde crear la prueba" }), select)));
+      h("div", { class: "campo completo" }, h("label", { for: "f-ubicacion", text: esSeccion ? "Dónde crear la sección" : enRequisitos() ? "Dónde crear el requisito" : "Dónde crear la prueba" }), select)));
 }
 
 function nivelDeUbicacion(u, esSeccion) {
@@ -667,7 +676,7 @@ function cuerpoPrueba(ubicacion) {
         campoOpciones("maniobra", "Maniobra"),
         campoSelect("automatizable", "Automatizable", (S.esquema && S.esquema.automatizable) || []),
         campoOpciones("entorno", "Entorno de pruebas"),
-        campoFichas("requisitos", "Requisitos", { ayuda: "Uno por ficha: escribe y pulsa Enter.", completo: false }),
+        campoRequisitos(),
         campoEtiquetas(),
         campoTexto("fecha", "Fecha"),
         campoTexto("version", "Versión", { ancho: true }))),
@@ -690,6 +699,7 @@ function cuerpoSeccion(ubicacion) {
 function mostrarElemento(datos) {
   const el = datos.elemento;
   if (datos.tipo === "tabla") { mostrarTabla(datos); return; }
+  if (datos.tipo === "requisito") { mostrarRequisito(datos); return; }
   if (datos.tipo === "prueba") {
     F = { modo: "editar", tipo: "prueba", indice: datos.indice, valores: valoresDePrueba(el), cambios: new Set(), nivel: el.nivel, vista: "form", idOriginal: String(el.id || "") };
     mostrar(cuerpoPrueba(null));
@@ -723,7 +733,7 @@ async function mostrarNuevaSeccion() {
 /* ---- guardar, crear, borrar ---- */
 function marcarErrorEnCampo(error) {
   const msg = error && error.message ? error.message : "";
-  if (F && F.tipo === "prueba" && /\bID\b/.test(msg)) mostrarErrorCampo("id", msg);
+  if (F && (F.tipo === "prueba" || F.tipo === "requisito") && /\bID\b/.test(msg)) mostrarErrorCampo("id", msg);
   else if (F && F.tipo === "seccion" && /nombre/i.test(msg)) mostrarErrorCampo("nombre", msg);
 }
 
@@ -749,6 +759,7 @@ async function guardarActual() {
       return true;
     }
     const cambios = recogerCambios();
+    if (tipo === "requisito") return await guardarRequisito(cambios);
     if (tipo === "prueba" && F.idOriginal && "id" in cambios && String(cambios.id).trim() !== F.idOriginal) {
       const r = await dialogo({
         titulo: "¿Cambiar el ID de la prueba?",
@@ -773,6 +784,7 @@ async function guardarActual() {
 }
 
 async function crearActual() {
+  if (F.tipo === "requisito") return await crearRequisito();
   if (F.tipo === "prueba") {
     if (!F.valores.id.trim()) { mostrarErrorCampo("id", "El ID es obligatorio."); return false; }
     const r = await api.crear_prueba(S.capitulo, F.ubicacion, recogerCambios());
@@ -796,9 +808,10 @@ async function cancelarNueva() {
 }
 
 function duplicarActual() {
-  if (!F || F.tipo !== "prueba" || F.modo !== "editar") return;
+  if (!F || (F.tipo !== "prueba" && F.tipo !== "requisito") || F.modo !== "editar") return;
   const copia = JSON.parse(JSON.stringify(F.valores));
   copia.id = "";
+  if (F.tipo === "requisito") { mostrarNuevoRequisito(copia, { tipo: "despues", indice: F.indice }); return; }
   mostrarNuevaPrueba(copia, { tipo: "despues", indice: F.indice });
 }
 
@@ -813,6 +826,12 @@ async function borrarActual() {
   } else if (tipo === "prueba") {
     cuerpo = `Vas a borrar «${F.valores.id || "sin ID"}: ${F.valores.titulo || F.valores.nombre || "sin título"}». Esta acción no se puede deshacer.`;
     boton = "Borrar prueba";
+  } else if (tipo === "requisito") {
+    titulo = "Borrar requisito";
+    const citan = F.traza ? F.traza.pruebas.length : 0;
+    cuerpo = `Vas a borrar «${F.valores.id || "sin ID"}: ${F.valores.titulo || "sin título"}». Esta acción no se puede deshacer.`
+      + (citan ? ` ${plural(citan, "prueba lo cita", "pruebas lo citan")}: esas referencias quedarán apuntando a un requisito que no existe.` : "");
+    boton = "Borrar requisito";
   } else {
     const hijas = descendientes(indice);
     titulo = "Borrar sección";
@@ -825,11 +844,12 @@ async function borrarActual() {
   try {
     if (tipo === "tabla") await api.borrar_tabla(S.capitulo, indice);
     else if (tipo === "prueba") await api.borrar_prueba(S.capitulo, indice);
+    else if (tipo === "requisito") await api.borrar_requisito(S.capitulo, indice);
     else await api.borrar_seccion(S.capitulo, indice);
     setDirty(false);
     S.seleccion = null;
     await refrescarTodo({});
-    aviso({ prueba: "Prueba borrada", seccion: "Sección borrada", tabla: "Tabla borrada" }[tipo], "ok");
+    aviso({ prueba: "Prueba borrada", requisito: "Requisito borrado", seccion: "Sección borrada", tabla: "Tabla borrada" }[tipo], "ok");
   } catch (error) { fallo(error); }
 }
 
