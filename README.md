@@ -13,6 +13,7 @@ las pruebas en un editor local y generar un DOCX de lectura a partir de los YAML
 | `yaml_a_docx.py` | Genera el DOCX a partir de los YAML. |
 | `esquema.py` | Campos de las pruebas, sus nombres y sus opciones (único sitio donde se definen). |
 | `auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
+| `ids_duplicados.py` | Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios. |
 | `plantillas/tabla_prueba.docx` | Plantilla de la tabla de cada prueba (vacía, solo etiquetas). |
 | `plantillas/auditoria.html` | Plantilla del informe de `auditar.py`. |
 | `ejecucion_core.py`, `ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
@@ -156,6 +157,26 @@ Además:
    el DOCX.
 6. Corrige los YAML importados y repite la revisión hasta que los datos sean
    aceptables.
+
+### Corregir IDs repetidos
+
+Las campañas reconocen cada prueba por su ID, así que conviene corregir los
+repetidos antes de empezar a apuntar resultados:
+
+```bash
+python ids_duplicados.py importacion/yaml -o ids.csv          # propuesta
+python ids_duplicados.py importacion/yaml --aplicar ids.csv   # aplica lo revisado
+```
+
+`ids.csv` (se abre con Excel) tiene una fila por prueba con ID repetido, vacío
+o con espacios: dónde está, su título, cuánto se parece a la primera con ese
+ID («idéntica» puede ser una copia que sobra) y un `id_nuevo` propuesto. La
+primera aparición conserva el ID; las demás reciben el siguiente número libre
+de su serie (`LLAM_009` → `LLAM_010`), los IDs con espacios se proponen sin
+ellos y los que no tienen número (`CASO DE PRUEBA`) quedan en blanco para
+elegirlos. Revisa el CSV y aplícalo: solo cambia los IDs (conserva los
+comentarios) y, si algún ID nuevo quedara repetido o alguna prueba ya no
+está donde dice el CSV, no cambia nada y lo explica.
 
 Trabaja primero en `importacion/`. Cuando se acepte como versión inicial,
 cópiala o muévela a una ubicación de datos mantenida por el equipo. Las

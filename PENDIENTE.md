@@ -160,8 +160,10 @@ Los campos se definen solo en `esquema.py` (formulario, validación, DOCX,
 campañas e importador). El importador convierte el formato antiguo con las
 reglas de `esquema.migrar_prueba` (ver README, «Esquema de las pruebas») y
 `auditar.py` comprueba que no se pierde texto. Obligatorios por ahora: ID y
-título. Pendiente: pasar la auditoría al documento real y ajustar el
-importador familia por familia hasta que no queden tablas con pérdida.
+título. La auditoría del documento real ya no da pérdidas (algunos capítulos
+se importarán aparte, más adelante: hará falta que el conversor pueda añadir
+capítulos a una carpeta de YAML existente, `--anadir-a`, sin pisar imágenes
+ni archivos). Los IDs repetidos se corrigen con `ids_duplicados.py`.
 
 ### Propuesta: pruebas que aparecen en dos sitios
 
