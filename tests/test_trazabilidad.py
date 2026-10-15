@@ -149,7 +149,8 @@ class Calculo(Base):
         self.assertIn("R-X;", filas[-1])
 
     def test_ejemplos(self):
-        d = trazabilidad.calcular(read_chapters(EJEMPLOS), trazabilidad.leer_requisitos(EJEMPLOS),
+        pruebas = EJEMPLOS / "pruebas"
+        d = trazabilidad.calcular(read_chapters(pruebas), trazabilidad.leer_requisitos(pruebas),
                                   trazabilidad.leer_revisiones(EJEMPLOS / "requisitos"))
         self.assertEqual(d["total"]["sin_cobertura"], 3)
         self.assertEqual([r["id"] for r in d["requisitos"] if r["modificado"]], ["REQ-PUER-002"])
@@ -260,6 +261,53 @@ class Api(Base):
         self.assertEqual(tabla.cell(0, 0).text, "R-1")
         self.assertEqual(tabla.cell(0, 2).text, "Cubierto")
         self.assertEqual(tabla.cell(4, 1).text, "Criterio validación: Test")
+
+
+class Carpetas(unittest.TestCase):
+    """Proyecto con pruebas/ y requisitos/ (o carpeta de pruebas suelta con requisitos/ dentro)."""
+
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.proyecto = Path(self._tmp.name) / "proyecto"
+        (self.proyecto / "pruebas").mkdir(parents=True)
+        (self.proyecto / "requisitos").mkdir()
+        (self.proyecto / "pruebas" / "01_pruebas.yaml").write_text(PRUEBAS, encoding="utf-8")
+        (self.proyecto / "requisitos" / "01_req.yaml").write_text(REQUISITOS, encoding="utf-8")
+
+    def test_rutas(self):
+        from app.editor_core import requirements_dir, tests_dir
+        self.assertEqual(tests_dir(self.proyecto), self.proyecto / "pruebas")
+        self.assertEqual(tests_dir(self.proyecto / "pruebas"), self.proyecto / "pruebas")
+        self.assertEqual(requirements_dir(self.proyecto / "pruebas"), self.proyecto / "requisitos")
+        suelta = Path(self._tmp.name) / "suelta"
+        suelta.mkdir()
+        self.assertEqual(requirements_dir(suelta), suelta / "requisitos")
+
+    def test_abrir_el_proyecto_o_su_carpeta_de_pruebas(self):
+        for carpeta in (self.proyecto, self.proyecto / "pruebas"):
+            api = editor_api.EditorApi(carpeta)
+            resumen = ok(self, api.iniciar())
+            self.assertEqual(Path(resumen["carpeta"]), (self.proyecto / "pruebas").resolve())
+            self.assertTrue(resumen["hay_requisitos"])
+            self.assertEqual(ok(self, api.trazabilidad())["total"]["cubierto"], 1)
+
+    def test_crear_requisitos_junto_a_las_pruebas(self):
+        shutil.rmtree(self.proyecto / "requisitos")
+        api = editor_api.EditorApi(self.proyecto)
+        ok(self, api.iniciar())
+        ok(self, api.crear_catalogo_requisitos())
+        self.assertTrue((self.proyecto / "requisitos" / "indice.yaml").is_file())
+        self.assertFalse((self.proyecto / "pruebas" / "requisitos").exists())
+
+    def test_linea_de_ordenes_y_word_con_el_proyecto(self):
+        with redirect_stdout(io.StringIO()) as texto:
+            trazabilidad.main([str(self.proyecto)])
+        self.assertIn("4 requisitos", texto.getvalue())
+        salida = Path(self._tmp.name) / "p.docx"
+        with redirect_stdout(io.StringIO()) as texto:
+            yaml_a_docx.main([str(self.proyecto), "-o", str(salida)])
+        self.assertIn("3 pruebas", texto.getvalue())
 
 
 class Word(unittest.TestCase):

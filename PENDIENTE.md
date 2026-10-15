@@ -321,7 +321,8 @@ Hecho (con requisitos ficticios en `ejemplos/yaml/requisitos/`):
   (esquema.py): ID, Título, Descripción, Fuente, Referencia, Tipo
   (Informativo / Obligatorio / Opcional), Criterio validación (Inspección /
   Análisis / Test, varias), Fase, Fecha y Versión, más contexto.
-- Carpeta `requisitos/` dentro de la de pruebas, con capítulos y secciones.
+- Carpeta `requisitos/` junto a `pruebas/` (o dentro de una carpeta de
+  pruebas suelta), con capítulos y secciones.
 - `app/trazabilidad.py`: cobertura (cubierto / sin cobertura / no aplica:
   informativos o validados sin «Test»), referencias a requisitos que no
   existen, pruebas sin requisito, resumen por capítulo y sección, matriz CSV

@@ -452,6 +452,8 @@ def numerar_titulos(doc, primer_capitulo=1):
 def cargar(entrada):
     yaml = YAML(typ="safe")
     ruta = Path(entrada)
+    if ruta.is_dir() and not (ruta / "indice.yaml").exists() and (ruta / "pruebas").is_dir():
+        ruta = ruta / "pruebas"             # carpeta del proyecto: el documento de pruebas
     if ruta.is_file():
         archivos = [ruta]
     else:

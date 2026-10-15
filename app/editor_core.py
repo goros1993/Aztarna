@@ -38,6 +38,30 @@ def yaml_to_string(value: Any) -> str:
     return buffer.getvalue()
 
 
+def tests_dir(folder: str | Path) -> Path:
+    """Carpeta de pruebas a partir de la carpeta abierta.
+
+    Un proyecto tiene `pruebas/` y `requisitos/`; si se abre el proyecto, las
+    pruebas son su subcarpeta `pruebas/`. Una carpeta con `indice.yaml` o
+    capítulos es ya la de pruebas.
+    """
+    folder = Path(folder)
+    sub = folder / esquema.CARPETA_PRUEBAS
+    if not (folder / "indice.yaml").is_file() and sub.is_dir():
+        return sub
+    return folder
+
+
+def requirements_dir(tests: str | Path) -> Path:
+    """Carpeta de requisitos de una carpeta de pruebas: `requisitos/` junto a `pruebas/`
+    o, si la carpeta de pruebas no se llama así, dentro de ella."""
+    tests = Path(tests)
+    sub = tests / esquema.CARPETA_REQUISITOS
+    if tests.name == esquema.CARPETA_PRUEBAS and not sub.is_dir():
+        return tests.parent / esquema.CARPETA_REQUISITOS
+    return sub
+
+
 def read_chapters(yaml_dir: Path) -> list[dict[str, Any]]:
     yaml_dir = yaml_dir.resolve()
     index_path = yaml_dir / "indice.yaml"

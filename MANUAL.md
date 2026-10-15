@@ -25,11 +25,17 @@ El editor trabaja con tres cosas distintas:
   inicial, ensayo, imágenes… Están en una **carpeta de pruebas** que mantiene
   el equipo, organizada en **capítulos**, y dentro de cada capítulo en
   **secciones** (que pueden tener subsecciones).
-- **Los requisitos.** Qué tiene que cumplir el producto. Están en la carpeta
-  `requisitos` dentro de la carpeta de pruebas, organizados también en
+- **Los requisitos.** Qué tiene que cumplir el producto. Están en una
+  carpeta `requisitos`, junto a la carpeta `pruebas`, organizados también en
   capítulos y secciones. Cada prueba indica qué requisitos cubre; con eso el
   editor sabe qué requisitos tienen pruebas y cuáles no (la
   **trazabilidad**).
+
+```text
+proyecto/
+├── pruebas/       indice.yaml, un archivo por capítulo e imagenes/
+└── requisitos/    indice.yaml y un archivo por capítulo
+```
 - **Las campañas de ejecución.** Una campaña es una tanda de pruebas que se
   pasan sobre una versión concreta (por ejemplo, «Regresión v2.3»). Guarda
   qué pruebas entran y el resultado de cada una. Cada persona guarda sus
@@ -56,8 +62,10 @@ de la campaña.
 
 ## 2. Abrir el editor
 
-- **Windows:** abre `EditorPruebas.exe`. La primera vez pide la carpeta de
-  pruebas (la que contiene el archivo `indice.yaml`); después la recuerda.
+- **Windows:** abre `EditorPruebas.exe`. La primera vez pide una carpeta:
+  la del proyecto (la que contiene `pruebas` y `requisitos`) o directamente
+  la de pruebas (la que contiene el archivo `indice.yaml`); después la
+  recuerda.
 - **Linux:** desde la carpeta del proyecto, `python editor_web.py`.
 
 Para cambiar de carpeta de pruebas, pulsa el botón de la carpeta en la barra
@@ -302,8 +310,9 @@ YAML, validación y **Exportar DOCX** (un documento con una tabla por
 requisito). La diferencia es que el editor relaciona cada requisito con las
 pruebas que lo citan en su campo **Requisitos**.
 
-Si la carpeta todavía no tiene requisitos, el modo Requisitos ofrece
-**Crear requisitos**: crea la carpeta `requisitos` con un primer capítulo.
+Si todavía no hay requisitos, el modo Requisitos ofrece **Crear
+requisitos**: crea la carpeta `requisitos` (junto a la carpeta `pruebas`) con
+un primer capítulo.
 
 ### 5.1 Cobertura
 
@@ -586,8 +595,8 @@ observaciones, incidencia, evidencias e intentos anteriores.
 
 **¿Dónde se guarda lo que hago?**
 Las pruebas, en su carpeta de pruebas (un archivo por capítulo, y las
-imágenes en `imagenes/`); los requisitos, en su subcarpeta `requisitos/`. Las campañas, en la carpeta que elegiste al
-crearlas (`campaña.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
+imágenes en `imagenes/`); los requisitos, en la carpeta `requisitos`, junto
+a la de pruebas. Las campañas, en la carpeta que elegiste al crearlas (`campaña.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
 `pruebas_congeladas/`). El editor no guarda nada en otro sitio.
 
 **«… ha cambiado en el disco desde que se cargó».**

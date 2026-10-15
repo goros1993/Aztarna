@@ -275,7 +275,7 @@ async function mostrarPanelTrazabilidad() {
   if (!S.hayRequisitos) {
     mostrar(h("div", { class: "centro" },
       h("h2", { text: "Esta carpeta no tiene requisitos" }),
-      h("p", { text: "Los requisitos se guardan en la carpeta «requisitos» dentro de la carpeta de pruebas, con capítulos y secciones igual que las pruebas. Las pruebas los citan por su ID en el campo «Requisitos»." }),
+      h("p", { text: "Los requisitos se guardan en la carpeta «requisitos», junto a la carpeta «pruebas» (o dentro de la carpeta de pruebas, si no se llama así), con capítulos y secciones igual que las pruebas. Las pruebas los citan por su ID en el campo «Requisitos»." }),
       h("div", { class: "fila-botones" },
         h("button", { class: "btn primary", type: "button", onclick: crearCatalogo, text: "Crear requisitos" }))));
     return;

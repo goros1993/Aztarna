@@ -45,6 +45,7 @@ from app.editor_core import (
     move_block,
     navigation_entries,
     normalize_level,
+    tests_dir,
     read_chapters,
     roundtrip_yaml,
     save_chapter,
@@ -403,6 +404,7 @@ class EditorApi:
         return chapter, element
 
     def _load(self, yaml_dir: Path) -> None:
+        yaml_dir = tests_dir(yaml_dir)          # si se abre el proyecto, su carpeta pruebas/
         chapters = read_chapters(yaml_dir)
         if not chapters:
             raise ValueError("No se encontraron capítulos YAML en la carpeta.")

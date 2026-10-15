@@ -12,8 +12,8 @@ El enlace se guarda en un solo sitio: el campo `requisitos` de cada prueba
 - requisitos «modificados»: su texto ha cambiado desde la última vez que se
   revisaron sus pruebas (ver `revisiones.yaml`).
 
-Los requisitos están en la carpeta `requisitos/` dentro de la de pruebas
-(esquema.CARPETA_REQUISITOS), con el mismo formato de capítulos.
+Los requisitos están en la carpeta `requisitos/`, junto a la de pruebas
+(editor_core.requirements_dir), con el mismo formato de capítulos.
 
 Uso (matriz de trazabilidad):
     python herramientas.py trazabilidad ejemplos/yaml
@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from app import esquema
-from app.editor_core import items_in_chapter, normalize_level, read_chapters, roundtrip_yaml
+from app.editor_core import items_in_chapter, normalize_level, read_chapters, requirements_dir, roundtrip_yaml, tests_dir
 
 ESTADOS = ("cubierto", "sin_cobertura", "no_aplica")
 ESTADO_TEXTO = {"cubierto": "Cubierto", "sin_cobertura": "Sin cobertura", "no_aplica": "No aplica"}
@@ -45,7 +45,7 @@ CAMPOS_HUELLA = ("titulo", "descripcion", "contexto")
 
 
 def carpeta_requisitos(carpeta_pruebas: str | Path) -> Path:
-    return Path(carpeta_pruebas) / esquema.CARPETA_REQUISITOS
+    return requirements_dir(carpeta_pruebas)
 
 
 def leer_requisitos(carpeta_pruebas: str | Path) -> list[dict[str, Any]]:
@@ -280,10 +280,10 @@ def resumen_texto(datos: dict[str, Any]) -> str:
 
 def main(argv=None, prog=None):
     ap = argparse.ArgumentParser(prog=prog, description="Matriz de trazabilidad requisitos -> pruebas")
-    ap.add_argument("carpeta", help="carpeta de pruebas (con indice.yaml); los requisitos, en su subcarpeta requisitos/")
+    ap.add_argument("carpeta", help="carpeta del proyecto (con pruebas/ y requisitos/) o la de pruebas")
     ap.add_argument("-o", "--salida", help="escribe la matriz en este CSV")
     args = ap.parse_args(argv)
-    carpeta = Path(args.carpeta)
+    carpeta = tests_dir(args.carpeta)
     requisitos = leer_requisitos(carpeta)
     if not requisitos:
         raise SystemExit(f"No hay requisitos en {carpeta_requisitos(carpeta)}.")

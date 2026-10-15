@@ -273,9 +273,22 @@ recuerda.
 
 ## Requisitos y trazabilidad
 
-Los requisitos están en la subcarpeta `requisitos/` de la carpeta de pruebas,
-con el mismo formato (índice, capítulos y secciones); cada requisito es un
-elemento `requisito:` con la tabla de `plantillas/tabla_requisito.docx`:
+Un proyecto tiene dos carpetas con el mismo formato (índice, capítulos y
+secciones):
+
+```text
+proyecto/
+├── pruebas/       indice.yaml, capítulos e imagenes/
+└── requisitos/    indice.yaml, capítulos y revisiones.yaml
+```
+
+El editor, `trazabilidad` y `word` aceptan la carpeta del proyecto o la de
+pruebas; las campañas guardan la ruta de `pruebas/`. Una carpeta de pruebas
+suelta (con `indice.yaml` dentro, como la que crea `convertir`) también vale:
+sus requisitos van entonces en su subcarpeta `requisitos/`.
+
+Cada requisito es un elemento `requisito:` con la tabla de
+`plantillas/tabla_requisito.docx`:
 
 ```yaml
 - requisito:
@@ -530,20 +543,21 @@ exportador convierte en formato de Word:
 
 El repositorio incluye datos ficticios para probar la aplicación antes de
 importar el documento real. Estos ejemplos no contienen información del
-documento original y están registrados en `ejemplos/yaml/indice.yaml`. Describen
-un controlador de ascensor inventado («DEMO-A1») probado en un banco HIL:
+documento original. `ejemplos/yaml` es un proyecto con `pruebas/` (registradas
+en `pruebas/indice.yaml`) y `requisitos/`. Describen un controlador de ascensor
+inventado («DEMO-A1») probado en un banco HIL:
 
-- `01_ejemplo_basico.yaml` (llamadas y nivelación): texto de capítulo,
+- `pruebas/01_ejemplo_basico.yaml` (llamadas y nivelación): texto de capítulo,
   secciones en dos niveles, subpuntos con `nivel` en las listas y una imagen en
   un paso.
-- `02_ejemplo_adicionales.yaml` (bus CAN y diagnóstico): campos adicionales de
+- `pruebas/02_ejemplo_adicionales.yaml` (bus CAN y diagnóstico): campos adicionales de
   texto, de varias líneas y de lista, contexto de prueba y todas las marcas de
   formato en línea (negrita, cursiva, colores, color hexadecimal y resaltados).
-- `03_ejemplo_secciones_imagenes.yaml` (puertas y serie de seguridad):
+- `pruebas/03_ejemplo_secciones_imagenes.yaml` (puertas y serie de seguridad):
   secciones anidadas hasta el nivel 6 e imágenes PNG, JPG y EMF en el contexto
   de sección y de prueba, en la situación inicial, los pasos y la situación
   final, y como imágenes de la prueba.
-- `04_ejemplo_edicion_variantes.yaml` (mantenimiento y variantes): una prueba
+- `pruebas/04_ejemplo_edicion_variantes.yaml` (mantenimiento y variantes): una prueba
   completa y otra casi vacía, todos los valores de `automatizable`, la clave
   antigua `imagen` y una sección vacía para practicar el arrastre en el árbol.
 - `requisitos/` (dos capítulos): requisitos citados por esas pruebas, con un
@@ -555,7 +569,7 @@ un controlador de ascensor inventado («DEMO-A1») probado en un banco HIL:
 Los ejemplos validan sin errores; el único aviso es esa referencia a un
 requisito que no existe, puesta a propósito. Llevan comentarios YAML que el
 editor conserva al guardar. Las imágenes son sintéticas y están en
-`ejemplos/yaml/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
+`ejemplos/yaml/pruebas/imagenes/`. Puedes modificar los ejemplos para practicar; guarda
 una copia si quieres conservar los originales.
 
 ## Generar un DOCX desde los YAML

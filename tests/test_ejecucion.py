@@ -15,7 +15,7 @@ from app.ejecucion_api import EditorEjecucionApi
 from app import informe_docx
 from docx import Document
 
-EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml"
+EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml" / "pruebas"
 
 
 class CampañaBase(unittest.TestCase):

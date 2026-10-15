@@ -24,7 +24,7 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_in_chapter
+from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_CAMPAÑA = "campaña.yaml"
 ARCHIVO_RESULTADOS = "resultados.yaml"
@@ -227,7 +227,7 @@ def carpeta_congelada(campaña: dict[str, Any]) -> Path | None:
 
 def reubicar_pruebas(campaña: dict[str, Any], nueva: str | Path) -> Path:
     """Indica dónde están ahora las pruebas de la campaña (si se movieron)."""
-    nueva = Path(nueva).expanduser().resolve()
+    nueva = tests_dir(Path(nueva).expanduser().resolve())
     if not _tiene_pruebas(nueva):
         raise ValueError("Esa carpeta no contiene YAML de pruebas.")
     if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(campaña)):
@@ -277,7 +277,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
     nombre = str(nombre or "").strip()
     if not nombre:
         raise ValueError("La campaña necesita un nombre.")
-    pruebas_yaml = Path(pruebas_yaml).expanduser().resolve()
+    pruebas_yaml = tests_dir(Path(pruebas_yaml).expanduser().resolve())   # admite la carpeta del proyecto
     capitulos = read_chapters(pruebas_yaml)
     seleccion = seleccionar(capitulos, filtro, ids_robot)
     if not seleccion:

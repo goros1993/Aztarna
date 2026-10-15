@@ -272,8 +272,10 @@ def completar(prueba: Any) -> None:
 #     Tipo | Criterio de validación
 #     Fase | Fecha | Versión
 #
-# Van en la carpeta `requisitos/` dentro de la carpeta de pruebas, con el mismo
-# formato de capítulos y secciones; cada requisito es un elemento `requisito:`.
+# Van en la carpeta `requisitos/`, junto a la de pruebas (`proyecto/pruebas` y
+# `proyecto/requisitos`) o, en una carpeta de pruebas suelta, dentro de ella. Tienen
+# el mismo formato de capítulos y secciones; cada requisito es un elemento `requisito:`.
+CARPETA_PRUEBAS = "pruebas"
 CARPETA_REQUISITOS = "requisitos"
 
 REQ_CAMPOS_TEXTO = ("nombre", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "fase", "fecha", "version")
