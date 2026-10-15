@@ -105,3 +105,46 @@ class AuditarTests(unittest.TestCase):
             yaml.write_text(yaml.read_text(encoding="utf-8").replace("Introducción del capítulo.", "Otra cosa."), encoding="utf-8")
             datos = auditar.auditar(ruta, Path(tmp) / "yaml")
         self.assertEqual(datos["parrafos"][0]["perdidas"], ["capitulo", "del", "introduccion"])
+
+
+class TextoDelWordTests(unittest.TestCase):
+    """Casos que daban falsas pérdidas o perdían texto de verdad."""
+
+    def tabla(self):
+        from docx.oxml import OxmlElement
+        from docx.shared import RGBColor
+        doc = Document()
+        t = doc.add_table(rows=4, cols=2)
+        t.cell(0, 0).text, t.cell(0, 1).text = "V_001", "Casos raros"
+        celda = t.cell(1, 0).merge(t.cell(2, 0))           # unida en vertical
+        celda.paragraphs[0].add_run("Pasos:")
+        p = celda.add_paragraph()
+        p.add_run("Ascen")
+        p.add_run("sor").bold = True                       # palabra con parte en negrita
+        p.add_run(" en ")
+        p.add_run("P").font.color.rgb = RGBColor(0xFF, 0, 0)
+        p.add_run("2.")
+        p = celda.add_paragraph()
+        p.add_run("Ver ")
+        for contenedor, texto in (("w:hyperlink", "documento"), ("w:ins", " insertado")):
+            envoltura, run, t_ = OxmlElement(contenedor), OxmlElement("w:r"), OxmlElement("w:t")
+            t_.text = texto
+            t_.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+            run.append(t_)
+            envoltura.append(run)
+            p._p.append(envoltura)
+        t.cell(1, 1).text = "Automatizable: Sí"
+        t.cell(3, 0).text = "Fecha: 1/1/2026"
+        return t
+
+    def test_el_importador_lee_todo_el_texto_una_vez(self):
+        prueba = convertir.parsear(self.tabla(), [])
+        self.assertEqual(prueba["pasos"], ["Ascen**sor** en [[rojo|P]]2.", "Ver documento insertado"])
+
+    def test_sin_falsas_perdidas(self):
+        t = self.tabla()
+        r = auditar.auditar_prueba(t, convertir.parsear(t, []))
+        self.assertEqual((r["perdidas"], r["eliminadas"]), ([], []))
+        filas = auditar.celdas(t)
+        self.assertTrue(filas[2][0]["unida"])
+        self.assertEqual(filas[2][0]["texto"], "")

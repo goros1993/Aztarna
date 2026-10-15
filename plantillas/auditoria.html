@@ -221,7 +221,9 @@ function detalle(t) {
 }
 
 function tablaOriginal(filas) {
-  return `<table class="doc">${filas.map((f) => `<tr>${f.map((c) => `<td colspan="${c.span || 1}">${partes(c.partes)}</td>`).join("")}</tr>`).join("")}</table>`;
+  return `<table class="doc">${filas.map((f) => `<tr>${f.map((c) => (c.unida
+    ? `<td colspan="${c.span || 1}" class="muted" title="Celda unida con la de arriba">↑</td>`
+    : `<td colspan="${c.span || 1}">${partes(c.partes)}</td>`)).join("")}</tr>`).join("")}</table>`;
 }
 
 function tablaSimple(filas) {

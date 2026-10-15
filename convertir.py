@@ -30,6 +30,7 @@ from docx.enum.dml import MSO_COLOR_TYPE
 from docx.oxml.ns import qn
 from docx.table import Table
 from docx.text.paragraph import Paragraph
+from docx.text.run import Run
 from ruamel.yaml import YAML
 
 import esquema
@@ -203,9 +204,30 @@ def limpiar(l):
     return l.strip().lstrip("•·-–\t ").strip()
 
 
+# Runs de un párrafo, también los que Word mete dentro de hipervínculos,
+# inserciones con control de cambios, etiquetas inteligentes, controles de
+# contenido y campos (p.runs y p.text de python-docx se saltan casi todos).
+_RUNS = ("./w:r | ./w:hyperlink/w:r | ./w:ins/w:r | ./w:smartTag/w:r | ./w:sdt/w:sdtContent/w:r"
+         " | ./w:fldSimple/w:r | ./w:ins/w:hyperlink/w:r | ./w:hyperlink/w:ins/w:r | ./w:customXml/w:r")
+
+
+def runs(p):
+    return [Run(r, p) for r in p._p.xpath(_RUNS)]
+
+
+def texto(p):
+    """Texto completo de un párrafo (sin formato)."""
+    return "".join(r.text for r in runs(p))
+
+
+def texto_celda(c):
+    """Texto completo de una celda: sus párrafos, separados por saltos de línea."""
+    return "\n".join(texto(p) for p in c.paragraphs)
+
+
 def texto_md(p):
     out = []
-    for r in p.runs:
+    for r in runs(p):
         t = r.text
         if not t.strip():
             out.append(t)
@@ -276,6 +298,20 @@ def celdas_unicas(row):
     return out
 
 
+def filas_sin_repetir(tabla):
+    """Filas con sus celdas, sin repetir las unidas en vertical (python-docx
+    devuelve la celda de arriba en cada fila que ocupa)."""
+    vistas, filas = set(), []
+    for r in tabla.rows:
+        fila = []
+        for c in celdas_unicas(r):
+            if c._tc not in vistas:
+                vistas.add(c._tc)
+                fila.append(c)
+        filas.append(fila)
+    return filas
+
+
 def guardar_campo(d, etiqueta, valor, avisos):
     n = norm(etiqueta)
     clave = CAMPOS.get(n)
@@ -335,17 +371,17 @@ def extraer_etiquetas(texto):
 def parsear(tabla, avisos, guardar_imagen=None, migrar=True):
     """Lee la tabla de una prueba. Con `migrar=False` la devuelve tal como se
     leyó, sin pasarla al esquema (auditar.py compara las dos)."""
-    filas = [celdas_unicas(r) for r in tabla.rows]
+    filas = filas_sin_repetir(tabla)
     cab = filas[0]
-    d = {"id": cab[0].text.strip(),
-         "titulo": cab[1].text.strip() if len(cab) > 1 else ""}
+    d = {"id": texto_celda(cab[0]).strip(),
+         "titulo": texto_celda(cab[1]).strip() if len(cab) > 1 else ""}
     parrafos_con_imagenes = set()
     for fila in filas[1:]:
         for c in fila:
-            if any(norm(p.text).rstrip(":") in SECCIONES for p in c.paragraphs):
+            if any(norm(texto(p)).rstrip(":") in SECCIONES for p in c.paragraphs):
                 seccion = None
                 for p in c.paragraphs:
-                    l = p.text
+                    l = texto(p)
                     if not l.strip():
                         if seccion:
                             contenido = item(p, guardar_imagen)
@@ -368,15 +404,15 @@ def parsear(tabla, avisos, guardar_imagen=None, migrar=True):
                             parrafos_con_imagenes.add(p._p)
                     else:
                         avisos.append(Aviso("texto_fuera_de_seccion", f"texto fuera de sección: {l[:60]}", d["id"]))
-            elif (campos := extraer_etiquetas(c.text)):
+            elif (campos := extraer_etiquetas(texto_celda(c))):
                 for etiqueta, valor in campos:
                     guardar_campo(d, etiqueta, valor, avisos)
-            elif ":" in c.text:
-                etiqueta, valor = c.text.split(":", 1)
+            elif ":" in texto_celda(c):
+                etiqueta, valor = texto_celda(c).split(":", 1)
                 guardar_campo(d, etiqueta, valor, avisos)
-            elif c.text.strip():
-                if norm(c.text.rstrip(":")) not in ETIQUETAS_IGNORADAS:
-                    avisos.append(Aviso("celda_sin_reconocer", f"celda sin reconocer: {' '.join(c.text.split())[:60]}", d["id"]))
+            elif texto_celda(c).strip():
+                if norm(texto_celda(c).rstrip(":")) not in ETIQUETAS_IGNORADAS:
+                    avisos.append(Aviso("celda_sin_reconocer", f"celda sin reconocer: {' '.join(texto_celda(c).split())[:60]}", d["id"]))
     imagenes_tabla = []
     for fila in filas:
         for celda in fila:
@@ -406,18 +442,19 @@ def etiquetas_tabla(tabla):
     Se buscan como lo hace `parsear`: párrafos que abren una sección
     (Pasos, Situación inicial…) y «Etiqueta:» conocidas dentro de las celdas.
     """
-    filas = [celdas_unicas(r) for r in tabla.rows]
+    filas = filas_sin_repetir(tabla)
     encontradas = {}
     for fila in filas[1:]:
         for c in fila:
             for p in c.paragraphs:
-                n = norm(p.text).rstrip(":")
+                n = norm(texto(p)).rstrip(":")
                 if n in ETIQUETAS_LISTA:
-                    encontradas[n] = p.text.strip().rstrip(":")
-            for etiqueta, _valor in extraer_etiquetas(c.text):
+                    encontradas[n] = texto(p).strip().rstrip(":")
+            contenido = texto_celda(c)
+            for etiqueta, _valor in extraer_etiquetas(contenido):
                 encontradas.setdefault(norm(etiqueta), etiqueta)
-            if ":" in c.text and not extraer_etiquetas(c.text):
-                crudo = c.text.split(":", 1)[0].strip()
+            if ":" in contenido and not extraer_etiquetas(contenido):
+                crudo = contenido.split(":", 1)[0].strip()
                 if crudo and len(crudo) <= 40:
                     encontradas.setdefault(norm(crudo), crudo)
     return encontradas
@@ -433,7 +470,7 @@ def clasificar_tabla(tabla):
     - informativa: ningún campo de prueba (historial de cambios, parámetros…).
     """
     filas = [celdas_unicas(r) for r in tabla.rows]
-    if not filas or not any(c.text.strip() for fila in filas for c in fila):
+    if not filas or not any(texto_celda(c).strip() for fila in filas for c in fila):
         return "informativa", "tabla vacía"
     etiquetas = etiquetas_tabla(tabla)
     conocidas = sorted(n for n in etiquetas if n in CAMPOS or n in SECCIONES or n in ETIQUETAS_ADICIONALES)
@@ -441,7 +478,7 @@ def clasificar_tabla(tabla):
         return "prueba", "tiene pasos o situaciones"
     if len(conocidas) >= 3:
         return "prueba", f"{len(conocidas)} campos de prueba"
-    cabecera = filas[0][0].text.strip() if filas[0] else ""
+    cabecera = texto_celda(filas[0][0]).strip() if filas[0] else ""
     if conocidas:
         nombres = ", ".join(etiquetas[n] for n in conocidas)
         return "dudosa", f"solo {len(conocidas)} campo(s) de prueba ({nombres})"
@@ -541,29 +578,29 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
     for el in doc.element.body.iterchildren():
         if el.tag.endswith("}p"):
             p = Paragraph(el, doc)
-            texto = contenido_parrafo(p, guardar_imagen)
-            tiene_texto = texto.get("texto", "").strip() if isinstance(texto, dict) else texto
-            if not tiene_texto and not isinstance(texto, dict):
+            parrafo = contenido_parrafo(p, guardar_imagen)
+            tiene_texto = parrafo.get("texto", "").strip() if isinstance(parrafo, dict) else parrafo
+            if not tiene_texto and not isinstance(parrafo, dict):
                 continue
             nivel = nivel_titulo(p)
             if nivel == 1:
                 volcar()
-                capitulos.append({"capitulo": p.text.strip(), "contenido": []})
-                if isinstance(texto, dict) and texto.get("imagenes"):
+                capitulos.append({"capitulo": texto(p).strip(), "contenido": []})
+                if isinstance(parrafo, dict) and parrafo.get("imagenes"):
                     capitulos[-1]["contenido"].append({
-                        "texto": {"texto": "", "imagenes": texto["imagenes"]}
+                        "texto": {"texto": "", "imagenes": parrafo["imagenes"]}
                     })
                 grupos = []
             elif nivel:
                 volcar()
                 grupos = [g for g in grupos if g["nivel"] < nivel]
-                pendiente = (p.text.strip(), nivel)
-                if isinstance(texto, dict) and texto.get("imagenes"):
-                    texto_pendiente.append(texto)
+                pendiente = (texto(p).strip(), nivel)
+                if isinstance(parrafo, dict) and parrafo.get("imagenes"):
+                    texto_pendiente.append(parrafo)
             elif pendiente:
-                texto_pendiente.append(texto)
+                texto_pendiente.append(parrafo)
             else:
-                guardar_texto(texto)
+                guardar_texto(parrafo)
         elif el.tag.endswith("}tbl"):
             numero_tabla += 1
             tabla = Table(el, doc)
@@ -571,7 +608,7 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             clase, motivo = clasificar_tabla(tabla)
             if clase != "prueba":
                 if clase == "dudosa":
-                    cabecera = " ".join(tabla.rows[0].cells[0].text.split())[:60] if tabla.rows else ""
+                    cabecera = " ".join(texto_celda(tabla.rows[0].cells[0]).split())[:60] if tabla.rows else ""
                     avisos.append(Aviso("tabla_dudosa", f"«{cabecera}»: {motivo}"))
                 else:
                     avisos.append(Aviso("tabla_informativa", motivo))

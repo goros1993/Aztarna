@@ -15,7 +15,7 @@ from collections import Counter, defaultdict
 from docx import Document
 
 import esquema
-from convertir import CAMPOS, SECCIONES, celdas_unicas, clasificar_tabla, etiquetas_tabla
+from convertir import CAMPOS, SECCIONES, celdas_unicas, clasificar_tabla, etiquetas_tabla, texto_celda
 
 # Campos de la tabla común (esquema.py). Los alias, como «Condiciones
 # iniciales», cuentan como su campo; «sobran» son los del formato antiguo
@@ -28,7 +28,7 @@ CLASES = {"prueba": "PRUEBA", "dudosa": "DUDOSA", "informativa": "NO PRUEBA"}
 def etiquetas(tabla):
     """Devuelve (id, {etiqueta_normalizada: texto_original}, nº de filas, clase, motivo)."""
     filas = [celdas_unicas(r) for r in tabla.rows]
-    ident = " ".join(filas[0][0].text.split())[:60] if filas and filas[0] else "?"
+    ident = " ".join(texto_celda(filas[0][0]).split())[:60] if filas and filas[0] else "?"
     clase, motivo = clasificar_tabla(tabla)
     return ident, etiquetas_tabla(tabla), len(filas), clase, motivo
 

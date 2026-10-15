@@ -61,8 +61,12 @@ ESTADOS = {"perdida": "✖ pérdida", "eliminada": "⚠ solo eliminaciones", "ok
 # Palabras
 # ----------------------------------------------------------------------
 def palabras(texto: Any) -> Counter:
-    """Palabras normalizadas (sin tildes, en minúsculas, sin marcas de formato)."""
-    texto = _MARCAS.sub(" ", str(texto or ""))
+    """Palabras normalizadas (sin tildes, en minúsculas, sin marcas de formato).
+
+    Las marcas se quitan sin dejar hueco: una palabra con parte en negrita o en
+    color («Ascen**sor**») sigue siendo una sola palabra.
+    """
+    texto = _MARCAS.sub("", str(texto or ""))
     return Counter(convertir.sin_tildes(w).lower() for w in re.findall(r"\w+", texto))
 
 
@@ -182,11 +186,16 @@ def etiqueta_de_celda(texto: str) -> str:
 # Tablas del Word
 # ----------------------------------------------------------------------
 def celdas(tabla: Table) -> list[list[dict[str, Any]]]:
-    """Filas con sus celdas: {texto, span}."""
-    filas = []
+    """Filas con sus celdas: {texto, span, unida}. Una celda unida en vertical
+    sale en cada fila que ocupa, pero solo la primera lleva el texto."""
+    filas, vistas = [], set()
     for fila in tabla.rows:
-        filas.append([{"texto": "\n".join(p.text for p in c.paragraphs), "span": c._tc.grid_span}
-                      for c in convertir.celdas_unicas(fila)])
+        actual = []
+        for c in convertir.celdas_unicas(fila):
+            unida = c._tc in vistas
+            vistas.add(c._tc)
+            actual.append({"texto": "" if unida else convertir.texto_celda(c), "span": c._tc.grid_span, "unida": unida})
+        filas.append(actual)
     return filas
 
 
@@ -350,15 +359,15 @@ def auditar(ruta_docx: str | Path, carpeta_yaml: str | Path) -> dict[str, Any]:
             p = Paragraph(el, doc)
             imagenes_doc.update(convertir.imagenes_parrafo(p, lambda parte: str(parte.partname)))
             if convertir.nivel_titulo(p) == 1:
-                capitulo = p.text.strip()
-            toks = palabras(p.text)
+                capitulo = convertir.texto(p).strip()
+            toks = palabras(convertir.texto(p))
             if not toks:
                 continue
             faltan = toks - pool
             pool -= toks
             if faltan:
-                parrafos.append({"capitulo": capitulo, "texto": p.text, "perdidas": _lista(faltan),
-                                 "partes": marcar([p.text], {"perdida": _lista(faltan)}, quitar_etiquetas=False)[0],
+                parrafos.append({"capitulo": capitulo, "texto": convertir.texto(p), "perdidas": _lista(faltan),
+                                 "partes": marcar([convertir.texto(p)], {"perdida": _lista(faltan)}, quitar_etiquetas=False)[0],
                                  "titulo": bool(convertir.nivel_titulo(p))})
             continue
         if not el.tag.endswith("}tbl"):
@@ -374,7 +383,7 @@ def auditar(ruta_docx: str | Path, carpeta_yaml: str | Path) -> dict[str, Any]:
                                "motivo": fam["motivo"], "tablas": []}
         familia = familias[clave]
         if fam["clase"] == "prueba":
-            ident = convertir.celdas_unicas(tabla.rows[0])[0].text.strip() if tabla.rows else ""
+            ident = convertir.texto_celda(convertir.celdas_unicas(tabla.rows[0])[0]).strip() if tabla.rows else ""
             cola = por_id.get(ident) or []
             encontrada = cola.pop(0) if cola else None
             final = encontrada["prueba"] if encontrada else None
