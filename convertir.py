@@ -3,6 +3,11 @@
 Word -> YAML. Un YAML por capítulo (cada Título 1) + indice.yaml.
 Las imágenes se guardan en salida/yaml/imagenes y se referencian desde el YAML.
 
+Cada tabla se clasifica antes de leerla: las pruebas pasan al esquema común
+(`prueba:`) y las demás (historial de cambios, tablas de parámetros…) se
+conservan tal cual, en su sitio, como `tabla:` con sus filas. Los avisos se
+agrupan por tipo en avisos.txt (y avisos.csv para filtrarlos en Excel).
+
 Uso:
     python convertir.py tu_archivo.docx            -> carpeta salida/
     python convertir.py tu_archivo.docx -o otra
@@ -11,6 +16,7 @@ Requisitos:
     pip install python-docx ruamel.yaml
 """
 import argparse
+import csv
 import mimetypes
 import re
 import unicodedata
@@ -90,6 +96,87 @@ ETIQUETAS_ADICIONALES = {
 }
 
 ETIQUETAS_IGNORADAS = {"ejecuciondeprueba"}
+
+# Etiquetas que marcan el inicio de una lista de pasos o situaciones.
+ETIQUETAS_LISTA = {n for n, clave in CAMPOS.items() if clave in SECCIONES.values()} | set(SECCIONES)
+ID_PRUEBA = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:[_\-.][A-Za-z0-9]+)+$")
+
+
+# ----------------------------------------------------------------------
+# Avisos
+# ----------------------------------------------------------------------
+TIPOS_AVISO = {
+    # tipo: (título en avisos.txt, gravedad)
+    "id_vacio": ("Prueba sin ID", "error"),
+    "id_duplicado": ("ID repetido", "error"),
+    "id_no_valido": ("ID con espacios o con forma extraña", "aviso"),
+    "tabla_dudosa": ("Tabla dudosa: conservada como tabla, revisar si es una prueba", "aviso"),
+    "sin_titulo": ("Prueba sin título previo", "aviso"),
+    "campos_faltantes": ("Faltan campos del esquema (quedarán vacíos)", "info"),
+    "valor_no_valido": ("Valor no válido", "aviso"),
+    "etiqueta_desconocida": ("Etiqueta desconocida (conservada en campos adicionales)", "aviso"),
+    "texto_fuera_de_seccion": ("Texto fuera de Situación inicial / Pasos / Situación final", "aviso"),
+    "celda_sin_reconocer": ("Celda sin etiqueta reconocida", "aviso"),
+    "tabla_informativa": ("Tabla que no es una prueba (conservada tal cual)", "info"),
+}
+# Tipos que se repiten mucho: en avisos.txt se agrupan por mensaje (en avisos.csv van todos).
+AGRUPAR_POR_MENSAJE = {"campos_faltantes", "etiqueta_desconocida", "tabla_informativa"}
+
+
+class Aviso(str):
+    """Texto del aviso («ID: mensaje») con su tipo y dónde está, para agruparlos."""
+
+    def __new__(cls, tipo, mensaje, id_prueba=""):
+        aviso = super().__new__(cls, f"{id_prueba}: {mensaje}" if id_prueba else mensaje)
+        aviso.tipo, aviso.mensaje, aviso.id = tipo, mensaje, id_prueba
+        aviso.capitulo, aviso.tabla = "", None
+        return aviso
+
+
+def escribir_avisos(avisos, carpeta):
+    """avisos.txt agrupado por tipo (con resumen al principio) y avisos.csv."""
+    grupos = {}
+    for aviso in avisos:
+        grupos.setdefault(getattr(aviso, "tipo", "otro"), []).append(aviso)
+    orden = sorted(grupos, key=lambda t: (list(TIPOS_AVISO).index(t) if t in TIPOS_AVISO else len(TIPOS_AVISO)))
+    lineas = [f"{len(avisos)} avisos", ""]
+    for tipo in orden:
+        titulo, gravedad = TIPOS_AVISO.get(tipo, ("Otros", "aviso"))
+        lineas.append(f"  {len(grupos[tipo]):5d}  [{gravedad}] {titulo}")
+    def donde(aviso, con_id=True):
+        return " · ".join(x for x in (
+            getattr(aviso, "capitulo", ""),
+            f"tabla {aviso.tabla}" if getattr(aviso, "tabla", None) else "",
+            getattr(aviso, "id", "") if con_id else "",
+        ) if x)
+
+    for tipo in orden:
+        titulo, _ = TIPOS_AVISO.get(tipo, ("Otros", "aviso"))
+        lineas += ["", f"== {titulo} ({len(grupos[tipo])}) =="]
+        if tipo in AGRUPAR_POR_MENSAJE:
+            por_mensaje = {}
+            for aviso in grupos[tipo]:
+                por_mensaje.setdefault(getattr(aviso, "mensaje", aviso), []).append(aviso)
+            for mensaje, lista in sorted(por_mensaje.items(), key=lambda x: -len(x[1])):
+                ejemplos = ", ".join(a.id or donde(a, False) for a in lista[:8] if a.id or donde(a, False))
+                resto = f" y {len(lista) - 8} más" if len(lista) > 8 else ""
+                lineas.append(f"  {len(lista):5d} × {mensaje}")
+                if ejemplos:
+                    lineas.append(f"          {ejemplos}{resto}")
+            continue
+        for aviso in grupos[tipo]:
+            lugar = donde(aviso)
+            lineas.append(f"  {lugar}: {getattr(aviso, 'mensaje', aviso)}" if lugar else f"  {aviso}")
+    (carpeta / "avisos.txt").write_text("\n".join(lineas) + "\n", encoding="utf-8")
+    with open(carpeta / "avisos.csv", "w", encoding="utf-8-sig", newline="") as f:
+        escritor = csv.writer(f, delimiter=";")
+        escritor.writerow(["gravedad", "tipo", "capitulo", "tabla", "id", "mensaje"])
+        for aviso in avisos:
+            tipo = getattr(aviso, "tipo", "otro")
+            escritor.writerow([TIPOS_AVISO.get(tipo, ("", "aviso"))[1], tipo, getattr(aviso, "capitulo", ""),
+                               getattr(aviso, "tabla", "") or "", getattr(aviso, "id", ""),
+                               getattr(aviso, "mensaje", aviso)])
+
 
 # Color de fuente (hex -> nombre) y resaltado (nombre de Word -> nombre)
 COLORES = {"FF0000": "rojo", "0070C0": "azul", "00B050": "verde"}
@@ -190,7 +277,7 @@ def guardar_campo(d, etiqueta, valor, avisos):
             if v in AUTOMATIZABLE:
                 valor = v
             else:
-                avisos.append(f"{d['id']}: valor de Automatizable no válido '{valor}'")
+                avisos.append(Aviso("valor_no_valido", f"valor de Automatizable no válido '{valor}'", d["id"]))
         if valor or clave not in d:
             d[clave] = valor
         return
@@ -210,7 +297,8 @@ def guardar_campo(d, etiqueta, valor, avisos):
     else:
         campos[etiqueta_visible] = valor
     if n not in ETIQUETAS_ADICIONALES:
-        avisos.append(f"{d['id']}: etiqueta desconocida '{etiqueta.strip()}' (preservada en campos_adicionales)")
+        avisos.append(Aviso("etiqueta_desconocida",
+                            f"etiqueta desconocida '{' '.join(etiqueta.split())[:80]}' (preservada en campos_adicionales)", d["id"]))
 
 
 def extraer_etiquetas(texto):
@@ -268,7 +356,7 @@ def parsear(tabla, avisos, guardar_imagen=None):
                         if isinstance(contenido, dict) and contenido.get("imagenes"):
                             parrafos_con_imagenes.add(p._p)
                     else:
-                        avisos.append(f"{d['id']}: texto fuera de sección: {l[:40]}")
+                        avisos.append(Aviso("texto_fuera_de_seccion", f"texto fuera de sección: {l[:60]}", d["id"]))
             elif (campos := extraer_etiquetas(c.text)):
                 for etiqueta, valor in campos:
                     if norm(etiqueta) in {"condicionesiniciales", "ensayo(s)/proceso(s)"}:
@@ -279,7 +367,7 @@ def parsear(tabla, avisos, guardar_imagen=None):
                 guardar_campo(d, etiqueta, valor, avisos)
             elif c.text.strip():
                 if norm(c.text.rstrip(":")) not in ETIQUETAS_IGNORADAS:
-                    avisos.append(f"{d['id']}: celda sin reconocer: {c.text[:40]}")
+                    avisos.append(Aviso("celda_sin_reconocer", f"celda sin reconocer: {' '.join(c.text.split())[:60]}", d["id"]))
     imagenes_tabla = []
     for fila in filas:
         for celda in fila:
@@ -295,8 +383,85 @@ def parsear(tabla, avisos, guardar_imagen=None):
         requeridos = list(CAMPOS.values()) + list(SECCIONES.values())
     faltan = [k for k in dict.fromkeys(requeridos) if k not in d]
     if faltan:
-        avisos.append(f"{d['id']}: faltan campos {faltan}")
+        avisos.append(Aviso("campos_faltantes", f"faltan campos {faltan}", d["id"]))
     return d
+
+
+# ----------------------------------------------------------------------
+# Clasificación: ¿la tabla es una prueba?
+# ----------------------------------------------------------------------
+def etiquetas_tabla(tabla):
+    """Etiquetas reconocibles del cuerpo de la tabla: {normalizada: texto original}.
+
+    Se buscan como lo hace `parsear`: párrafos que abren una sección
+    (Pasos, Situación inicial…) y «Etiqueta:» conocidas dentro de las celdas.
+    """
+    filas = [celdas_unicas(r) for r in tabla.rows]
+    encontradas = {}
+    for fila in filas[1:]:
+        for c in fila:
+            for p in c.paragraphs:
+                n = norm(p.text).rstrip(":")
+                if n in ETIQUETAS_LISTA:
+                    encontradas[n] = p.text.strip().rstrip(":")
+            for etiqueta, _valor in extraer_etiquetas(c.text):
+                encontradas.setdefault(norm(etiqueta), etiqueta)
+            if ":" in c.text and not extraer_etiquetas(c.text):
+                crudo = c.text.split(":", 1)[0].strip()
+                if crudo and len(crudo) <= 40:
+                    encontradas.setdefault(norm(crudo), crudo)
+    return encontradas
+
+
+def clasificar_tabla(tabla):
+    """Devuelve (clase, motivo): clase es "prueba", "dudosa" o "informativa".
+
+    - prueba: tiene Situación inicial / Pasos / Situación final (o sus
+      equivalentes), o al menos 3 campos conocidos de una prueba;
+    - dudosa: 1 o 2 campos conocidos, o una cabecera con forma de ID sin
+      campos; se conserva como tabla y se avisa para revisarla;
+    - informativa: ningún campo de prueba (historial de cambios, parámetros…).
+    """
+    filas = [celdas_unicas(r) for r in tabla.rows]
+    if not filas or not any(c.text.strip() for fila in filas for c in fila):
+        return "informativa", "tabla vacía"
+    etiquetas = etiquetas_tabla(tabla)
+    conocidas = sorted(n for n in etiquetas if n in CAMPOS or n in SECCIONES or n in ETIQUETAS_ADICIONALES)
+    if any(n in ETIQUETAS_LISTA for n in conocidas):
+        return "prueba", "tiene pasos o situaciones"
+    if len(conocidas) >= 3:
+        return "prueba", f"{len(conocidas)} campos de prueba"
+    cabecera = filas[0][0].text.strip() if filas[0] else ""
+    if conocidas:
+        nombres = ", ".join(etiquetas[n] for n in conocidas)
+        return "dudosa", f"solo {len(conocidas)} campo(s) de prueba ({nombres})"
+    if ID_PRUEBA.match(cabecera):
+        return "dudosa", f"la cabecera «{cabecera}» parece un ID, pero no tiene campos de prueba"
+    return "informativa", "sin campos de prueba"
+
+
+def celda_tabla(celda, guardar_imagen):
+    """Contenido de una celda de tabla informativa: texto con formato e imágenes."""
+    textos, imagenes = [], []
+    for p in celda.paragraphs:
+        textos.append(texto_md(p).strip())
+        imagenes.extend(imagenes_parrafo(p, guardar_imagen))
+    texto = "\n".join(textos).strip()
+    columnas = celda._tc.grid_span
+    if not imagenes and columnas == 1:
+        return texto
+    contenido = {"texto": texto}
+    if imagenes:
+        contenido["imagenes"] = list(dict.fromkeys(imagenes))
+    if columnas > 1:
+        contenido["columnas"] = columnas
+    return contenido
+
+
+def tabla_informativa(tabla, motivo, guardar_imagen=None):
+    """La tabla tal cual: una lista de filas, cada una con sus celdas."""
+    filas = [[celda_tabla(c, guardar_imagen) for c in celdas_unicas(r)] for r in tabla.rows]
+    return {"filas": filas, "motivo": motivo}
 
 
 # ----------------------------------------------------------------------
@@ -340,6 +505,9 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
     pendiente = None
     texto_pendiente = []
     grupos = []
+    tras_tabla = False          # el texto que sigue a una tabla informativa va detrás de ella
+    numero_tabla = 0
+    ids_vistos = {}
 
     def volcar():
         nonlocal pendiente, texto_pendiente
@@ -356,7 +524,9 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             texto_pendiente = []
 
     def guardar_texto(texto):
-        if grupos:
+        if tras_tabla:
+            capitulos[-1]["contenido"].append({"texto": texto})
+        elif grupos:
             grupos[-1]["entrada"].setdefault("contexto", []).append(texto)
         else:
             capitulos[-1]["contenido"].append({"texto": texto, "alcance": "capitulo"})
@@ -369,6 +539,8 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             if not tiene_texto and not isinstance(texto, dict):
                 continue
             nivel = nivel_titulo(p)
+            if nivel:
+                tras_tabla = False
             if nivel == 1:
                 volcar()
                 capitulos.append({"capitulo": p.text.strip(), "contenido": []})
@@ -388,17 +560,45 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             else:
                 guardar_texto(texto)
         elif el.tag.endswith("}tbl"):
-            prueba = parsear(Table(el, doc), avisos, guardar_imagen)
-            if pendiente:
-                cab = {"nombre": pendiente[0], "nivel": pendiente[1]}
-                if texto_pendiente:
-                    prueba["contexto"] = texto_pendiente
-                pendiente = None
-                texto_pendiente = []
+            numero_tabla += 1
+            tabla = Table(el, doc)
+            antes = len(avisos)
+            clase, motivo = clasificar_tabla(tabla)
+            if clase != "prueba":
+                # Si había un título pendiente, pasa a ser la sección que contiene la tabla.
+                volcar()
+                if clase == "dudosa":
+                    cabecera = " ".join(tabla.rows[0].cells[0].text.split())[:60] if tabla.rows else ""
+                    avisos.append(Aviso("tabla_dudosa", f"«{cabecera}»: {motivo}"))
+                else:
+                    avisos.append(Aviso("tabla_informativa", motivo))
+                capitulos[-1]["contenido"].append({"tabla": tabla_informativa(tabla, motivo, guardar_imagen)})
+                tras_tabla = True
             else:
-                cab = {"nombre": "", "nivel": None}
-                avisos.append(f"{prueba['id']}: tabla sin título previo")
-            capitulos[-1]["contenido"].append({"prueba": {**cab, **prueba}})
+                tras_tabla = False
+                prueba = parsear(tabla, avisos, guardar_imagen)
+                if pendiente:
+                    cab = {"nombre": pendiente[0], "nivel": pendiente[1]}
+                    if texto_pendiente:
+                        prueba["contexto"] = texto_pendiente
+                    pendiente = None
+                    texto_pendiente = []
+                else:
+                    cab = {"nombre": "", "nivel": None}
+                    avisos.append(Aviso("sin_titulo", "tabla sin título previo", prueba["id"]))
+                ident = prueba["id"]
+                if not ident:
+                    avisos.append(Aviso("id_vacio", "la prueba no tiene ID (primera celda de la tabla vacía)"))
+                elif not ID_PRUEBA.match(ident):
+                    avisos.append(Aviso("id_no_valido", f"ID «{ident}» con espacios o caracteres extraños", ident))
+                if ident and ident in ids_vistos:
+                    avisos.append(Aviso("id_duplicado", f"ID repetido (también en la tabla {ids_vistos[ident]})", ident))
+                ids_vistos.setdefault(ident, numero_tabla)
+                capitulos[-1]["contenido"].append({"prueba": {**cab, **prueba}})
+            for aviso in avisos[antes:]:
+                if isinstance(aviso, Aviso):
+                    aviso.capitulo = capitulos[-1]["capitulo"] or ""
+                    aviso.tabla = numero_tabla
     volcar()
 
     if not capitulos[0]["contenido"]:
@@ -430,11 +630,13 @@ def main():
         indice.append({"capitulo": cap["capitulo"], "archivo": archivo})
     with open(out / "indice.yaml", "w", encoding="utf-8") as f:
         yaml.dump(indice, f)
-    (Path(args.salida) / "avisos.txt").write_text("\n".join(avisos), encoding="utf-8")
+    escribir_avisos(avisos, Path(args.salida))
 
     n = sum(1 for c in capitulos for e in c["contenido"] if "prueba" in e)
-    print(f"{n} pruebas, {len(capitulos)} capítulos, {len(avisos)} avisos "
-          f"(ver {Path(args.salida) / 'avisos.txt'})")
+    tablas = sum(1 for c in capitulos for e in c["contenido"] if "tabla" in e)
+    dudosas = sum(1 for a in avisos if getattr(a, "tipo", "") == "tabla_dudosa")
+    print(f"{n} pruebas, {tablas} tablas que no son pruebas ({dudosas} dudosas), "
+          f"{len(capitulos)} capítulos, {len(avisos)} avisos (ver {Path(args.salida) / 'avisos.txt'})")
 
 
 if __name__ == "__main__":

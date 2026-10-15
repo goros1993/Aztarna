@@ -76,7 +76,8 @@ importación crea:
 
 ```text
 importacion/
-├── avisos.txt
+├── avisos.txt      # agrupados por tipo, con un resumen al principio
+├── avisos.csv      # uno por línea (gravedad, tipo, capítulo, nº de tabla, ID), para filtrar en Excel
 └── yaml/
     ├── indice.yaml
     ├── 01_nombre_del_capitulo.yaml
@@ -88,10 +89,22 @@ Se genera un archivo YAML por capítulo. Las imágenes incrustadas se guardan en
 importador conserva texto contextual asociado a títulos y pruebas, y reconoce
 el formato estándar y algunas variantes de formularios.
 
-> **Limitación conocida:** el importador aún no clasifica de forma fiable las
-> tablas que no son pruebas. Algunas tablas informativas pueden producir
-> avisos o acabar interpretadas como pruebas. No consideres la importación
-> completa hasta revisar esos casos y confirmar que no falta información.
+Antes de leer cada tabla, el importador decide si es una prueba:
+
+| Clase | Criterio | Qué se hace |
+|---|---|---|
+| Prueba | Tiene Situación inicial / Pasos / Situación final (o sus equivalentes) o al menos 3 campos de prueba | Pasa al esquema común (`prueba:`) |
+| Dudosa | 1 o 2 campos de prueba, o la cabecera parece un ID sin campos | Se conserva como tabla y se avisa para revisarla |
+| No prueba | Ningún campo de prueba (historial de cambios, parámetros…) | Se conserva tal cual (`tabla:`), sin avisos de prueba |
+
+Las tablas que no son pruebas quedan en su sitio, con el texto que las sigue
+detrás, y el DOCX generado las vuelve a pintar: el documento queda completo.
+`python inventario.py documento.docx` usa la misma clasificación y resume
+cuántas tablas hay de cada clase y variante, sin generar los YAML.
+
+Los avisos indican capítulo, número de tabla en el Word e ID. Además de los
+campos que faltan o las etiquetas desconocidas, se avisa de IDs vacíos,
+repetidos (con la tabla donde apareció antes) o con espacios.
 
 ## Revisar y validar la importación
 
@@ -265,7 +278,10 @@ su carpeta de pruebas.
 ## Edición de pruebas en YAML
 
 Los capítulos tienen una secuencia ordenada en `contenido`. Sus elementos
-actuales pueden ser secciones, pruebas o texto contextual:
+actuales pueden ser secciones, pruebas, texto contextual o tablas que no son
+pruebas (`tabla:` con sus `filas`; cada celda es un texto o un mapa con
+`texto`, `imagenes` y `columnas` si ocupa varias). El editor conserva las
+tablas, aunque todavía no las muestra:
 
 ```yaml
 capitulo: Funciones básicas

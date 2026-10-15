@@ -123,13 +123,15 @@ class ParsearTablaVarianteTests(unittest.TestCase):
         doc.add_heading("Subgrupo", level=3)
         doc.add_heading("Prueba uno", level=4)
         doc.add_paragraph("Contexto aplicable solo a la primera tabla.")
-        primera = doc.add_table(rows=1, cols=2)
+        primera = doc.add_table(rows=2, cols=2)
         primera.cell(0, 0).text = "TEST-001"
         primera.cell(0, 1).text = "Primera prueba"
+        primera.cell(1, 0).text = "Pasos:\nHacer la prueba."
         doc.add_heading("Prueba dos", level=4)
-        segunda = doc.add_table(rows=1, cols=2)
+        segunda = doc.add_table(rows=2, cols=2)
         segunda.cell(0, 0).text = "TEST-002"
         segunda.cell(0, 1).text = "Segunda prueba"
+        segunda.cell(1, 0).text = "Pasos:\nHacer la prueba."
 
         avisos = []
         capitulos = convertir.extraer_capitulos(doc, avisos)
@@ -283,3 +285,96 @@ class TamañoImagenesTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def documento_mixto():
+    """Word con pruebas y tablas que no son pruebas, como las del documento real."""
+    doc = Document()
+    doc.add_heading("Capítulo", level=1)
+    historial = doc.add_table(rows=2, cols=3)
+    for i, texto in enumerate(("Modificado por:", "Cambio", "Edición")):
+        historial.cell(0, i).text = texto
+    for i, texto in enumerate(("Ana", "Primera versión", "1")):
+        historial.cell(1, i).text = texto
+    doc.add_paragraph("Texto después del historial.")
+    doc.add_heading("Parámetros de rescate", level=2)
+    parametros = doc.add_table(rows=3, cols=2)
+    parametros.cell(0, 0).merge(parametros.cell(0, 1)).text = "Parametros de Rescates CPU"
+    parametros.cell(1, 0).text = "Velocidad"
+    parametros.cell(1, 1).text = "0,3 m/s"
+    parametros.cell(2, 0).text = "Tiempo máximo"
+    parametros.cell(2, 1).text = "30 s"
+    doc.add_paragraph("Notas sobre los parámetros.")
+    doc.add_heading("Prueba de llamada", level=3)
+    prueba = doc.add_table(rows=3, cols=2)
+    prueba.cell(0, 0).text = "LLAM_001"
+    prueba.cell(0, 1).text = "Llamada de cabina"
+    prueba.cell(1, 0).text = "Pasos:\nPulsar el botón."
+    prueba.cell(2, 0).text = "Automatizable: Sí"
+    doc.add_heading("Prueba repetida", level=3)
+    repetida = doc.add_table(rows=2, cols=2)
+    repetida.cell(0, 0).text = "LLAM_001"
+    repetida.cell(0, 1).text = "Otra con el mismo ID"
+    repetida.cell(1, 0).text = "Pasos:\nAlgo."
+    doc.add_heading("Prueba con espacio", level=3)
+    espacio = doc.add_table(rows=4, cols=1)
+    espacio.cell(0, 0).text = "BOR_LLAM _002"
+    espacio.cell(1, 0).text = "Componente: CPU"
+    espacio.cell(2, 0).text = "Criticidad: Alta"
+    espacio.cell(3, 0).text = "Plataforma: HIL"
+    doc.add_table(rows=2, cols=2)                                   # vacía
+    dudosa = doc.add_table(rows=2, cols=2)
+    dudosa.cell(0, 0).text = "Revisión"
+    dudosa.cell(1, 0).text = "Fecha: 01/02/2024"
+    dudosa.cell(1, 1).text = "Versión: 3"
+    return doc
+
+
+class ClasificarTablasTests(unittest.TestCase):
+    def test_clasifica_pruebas_y_tablas_que_no_lo_son(self):
+        tablas = documento_mixto().tables
+        clases = [convertir.clasificar_tabla(t)[0] for t in tablas]
+        self.assertEqual(clases, ["informativa", "informativa", "prueba", "prueba", "prueba", "informativa", "dudosa"])
+        self.assertEqual(convertir.clasificar_tabla(tablas[5])[1], "tabla vacía")
+
+    def test_conserva_las_tablas_que_no_son_pruebas_en_su_sitio(self):
+        avisos = []
+        capitulo = convertir.extraer_capitulos(documento_mixto(), avisos)[0]
+        contenido = capitulo["contenido"]
+        claves = [next(iter(e)) for e in contenido]
+        self.assertEqual(claves[:5], ["tabla", "texto", "seccion", "tabla", "texto"])
+        self.assertEqual(contenido[0]["tabla"]["filas"][1], ["Ana", "Primera versión", "1"])
+        self.assertEqual(contenido[1], {"texto": "Texto después del historial."})
+        self.assertEqual(contenido[2]["seccion"], "Parámetros de rescate")
+        self.assertEqual(contenido[3]["tabla"]["filas"][0], [{"texto": "Parametros de Rescates CPU", "columnas": 2}])
+        pruebas = [e["prueba"] for e in contenido if "prueba" in e]
+        self.assertEqual([p["id"] for p in pruebas], ["LLAM_001", "LLAM_001", "BOR_LLAM _002"])
+        self.assertEqual(pruebas[0]["nombre"], "Prueba de llamada")
+        # Las tablas que no son pruebas no generan avisos de pruebas.
+        self.assertFalse(any("Modificado" in a or "Parametros" in a for a in avisos if a.tipo != "tabla_dudosa"))
+        tipos = {a.tipo for a in avisos}
+        self.assertTrue({"tabla_informativa", "tabla_dudosa", "id_duplicado", "id_no_valido"} <= tipos)
+        duplicado = next(a for a in avisos if a.tipo == "id_duplicado")
+        self.assertEqual((duplicado.id, duplicado.tabla, duplicado.capitulo), ("LLAM_001", 4, "Capítulo"))
+        self.assertIn("tabla 3", duplicado.mensaje)
+
+    def test_avisos_agrupados_y_docx_con_las_tablas(self):
+        avisos = []
+        capitulos = convertir.extraer_capitulos(documento_mixto(), avisos)
+        with TemporaryDirectory() as tmp:
+            convertir.escribir_avisos(avisos, Path(tmp))
+            texto = (Path(tmp) / "avisos.txt").read_text(encoding="utf-8")
+            self.assertTrue(texto.startswith(f"{len(avisos)} avisos"))
+            self.assertIn("== ID repetido (1) ==", texto)
+            self.assertIn("Capítulo · tabla 4 · LLAM_001: ID repetido", texto)
+            csv = (Path(tmp) / "avisos.csv").read_text(encoding="utf-8-sig").splitlines()
+            self.assertEqual(csv[0], "gravedad;tipo;capitulo;tabla;id;mensaje")
+            self.assertEqual(len(csv), len(avisos) + 1)
+
+            doc = yaml_a_docx.preparar_documento(1)
+            yaml_a_docx.escribir_capitulos(doc, [(c["capitulo"], c["contenido"], Path(tmp)) for c in capitulos])
+            textos = [celda.text for tabla in doc.tables for fila in tabla.rows for celda in fila.cells]
+            self.assertIn("Primera versión", textos)
+            self.assertIn("Parametros de Rescates CPU", textos)
+            self.assertEqual(len(doc.tables), 7)
+            self.assertIn("Texto después del historial.", [p.text for p in doc.paragraphs])

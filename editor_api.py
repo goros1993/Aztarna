@@ -740,8 +740,8 @@ class EditorApi:
                     continue
                 test = element.get("prueba")
                 if not isinstance(test, dict):
-                    if "texto" not in element:
-                        add("aviso", ci, index, "", "Elemento sin 'seccion', 'prueba' ni 'texto'.")
+                    if "texto" not in element and "tabla" not in element:
+                        add("aviso", ci, index, "", "Elemento sin 'seccion', 'prueba', 'tabla' ni 'texto'.")
                     continue
                 test_id = str(test.get("id") or "").strip()
                 if not test_id:

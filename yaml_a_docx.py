@@ -325,6 +325,40 @@ def tabla_prueba(doc, prueba, base_dir):
     return t
 
 
+def tabla_informativa(doc, tabla, base_dir):
+    """Tabla que no es una prueba (historial, parámetros…), tal como venía en el Word.
+
+    Cada fila es una lista de celdas; una celda es un texto (con marcas de
+    formato y saltos de línea) o {texto, imagenes, columnas}.
+    """
+    filas = [f for f in (tabla.get("filas") or []) if isinstance(f, list)]
+    ancho = lambda celda: max(int(celda.get("columnas", 1)), 1) if isinstance(celda, dict) else 1
+    columnas = max([sum(ancho(c) for c in f) for f in filas] or [1]) or 1
+    t = doc.add_table(rows=len(filas) or 1, cols=columnas)
+    t.style = "Table Grid"
+    t.alignment = WD_TABLE_ALIGNMENT.CENTER
+    fijar_anchos(t, [ANCHO_TABLA_CM / columnas] * columnas)
+    for i, fila in enumerate(filas):
+        col = 0
+        for j, celda in enumerate(fila):
+            # La última celda ocupa lo que quede de la fila.
+            fin = columnas - 1 if j == len(fila) - 1 else min(col + ancho(celda), columnas) - 1
+            if col > columnas - 1:
+                break
+            destino = t.cell(i, col).merge(t.cell(i, fin)) if fin > col else t.cell(i, col)
+            texto = celda.get("texto", "") if isinstance(celda, dict) else str(celda or "")
+            for k, linea in enumerate(texto.split("\n")):
+                p = destino.paragraphs[0] if k == 0 else destino.add_paragraph()
+                compactar(p)
+                escribir_inline(p, linea)
+            for imagen in (celda.get("imagenes") or []) if isinstance(celda, dict) else []:
+                insertar_imagen(destino, base_dir, imagen)
+            col = fin + 1
+    sep = doc.add_paragraph()
+    compactar(sep)
+    return t
+
+
 # ----------------------------------------------------------------------
 # Títulos con numeración automática (1 / 1.1 / 1.1.1 ...), como en Word
 # ----------------------------------------------------------------------
@@ -455,6 +489,8 @@ def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
                 if al_escribir_prueba is not None:
                     al_escribir_prueba(doc, tabla, p, base_dir)
                 total += 1
+            elif "tabla" in el:
+                tabla_informativa(doc, el["tabla"] or {}, base_dir)
             elif "texto" in el:
                 escribir_contexto(doc, [el["texto"]], base_dir)
     return total
