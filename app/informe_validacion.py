@@ -121,6 +121,12 @@ def escribir_comparacion(doc, d: dict[str, Any]) -> None:
     inf._parrafo(doc, f"Con «{c['nombre']}»{version}. "
                       "Nuevos fallos: NO OK ahora y no antes; arregladas: NO OK antes y bien ahora.", color="485862")
     inf._tabla(doc, ["Cambio", "Pruebas"], [[comparar.VISIBLES[k], str(n)] for k, n in c["cuentas"].items()], [8, 4])
+    if len(d.get("tendencia") or []) >= 2:
+        inf._parrafo(doc, "Evolución por versión:", negrita=True)
+        inf._tabla(doc, ["Validación", "Versión", "Validadas", "NO OK", "Bloqueadas", "Pendientes"],
+                   [[f["nombre"], f["version"], f"{f['totales']['validada']} ({f['porcentaje_validadas']} %)",
+                     str(f["totales"]["no_ok"]), str(f["totales"]["bloqueada"]), str(f["totales"]["pendiente"])] for f in d["tendencia"]],
+                   [6, 7, 3.5, 2.5, 3, 3])
     filas = [f for f in c["filas"] if f["categoria"] != "sin_cambios"]
     if filas:
         orden = {k: i for i, k in enumerate(comparar.CATEGORIAS)}

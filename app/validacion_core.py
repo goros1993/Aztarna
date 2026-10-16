@@ -270,6 +270,29 @@ def _comparacion(validacion: dict[str, Any], pruebas: list[dict[str, Any]]) -> d
             **comparar.comparar(anterior["estados"], ahora)}
 
 
+def tendencia(validacion: dict[str, Any], totales: dict[str, int], porcentaje: float, maximo: int = 8) -> list[dict[str, Any]]:
+    """Evolución por versión siguiendo la cadena «comparar con» (de la más antigua a esta)."""
+    def fila(datos: dict[str, Any], tot: dict[str, int], pct: float) -> dict[str, Any]:
+        return {"nombre": str(datos.get("nombre") or ""), "version": str(datos.get("version") or ""),
+                "creada": str(datos.get("creada") or ""), "total": sum(tot.values()), "totales": dict(tot), "porcentaje_validadas": pct}
+
+    filas = [fila(validacion["datos"], totales, porcentaje)]
+    vistas = {Path(validacion["carpeta"]).resolve()}
+    actual = validacion
+    while len(filas) < maximo:
+        ruta = _resolver(actual["carpeta"], actual["datos"], "comparar_con") if actual["datos"].get("comparar_con") else None
+        if ruta is None or not es_validacion(ruta) or ruta.resolve() in vistas:
+            break
+        vistas.add(ruta.resolve())
+        try:
+            actual = cargar(ruta)
+            c = consolidar(actual, con_comparacion=False)
+        except (OSError, ValueError):
+            break
+        filas.append(fila(actual["datos"], c["totales"], c["porcentaje_validadas"]))
+    return list(reversed(filas))
+
+
 # ----------------------------------------------------------------------
 # Requisitos: verificados según el resultado de sus pruebas
 # ----------------------------------------------------------------------
@@ -421,4 +444,6 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         "avisos": avisos,
         "requisitos": _requisitos(pruebas, capitulos, pruebas_dir),
         "comparacion": _comparacion(validacion, pruebas) if con_comparacion else None,
+        "tendencia": tendencia(validacion, totales, round(100 * totales["validada"] / aplicables, 1) if aplicables else 0.0)
+        if con_comparacion and validacion["datos"].get("comparar_con") else [],
     }

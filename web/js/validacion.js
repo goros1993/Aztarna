@@ -160,8 +160,10 @@ async function informeValidacion() {
       S.validacion.borrador ? h("p", { class: "aviso-panel", text: "Alguna ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }) : null,
       h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
         conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
-    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Resultados en Excel (CSV)…", valor: "csv", tipo: "" },
+      { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
   });
+  if (r === "csv") { await exportarResultadosCsv("validacion"); return; }
   if (r !== "si") return;
   guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
   try {
@@ -415,10 +417,27 @@ function bloqueComparacion(v) {
       h("p", { class: "ayuda" }, "Con ", h("strong", { text: c.nombre }), c.version ? ` (${c.version})` : "", ". ",
         "«Nuevos fallos»: NO OK ahora y no antes; «Arregladas»: NO OK antes y bien ahora."),
       tablaComparacion(c, (f) => { const p = v.pruebas.find((x) => x.id === f.id); if (p) irAPruebaValidacion(p); }),
+      bloqueTendencia(v.tendencia),
       botones(elegir, botonQuitarComparacion()),
     ];
   }
   return h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Comparación con la anterior" })), cuerpo);
+}
+
+/** Evolución por versión (siguiendo la cadena «comparar con»): una barra por versión. */
+function bloqueTendencia(filas) {
+  if (!filas || filas.length < 2) return null;
+  return h("div", { class: "tendencia" },
+    h("h4", { text: "Evolución" }),
+    h("table", { class: "tabla-estados tabla-tendencia" },
+      h("thead", {}, h("tr", {}, h("th", { text: "Versión" }), h("th", { text: "Resultado" }), h("th", { class: "num", text: "Validadas" }),
+        h("th", { class: "num", text: "NO OK" }), h("th", { class: "num", text: "Bloqueadas" }), h("th", { class: "num", text: "Pendientes" }))),
+      h("tbody", {}, filas.map((f, i) => h("tr", { class: i === filas.length - 1 ? "actual" : "" },
+        h("td", {}, h("strong", { text: f.nombre }), f.version ? h("div", { class: "muted peq", text: f.version }) : null),
+        h("td", { class: "celda-barra" }, h("div", { class: "barra-progreso", role: "img", "aria-label": `${f.porcentaje_validadas} % validadas` },
+          VAL_ORDEN.map((e) => (f.totales[e] ? h("span", { class: "e-" + claseEstado(e), style: { flexGrow: String(f.totales[e]) }, title: `${VAL_TXT[e]}: ${f.totales[e]}` }) : null)))),
+        h("td", { class: "num", text: `${f.totales.validada} (${f.porcentaje_validadas} %)` }),
+        ["no_ok", "bloqueada", "pendiente"].map((e) => h("td", { class: "num" + (f.totales[e] ? " e-txt-" + claseEstado(e) : ""), text: f.totales[e] ? String(f.totales[e]) : "·" })))))));
 }
 
 function botonQuitarComparacion() {
@@ -515,8 +534,6 @@ function mostrarPanelValidacion() {
       h("button", { class: "btn", type: "button", onclick: editarValidacion, text: "Cambiar datos…" }),
       h("button", { class: "btn", type: "button", onclick: informeValidacion, text: "Generar informe…",
         title: v.borrador ? "Borrador: alguna ejecución sigue abierta" : "Informe de la versión" }),
-      h("button", { class: "btn", type: "button", onclick: () => exportarResultadosCsv("validacion"), text: "Excel…",
-        title: "Resultados de cada prueba y entorno en un CSV que se abre con Excel" }),
       h("button", { class: "btn primary", type: "button", onclick: () => nuevaCampana({ enValidacion: true }) }, icon("plus"), "Nueva ejecución")),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Resultado de la versión" }),

@@ -471,7 +471,6 @@ function mostrarPanelCampana() {
       c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la ejecución que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la ejecución sigue abierta" }),
-      h("button", { class: "btn", type: "button", onclick: () => exportarResultadosCsv("ejecucion"), text: "Excel…", title: "Resultados de cada prueba en un CSV que se abre con Excel" }),
       h("button", { class: "btn", type: "button", onclick: compararEjecucion, text: "Comparar con…", title: "Comparar con otra ejecución (la anterior): nuevos fallos y arreglos" }),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar ejecución…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
@@ -601,8 +600,10 @@ async function generarInforme() {
       S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }),
       h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
         conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
-    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Resultados en Excel (CSV)…", valor: "csv", tipo: "" },
+      { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
   });
+  if (r === "csv") { await exportarResultadosCsv("ejecucion"); return; }
   if (r !== "si") return;
   guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
   try {

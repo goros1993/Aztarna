@@ -907,3 +907,9 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .fila-botones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .tarjetas.tarjetas-7 { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
 .tarjetas.tarjetas-7 .t-tit { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tendencia { margin-top: 14px; }
+.tendencia h4 { margin: 0 0 6px; font-size: 13px; }
+.tabla-tendencia .celda-barra { width: 40%; }
+.tabla-tendencia .celda-barra .barra-progreso { margin: 0; height: 10px; }
+.tabla-tendencia tr.actual td { background: var(--accent-soft); }
