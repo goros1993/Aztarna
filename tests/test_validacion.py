@@ -236,6 +236,18 @@ class ApiTests(unittest.TestCase):
         v = ok(self, otra.validacion_quitar_ejecucion(0))
         self.assertEqual(v["ejecuciones"], [])
 
+    def test_ejecucion_abierta_por_su_cuenta_se_marca_y_se_puede_anadir(self):
+        """Con una validación abierta, una ejecución creada o abierta aparte no cuenta hasta añadirla."""
+        ok(self, self.api.validacion_crear("V", "", {}, str(self.tmp / "val")))
+        e = ok(self, self.api.campana_crear("Suelta", {"etiquetas": ["regresion"]}, {"entorno_pruebas": "Torre"}, str(self.tmp / "suelta")))
+        self.assertIs(e["en_validacion"], False)
+        r = ok(self, self.api.validacion_anadir_ejecucion(str(self.tmp / "suelta")))
+        self.assertEqual(r["anadidas"], ["suelta"])
+        self.assertIs(r["campana"]["en_validacion"], True)
+        self.assertIs(ok(self, self.api.campana_estado())["en_validacion"], True)
+        ok(self, self.api.validacion_soltar())
+        self.assertIsNone(ok(self, self.api.campana_estado())["en_validacion"])
+
 
 if __name__ == "__main__":
     unittest.main()

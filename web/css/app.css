@@ -863,3 +863,4 @@ dialog.asistente .asistente-cuerpo { max-height: min(68vh, 760px); padding-top: 
 .barra-niveles[hidden] { display: none; }
 .barra-niveles .cuenta-elegidos { font-weight: 600; color: var(--accent); margin-right: auto; }
 .ico.girar-izq { transform: rotate(180deg); }
+.aviso-fuera { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }

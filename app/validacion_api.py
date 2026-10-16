@@ -22,6 +22,17 @@ class EditorValidacionApi(EditorEjecucionApi):
         super().__init__(carpeta_inicial)
         self._validacion: dict[str, Any] | None = None
 
+    def _estado(self) -> dict[str, Any]:
+        """Estado de la ejecución abierta y si forma parte de la validación abierta (None si no hay validación)."""
+        estado = super()._estado()
+        if self._validacion is not None:
+            carpeta = Path(estado["carpeta"]).resolve()
+            estado["en_validacion"] = any(ruta is not None and ruta.resolve() == carpeta
+                                          for _e, ruta in vc.rutas_ejecuciones(self._validacion))
+        else:
+            estado["en_validacion"] = None
+        return estado
+
     def _requiere_validacion(self) -> dict[str, Any]:
         if self._validacion is None:
             raise ValueError("No hay ninguna validación abierta.")
@@ -143,7 +154,8 @@ class EditorValidacionApi(EditorEjecucionApi):
         else:
             elegida = Path(carpeta)
         cambios = vc.anadir_ejecuciones(validacion, elegida)
-        return {**self._estado_validacion(), **cambios}
+        return {**self._estado_validacion(), **cambios,
+                "campana": self._estado() if self._campaña is not None else None}
 
     @respuesta
     def validacion_quitar_ejecucion(self, indice: int) -> dict[str, Any]:

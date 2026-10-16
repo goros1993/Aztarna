@@ -188,7 +188,8 @@ async function anadirEjecucionExistente() {
     aviso("Elige la carpeta de una ejecución, o una carpeta con varias (por ejemplo, la compartida donde las deja cada persona)…");
     const r = await api.validacion_anadir_ejecucion();
     if (r.cancelado) return;
-    const { anadidas, ya_estaban: estaban, ...estado } = r;
+    const { anadidas, ya_estaban: estaban, campana, ...estado } = r;
+    if (campana) S.campana = campana;
     S.validacion = estado;
     pintarModo();
     await cargarNavegacion();
@@ -221,6 +222,18 @@ async function abrirEjecucionDeValidacion(carpeta, testId = null) {
       await cargarNavegacion();
       await irAPruebaCampana(testId);
     }
+  } catch (e) { fallo(e); }
+}
+
+/** Añade a la validación abierta la ejecución abierta (que se abrió por su cuenta). */
+async function anadirAbiertaAValidacion() {
+  try {
+    const { anadidas, ya_estaban: _estaban, campana, ...estado } = await api.validacion_anadir_ejecucion(S.campana.carpeta);
+    S.validacion = estado;
+    if (campana) S.campana = campana;
+    pintarModo();
+    mostrarVacio();
+    if (anadidas.length) aviso(`Ejecución añadida a la validación «${estado.datos.nombre}»`, "ok");
   } catch (e) { fallo(e); }
 }
 
