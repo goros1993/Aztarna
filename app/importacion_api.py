@@ -87,10 +87,21 @@ class EditorImportacionApi(EditorValidacionApi):
         return to_plain(imp.revision(conversion, self._existentes(modo)))
 
     @respuesta
+    def importar_elegir_carpeta(self, nombre: str = "") -> dict[str, Any]:
+        """Carpeta donde se creará el proyecto nuevo (una subcarpeta `nombre` de la elegida)."""
+        padre = self._dialogo_carpeta()
+        if padre is None:
+            return {"cancelado": True}
+        destino = padre / _nombre_proyecto(nombre)
+        if destino.exists() and any(destino.iterdir()):
+            raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
+        return {"carpeta": str(destino)}
+
+    @respuesta
     def importar_ejecutar(self, archivo: str, mapeo: dict[str, Any], modo: str = "nuevo",
                           ids: dict[str, dict[str, str]] | None = None, nombre: str = "",
                           carpeta: str | None = None) -> dict[str, Any]:
-        """Importa y abre el resultado. En modo «nuevo» pide la carpeta donde crear el proyecto."""
+        """Importa y abre el resultado. En modo «nuevo», sin `carpeta`, pide dónde crear el proyecto."""
         documento = self._documento(archivo)
         if modo == "anadir":
             self._exigir_escritura()

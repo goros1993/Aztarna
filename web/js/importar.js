@@ -49,14 +49,14 @@ function pintarAsistente() {
 
 async function siguientePaso() {
   if (IMP.paso === 0) {
-    const a = await conEspera("Analizando las tablas del documento…", () => api.importar_analizar(IMP.archivo, IMP.preferido));
+    const a = await conEspera("Analizando las tablas del documento…", () => api.importar_analizar(IMP.archivo, IMP.preferido), "Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.analisis = a;
     IMP.mapeo = a.mapeo;
     if (!IMP.nombre) IMP.nombre = a.nombre_propuesto;
   } else if (IMP.paso === 1) {
     if (!tiposElegidos().length) { aviso("Ninguna familia es de pruebas ni de requisitos: no hay nada que importar", "error"); return; }
   } else if (IMP.paso === 2) {
-    IMP.revision = await conEspera("Preparando la vista previa…", () => api.importar_revisar(IMP.archivo, IMP.mapeo, IMP.modo));
+    IMP.revision = await conEspera("Preparando la vista previa…", () => api.importar_revisar(IMP.archivo, IMP.mapeo, IMP.modo), "Se lee todo el documento con el mapeo elegido. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.ids = {};
     for (const [tipo, datos] of Object.entries(IMP.revision.tipos)) {
       IMP.ids[tipo] = Object.fromEntries(datos.ids.filter((p) => p.propuesta).map((p) => [String(p.orden), p.propuesta]));
@@ -227,8 +227,15 @@ function ejemplosImportar(tipo, ejemplos) {
 }
 
 async function ejecutarImportacion() {
-  if (IMP.modo === "nuevo") aviso("Elige la carpeta donde crear el proyecto (se creará una subcarpeta)…");
-  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre));
+  let carpeta = null;
+  if (IMP.modo === "nuevo") {
+    aviso(`Elige dónde crear el proyecto (se creará la carpeta «${IMP.nombre || IMP.analisis.nombre_propuesto}»)…`);
+    const elegida = await api.importar_elegir_carpeta(IMP.nombre || IMP.analisis.nombre_propuesto);
+    if (elegida.cancelado) return;
+    carpeta = elegida.carpeta;
+  }
+  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta),
+    "Se lee el documento, se copian las imágenes y se escriben los YAML. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
   if (r.cancelado) return;
   IMP.dlg.close();
   const totales = Object.entries(r.resultado.totales).map(([t, n]) => plural(n, t, TIPO_PLURAL[t])).join(" y ");
