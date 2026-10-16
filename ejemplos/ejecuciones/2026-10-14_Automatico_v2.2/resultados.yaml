@@ -1,0 +1,15 @@
+DEMO-LLAM-001:
+  estado: ok
+  fecha: 2026-10-14T09:00
+  ejecutor: Robot (CI nocturno)
+  huella: b54b9a273040
+DEMO-LLAM-002:
+  estado: ok
+  fecha: 2026-10-14T10:00
+  ejecutor: Robot (CI nocturno)
+  huella: 95604739cbec
+DEMO-NIV-001:
+  estado: ok
+  fecha: 2026-10-14T11:00
+  ejecutor: Robot (CI nocturno)
+  huella: c40a46daee20

@@ -471,6 +471,7 @@ function mostrarPanelCampana() {
       c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la ejecución que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la ejecución sigue abierta" }),
+      h("button", { class: "btn", type: "button", onclick: compararEjecucion, text: "Comparar con…", title: "Comparar con otra ejecución (la anterior): nuevos fallos y arreglos" }),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar ejecución…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },

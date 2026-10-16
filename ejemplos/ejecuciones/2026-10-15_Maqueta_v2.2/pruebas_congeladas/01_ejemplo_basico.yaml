@@ -1,0 +1,44 @@
+capitulo: Ejemplo básico
+contenido:
+- seccion: Llamadas
+  nivel: 2
+  contexto:
+  - La instalación simulada tiene cuatro paradas (PB, P1, P2 y P3) y una sola cabina.
+  - texto: Esquema del pozo con los sensores de nivel de cada planta.
+    imagenes:
+    - imagenes/esquema_pozo.png
+- prueba:
+    nombre: Llamada desde cabina
+    nivel: 3
+    id: DEMO-LLAM-001
+    titulo: Una llamada de cabina lleva el ascensor a la planta pedida
+    descripcion: Comprobar que una llamada registrada desde la botonera de cabina se atiende y la cabina se detiene en la planta seleccionada.
+    parametrizacion:
+    - 'Número de paradas: 4 (PB a P3).'
+    - Llamadas de cabina habilitadas en todas las plantas.
+    situacion_inicial:
+    - La cabina está parada en PB con las puertas cerradas.
+    - No hay llamadas pendientes.
+    pasos:
+    - texto: Pulsar el botón **2** de la botonera de cabina.
+      imagenes:
+      - imagenes/botonera_cabina.png
+    - Comprobar que el botón se ilumina y el indicador muestra *▲ 2*.
+    - Esperar a que la cabina llegue a P2.
+    - La cabina se detiene en P2 y abre puertas.
+    - La llamada se borra del registro y el botón se apaga.
+    maniobra:
+    - Simplex
+    - Dúplex
+    automatizable: si
+    entorno:
+    - Automático
+    - Maqueta
+    requisitos:
+    - REQ-LLAM-001
+    fecha: '2026-09-15'
+    version: '1.2'
+    etiquetas:
+    - smoke
+    - regresion
+    - llamadas

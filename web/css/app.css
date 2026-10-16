@@ -877,3 +877,12 @@ dialog.asistente .asistente-cuerpo { max-height: min(68vh, 760px); padding-top: 
 .aviso-bloqueo-texto strong { color: var(--ink); font-weight: 600; }
 .aviso-bloqueo-botones { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
 body.capitulo-bloqueado .formulario [disabled] { cursor: not-allowed; }
+
+/* ---- validación: requisitos y comparación ---- */
+.tarjeta.activa { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pruebas-requisito { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pruebas-requisito .chip-estado { border: 0; cursor: pointer; font-family: var(--mono); }
+.tabla-requisitos-val .marca-cambio { margin-left: 6px; color: var(--warn); }
+.fila-botones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.tarjetas.tarjetas-7 { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.tarjetas.tarjetas-7 .t-tit { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

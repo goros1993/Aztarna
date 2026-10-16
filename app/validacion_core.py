@@ -236,8 +236,90 @@ def _estado_prueba(estados: list[str]) -> str:
     return "validada"
 
 
-def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    """Resultado por prueba y entorno, totales, desglose y avisos."""
+# ----------------------------------------------------------------------
+# Comparar con otra validación (la de la versión anterior)
+# ----------------------------------------------------------------------
+def comparar_con(validacion: dict[str, Any], carpeta: str | Path | None) -> None:
+    """Guarda con qué validación se compara esta (None la quita)."""
+    datos = validacion["datos"]
+    for clave in ("comparar_con", "comparar_con_absoluta"):
+        datos.pop(clave, None)
+    if carpeta is not None:
+        carpeta = Path(carpeta)
+        if not es_validacion(carpeta):
+            raise ValueError("Esa carpeta no contiene una validación.")
+        if carpeta.resolve() == Path(validacion["carpeta"]).resolve():
+            raise ValueError("Elige otra validación: no se puede comparar consigo misma.")
+        datos.update(_rutas(validacion["carpeta"], carpeta, "comparar_con"))
+    guardar(validacion)
+
+
+def _comparacion(validacion: dict[str, Any], pruebas: list[dict[str, Any]]) -> dict[str, Any] | None:
+    from app import comparar
+    if not validacion["datos"].get("comparar_con"):
+        return None
+    ruta = _resolver(validacion["carpeta"], validacion["datos"], "comparar_con")
+    if ruta is None or not es_validacion(ruta):
+        return {"encontrada": False, "ruta": str(validacion["datos"].get("comparar_con"))}
+    try:
+        anterior = comparar.describir(ruta)
+    except (OSError, ValueError) as error:
+        return {"encontrada": False, "ruta": str(ruta), "error": str(error)}
+    ahora = {p["id"]: {"estado": p["estado"], "titulo": p["titulo"]} for p in pruebas}
+    return {"encontrada": True, "carpeta": str(ruta), "nombre": anterior["nombre"], "version": anterior["version"],
+            **comparar.comparar(anterior["estados"], ahora)}
+
+
+# ----------------------------------------------------------------------
+# Requisitos: verificados según el resultado de sus pruebas
+# ----------------------------------------------------------------------
+REQ_ESTADOS = ("fallido", "bloqueado", "pendiente", "verificado", "sin_pruebas", "no_aplica")
+REQ_VISIBLES = {"fallido": "Fallido", "bloqueado": "Bloqueado", "pendiente": "Pendiente", "verificado": "Verificado",
+                "sin_pruebas": "Sin pruebas en la validación", "no_aplica": "No aplica"}
+
+
+def _estado_requisito(necesita: bool, estados: list[str]) -> str:
+    if not necesita:
+        return "no_aplica"
+    if not estados:
+        return "sin_pruebas"
+    for estado, resultado in (("no_ok", "fallido"), ("bloqueada", "bloqueado"), ("pendiente", "pendiente")):
+        if estado in estados:
+            return resultado
+    return "verificado" if "validada" in estados else "no_aplica"      # todas sus pruebas No aplica
+
+
+def _requisitos(pruebas: list[dict[str, Any]], capitulos: list[dict[str, Any]], pruebas_dir: Path | None) -> dict[str, Any] | None:
+    """Estado de cada requisito según las pruebas de la validación que lo citan."""
+    from app import trazabilidad
+    if pruebas_dir is None:
+        return None
+    req_capitulos = trazabilidad.leer_requisitos(pruebas_dir)
+    if not req_capitulos:
+        return None
+    revisiones = trazabilidad.leer_revisiones(trazabilidad.carpeta_requisitos(pruebas_dir))
+    traza = trazabilidad.calcular(capitulos, req_capitulos, revisiones)
+    en_validacion = {p["id"]: p for p in pruebas}
+    lista, impacto = [], []
+    for r in traza["requisitos"]:
+        suyas = [en_validacion[p["id"]] for p in r["pruebas"] if p["id"] in en_validacion]
+        fuera = sorted({p["id"] for p in r["pruebas"] if p["id"] not in en_validacion})
+        estado = _estado_requisito(r["necesita"], [p["estado"] for p in suyas])
+        lista.append({"id": r["id"], "titulo": r["titulo"], "capitulo": r["nombre_capitulo"], "seccion": r["seccion"],
+                      "estado": estado, "modificado": r["modificado"], "necesita": r["necesita"],
+                      "pruebas": [{"id": p["id"], "estado": p["estado"]} for p in suyas], "fuera": fuera})
+        if r["modificado"]:
+            impacto.extend(p["id"] for p in suyas if p["id"] not in impacto)
+    totales = {e: sum(1 for r in lista if r["estado"] == e) for e in REQ_ESTADOS}
+    evaluables = sum(totales[e] for e in ("fallido", "bloqueado", "pendiente", "verificado", "sin_pruebas"))
+    return {"lista": lista, "totales": totales, "modificados": sum(1 for r in lista if r["modificado"]),
+            "porcentaje_verificados": round(100 * totales["verificado"] / evaluables, 1) if evaluables else 0.0,
+            "impacto": impacto}
+
+
+def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | None = None,
+               con_comparacion: bool = True) -> dict[str, Any]:
+    """Resultado por prueba y entorno, totales, desglose, avisos, requisitos y comparación con la anterior."""
     pruebas_dir = carpeta_pruebas(validacion)
     if capitulos is None:
         if pruebas_dir is None:
@@ -337,4 +419,6 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         "fuera_de_alcance": fuera,
         "borrador": any(not e.get("cerrada") for e in ejecuciones if e["encontrada"]) or not ejecuciones,
         "avisos": avisos,
+        "requisitos": _requisitos(pruebas, capitulos, pruebas_dir),
+        "comparacion": _comparacion(validacion, pruebas) if con_comparacion else None,
     }

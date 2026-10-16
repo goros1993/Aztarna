@@ -1,0 +1,134 @@
+capitulo: Ejemplo de secciones e imágenes
+contenido:
+- seccion: Puertas
+  nivel: 2
+  contexto:
+  - Las puertas de cabina y de piso se mueven juntas con el operador de puertas.
+  - tabla:
+      filas:
+      - - texto: '**Parámetros del operador de puertas**'
+          columnas: 2
+      - [Tiempo máximo de apertura, '3,0 s']
+      - [Tiempo máximo de cierre, '3,5 s']
+      - [Fuerza máxima de cierre, '[[rojo|150 N]]']
+  - texto: Secuencia de señales durante una apertura con reapertura por obstáculo.
+    imagenes:
+    - imagenes/cronograma_puertas.png
+- seccion: Apertura
+  nivel: 3
+- prueba:
+    nombre: Apertura normal
+    nivel: 4
+    id: DEMO-PUER-001
+    titulo: Las puertas abren al llegar a planta
+    descripcion: Comprobar el tiempo de apertura y el final de carrera de puerta abierta.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina llega a P1 con una llamada de cabina.
+    pasos:
+    - Medir el tiempo desde la parada hasta la activación de FC_ABIERTA.
+    - FC_ABIERTA se activa en menos de 3 s.
+    maniobra:
+    - Simplex
+    automatizable: si
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PUER-001
+    fecha: '2026-09-28'
+    version: '1.0'
+    etiquetas:
+    - smoke
+    - regresion
+    - puertas
+- seccion: Operador de puertas A
+  nivel: 4
+  contexto:
+  - Solo aplica a las instalaciones con operador de tipo A.
+- seccion: Reapertura por obstáculo
+  nivel: 5
+  contexto:
+  - texto: El banco HIL dispone de una barrera infrarroja simulada para provocar la reapertura.
+    imagenes:
+    - imagenes/foto_banco_hil.jpg
+- prueba:
+    nombre: Reapertura con barrera interrumpida
+    nivel: 6
+    id: DEMO-PUER-002
+    titulo: Las puertas se reabren si la barrera detecta un obstáculo
+    descripcion: Interrumpir la barrera infrarroja durante el cierre y comprobar que las puertas vuelven a abrir.
+    parametrizacion:
+    - Barrera IR habilitada.
+    - 'Tiempo de reapertura: 200 ms.'
+    situacion_inicial:
+    - texto: La cabina está en P2 con las puertas abiertas y la HMI en modo normal.
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    pasos:
+    - Esperar a que comience el cierre de puertas.
+    - texto: Activar la barrera IR durante 0,5 s desde el panel del banco.
+      imagenes:
+      - imagenes/foto_banco_hil.jpg
+    - Observar el motor de puertas y los finales de carrera.
+    - texto: El motor invierte el sentido y FC_ABIERTA vuelve a activarse, como en el cronograma.
+      imagenes:
+      - imagenes/cronograma_puertas.png
+    - Tras la reapertura, el cierre se repite con normalidad.
+    maniobra:
+    - Simplex
+    - Dúplex
+    automatizable: corto
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PUER-002
+    fecha: '2026-09-28'
+    version: '1.3'
+    etiquetas:
+    - regresion
+    - puertas
+    - seguridad
+    contexto:
+    - Es la prueba con más imágenes del conjunto; sirve para ver las miniaturas en el editor.
+    - texto: La captura de la HMI se toma con el registro de alarmas abierto.
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    imagenes:
+    - imagenes/registro_eventos.png
+- seccion: Serie de seguridad
+  nivel: 2
+  contexto:
+  - texto: Esquema vectorial (EMF) de los contactos de la serie; el rojo es el contacto que se abre en la prueba.
+    imagenes:
+    - imagenes/esquema_seguridad.emf
+- prueba:
+    nombre: Apertura de la serie de seguridad
+    nivel: 3
+    id: DEMO-SEG-001
+    titulo: Abrir un contacto de la serie para la cabina de inmediato
+    descripcion: Simular la apertura del tercer contacto de la serie de seguridad con la cabina en marcha.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina viaja de P3 a PB a velocidad nominal.
+    pasos:
+    - Abrir el contacto 3 de la serie desde el panel del banco.
+    - texto: La cabina para de inmediato y la HMI muestra [[rojo|E-301]].
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    - El controlador no admite llamadas hasta rearmar la serie.
+    maniobra:
+    - Dúplex
+    automatizable: no
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-SEG-001
+    fecha: '2026-10-01'
+    version: '1.0'
+    etiquetas:
+    - smoke
+    - regresion
+    - seguridad
+    imagenes:
+    - imagenes/esquema_seguridad.emf

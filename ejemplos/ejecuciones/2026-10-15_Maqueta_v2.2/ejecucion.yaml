@@ -1,0 +1,24 @@
+nombre: Regresión v2.2 en maqueta
+objeto: Firmware 2.2.0
+entorno_pruebas: Maqueta
+responsable: Ana Pérez
+inicio: 2026-10-15T08:30
+estado: cerrada
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  solo_ids:
+  - DEMO-LLAM-001
+  - DEMO-CAN-002
+  - DEMO-SEG-001
+  - DEMO-CAN-001
+pruebas:
+- id: DEMO-LLAM-001
+  huella: b54b9a273040
+- id: DEMO-CAN-001
+  huella: cbb57a8f4bec
+- id: DEMO-CAN-002
+  huella: 21eb111e8587
+- id: DEMO-SEG-001
+  huella: 682f61d88f57
+formato: 1
+fin: 2026-10-15T17:00

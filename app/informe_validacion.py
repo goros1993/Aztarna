@@ -107,6 +107,64 @@ def escribir_resumen(doc, d: dict[str, Any]) -> None:
         inf._tabla(doc, ["Prueba", "Aviso"], [[a["id"] or "—", a["mensaje"]] for a in d["avisos"]], [4, 21])
 
 
+def escribir_comparacion(doc, d: dict[str, Any]) -> None:
+    """Cambios respecto a la validación anterior (si se ha elegido una)."""
+    from app import comparar
+    c = d.get("comparacion")
+    if not c:
+        return
+    inf._apartado(doc, "Comparación con la versión anterior")
+    if not c.get("encontrada"):
+        inf._parrafo(doc, f"No se encuentra la validación con la que se compara ({c.get('ruta', '')}).", color="485862")
+        return
+    version = f" ({c['version']})" if c.get("version") else ""
+    inf._parrafo(doc, f"Con «{c['nombre']}»{version}. "
+                      "Nuevos fallos: NO OK ahora y no antes; arregladas: NO OK antes y bien ahora.", color="485862")
+    inf._tabla(doc, ["Cambio", "Pruebas"], [[comparar.VISIBLES[k], str(n)] for k, n in c["cuentas"].items()], [8, 4])
+    filas = [f for f in c["filas"] if f["categoria"] != "sin_cambios"]
+    if filas:
+        orden = {k: i for i, k in enumerate(comparar.CATEGORIAS)}
+        filas.sort(key=lambda f: orden[f["categoria"]])
+        txt = lambda e: vc.ESTADOS_VISIBLES.get(e, CELDA_TXT.get(e, e)) if e else "—"
+        tabla = inf._tabla(doc, ["Prueba", "Título", "Antes", "Ahora", "Cambio"],
+                           [[f["id"], f["titulo"], txt(f["antes"]), txt(f["ahora"]), comparar.VISIBLES[f["categoria"]]] for f in filas],
+                           [3.4, 10.6, 3, 3, 5])
+        for fila, f in zip(tabla.rows[1:], filas):
+            if f["antes"]:
+                _colorear(fila.cells[2], f["antes"])
+            if f["ahora"]:
+                _colorear(fila.cells[3], f["ahora"])
+
+
+REQ_CLASE = {"fallido": "no_ok", "bloqueado": "bloqueada", "pendiente": "pendiente", "verificado": "validada",
+             "sin_pruebas": vc.SIN_PLANIFICAR, "no_aplica": "no_aplica"}
+
+
+def escribir_requisitos(doc, d: dict[str, Any]) -> None:
+    """Requisitos verificados según el resultado de sus pruebas en esta validación."""
+    r = d.get("requisitos")
+    if not r:
+        return
+    inf._apartado(doc, "Requisitos")
+    inf._parrafo(doc, "Un requisito está verificado cuando todas las pruebas de esta validación que lo citan están "
+                      "validadas; falla si alguna es NO OK. «Sin pruebas aquí»: necesita pruebas, pero ninguna de esta "
+                      f"validación lo cita. Verificados: {r['porcentaje_verificados']} % de los que necesitan pruebas.", color="485862")
+    tabla = inf._tabla(doc, ["Estado", "Requisitos"], [[vc.REQ_VISIBLES[e], str(r["totales"][e])] for e in vc.REQ_ESTADOS], [8, 4])
+    for fila, e in zip(tabla.rows[1:], vc.REQ_ESTADOS):
+        _colorear(fila.cells[0], REQ_CLASE[e])
+    if r["modificados"]:
+        inf._parrafo(doc, f"{r['modificados']} requisito(s) han cambiado desde la última revisión de sus pruebas (marcados «cambiado»).",
+                     color=inf.COLOR_ESTADO["bloqueada"])
+    filas = [x for x in r["lista"] if x["estado"] != "no_aplica"]
+    txt = lambda p: f"{p['id']} ({vc.ESTADOS_VISIBLES[p['estado']]})"
+    tabla = inf._tabla(doc, ["Requisito", "Título", "Estado", "Pruebas"],
+                       [[x["id"] + (" (cambiado)" if x["modificado"] else ""), x["titulo"], vc.REQ_VISIBLES[x["estado"]],
+                         ", ".join(txt(p) for p in x["pruebas"]) + (f"; {len(x['fuera'])} fuera de la validación" if x["fuera"] else "")]
+                        for x in filas], [3.6, 9, 3.4, 9])
+    for fila, x in zip(tabla.rows[1:], filas):
+        _colorear(fila.cells[2], REQ_CLASE[x["estado"]])
+
+
 def escribir_matriz(doc, d: dict[str, Any]) -> None:
     inf._apartado(doc, "Resultado por prueba y entorno")
     inf._parrafo(doc, "En cursiva, sin fondo: resultados en un entorno que la prueba no indica (se muestran, pero no cuentan). "
@@ -161,6 +219,8 @@ def generar_informe(validacion: dict[str, Any], salida: str | Path,
     doc = yd.preparar_documento(1)
     _apaisado(doc)
     escribir_resumen(doc, d)
+    escribir_comparacion(doc, d)
+    escribir_requisitos(doc, d)
     escribir_detalle(doc, d)
     doc.add_page_break()
     escribir_matriz(doc, d)

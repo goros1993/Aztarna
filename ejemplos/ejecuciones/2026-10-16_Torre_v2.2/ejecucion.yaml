@@ -1,0 +1,30 @@
+nombre: Regresión v2.2 en torre
+objeto: Firmware 2.2.0
+entorno_pruebas: Torre
+responsable: Luis Gómez
+inicio: 2026-10-16T08:30
+estado: cerrada
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  solo_ids:
+  - DEMO-NIV-001
+  - DEMO-CAN-002
+  - DEMO-PUER-001
+  - DEMO-PUER-002
+  - DEMO-SEG-001
+  - DEMO-MANT-001
+pruebas:
+- id: DEMO-NIV-001
+  huella: c40a46daee20
+- id: DEMO-CAN-002
+  huella: 21eb111e8587
+- id: DEMO-PUER-001
+  huella: 1207021f4712
+- id: DEMO-PUER-002
+  huella: ea335b52eef8
+- id: DEMO-SEG-001
+  huella: 682f61d88f57
+- id: DEMO-MANT-001
+  huella: 482b7731202c
+formato: 1
+fin: 2026-10-16T17:00
