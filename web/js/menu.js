@@ -9,8 +9,8 @@ function opcionesMenu() {
   const conCapitulos = S.capitulos.length > 0;
   return [
     {
-      texto: "Importar…", icono: "import", desactivada: true,
-      ayuda: "Próximamente: importar pruebas o requisitos desde un Word (issue #2). Hoy, con «python herramientas.py convertir».",
+      texto: "Importar desde Word…", icono: "import", accion: asistenteImportar, desactivada: !importarDisponible(),
+      ayuda: importarDisponible() ? "Importar pruebas o requisitos de un documento de Word" : "Cambia al modo Pruebas o Requisitos para importar",
     },
     S.modo === "ejecucion" ? null : {
       texto: enRequisitos() ? "Exportar DOCX de requisitos…" : "Exportar DOCX…", icono: "export", accion: exportarDocx,

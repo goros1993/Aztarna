@@ -1,0 +1,834 @@
+#!/usr/bin/env python3
+"""Importar pruebas o requisitos de un Word, con un mapeo de sus etiquetas a nuestro esquema.
+
+Lo usa el asistente de importación del editor (⋯ → Importar…) y la orden
+`python herramientas.py importar`. Tres pasos:
+
+1. `analizar`: agrupa las tablas del Word en familias (tablas con las mismas
+   etiquetas: «Descripción:», «Pasos:»…), propone qué es cada familia (prueba,
+   requisito, tabla informativa o nada) y a qué campo va cada etiqueta.
+2. `convertir`: lee el Word con ese mapeo. Devuelve los capítulos (con sus
+   secciones, textos y tablas), los avisos y los IDs que habría que cambiar.
+3. `importar`: escribe los YAML en un proyecto nuevo o los añade al abierto.
+
+Se espera la forma de las plantillas (`plantillas/tabla_*.docx`): la primera
+fila es «ID | Título» y cada celda de las demás empieza por «Etiqueta: valor».
+Un párrafo «Etiqueta:» solo en su línea abre un campo nuevo dentro de la misma
+celda (por ejemplo «Situación inicial:» y «Ensayo:»). Las tablas dentro de
+una celda se conservan: en un requisito, en `detalle` (tablas e imágenes de la
+descripción); en una prueba, en su contexto.
+
+El mapeo es un dict:
+
+    {"tipos": {firma_de_familia: "prueba" | "requisito" | "tabla" | "ignorar"},
+     "campos": {"prueba": {etiqueta_normalizada: campo}, "requisito": {...}}}
+
+donde campo es un campo del esquema, "adicional" (campo adicional con su
+etiqueta), "anterior" (el párrafo sigue al campo anterior) o "ignorar".
+"""
+from __future__ import annotations
+
+import argparse
+import difflib
+import json
+import mimetypes
+import re
+from collections import Counter
+from pathlib import Path
+from typing import Any, Callable
+
+from docx import Document
+from docx.table import Table
+from docx.text.paragraph import Paragraph
+from ruamel.yaml import YAML
+
+from app import esquema
+from migracion import convertir as cv
+from migracion.ids_duplicados import _ID_VALIDO, _siguiente
+
+TIPOS = ("prueba", "requisito", "tabla", "ignorar")
+TIPOS_VISIBLES = {"prueba": "Pruebas", "requisito": "Requisitos", "tabla": "Tabla informativa", "ignorar": "No importar"}
+ESPECIALES = {
+    "adicional": "Campo adicional (con su etiqueta)",
+    "anterior": "Parte del campo anterior",
+    "ignorar": "No importar",
+}
+
+# Clase de cada campo de destino: cómo se lee su valor.
+CLASE_PRUEBA = {
+    "descripcion": "parrafos", "parametrizacion": "lista", "situacion_inicial": "lista", "pasos": "lista",
+    "maniobra": "opciones", "automatizable": "linea", "entorno": "opciones", "requisitos": "textos",
+    "etiquetas": "textos", "fecha": "linea", "version": "linea", "contexto": "lista",
+}
+CLASE_REQUISITO = {
+    "descripcion": "parrafos", "fuente": "linea", "referencia": "linea", "tipo": "linea",
+    "criterio_validacion": "opciones", "fase": "linea", "fecha": "linea", "version": "linea", "contexto": "lista",
+}
+CLASES = {"prueba": CLASE_PRUEBA, "requisito": CLASE_REQUISITO}
+NOMBRES = {"prueba": esquema.ETIQUETAS, "requisito": esquema.REQ_ETIQUETAS}
+
+# Etiquetas que se proponen para cada campo (además del nombre del campo en el esquema).
+SINONIMOS = {
+    "prueba": {
+        "descripcion": ["Descripción", "Objetivo", "Objeto", "Propósito"],
+        "parametrizacion": ["Parametrización", "Parámetros", "Configuración"],
+        "situacion_inicial": ["Situación inicial", "Condiciones iniciales", "Precondiciones", "Precondición", "Estado inicial"],
+        "pasos": ["Ensayo", "Pasos", "ENSAYO(s) / Proceso(s)", "Procedimiento", "Proceso", "Situación final"],
+        "maniobra": ["Maniobra", "Maniobra(s)"],
+        "automatizable": ["Automatizable"],
+        "entorno": ["Entorno de pruebas", "Entorno de prueba(s)", "Entorno de pruebas(s)", "Entorno"],
+        "requisitos": ["Requisitos", "Requisito(s)", "Requisitos cubiertos", "Trazabilidad"],
+        "etiquetas": ["Tags", "Etiquetas"],
+        "fecha": ["Fecha"],
+        "version": ["Versión", "Revisión", "Edición"],
+    },
+    "requisito": {
+        "descripcion": ["Descripción", "Texto", "Enunciado"],
+        "fuente": ["Fuente", "Origen"],
+        "referencia": ["Referencia", "Referencias", "Documento de referencia"],
+        "tipo": ["Tipo", "Tipo de requisito", "Clase"],
+        "criterio_validacion": ["Criterio validación", "Criterio de validación", "Método de validación",
+                                "Método de verificación", "Verificación"],
+        "fase": ["Fase"],
+        "fecha": ["Fecha"],
+        "version": ["Versión", "Revisión", "Edición"],
+    },
+}
+# Etiquetas del formato antiguo de las pruebas que no pasan al esquema (como en convertir.py).
+IGNORADAS_PRUEBA = ["Componente", "Plataforma", "Criticidad", "Referencia", "Ejecución de prueba",
+                    *esquema.ADICIONALES_ELIMINADOS]
+# Campos que comparten pruebas y requisitos: no sirven para distinguirlos.
+COMUNES = {"descripcion", "fecha", "version"}
+
+
+def clave(etiqueta: str) -> str:
+    """Etiqueta normalizada: sin tildes, mayúsculas, espacios ni signos («Requisito(s):» → «requisito»)."""
+    return re.sub(r"[^a-z0-9]", "", cv.norm(str(etiqueta)).replace("(s)", ""))
+
+
+_SINONIMOS = {tipo: {clave(s): campo for campo, lista in campos.items() for s in [*lista, NOMBRES[tipo].get(campo, campo)]}
+              for tipo, campos in SINONIMOS.items()}
+_IGNORADAS = {clave(e) for e in IGNORADAS_PRUEBA} - set(_SINONIMOS["prueba"])
+
+
+def proponer_campo(tipo: str, etiqueta: str, solo_interior: bool = False) -> str:
+    """Campo propuesto para una etiqueta: el de su sinónimo, uno muy parecido o, si no, campo adicional."""
+    if tipo not in CLASES:
+        return "ignorar"
+    k = clave(etiqueta)
+    if k in _SINONIMOS[tipo]:
+        return _SINONIMOS[tipo][k]
+    # Una «Nota:» en mitad de una celda suele ser texto del campo, no un campo nuevo.
+    if solo_interior:
+        return "anterior"
+    if tipo == "prueba" and k in _IGNORADAS:
+        return "ignorar"
+    parecida = difflib.get_close_matches(k, list(_SINONIMOS[tipo]), n=1, cutoff=0.85)
+    return _SINONIMOS[tipo][parecida[0]] if parecida else "adicional"
+
+
+# ----------------------------------------------------------------------
+# Etiquetas de una tabla
+# ----------------------------------------------------------------------
+_ETIQUETA = re.compile(r"^\s*([^:\n]{1,40}?)\s*:\s*", re.S)
+
+
+def etiqueta_de(texto: str) -> tuple[str, int] | None:
+    """(«Etiqueta», posición donde empieza el valor) si el párrafo empieza por «Etiqueta:»."""
+    m = _ETIQUETA.match(texto)
+    if not m:
+        return None
+    etiqueta = " ".join(m.group(1).split())
+    if not etiqueta or len(etiqueta.split()) > 6 or re.fullmatch(r"[\d\s.,/\-]+", etiqueta) \
+            or etiqueta.lower().startswith(("http", "www")) or not clave(etiqueta):
+        return None
+    return etiqueta, m.end()
+
+
+def bloques(celda) -> list[Paragraph | Table]:
+    """Párrafos y tablas de una celda, en orden."""
+    return list(celda.iter_inner_content())
+
+
+def estructura(tabla: Table) -> dict[str, Any]:
+    """Cabecera, etiquetas (con si abren la celda o van en mitad) y tablas anidadas de una tabla."""
+    filas = cv.filas_sin_repetir(tabla)
+    cabecera = [" ".join(cv.texto_celda(c).split()) for c in filas[0]] if filas else []
+    etiquetas: dict[str, dict[str, Any]] = {}
+    anidadas = 0
+    for fila in filas[1:]:
+        for celda in fila:
+            primero = True
+            for b in bloques(celda):
+                if isinstance(b, Table):
+                    anidadas += 1
+                    primero = False
+                    continue
+                texto = cv.texto(b)
+                if not texto.strip():
+                    continue
+                e = etiqueta_de(texto)
+                if e:
+                    info = etiquetas.setdefault(clave(e[0]), {"etiqueta": e[0], "inicio": False})
+                    info["inicio"] = info["inicio"] or primero
+                primero = False
+    return {"cabecera": cabecera, "etiquetas": etiquetas, "anidadas": anidadas, "filas": len(filas),
+            "columnas": max((len(f) for f in filas), default=0)}
+
+
+def _proponer_tipo(etiquetas: dict[str, dict[str, Any]], preferido: str | None) -> str:
+    if not etiquetas:
+        return "tabla"
+    campos = {t: {proponer_campo(t, i["etiqueta"]) for i in etiquetas.values()} - set(ESPECIALES) for t in CLASES}
+    propios = {t: campos[t] - COMUNES for t in CLASES}
+    if preferido in CLASES and campos[preferido]:
+        return preferido
+    if {"pasos", "situacion_inicial"} & propios["prueba"]:
+        return "prueba"
+    if len(propios["requisito"]) > len(propios["prueba"]):
+        return "requisito"
+    if propios["prueba"] or len(campos["prueba"]) >= 2:
+        return "prueba"
+    return "tabla"
+
+
+# ----------------------------------------------------------------------
+# 1. Analizar
+# ----------------------------------------------------------------------
+def _familias(estructuras: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[int]]:
+    """Agrupa las tablas: primero por etiquetas idénticas y después une las variantes
+    (las que comparten al menos el 60 % de sus etiquetas con una familia más grande).
+    Devuelve las familias y, para cada tabla, el número de su familia."""
+    grupos: dict[str, list[int]] = {}
+    for i, e in enumerate(estructuras):
+        firma = "|".join(sorted(e["etiquetas"])) or f"sin etiquetas · {e['columnas']} columnas"
+        grupos.setdefault(firma, []).append(i)
+    familias: list[dict[str, Any]] = []
+    de_tabla = [0] * len(estructuras)
+    for firma, tablas in sorted(grupos.items(), key=lambda g: (-len(g[1]), g[0])):
+        propias = set(estructuras[tablas[0]]["etiquetas"])
+        destino = None
+        if propias:
+            for f in familias:
+                if f["claves"] and len(propias & f["claves"]) >= 0.6 * len(propias):
+                    destino = f
+                    break
+        if destino is None:
+            destino = {"firma": firma, "claves": set(propias), "tablas": []}
+            familias.append(destino)
+        destino["claves"] |= propias
+        destino["tablas"].extend(tablas)
+    for n, f in enumerate(familias):
+        for i in f["tablas"]:
+            de_tabla[i] = n
+    return familias, de_tabla
+
+
+def analizar_documento(doc, preferido: str | None = None) -> dict[str, Any]:
+    estructuras = [estructura(t) for t in doc.tables]
+    familias, de_tabla = _familias(estructuras)
+    resultado = []
+    for n, f in enumerate(familias):
+        tablas = sorted(f["tablas"])
+        cuenta: Counter[str] = Counter()
+        datos: dict[str, dict[str, Any]] = {}
+        for i in tablas:
+            for k, info in estructuras[i]["etiquetas"].items():
+                cuenta[k] += 1
+                d = datos.setdefault(k, {"etiqueta": info["etiqueta"], "inicio": False})
+                d["inicio"] = d["inicio"] or info["inicio"]
+        etiquetas = {k: datos[k] for k in sorted(datos, key=lambda k: -cuenta[k])}
+        tipo = _proponer_tipo(etiquetas, preferido)
+        resultado.append({
+            "numero": n + 1,
+            "firma": f["firma"],
+            "tablas": len(tablas),
+            "posiciones": [i + 1 for i in tablas[:200]],
+            "ejemplos": [" · ".join(x for x in estructuras[i]["cabecera"][:2] if x)[:80] or "(sin cabecera)" for i in tablas[:3]],
+            "anidadas": sum(estructuras[i]["anidadas"] for i in tablas),
+            "tipo": tipo,
+            "etiquetas": [{"clave": k, "etiqueta": d["etiqueta"], "tablas": cuenta[k], "inicio": d["inicio"],
+                           "propuesta": {t: proponer_campo(t, d["etiqueta"], not d["inicio"]) for t in CLASES}}
+                          for k, d in etiquetas.items()],
+        })
+    return {"tablas": len(estructuras), "familias": resultado, "familia_de_tabla": de_tabla}
+
+
+def analizar(ruta: str | Path, preferido: str | None = None) -> dict[str, Any]:
+    """Familias de tablas del Word, con el tipo y los campos propuestos."""
+    resultado = analizar_documento(Document(str(ruta)), preferido)
+    resultado.pop("familia_de_tabla")
+    resultado["archivo"] = str(ruta)
+    return resultado
+
+
+def mapeo_propuesto(analisis: dict[str, Any], recordado: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Mapeo inicial: lo propuesto por el análisis, con lo que se eligió la última vez encima."""
+    recordado = recordado or {}
+    tipos_rec, campos_rec = recordado.get("tipos") or {}, recordado.get("campos") or {}
+    mapeo: dict[str, Any] = {"tipos": {}, "campos": {t: {} for t in CLASES}}
+    for f in analisis["familias"]:
+        mapeo["tipos"][f["firma"]] = tipos_rec.get(f["firma"], f["tipo"])
+        for e in f["etiquetas"]:
+            for t in CLASES:
+                mapeo["campos"][t].setdefault(e["clave"], (campos_rec.get(t) or {}).get(e["clave"], e["propuesta"][t]))
+    return mapeo
+
+
+# ----------------------------------------------------------------------
+# 2. Convertir
+# ----------------------------------------------------------------------
+def _item_lista(p: Paragraph, desde: int, guardar_imagen) -> Any:
+    """Elemento de una lista (paso, situación…): texto con formato, nivel e imágenes."""
+    texto = cv.limpiar(cv.texto_md(p, desde))
+    ppr = p._p.pPr
+    nivel = ppr.numPr.ilvl.val if ppr is not None and ppr.numPr is not None and ppr.numPr.ilvl is not None else 0
+    imagenes = cv.imagenes_parrafo(p, guardar_imagen)
+    if not nivel and not imagenes:
+        return texto
+    item: dict[str, Any] = {"texto": texto}
+    if nivel:
+        item["nivel"] = nivel
+    if imagenes:
+        item["imagenes"] = imagenes
+    return item
+
+
+def _tiene_imagen(p: Paragraph) -> bool:
+    return bool(p._p.xpath(".//a:blip | .//*[local-name()='imagedata']"))
+
+
+def _vacio(item: Any) -> bool:
+    return (isinstance(item, str) and not item.strip()) or (isinstance(item, dict) and not item.get("texto") and not item.get("imagenes") and "tabla" not in item)
+
+
+class _Lector:
+    """Lee las tablas de un tipo con el mapeo de sus etiquetas."""
+
+    def __init__(self, tipo: str, campos: dict[str, str], guardar_imagen) -> None:
+        self.tipo, self.campos, self.guardar = tipo, campos, guardar_imagen
+        self.clases = CLASES[tipo]
+
+    def destino(self, etiqueta: str, interior: bool) -> str:
+        return self.campos.get(clave(etiqueta)) or proponer_campo(self.tipo, etiqueta, interior)
+
+    def segmentos(self, filas) -> list[dict[str, Any]]:
+        """Trozos de la tabla: cada uno con su etiqueta, su campo y sus párrafos y tablas."""
+        segmentos: list[dict[str, Any]] = []
+        actual = None
+        for fila in filas[1:]:
+            for celda in fila:
+                primero = True
+                for b in bloques(celda):
+                    if isinstance(b, Table):
+                        if primero or actual is None:
+                            actual = {"etiqueta": "", "destino": "adicional", "partes": []}
+                            segmentos.append(actual)
+                        actual["partes"].append(("t", b, 0))
+                        primero = False
+                        continue
+                    texto = cv.texto(b)
+                    con_imagen = _tiene_imagen(b)
+                    if not texto.strip() and not con_imagen:
+                        continue
+                    e = etiqueta_de(texto) if texto.strip() else None
+                    if e:
+                        destino = self.destino(e[0], not primero)
+                        if destino != "anterior" or actual is None:
+                            actual = {"etiqueta": e[0], "destino": "adicional" if destino == "anterior" else destino, "partes": []}
+                            segmentos.append(actual)
+                            if texto[e[1]:].strip() or con_imagen:
+                                actual["partes"].append(("p", b, e[1]))
+                            primero = False
+                            continue
+                        # «anterior»: el párrafo entero, con su etiqueta, sigue al campo anterior.
+                    elif primero or actual is None:
+                        # Celda que no empieza por una etiqueta: su texto se conserva aparte.
+                        actual = {"etiqueta": "", "destino": "adicional", "partes": []}
+                        segmentos.append(actual)
+                    actual["partes"].append(("p", b, 0))
+                    primero = False
+        return segmentos
+
+    def leer(self, tabla: Table, avisos: list) -> dict[str, Any]:
+        filas = cv.filas_sin_repetir(tabla)
+        cab = filas[0] if filas else []
+        d: dict[str, Any] = {"id": " ".join(cv.texto_celda(cab[0]).split()) if cab else "",
+                             "titulo": " ".join(" ".join(cv.texto_celda(c).split()) for c in cab[1:]).strip()}
+        imagenes_cab = [i for c in cab for p in c.paragraphs for i in cv.imagenes_parrafo(p, self.guardar)]
+        extras: dict[str, str] = {}
+        detalle: list[Any] = []                      # tablas e imágenes (requisito: `detalle`; prueba: contexto)
+        imagenes: list[str] = list(imagenes_cab)
+        for s in self.segmentos(filas):
+            destino = s["destino"]
+            if destino == "ignorar":
+                continue
+            clase = self.clases.get(destino, "parrafos" if destino == "adicional" else None)
+            if clase is None:
+                avisos.append(cv.Aviso("campo_desconocido", f"«{s['etiqueta']}» va a un campo que no existe ({destino}): se conserva como campo adicional", d["id"]))
+                destino, clase = "adicional", "parrafos"
+            valor = self.valor(s, clase, destino, detalle, imagenes, avisos, d["id"])
+            if destino == "adicional":
+                nombre = s["etiqueta"] or "Sin etiqueta"
+                if valor or (s["etiqueta"] and nombre not in extras):
+                    extras[nombre] = f"{extras[nombre]}\n{valor}" if extras.get(nombre) else valor
+                if not s["etiqueta"] and valor:
+                    avisos.append(cv.Aviso("celda_sin_reconocer", f"celda sin etiqueta: se conserva como campo adicional «Sin etiqueta» ({' '.join(valor.split())[:50]})", d["id"]))
+            elif clase == "lista":
+                d.setdefault(destino, []).extend(valor)
+            elif clase == "textos":
+                d.setdefault(destino, []).extend(v for v in valor if v not in d[destino])
+            elif clase == "parrafos":
+                d[destino] = f"{d[destino]}\n{valor}" if d.get(destino) and valor else (valor or d.get(destino, ""))
+            else:
+                d[destino] = f"{d[destino]} {valor}".strip() if d.get(destino) else valor
+        if extras:
+            d["campos_adicionales"] = extras
+        return self.normalizar(d, detalle, imagenes, avisos)
+
+    def valor(self, s, clase, destino, detalle, imagenes, avisos, ident) -> Any:
+        partes = s["partes"]
+        tras_tabla = False                           # en la descripción: lo que sigue a una tabla va con ella, en orden
+        if clase == "lista":
+            items = []
+            for tipo, b, desde in partes:
+                if tipo == "t":
+                    self.tabla_anidada(b, s, detalle, avisos, ident)
+                    continue
+                item = _item_lista(b, desde, self.guardar)
+                if not _vacio(item):
+                    items.append(item)
+            return items
+        lineas = []
+        for tipo, b, desde in partes:
+            if tipo == "t":
+                self.tabla_anidada(b, s, detalle, avisos, ident)
+                tras_tabla = self.tipo == "requisito" and destino == "descripcion"
+                continue
+            if clase == "parrafos":
+                texto = cv.texto_md(b, desde).strip()
+            else:
+                texto = cv.texto(b)[desde:].strip()
+            fotos = cv.imagenes_parrafo(b, self.guardar)
+            if tras_tabla:
+                if texto or fotos:
+                    detalle.append({"texto": texto, "imagenes": fotos} if fotos else texto)
+                continue
+            if fotos:
+                if self.tipo == "requisito":
+                    detalle.append({"texto": "", "imagenes": fotos})
+                else:
+                    imagenes.extend(fotos)
+            if texto:
+                lineas.append(texto)
+        if clase == "textos":
+            return esquema.lista_de_textos("\n".join(lineas), r"[\n,;]")
+        if clase in ("linea", "opciones"):
+            return " ".join(" ".join(lineas).split())
+        return "\n".join(lineas)
+
+    def tabla_anidada(self, tabla: Table, s, detalle, avisos, ident) -> None:
+        nombre = s["etiqueta"] or "una celda sin etiqueta"
+        detalle.append({"tabla": cv.tabla_informativa(tabla, f"tabla dentro de «{nombre}»", self.guardar)})
+        if self.tipo == "prueba":
+            avisos.append(cv.Aviso("tabla_en_celda", f"tabla dentro de «{nombre}»: se conserva en el contexto de la prueba", ident))
+
+    def normalizar(self, d, detalle, imagenes, avisos) -> dict[str, Any]:
+        extras = d.get("campos_adicionales") or {}
+        ident = d["id"]
+
+        def descartar(campo: str, descartados: list[str]) -> None:
+            if descartados:
+                nombre = NOMBRES[self.tipo][campo]
+                avisos.append(cv.Aviso("valor_descartado", f"{nombre}: «{', '.join(descartados)}» no es una opción; se conserva como campo adicional", ident))
+                extras[nombre] = ", ".join(descartados)
+
+        if self.tipo == "prueba":
+            for campo, normalizar in (("entorno", esquema.normalizar_entorno), ("maniobra", esquema.normalizar_maniobra)):
+                if campo in d:
+                    d[campo], descartados = normalizar(d[campo])
+                    descartar(campo, descartados)
+            if "automatizable" in d:
+                valor = esquema.normalizar_automatizable(d["automatizable"])
+                if valor is None:
+                    descartar("automatizable", [d["automatizable"]])
+                d["automatizable"] = valor or ""
+            if detalle:
+                d["contexto"] = [*detalle, *(d.get("contexto") or [])]
+            if imagenes:
+                d["imagenes"] = list(dict.fromkeys(imagenes))
+            if extras:
+                d["campos_adicionales"] = extras
+            esquema.completar(d)
+            orden = esquema.ORDEN
+        else:
+            if "tipo" in d:
+                valor = esquema.normalizar_tipo_requisito(d["tipo"])
+                if valor is None:
+                    descartar("tipo", [d["tipo"]])
+                d["tipo"] = valor or ""
+            if "criterio_validacion" in d:
+                d["criterio_validacion"], descartados = esquema.normalizar_criterio(d["criterio_validacion"])
+                descartar("criterio_validacion", descartados)
+            if detalle:
+                d["detalle"] = detalle
+            if extras:
+                d["campos_adicionales"] = extras
+            for k, v in esquema.requisito_vacio().items():
+                if k not in d and k not in ("nombre", "nivel", "contexto"):
+                    d[k] = v
+            orden = esquema.REQ_ORDEN
+        if not d["titulo"]:
+            avisos.append(cv.Aviso("titulo_vacio", f"{'el requisito' if self.tipo == 'requisito' else 'la prueba'} no tiene título (segunda celda de la cabecera)", ident))
+        return {k: d[k] for k in sorted(d, key=lambda k: orden.index(k) if k in orden else len(orden))}
+
+
+class _GuardadorEnMemoria:
+    """Guarda las imágenes en memoria con un nombre libre (`imagenes/imagen_001.png`…);
+    se escriben al importar, en la carpeta de cada tipo."""
+
+    def __init__(self, ocupados: set[str] | None = None) -> None:
+        self.ocupados = set(ocupados or ())
+        self.por_parte: dict[str, str] = {}
+        self.datos: dict[str, bytes] = {}
+
+    def __call__(self, parte) -> str:
+        nombre_parte = str(parte.partname)
+        if nombre_parte not in self.por_parte:
+            extension = (Path(nombre_parte).suffix or mimetypes.guess_extension(parte.content_type) or ".bin").lower()
+            n = len(self.por_parte) + 1
+            while f"imagen_{n:03d}{extension}" in self.ocupados:
+                n += 1
+            nombre = f"imagen_{n:03d}{extension}"
+            self.ocupados.add(nombre)
+            self.por_parte[nombre_parte] = f"imagenes/{nombre}"
+            self.datos[f"imagenes/{nombre}"] = parte.blob
+        return self.por_parte[nombre_parte]
+
+
+def convertir_documento(doc, mapeo: dict[str, Any], guardar_imagen=None) -> dict[str, Any]:
+    analisis = analizar_documento(doc)
+    familias, de_tabla = analisis["familias"], analisis["familia_de_tabla"]
+    tipos = mapeo.get("tipos") or {}
+    lectores = {t: _Lector(t, dict((mapeo.get("campos") or {}).get(t) or {}), guardar_imagen) for t in CLASES}
+    contador = iter(range(len(de_tabla)))
+    cuenta: Counter[str] = Counter()
+
+    def leer(tabla, avisos, guardar):
+        familia = familias[de_tabla[next(contador)]]
+        tipo = tipos.get(familia["firma"], familia["tipo"])
+        tipo = tipo if tipo in TIPOS else "tabla"
+        cuenta[tipo] += 1
+        if tipo == "ignorar":
+            return "ignorar", None
+        if tipo == "tabla":
+            avisos.append(cv.Aviso("tabla_informativa", f"tabla de la familia {familia['numero']}: se conserva tal cual"))
+            return "tabla", f"tabla de la familia {familia['numero']}"
+        return tipo, lectores[tipo].leer(tabla, avisos)
+
+    avisos: list = []
+    capitulos = cv.extraer_capitulos(doc, avisos, guardar_imagen, leer)
+    return {"capitulos": capitulos, "avisos": avisos, "totales": {t: cuenta[t] for t in TIPOS}}
+
+
+def convertir_documento_ruta(ruta: str | Path, mapeo: dict[str, Any]) -> dict[str, Any]:
+    """Conversión para revisar (las imágenes no se escriben)."""
+    return convertir_documento(Document(str(ruta)), mapeo, _GuardadorEnMemoria())
+
+
+# ----------------------------------------------------------------------
+# Revisión: IDs y resumen
+# ----------------------------------------------------------------------
+def elementos(capitulos: list[dict[str, Any]], tipo: str) -> list[dict[str, Any]]:
+    """Pruebas o requisitos en el orden del documento (el mismo objeto, para cambiarles el ID)."""
+    return [e[tipo] for c in capitulos for e in c["contenido"] if isinstance(e, dict) and isinstance(e.get(tipo), dict)]
+
+
+def problemas_ids(capitulos: list[dict[str, Any]], tipo: str, existentes: set[str] | None = None) -> list[dict[str, Any]]:
+    """IDs vacíos, repetidos (en el Word o con el proyecto) o con espacios, con un ID nuevo propuesto.
+
+    Cada problema lleva `orden`, la posición del elemento entre los de su tipo.
+    """
+    existentes = set(existentes or ())
+    lista = elementos(capitulos, tipo)
+    usados = existentes | {str(e.get("id") or "").strip() for e in lista}
+    vistos: dict[str, int] = {}
+    problemas = []
+    anterior = ""
+    for orden, e in enumerate(lista):
+        ident = str(e.get("id") or "").strip()
+        motivo, propuesta = "", ""
+        limpio = re.sub(r"\s+", "", ident)
+        if not ident:
+            motivo = "sin ID"
+            propuesta = _siguiente(anterior, usados) if anterior else ""
+        elif ident in existentes:
+            motivo = "ya existe en el proyecto"
+            propuesta = _siguiente(limpio if _ID_VALIDO.match(limpio) else ident, usados)
+        elif ident in vistos:
+            motivo = f"repetido (también en la posición {vistos[ident] + 1})"
+            propuesta = _siguiente(limpio if _ID_VALIDO.match(limpio) else ident, usados)
+        elif limpio != ident:
+            motivo = "con espacios"
+            propuesta = limpio if limpio not in usados else _siguiente(limpio, usados)
+        vistos.setdefault(ident, orden)
+        if motivo:
+            if propuesta:
+                usados.add(propuesta)
+            problemas.append({"orden": orden, "id": ident, "titulo": str(e.get("titulo") or ""), "motivo": motivo,
+                              "propuesta": propuesta})
+        anterior = propuesta or ident or anterior
+    return problemas
+
+
+def aplicar_ids(capitulos: list[dict[str, Any]], tipo: str, nuevos: dict[Any, str]) -> int:
+    """Cambia los IDs indicados ({orden: id nuevo}). Devuelve cuántos ha cambiado."""
+    lista = elementos(capitulos, tipo)
+    cambiados = 0
+    for orden, nuevo in (nuevos or {}).items():
+        nuevo = str(nuevo or "").strip()
+        i = int(orden)
+        if nuevo and 0 <= i < len(lista) and lista[i].get("id") != nuevo:
+            lista[i]["id"] = nuevo
+            cambiados += 1
+    return cambiados
+
+
+def separar(capitulos: list[dict[str, Any]], tipo: str) -> list[dict[str, Any]]:
+    """Capítulos con los elementos de un tipo (con sus secciones, textos y tablas); sin los capítulos que no tienen ninguno."""
+    otros = set(CLASES) - {tipo}
+    resultado = []
+    for c in capitulos:
+        contenido = [e for e in c["contenido"] if not (isinstance(e, dict) and otros & set(e))]
+        if any(isinstance(e, dict) and tipo in e for e in contenido):
+            resultado.append({"capitulo": c["capitulo"], "contenido": contenido})
+    return resultado
+
+
+def _resumen_elemento(e: dict[str, Any], tipo: str) -> list[list[str]]:
+    """Campos con valor de un elemento, como texto corto, para la vista previa."""
+    filas = []
+    for k, v in e.items():
+        if k in ("nombre", "nivel") or v in (None, "", [], {}):
+            continue
+        nombre = NOMBRES[tipo].get(k, k)
+        if k == "campos_adicionales":
+            filas.extend([f"{n} (adicional)", str(x)[:300]] for n, x in v.items())
+            continue
+        if isinstance(v, list):
+            partes = []
+            for x in v:
+                if isinstance(x, dict) and "tabla" in x:
+                    partes.append(f"[tabla de {len(x['tabla'].get('filas') or [])} filas]")
+                elif isinstance(x, dict):
+                    partes.append(str(x.get("texto") or "") + (f" [{len(x.get('imagenes') or [])} imagen(es)]" if x.get("imagenes") else ""))
+                else:
+                    partes.append(str(x))
+            texto = "\n".join(f"• {p}" for p in partes) if k not in ("requisitos", "etiquetas", "entorno", "maniobra", "criterio_validacion") else ", ".join(partes)
+        else:
+            texto = str(v)
+        filas.append([nombre, texto[:600]])
+    return filas
+
+
+def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None = None) -> dict[str, Any]:
+    """Lo que se va a importar: cifras, capítulos, avisos, IDs a revisar y ejemplos."""
+    capitulos = conversion["capitulos"]
+    existentes = existentes or {}
+    tipos = {}
+    for tipo in CLASES:
+        lista = elementos(capitulos, tipo)
+        if not lista:
+            continue
+        caps = separar(capitulos, tipo)
+        tipos[tipo] = {
+            "total": len(lista),
+            "capitulos": [{"nombre": c["capitulo"] or "(antes del primer capítulo)",
+                           "elementos": sum(1 for e in c["contenido"] if isinstance(e, dict) and tipo in e)} for c in caps],
+            "ids": problemas_ids(capitulos, tipo, existentes.get(tipo)),
+            "ejemplos": [{"id": e.get("id", ""), "titulo": e.get("titulo", ""), "campos": _resumen_elemento(e, tipo)}
+                         for e in lista[:3]],
+        }
+    grupos: dict[str, dict[str, Any]] = {}
+    for a in conversion["avisos"]:
+        tipo = getattr(a, "tipo", "otro")
+        titulo, gravedad = TIPOS_AVISO.get(tipo, cv.TIPOS_AVISO.get(tipo, ("Otros", "aviso")))
+        g = grupos.setdefault(tipo, {"tipo": tipo, "titulo": titulo, "gravedad": gravedad, "total": 0, "ejemplos": []})
+        g["total"] += 1
+        if len(g["ejemplos"]) < 12:
+            donde = " · ".join(x for x in (getattr(a, "capitulo", ""), f"tabla {a.tabla}" if getattr(a, "tabla", None) else "", getattr(a, "id", "")) if x)
+            g["ejemplos"].append({"donde": donde, "mensaje": getattr(a, "mensaje", str(a))})
+    orden = list(TIPOS_AVISO) + list(cv.TIPOS_AVISO)
+    return {"totales": conversion["totales"], "tipos": tipos,
+            "avisos": sorted(grupos.values(), key=lambda g: orden.index(g["tipo"]) if g["tipo"] in orden else len(orden))}
+
+
+TIPOS_AVISO = {
+    "tabla_informativa": ("Tabla informativa (se conserva tal cual)", "info"),
+    "tabla_en_celda": ("Tabla dentro de una celda (se conserva en el contexto)", "aviso"),
+    "campo_desconocido": ("Etiqueta mapeada a un campo que no existe", "aviso"),
+}
+
+
+# ----------------------------------------------------------------------
+# 3. Importar
+# ----------------------------------------------------------------------
+def _yaml() -> YAML:
+    yaml = YAML()
+    yaml.allow_unicode = True
+    yaml.width = 4096
+    return yaml
+
+
+def _rutas_imagenes(valor: Any) -> set[str]:
+    if isinstance(valor, dict):
+        return set().union(*(_rutas_imagenes(v) for v in valor.values())) if valor else set()
+    if isinstance(valor, list):
+        return set().union(*(_rutas_imagenes(v) for v in valor)) if valor else set()
+    return {valor} if isinstance(valor, str) and valor.startswith("imagenes/") else set()
+
+
+def escribir(capitulos: list[dict[str, Any]], carpeta: Path, imagenes: dict[str, bytes]) -> list[str]:
+    """Escribe los capítulos en la carpeta (nueva o existente: se añaden al final de su índice). Devuelve los archivos nuevos."""
+    carpeta.mkdir(parents=True, exist_ok=True)
+    yaml = _yaml()
+    indice_ruta = carpeta / "indice.yaml"
+    indice = []
+    if indice_ruta.is_file():
+        with indice_ruta.open(encoding="utf-8") as f:
+            indice = list(yaml.load(f) or [])
+    numeros = [int(m.group(1)) for e in indice if isinstance(e, dict)
+               for m in [re.match(r"^(\d+)_", str(e.get("archivo") or ""))] if m]
+    n = max(numeros + [0])
+    nuevos = []
+    for c in capitulos:
+        n += 1
+        archivo = f"{n:02d}_{cv.slug(c['capitulo'] or 'sin_capitulo')}.yaml"
+        while (carpeta / archivo).exists():
+            n += 1
+            archivo = f"{n:02d}_{cv.slug(c['capitulo'] or 'sin_capitulo')}.yaml"
+        with open(carpeta / archivo, "w", encoding="utf-8") as f:
+            yaml.dump(c, f)
+        indice.append({"capitulo": c["capitulo"], "archivo": archivo})
+        nuevos.append(archivo)
+        for ruta in _rutas_imagenes(c):
+            if ruta in imagenes and not (carpeta / ruta).exists():
+                (carpeta / ruta).parent.mkdir(parents=True, exist_ok=True)
+                (carpeta / ruta).write_bytes(imagenes[ruta])
+    with indice_ruta.open("w", encoding="utf-8") as f:
+        yaml.dump(indice, f)
+    return nuevos
+
+
+def carpetas_destino(destino: str | Path, modo: str) -> dict[str, Path]:
+    """Carpetas de pruebas y de requisitos: las de un proyecto nuevo o las del abierto."""
+    destino = Path(destino)
+    if modo == "nuevo":
+        return {"prueba": destino / esquema.CARPETA_PRUEBAS, "requisito": destino / esquema.CARPETA_REQUISITOS}
+    from app.editor_core import requirements_dir, tests_dir
+    pruebas = tests_dir(destino)
+    return {"prueba": pruebas, "requisito": requirements_dir(pruebas)}
+
+
+def ids_existentes(carpetas: dict[str, Path]) -> dict[str, set[str]]:
+    from app.editor_core import items_in_chapter, read_chapters
+    resultado: dict[str, set[str]] = {}
+    for tipo, carpeta in carpetas.items():
+        ids = set()
+        if carpeta.is_dir() and any(carpeta.glob("*.yaml")):
+            for c in read_chapters(carpeta):
+                ids |= {str(e.get("id") or "").strip() for _i, e in items_in_chapter(c, tipo)}
+        resultado[tipo] = ids - {""}
+    return resultado
+
+
+def imagenes_ocupadas(carpetas: dict[str, Path]) -> set[str]:
+    return {p.name for c in carpetas.values() if (c / "imagenes").is_dir() for p in (c / "imagenes").iterdir()}
+
+
+def preparar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path | None = None, modo: str = "nuevo") -> dict[str, Any]:
+    """Convierte el Word para revisarlo o importarlo, teniendo en cuenta lo que ya hay en el destino."""
+    carpetas = carpetas_destino(destino, modo) if destino else {}
+    existentes = ids_existentes(carpetas) if destino and modo == "anadir" else {}
+    guardador = _GuardadorEnMemoria(imagenes_ocupadas(carpetas) if destino and modo == "anadir" else None)
+    conversion = convertir_documento(Document(str(ruta)), mapeo, guardador)
+    return {"conversion": conversion, "carpetas": carpetas, "existentes": existentes, "imagenes": guardador.datos}
+
+
+def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo: str = "nuevo",
+             ids: dict[str, dict[Any, str]] | None = None, renombrar_propuestos: bool = False) -> dict[str, Any]:
+    """Importa el Word en `destino` (modo "nuevo": carpeta de un proyecto nuevo; "anadir": el proyecto abierto).
+
+    `ids`: IDs nuevos por tipo ({"prueba": {orden: id}}); con `renombrar_propuestos`,
+    los que no se indiquen toman el ID propuesto en la revisión.
+    """
+    if modo not in ("nuevo", "anadir"):
+        raise ValueError(f"Modo de importación desconocido: {modo}")
+    destino = Path(destino)
+    if modo == "nuevo" and destino.exists() and any(destino.iterdir()):
+        raise ValueError(f"La carpeta {destino} no está vacía: elige una carpeta nueva para el proyecto.")
+    p = preparar(ruta, mapeo, destino, modo)
+    conversion, capitulos = p["conversion"], p["conversion"]["capitulos"]
+    resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "totales": {}, "ids_cambiados": {}}
+    for tipo in CLASES:
+        if not elementos(capitulos, tipo):
+            continue
+        nuevos = dict((ids or {}).get(tipo) or {})
+        if renombrar_propuestos:
+            for prob in problemas_ids(capitulos, tipo, p["existentes"].get(tipo)):
+                if prob["propuesta"]:
+                    nuevos.setdefault(str(prob["orden"]), prob["propuesta"])
+        resultado["ids_cambiados"][tipo] = aplicar_ids(capitulos, tipo, nuevos)
+    for tipo in CLASES:
+        caps = separar(capitulos, tipo)
+        if not caps:
+            continue
+        carpeta = p["carpetas"][tipo]
+        resultado["archivos"][tipo] = escribir(caps, carpeta, p["imagenes"])
+        resultado["carpetas"][tipo] = str(carpeta)
+        resultado["totales"][tipo] = len(elementos(caps, tipo))
+    if not resultado["carpetas"]:
+        raise ValueError("Con este mapeo no hay ninguna prueba ni ningún requisito que importar.")
+    if modo == "nuevo" and "prueba" not in resultado["carpetas"]:
+        # El editor abre siempre una carpeta de pruebas: el proyecto empieza con un capítulo vacío.
+        escribir([{"capitulo": "Pruebas", "contenido": []}], p["carpetas"]["prueba"], {})
+    if modo == "nuevo":
+        cv.escribir_avisos(conversion["avisos"], destino)
+    resultado["avisos"] = len(conversion["avisos"])
+    return resultado
+
+
+# ----------------------------------------------------------------------
+# Línea de órdenes
+# ----------------------------------------------------------------------
+def main(argv=None, prog=None) -> None:
+    ap = argparse.ArgumentParser(prog=prog, description="Importa pruebas o requisitos de un Word con un mapeo de etiquetas")
+    ap.add_argument("docx", help="documento Word")
+    ap.add_argument("-o", "--salida", help="carpeta del proyecto nuevo (sin ella, solo muestra el análisis)")
+    ap.add_argument("--tipo", choices=["prueba", "requisito"], help="qué se espera encontrar (ayuda a proponer)")
+    ap.add_argument("--mapeo", help="mapeo en JSON (el que guarda el editor o --guardar-mapeo)")
+    ap.add_argument("--guardar-mapeo", help="escribe el mapeo propuesto en este JSON para revisarlo")
+    ap.add_argument("--renombrar", action="store_true", help="da el ID propuesto a los repetidos o vacíos")
+    args = ap.parse_args(argv)
+    analisis = analizar(args.docx, args.tipo)
+    mapeo = mapeo_propuesto(analisis, json.loads(Path(args.mapeo).read_text(encoding="utf-8")) if args.mapeo else None)
+    print(f"{analisis['tablas']} tablas en {len(analisis['familias'])} familias:")
+    for f in analisis["familias"]:
+        tipo = mapeo["tipos"][f["firma"]]
+        print(f"  {f['numero']:3d}. {f['tablas']:5d} {'tabla ' if f['tablas'] == 1 else 'tablas'} → {TIPOS_VISIBLES[tipo]}")
+        if tipo in CLASES:
+            for e in f["etiquetas"]:
+                campo = mapeo["campos"][tipo][e["clave"]]
+                print(f"         {e['etiqueta'][:40]:40s} → {ESPECIALES.get(campo) or NOMBRES[tipo].get(campo, campo)}")
+    if args.guardar_mapeo:
+        Path(args.guardar_mapeo).write_text(json.dumps(mapeo, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Mapeo -> {args.guardar_mapeo}")
+    if args.salida:
+        r = importar(args.docx, mapeo, args.salida, "nuevo", renombrar_propuestos=args.renombrar)
+        for tipo, total in r["totales"].items():
+            print(f"{total} {TIPOS_VISIBLES[tipo].lower()} -> {r['carpetas'][tipo]}")
+        print(f"{r['avisos']} avisos (ver {Path(args.salida) / 'avisos.txt'})")
+
+
+if __name__ == "__main__":
+    main()

@@ -41,7 +41,7 @@ CABECERA_REVISIONES = (
     "# Guarda el texto que tenían cuando se revisaron sus pruebas por última vez;\n"
     "# al marcar «Pruebas revisadas» se quita su entrada.\n"
 )
-CAMPOS_HUELLA = ("titulo", "descripcion", "contexto")
+CAMPOS_HUELLA = ("titulo", "descripcion", "detalle", "contexto")
 
 
 def carpeta_requisitos(carpeta_pruebas: str | Path) -> Path:

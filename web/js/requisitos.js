@@ -5,7 +5,7 @@
 
 /* Campos del requisito (los define esquema.py). */
 const REQ_CAMPOS_TEXTO = ["nombre", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "fase", "fecha", "version"];
-const REQ_LISTAS = ["contexto"];
+const REQ_LISTAS = ["detalle", "contexto"];
 const REQ_MULTIPLES = ["criterio_validacion"];
 
 const COBERTURA_TXT = { cubierto: "Cubierto", sin_cobertura: "Sin cobertura", no_aplica: "No aplica" };
@@ -137,6 +137,7 @@ function valoresDeRequisito(el = {}) {
   for (const k of REQ_CAMPOS_TEXTO) v[k] = el[k] === null || el[k] === undefined ? "" : String(el[k]);
   for (const k of REQ_LISTAS) v[k] = aLista(el[k]).map(filaDesde);
   for (const k of REQ_MULTIPLES) v[k] = aLista(el[k]).map(String);
+  v.campos_adicionales = extrasDesde(el.campos_adicionales);
   return v;
 }
 
@@ -154,6 +155,7 @@ function cuerpoRequisito(ubicacion) {
         campoArea("descripcion", "Descripción"),
         campoTexto("fuente", "Fuente"),
         campoTexto("referencia", "Referencia", { ancho: true }))),
+    editorLista("detalle", "Tablas e imágenes de la descripción", { ayuda: "Tablas, imágenes y párrafos que siguen a la descripción dentro de su celda.", conTablas: true }),
     h("section", { class: "bloque", "aria-label": "Clasificación" },
       h("div", { class: "rejilla" },
         campoSelect("tipo", "Tipo", tipos),
@@ -163,6 +165,7 @@ function cuerpoRequisito(ubicacion) {
         campoTexto("fecha", "Fecha"),
         campoTexto("version", "Versión"))),
     editorLista("contexto", "Contexto", { ayuda: "Texto y tablas que aparecen antes de la tabla del requisito.", conTablas: true }),
+    editorExtras(),
   ]);
   return cont;
 }

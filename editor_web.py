@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from app import ajustes, firma
-from app.validacion_api import EditorValidacionApi as EditorApi
+from app.importacion_api import EditorImportacionApi as EditorApi
 
 
 def recurso(relativa: str) -> Path:

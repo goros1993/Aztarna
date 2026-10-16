@@ -266,7 +266,7 @@ def completar(prueba: Any) -> None:
 # Requisitos (plantilla en plantillas/tabla_requisito.docx)
 # ----------------------------------------------------------------------
 #     ID | Título
-#     Descripción
+#     Descripción (con sus tablas e imágenes, en `detalle`)
 #     Fuente
 #     Referencia
 #     Tipo | Criterio de validación
@@ -279,7 +279,8 @@ CARPETA_PRUEBAS = "pruebas"
 CARPETA_REQUISITOS = "requisitos"
 
 REQ_CAMPOS_TEXTO = ("nombre", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "fase", "fecha", "version")
-REQ_CAMPOS_LISTA = ("contexto",)
+# `detalle`: tablas, imágenes y párrafos que siguen a la descripción dentro de su celda.
+REQ_CAMPOS_LISTA = ("detalle", "contexto")
 REQ_OPCIONES_MULTIPLES = {
     "criterio_validacion": ("Inspección", "Análisis", "Test"),
 }
@@ -292,14 +293,15 @@ CRITERIO_CON_PRUEBAS = "Test"
 TIPO_SIN_VERIFICACION = "Informativo"
 
 REQ_ORDEN = (
-    "nombre", "nivel", "id", "titulo", "descripcion", "fuente", "referencia", "tipo", "criterio_validacion",
-    "fase", "fecha", "version", "contexto",
+    "nombre", "nivel", "id", "titulo", "descripcion", "detalle", "fuente", "referencia", "tipo", "criterio_validacion",
+    "fase", "fecha", "version", "contexto", "campos_adicionales",
 )
 
 REQ_ETIQUETAS = {
     "id": "ID", "nombre": "Encabezado en el documento", "titulo": "Título", "descripcion": "Descripción",
     "fuente": "Fuente", "referencia": "Referencia", "tipo": "Tipo", "criterio_validacion": "Criterio validación",
     "fase": "Fase", "fecha": "Fecha", "version": "Versión", "contexto": "Contexto",
+    "detalle": "Tablas e imágenes de la descripción", "campos_adicionales": "Campos adicionales",
 }
 
 
@@ -307,9 +309,35 @@ def requisito_vacio() -> dict[str, Any]:
     """Requisito nuevo con todos los campos del esquema, vacíos."""
     vacio: dict[str, Any] = {"nombre": "", "nivel": 3}
     for clave in REQ_ORDEN:
-        if clave not in vacio:
+        if clave not in vacio and clave not in ("detalle", "campos_adicionales"):
             vacio[clave] = "" if clave in REQ_CAMPOS_TEXTO else []
     return vacio
+
+
+def normalizar_tipo_requisito(valor: Any) -> str | None:
+    """Tipo del requisito con su forma de la lista («obligatorio» → «Obligatorio»); "" si está vacío y None si no es una opción."""
+    clave = _clave(valor or "").rstrip(".")
+    if not clave:
+        return ""
+    return next((t for t in REQ_TIPOS if _clave(t) == clave), None)
+
+
+def normalizar_criterio(valor: Any) -> tuple[list[str], list[str]]:
+    """Criterios de validación válidos («Test», «inspeccion / analisis»…) y lo que no se reconoce."""
+    textos = valor if isinstance(valor, list) else [valor]
+    opciones = REQ_OPCIONES_MULTIPLES["criterio_validacion"]
+    validos, descartados = [], []
+    for texto in textos:
+        for trozo in re.split(r"[/,;]|\s+y\s+|\s+o\s+", str(texto or "")):
+            trozo = trozo.strip().rstrip(".")
+            if not trozo:
+                continue
+            opcion = next((o for o in opciones if _clave(o) == _clave(trozo) or _clave(o).startswith(_clave(trozo)[:4]) and len(_clave(trozo)) >= 4), None)
+            if opcion is None:
+                descartados.append(trozo)
+            elif opcion not in validos:
+                validos.append(opcion)
+    return sorted(validos, key=opciones.index), descartados
 
 
 def necesita_pruebas(requisito: Any) -> bool:

@@ -125,7 +125,7 @@ TIPOS_AVISO = {
     "id_no_valido": ("ID con espacios o con forma extraña", "aviso"),
     "titulo_vacio": ("Prueba sin título", "error"),
     "tabla_dudosa": ("Tabla dudosa: conservada como tabla, revisar si es una prueba", "aviso"),
-    "sin_titulo": ("Prueba sin título previo", "aviso"),
+    "sin_titulo": ("Tabla sin título previo (sin encabezado en el documento)", "aviso"),
     "valor_descartado": ("Valor que no encaja en el esquema (descartado)", "aviso"),
     "campos_eliminados": ("Datos de campos que ya no existen (eliminados)", "info"),
     "etiqueta_desconocida": ("Etiqueta desconocida (conservada en campos adicionales)", "aviso"),
@@ -225,10 +225,15 @@ def texto_celda(c):
     return "\n".join(texto(p) for p in c.paragraphs)
 
 
-def texto_md(p):
+def texto_md(p, desde=0):
+    """Texto del párrafo con las marcas de formato. Con `desde`, se salta los
+    primeros caracteres (la etiqueta «Descripción:» de una celda)."""
     out = []
     for r in runs(p):
         t = r.text
+        if desde:
+            saltar = min(desde, len(t))
+            t, desde = t[saltar:], desde - saltar
         if not t.strip():
             out.append(t)
             continue
@@ -547,7 +552,25 @@ def contenido_parrafo(p, guardar_imagen):
     return texto
 
 
-def extraer_capitulos(doc, avisos, guardar_imagen=None):
+def leer_tabla_prueba(tabla, avisos, guardar_imagen):
+    """Lectura por defecto: la tabla es una prueba, una tabla dudosa o una tabla informativa.
+
+    Devuelve (clave, elemento): ("prueba", {...}) o ("tabla", motivo). Otra
+    lectura (app/importacion.py) puede devolver ("requisito", {...}) o
+    ("ignorar", None).
+    """
+    clase, motivo = clasificar_tabla(tabla)
+    if clase == "prueba":
+        return "prueba", parsear(tabla, avisos, guardar_imagen)
+    if clase == "dudosa":
+        cabecera = " ".join(texto_celda(tabla.rows[0].cells[0]).split())[:60] if tabla.rows else ""
+        avisos.append(Aviso("tabla_dudosa", f"«{cabecera}»: {motivo}"))
+    else:
+        avisos.append(Aviso("tabla_informativa", motivo))
+    return "tabla", motivo
+
+
+def extraer_capitulos(doc, avisos, guardar_imagen=None, leer_tabla=leer_tabla_prueba):
     capitulos = [{"capitulo": None, "contenido": []}]
     pendiente = None
     texto_pendiente = []
@@ -605,13 +628,11 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
             numero_tabla += 1
             tabla = Table(el, doc)
             antes = len(avisos)
-            clase, motivo = clasificar_tabla(tabla)
-            if clase != "prueba":
-                if clase == "dudosa":
-                    cabecera = " ".join(texto_celda(tabla.rows[0].cells[0]).split())[:60] if tabla.rows else ""
-                    avisos.append(Aviso("tabla_dudosa", f"«{cabecera}»: {motivo}"))
-                else:
-                    avisos.append(Aviso("tabla_informativa", motivo))
+            clave, leido = leer_tabla(tabla, avisos, guardar_imagen)
+            if clave == "ignorar":
+                pass
+            elif clave == "tabla":
+                motivo = leido
                 # La tabla va donde iría un párrafo en ese punto: contexto del
                 # título pendiente, de la sección actual o, si no hay, del capítulo.
                 elemento = {"tabla": tabla_informativa(tabla, motivo, guardar_imagen)}
@@ -622,7 +643,7 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
                 else:
                     capitulos[-1]["contenido"].append(elemento)
             else:
-                prueba = parsear(tabla, avisos, guardar_imagen)
+                prueba = leido
                 if pendiente:
                     cab = {"nombre": pendiente[0], "nivel": pendiente[1]}
                     if texto_pendiente:
@@ -634,13 +655,13 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None):
                     avisos.append(Aviso("sin_titulo", "tabla sin título previo", prueba["id"]))
                 ident = prueba["id"]
                 if not ident:
-                    avisos.append(Aviso("id_vacio", "la prueba no tiene ID (primera celda de la tabla vacía)"))
+                    avisos.append(Aviso("id_vacio", f"{'el requisito' if clave == 'requisito' else 'la prueba'} no tiene ID (primera celda de la tabla vacía)"))
                 elif not ID_PRUEBA.match(ident):
                     avisos.append(Aviso("id_no_valido", f"ID «{ident}» con espacios o caracteres extraños", ident))
-                if ident and ident in ids_vistos:
-                    avisos.append(Aviso("id_duplicado", f"ID repetido (también en la tabla {ids_vistos[ident]})", ident))
-                ids_vistos.setdefault(ident, numero_tabla)
-                capitulos[-1]["contenido"].append({"prueba": {**cab, **prueba}})
+                if ident and (clave, ident) in ids_vistos:
+                    avisos.append(Aviso("id_duplicado", f"ID repetido (también en la tabla {ids_vistos[(clave, ident)]})", ident))
+                ids_vistos.setdefault((clave, ident), numero_tabla)
+                capitulos[-1]["contenido"].append({clave: {**cab, **prueba}})
             for aviso in avisos[antes:]:
                 if isinstance(aviso, Aviso):
                     aviso.capitulo = capitulos[-1]["capitulo"] or ""

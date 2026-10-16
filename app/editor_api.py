@@ -312,6 +312,8 @@ def clean_requirement_changes(changes: dict[str, Any]) -> dict[str, Any]:
             cleaned[field] = [o for o in opciones if o in valores]
         elif field in esquema.REQ_CAMPOS_LISTA:
             cleaned[field] = _clean_list(value, field)
+        elif field == "campos_adicionales":
+            cleaned[field] = _clean_extras(value)
         elif field == "nivel":
             cleaned[field] = normalize_level(value)
         else:
@@ -1325,6 +1327,7 @@ class EditorApi:
                     if otros:
                         add("aviso", ci, index, req_id, f"{esquema.REQ_ETIQUETAS[field]}: «{', '.join(otros)}» no es una opción ({', '.join(opciones)}).")
                 self._check_context_tables(add, ci, index, req_id, req.get("contexto"))
+                self._check_context_tables(add, ci, index, req_id, req.get("detalle"))
                 self._check_images(add, base, ci, index, req_id, _image_values(req))
         for req_id, places in seen.items():
             if len(places) > 1:

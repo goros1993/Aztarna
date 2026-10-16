@@ -111,7 +111,7 @@ function valoresDePrueba(el = {}) {
 
 function serializar(clave) {
   const v = F.valores[clave];
-  if (LISTAS.includes(clave)) return filasAPlano(v);
+  if (LISTAS.includes(clave) || REQ_LISTAS.includes(clave)) return filasAPlano(v);
   if (clave === "campos_adicionales") return extrasAPlano(v);
   if (clave === "imagenes" || MULTIPLES.includes(clave) || TEXTOS.includes(clave)) return [...v];
   return v;
@@ -120,7 +120,7 @@ function serializar(clave) {
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
     ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes"]
-    : F.modo === "nueva" && F.tipo === "requisito" ? [...REQ_CAMPOS_TEXTO, ...REQ_LISTAS, ...REQ_MULTIPLES]
+    : F.modo === "nueva" && F.tipo === "requisito" ? [...REQ_CAMPOS_TEXTO, ...REQ_LISTAS, ...REQ_MULTIPLES, "campos_adicionales"]
       : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
 }
@@ -584,7 +584,7 @@ function editorExtras() {
   const bloque = h("section", { class: "bloque", "aria-label": "Campos adicionales" },
     h("div", { class: "bloque-cab" },
       h("h3", { text: "Campos adicionales" }),
-      h("p", { class: "ayuda", text: "Información propia de esta prueba que no tiene campo en la tabla; sale en filas al final de la tabla." }),
+      h("p", { class: "ayuda", text: `Información propia de ${F.tipo === "requisito" ? "este requisito" : "esta prueba"} que no tiene campo en la tabla; sale en filas al final de la tabla.` }),
       h("button", {
         class: "btn ghost peq", type: "button",
         onclick: () => { filas.push({ clave: "", valor: "", tipo: "texto", orig: undefined }); tocar("campos_adicionales"); pintar(filas.length - 1); },

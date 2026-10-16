@@ -5,8 +5,9 @@ Uso:
     python herramientas.py <orden> [opciones]
     python herramientas.py <orden> --help        # opciones de cada orden
 
-Importación del Word (carpeta migracion/; se usa hasta que los YAML son la fuente oficial):
-    convertir   Word -> YAML (un archivo por capítulo), con avisos
+Importación del Word:
+    importar    pruebas o requisitos con un mapeo de etiquetas (lo mismo que ⋯ → Importar… en el editor)
+    convertir   Word de pruebas -> YAML (un archivo por capítulo), con avisos
     inventario  agrupa las tablas del Word por estructura antes de importar
     auditar     comprueba que la importación no pierde texto (informe HTML)
     ids         propone y aplica IDs nuevos para pruebas con ID repetido
@@ -30,7 +31,8 @@ import sys
 from app import firma
 
 ORDENES = {
-    "convertir": ("migracion.convertir", "Word -> YAML (un archivo por capítulo), con avisos"),
+    "importar": ("app.importacion", "Importa pruebas o requisitos de un Word con un mapeo de etiquetas"),
+    "convertir": ("migracion.convertir", "Word de pruebas -> YAML (un archivo por capítulo), con avisos"),
     "inventario": ("migracion.inventario", "Agrupa las tablas del Word por estructura"),
     "auditar": ("migracion.auditar", "Comprueba que la importación no pierde texto"),
     "ids": ("migracion.ids_duplicados", "Propone y aplica IDs nuevos para pruebas con ID repetido"),
