@@ -451,7 +451,8 @@ function mostrarPanelCampana() {
         h("td", { text: nombre }),
         ESTADOS.map((e) => h("td", { class: "num" + (t[e] ? " e-txt-" + e : ""), text: t[e] ? String(t[e]) : "·" })));
     })));
-  const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => `${k}: ${[].concat(v).join(", ")}`).join(" · ") || "todas las pruebas";
+  const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => (k === "solo_ids" ? `${[].concat(v).length} pruebas elegidas una a una`
+    : k === "importado_de" ? `resultados importados de ${v}` : `${k}: ${[].concat(v).join(", ")}`)).join(" · ") || "todas las pruebas";
   const problemas = r.problemas.length
     ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: "Ir a la prueba", onclick: () => irAPruebaCampana(p.id) },
       h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id }), h("span", { text: p.mensaje }))))

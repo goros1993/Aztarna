@@ -13,11 +13,16 @@ from pathlib import Path
 from typing import Any
 
 from app import ajustes
+from app import ejecucion_core as ej
 from app import importacion as imp
+from app import importacion_resultados as ir
+from app import validacion_core as vc
 from app.editor_api import respuesta, to_plain
+from app.ejecucion_api import _nombre_carpeta
 from app.validacion_api import EditorValidacionApi
 
 AJUSTE_MAPEO = "importacion_mapeo"
+AJUSTE_MAPEO_RESULTADOS = "importacion_resultados_mapeo"
 
 
 def _opciones(tipo: str) -> list[dict[str, str]]:
@@ -57,9 +62,32 @@ class EditorImportacionApi(EditorValidacionApi):
         ajustes.guardar({"carpeta_importacion": str(archivo.parent)})
         return {"archivo": str(archivo)}
 
+    def _pruebas_del_proyecto(self) -> Path:
+        """Carpeta de pruebas con la que se enlazan los resultados (la de la validación, si hay una abierta)."""
+        if self._validacion is not None and vc.carpeta_pruebas(self._validacion) is not None:
+            return vc.carpeta_pruebas(self._validacion)
+        if self._campaña is not None and ej.carpeta_pruebas(self._campaña) is not None:
+            return ej.carpeta_pruebas(self._campaña)
+        if self._abierto() is None:
+            raise ValueError("Abre primero la carpeta de pruebas del proyecto: los resultados se enlazan con sus pruebas por el ID.")
+        return self._abierto()
+
     @respuesta
     def importar_analizar(self, archivo: str, tipo: str | None = None) -> dict[str, Any]:
         """Familias de tablas del Word y el mapeo propuesto (con lo elegido la última vez)."""
+        if tipo == "resultado":
+            self._pruebas_del_proyecto()
+            analisis = ir.analizar(self._documento(archivo))
+            recordado = ajustes.leer().get(AJUSTE_MAPEO_RESULTADOS)
+            return {
+                **analisis,
+                "mapeo": ir.mapeo_propuesto(analisis, recordado if isinstance(recordado, dict) else None),
+                "tipos": [{"valor": t, "texto": v} for t, v in ir.TIPOS_VISIBLES.items()],
+                "opciones": {"resultado": [{"valor": k, "texto": v} for k, v in {**ir.DATOS, **ir.ESPECIALES}.items()]},
+                "estados": [{"valor": e, "texto": "Sin resultado (pendiente)" if e == ir.SIN_RESULTADO else ej.ESTADOS_VISIBLES[e]}
+                            for e in ("ok", "no_ok", "bloqueada", "no_aplica", ir.SIN_RESULTADO)],
+                "nombre_propuesto": f"Resultados {Path(archivo).stem}",
+            }
         analisis = imp.analizar(self._documento(archivo), tipo if tipo in imp.CLASES else None)
         recordado = ajustes.leer().get(AJUSTE_MAPEO)
         abierto = self._abierto()
@@ -84,12 +112,12 @@ class EditorImportacionApi(EditorValidacionApi):
         return to_plain(imp.revision(imp.convertir_documento_ruta(documento, mapeo)))
 
     @respuesta
-    def importar_elegir_carpeta(self, nombre: str = "") -> dict[str, Any]:
-        """Carpeta donde se creará el proyecto nuevo (una subcarpeta `nombre` de la elegida)."""
+    def importar_elegir_carpeta(self, nombre: str = "", ejecucion: bool = False) -> dict[str, Any]:
+        """Carpeta donde se creará el proyecto nuevo (o la ejecución): una subcarpeta `nombre` de la elegida."""
         padre = self._dialogo_carpeta()
         if padre is None:
             return {"cancelado": True}
-        destino = padre / _nombre_proyecto(nombre)
+        destino = padre / (_nombre_carpeta(nombre) if ejecucion else _nombre_proyecto(nombre))
         if destino.exists() and any(destino.iterdir()):
             raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
         return {"carpeta": str(destino)}
@@ -123,6 +151,53 @@ class EditorImportacionApi(EditorValidacionApi):
         self._load(destino)
         self._coleccion = "requisitos" if "prueba" not in resultado["carpetas"] and self._req_chapters else "pruebas"
         return {"resultado": resultado, "carpeta": self._summary(), "proyecto": str(destino)}
+
+    # --- resultados -----------------------------------------------------------
+    @respuesta
+    def importar_resultados_revisar(self, archivo: str, mapeo: dict[str, Any]) -> dict[str, Any]:
+        """Cuántos resultados hay de cada tipo, qué pruebas no están en el proyecto y ejemplos."""
+        from app.editor_core import read_chapters
+        preparado = ir.preparar(self._documento(archivo), mapeo, read_chapters(self._pruebas_del_proyecto()))
+        return to_plain(ir.revision(preparado))
+
+    @respuesta
+    def importar_resultados_ejecutar(self, archivo: str, mapeo: dict[str, Any], nombre: str, datos: dict[str, Any],
+                                     en_validacion: bool = False, carpeta: str | None = None) -> dict[str, Any]:
+        """Crea la ejecución con los resultados del Word y la abre (dentro de la validación abierta si se pide)."""
+        documento = self._documento(archivo)
+        nombre = str(nombre or "").strip()
+        if not nombre:
+            raise ValueError("La ejecución necesita un nombre.")
+        if en_validacion and self._validacion is not None:
+            destino = self._validacion["carpeta"] / _nombre_carpeta(nombre)
+        elif carpeta:
+            destino = Path(carpeta)
+        else:
+            raise ValueError("Elige dónde crear la ejecución.")
+        if destino.exists():
+            raise ValueError(f"Ya existe {destino.name}. Cambia el nombre de la ejecución.")
+        r = ir.importar(documento, mapeo, destino, self._pruebas_del_proyecto(), nombre, datos)
+        if en_validacion and self._validacion is not None:
+            vc.anadir_ejecucion(self._validacion, destino)
+        self._recordar_mapeo_resultados(mapeo)
+        pruebas = self._pruebas_del_proyecto()
+        cambia = self._solo_lectura or self._yaml_dir is None or pruebas.resolve() != self._yaml_dir
+        if cambia:                               # p. ej., estaban abiertas las pruebas congeladas de otra ejecución
+            self._load(pruebas)
+        self._campaña = r["campaña"]
+        estado = {**self._estado(), "carpeta_pruebas": self._summary() if cambia else None}
+        return {"campana": estado, "pruebas": r["pruebas"], "con_resultado": r["con_resultado"], "avisos": r["avisos"]}
+
+    @staticmethod
+    def _recordar_mapeo_resultados(mapeo: dict[str, Any]) -> None:
+        anterior = ajustes.leer().get(AJUSTE_MAPEO_RESULTADOS)
+        anterior = anterior if isinstance(anterior, dict) else {}
+        ajustes.guardar({AJUSTE_MAPEO_RESULTADOS: {
+            "tipos": {**dict(anterior.get("tipos") or {}), **dict(mapeo.get("tipos") or {})},
+            "campos": {"resultado": {**dict((anterior.get("campos") or {}).get("resultado") or {}),
+                                     **dict((mapeo.get("campos") or {}).get("resultado") or {})}},
+            "valores": {**dict(anterior.get("valores") or {}), **dict(mapeo.get("valores") or {})},
+        }})
 
     @staticmethod
     def _recordar_mapeo(mapeo: dict[str, Any]) -> None:

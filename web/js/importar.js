@@ -1,20 +1,23 @@
 "use strict";
 /* Asistente de importación (⋯ → Importar…): documento, familias de tablas,
-   campos y revisión. La lógica está en app/importacion.py; el mapeo elegido
-   se recuerda para la próxima vez. */
+   campos y revisión. Importa pruebas o requisitos (app/importacion.py) o los
+   resultados de una ejecución (app/importacion_resultados.py); el mapeo
+   elegido se recuerda para la próxima vez. */
 
 const PASOS_IMPORTAR = ["Documento", "Tablas", "Campos", "Revisar"];
 const TIPO_PLURAL = { prueba: "pruebas", requisito: "requisitos" };
 let IMP = null;
 
 function importarDisponible() {
-  return S.modo !== "ejecucion";
+  return true;                 // en el modo Validación, solo resultados
 }
+
+const esResultados = () => IMP && IMP.preferido === "resultado";
 
 async function asistenteImportar() {
   if (!(await guardia())) return;
   setDirty(false);
-  IMP = { paso: 0, archivo: "", preferido: enRequisitos() ? "requisito" : "prueba", modo: "nuevo", nombre: "",
+  IMP = { paso: 0, archivo: "", preferido: S.modo === "ejecucion" ? "resultado" : enRequisitos() ? "requisito" : "prueba", modo: "nuevo", nombre: "",
     analisis: null, mapeo: null, revision: null, ids: {} };
   const dlg = h("dialog", { class: "ancho asistente", "aria-label": "Importar desde Word" });
   dlg.addEventListener("close", () => { dlg.remove(); IMP = null; });
@@ -37,8 +40,11 @@ function pintarAsistente() {
     IMP.paso > 0 ? boton("Atrás", "", () => { IMP.paso -= 1; pintarAsistente(); }) : null,
     IMP.paso < 3
       ? boton("Siguiente", "primary", () => siguientePaso().catch(fallo), { disabled: IMP.paso === 0 && !IMP.archivo })
-      : boton(IMP.modo === "nuevo" ? "Elegir carpeta e importar…" : "Importar", "primary", () => ejecutarImportacion().catch(fallo),
-        { disabled: !IMP.revision || !Object.keys(IMP.revision.tipos).length }));
+      : esResultados()
+        ? boton(IMP.enValidacion ? "Crear la ejecución" : "Elegir carpeta y crear la ejecución…", "primary", () => ejecutarImportacionResultados().catch(fallo),
+          { disabled: !IMP.revision || !IMP.revision.pruebas })
+        : boton(IMP.modo === "nuevo" ? "Elegir carpeta e importar…" : "Importar", "primary", () => ejecutarImportacion().catch(fallo),
+          { disabled: !IMP.revision || !Object.keys(IMP.revision.tipos).length }));
   IMP.dlg.replaceChildren(
     h("div", { class: "dlg-cab" }, "Importar desde Word", pasos),
     h("div", { class: "dlg-cuerpo asistente-cuerpo" }, cuerpo),
@@ -54,7 +60,15 @@ async function siguientePaso() {
     IMP.mapeo = a.mapeo;
     if (!IMP.nombre) IMP.nombre = a.nombre_propuesto;
   } else if (IMP.paso === 1) {
-    if (!tiposElegidos().length) { aviso("Ninguna familia es de pruebas ni de requisitos: no hay nada que importar", "error"); return; }
+    if (!tiposElegidos().length) {
+      aviso(esResultados() ? "Ninguna familia tiene resultados: no hay nada que importar" : "Ninguna familia es de pruebas ni de requisitos: no hay nada que importar", "error");
+      return;
+    }
+  } else if (IMP.paso === 2 && esResultados()) {
+    if (!Object.values(IMP.mapeo.campos.resultado).includes("estado")) { aviso("Elige qué etiqueta tiene el resultado (va a «Resultado»)", "error"); return; }
+    IMP.revision = await conEspera("Leyendo los resultados…", () => api.importar_resultados_revisar(IMP.archivo, IMP.mapeo), "Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
+    IMP.ejecucion = IMP.ejecucion || { nombre: IMP.analisis.nombre_propuesto, entorno_pruebas: "", entorno: "", objeto: "", responsable: leerLocal("ejecutor") || "" };
+    IMP.enValidacion = Boolean(S.validacion);
   } else if (IMP.paso === 2) {
     IMP.revision = await conEspera("Preparando la vista previa…", () => api.importar_revisar(IMP.archivo, IMP.mapeo, IMP.modo), "Se lee todo el documento con el mapeo elegido. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.ids = {};
@@ -71,7 +85,7 @@ async function siguientePaso() {
 
 function tiposElegidos() {
   const tipos = new Set(IMP.analisis.familias.map((f) => IMP.mapeo.tipos[f.firma]));
-  return ["prueba", "requisito"].filter((t) => tipos.has(t));
+  return ["prueba", "requisito", "resultado"].filter((t) => tipos.has(t));
 }
 
 /* ---- 1. documento ---- */
@@ -81,6 +95,8 @@ function pasoDocumento() {
     h("span", {}, texto));
   const abierto = S.carpeta && !S.soloLectura ? S.carpeta : null;
   if (!abierto && IMP.modo === "anadir") IMP.modo = "nuevo";
+  const soloResultados = S.modo === "ejecucion";
+  const elegirTipo = (v) => { IMP.preferido = v || null; pintarAsistente(); };
   const nombre = h("input", { type: "text", id: "imp-nombre", value: IMP.nombre, placeholder: "Nombre de la carpeta del proyecto",
     disabled: IMP.modo !== "nuevo", oninput: (e) => { IMP.nombre = e.target.value; } });
   return h("div", { class: "asistente-documento" },
@@ -103,10 +119,15 @@ function pasoDocumento() {
         h("span", { class: "ruta-archivo", text: IMP.archivo || "Ningún documento elegido", title: IMP.archivo || "" }))),
     h("fieldset", { class: "grupo-radio" },
       h("legend", { text: "¿Qué contiene?" }),
-      radio("imp-tipo", "prueba", "Pruebas", IMP.preferido, (v) => { IMP.preferido = v; }),
-      radio("imp-tipo", "requisito", "Requisitos", IMP.preferido, (v) => { IMP.preferido = v; }),
-      radio("imp-tipo", "", "Lo decide el editor (pruebas y requisitos en el mismo documento)", IMP.preferido || "", (v) => { IMP.preferido = v || null; }),
-      h("p", { class: "ayuda", text: "Solo sirve para proponer; en el siguiente paso eliges qué es cada grupo de tablas." })),
+      radio("imp-tipo", "prueba", "Pruebas", IMP.preferido, elegirTipo, soloResultados),
+      radio("imp-tipo", "requisito", "Requisitos", IMP.preferido, elegirTipo, soloResultados),
+      radio("imp-tipo", "", "Lo decide el editor (pruebas y requisitos en el mismo documento)", IMP.preferido || "", elegirTipo, soloResultados),
+      radio("imp-tipo", "resultado", "Resultados de una ejecución (las pruebas ya están en el proyecto)", IMP.preferido, elegirTipo, !S.carpeta),
+      h("p", { class: "ayuda", text: soloResultados
+        ? "En el modo Validación solo se importan resultados; para importar pruebas o requisitos, cambia al modo Pruebas o Requisitos."
+        : "Solo sirve para proponer; en el siguiente paso eliges qué es cada grupo de tablas." })),
+    esResultados() ? h("p", { class: "ayuda", text: "Los resultados se enlazan con las pruebas del proyecto por el ID de la cabecera de cada tabla. Se crea una ejecución nueva con esas pruebas"
+      + (S.validacion ? `, que puedes añadir a la validación «${S.validacion.datos.nombre}».` : ".") + " Su nombre y su entorno de pruebas se eligen en el último paso." }) :
     h("fieldset", { class: "grupo-radio" },
       h("legend", { text: "¿Dónde se importa?" }),
       radio("imp-modo", "nuevo", "En un proyecto nuevo", IMP.modo, (v) => { IMP.modo = v; nombre.disabled = false; }),
@@ -154,14 +175,23 @@ function pasoCampos() {
         if (previa) { previa.tablas += e.tablas; previa.inicio = previa.inicio || e.inicio; } else etiquetas.set(e.clave, { ...e });
       }
     }
-    const filas = [...etiquetas.values()].sort((x, y) => (y.inicio - x.inicio) || (y.tablas - x.tablas));
+    // Primero las que se importan (en resultados, casi todas las etiquetas son de la prueba y no interesan).
+    const importa = (e) => (tipo === "resultado" && ["ignorar", "anterior"].includes(IMP.mapeo.campos[tipo][e.clave]) ? 0 : 1);
+    const filas = [...etiquetas.values()].sort((x, y) => (importa(y) - importa(x)) || (y.inicio - x.inicio) || (y.tablas - x.tablas));
+    const valores = tipo === "resultado" ? bloqueValores(etiquetas) : null;
     return h("section", { class: "bloque-mapeo" },
-      h("h3", { text: tipo === "prueba" ? "Pruebas" : "Requisitos" }),
-      h("p", { class: "ayuda", text: "Cabecera de la tabla: la primera celda es el ID y la segunda, el título." }),
+      h("h3", { text: { prueba: "Pruebas", requisito: "Requisitos", resultado: "Resultados" }[tipo] }),
+      h("p", { class: "ayuda", text: tipo === "resultado"
+        ? "La primera celda de la cabecera es el ID de la prueba: así se enlaza cada resultado. Las etiquetas de la propia prueba (descripción, pasos…) no se importan."
+        : "Cabecera de la tabla: la primera celda es el ID y la segunda, el título." }),
       h("table", { class: "tabla-mapeo" },
         h("thead", {}, h("tr", {}, h("th", { text: "Etiqueta en el Word" }), h("th", { text: "Tablas" }), h("th", { text: "Va a" }))),
         h("tbody", {}, filas.map((e) => {
-          const sel = h("select", { "aria-label": `Campo para «${e.etiqueta}»`, onchange: (ev) => { IMP.mapeo.campos[tipo][e.clave] = ev.target.value; marcar(); } },
+          const sel = h("select", { "aria-label": `Campo para «${e.etiqueta}»`, onchange: (ev) => {
+            IMP.mapeo.campos[tipo][e.clave] = ev.target.value;
+            marcar();
+            if (valores) valores.repintar();
+          } },
             a.opciones[tipo].map((o) => h("option", { value: o.valor, text: o.texto, selected: IMP.mapeo.campos[tipo][e.clave] === o.valor })));
           const fila = h("tr", {},
             h("td", {}, h("span", { text: e.etiqueta }), e.inicio ? null : h("span", { class: "muted peq", text: " · en mitad de una celda" })),
@@ -170,15 +200,60 @@ function pasoCampos() {
           function marcar() { fila.classList.toggle("ignorada", sel.value === "ignorar"); }
           marcar();
           return fila;
-        }))));
+        }))),
+      valores);
   });
   return h("div", {},
     h("p", { class: "muted", text: "A qué campo va cada etiqueta. «Campo adicional» la conserva con su nombre; «Parte del campo anterior» deja ese párrafo dentro del campo de antes (útil para una «Nota:» en mitad de un texto)." }),
     bloques);
 }
 
+/** Resultados: qué estado es cada valor escrito en el Word en las etiquetas que van a «Resultado». */
+function bloqueValores(etiquetas) {
+  const caja = h("div", { class: "valores-resultado" });
+  caja.repintar = () => {
+    const valores = new Map();
+    for (const e of etiquetas.values()) {
+      if (IMP.mapeo.campos.resultado[e.clave] !== "estado") continue;
+      for (const v of e.valores || []) {
+        const previo = valores.get(v.clave);
+        if (previo) previo.tablas += v.tablas; else valores.set(v.clave, { ...v });
+      }
+    }
+    if (!valores.size) {
+      caja.replaceChildren(h("p", { class: "aviso-panel", text: "Ninguna etiqueta va a «Resultado»: elige cuál tiene el resultado de la prueba." }));
+      return;
+    }
+    caja.replaceChildren(
+      h("h3", { text: "Qué resultado es cada valor" }),
+      h("p", { class: "ayuda", text: "Los valores escritos en el Word en las etiquetas que van a «Resultado». Un texto que no es ningún resultado (por ejemplo, una descripción de lo observado) queda pendiente y se guarda en las observaciones." }),
+      h("table", { class: "tabla-mapeo" },
+        h("thead", {}, h("tr", {}, h("th", { text: "Valor en el Word" }), h("th", { text: "Tablas" }), h("th", { text: "Resultado" }))),
+        h("tbody", {}, [...valores.values()].sort((x, y) => y.tablas - x.tablas).map((v) => h("tr", {},
+          h("td", { class: v.valor ? "" : "muted", text: v.valor || "(vacío)" }),
+          h("td", { class: "num", text: String(v.tablas) }),
+          h("td", {}, h("select", { "aria-label": `Resultado para «${v.valor || "vacío"}»`, onchange: (e) => {
+            if (e.target.value) IMP.mapeo.valores[v.clave] = e.target.value; else delete IMP.mapeo.valores[v.clave];
+          } },
+          h("option", { value: "", text: "(no es un resultado)", selected: !IMP.mapeo.valores[v.clave] }),
+          IMP.analisis.estados.map((o) => h("option", { value: o.valor, text: o.texto, selected: IMP.mapeo.valores[v.clave] === o.valor })))))))));
+  };
+  caja.repintar();
+  return caja;
+}
+
+function bloqueAvisos(avisos) {
+  return avisos.length ? h("section", { class: "bloque-mapeo" },
+    h("h3", { text: "Avisos" }),
+    avisos.map((g) => h("details", { class: "aviso-grupo g-" + g.gravedad },
+      h("summary", {}, h("strong", { text: String(g.total) }), ` ${g.titulo}`),
+      h("ul", {}, g.ejemplos.map((e) => h("li", {}, e.donde ? h("span", { class: "muted", text: e.donde + ": " }) : null, e.mensaje)),
+        g.total > g.ejemplos.length ? h("li", { class: "muted", text: `y ${g.total - g.ejemplos.length} más` }) : null)))) : null;
+}
+
 /* ---- 4. revisión ---- */
 function pasoRevisar() {
+  if (esResultados()) return pasoRevisarResultados();
   const r = IMP.revision;
   const tipos = Object.entries(r.tipos);
   if (!tipos.length) return h("p", { class: "aviso-panel", text: "Con este mapeo no hay ninguna prueba ni ningún requisito que importar. Vuelve atrás y revisa qué es cada familia." });
@@ -204,12 +279,63 @@ function pasoRevisar() {
       tablaExistentes(tipo, d.existentes, pintarResumen),
       tablaIds(tipo, d.ids),
       ejemplosImportar(tipo, d.ejemplos))),
-    r.avisos.length ? h("section", { class: "bloque-mapeo" },
-      h("h3", { text: "Avisos" }),
-      r.avisos.map((g) => h("details", { class: "aviso-grupo g-" + g.gravedad },
-        h("summary", {}, h("strong", { text: String(g.total) }), ` ${g.titulo}`),
-        h("ul", {}, g.ejemplos.map((e) => h("li", {}, e.donde ? h("span", { class: "muted", text: e.donde + ": " }) : null, e.mensaje)),
-          g.total > g.ejemplos.length ? h("li", { class: "muted", text: `y ${g.total - g.ejemplos.length} más` }) : null)))) : null);
+    bloqueAvisos(r.avisos));
+}
+
+/** Resultados: cifras, avisos, un ejemplo y los datos de la ejecución que se va a crear. */
+function pasoRevisarResultados() {
+  const r = IMP.revision;
+  const e = IMP.ejecucion;
+  if (!r.pruebas) return h("p", { class: "aviso-panel", text: "Ninguna tabla con resultados corresponde a una prueba del proyecto. Revisa los avisos, o vuelve atrás y revisa el mapeo." });
+  const campo = (id, etiqueta, clave, ayuda = "") => h("div", { class: "campo" },
+    h("label", { for: id, text: etiqueta }),
+    h("input", { id, type: "text", autocomplete: "off", value: e[clave] || "", placeholder: ayuda, oninput: (ev) => { e[clave] = ev.target.value; } }));
+  const cifras = ["ok", "no_ok", "bloqueada", "no_aplica"].filter((s) => r.por_estado[s]).map((s) => `${r.por_estado[s]} ${ESTADO_TXT[s]}`);
+  return h("div", { class: "revision-importar" },
+    h("p", { class: "resumen-importar" },
+      h("strong", { text: `${plural(r.pruebas, "prueba", "pruebas")} del proyecto con resultado en el Word` }),
+      cifras.length ? `: ${cifras.join(", ")}.` : "."),
+    r.por_estado.pendiente ? h("p", { class: "ayuda", text: `${plural(r.por_estado.pendiente, "queda sin resultado", "quedan sin resultado")}: estarán pendientes en la ejecución.` }) : null,
+    h("section", { class: "bloque-mapeo" },
+      h("h3", { text: "La ejecución" }),
+      h("div", { class: "rejilla" },
+        Object.assign(campo("imp-ej-nombre", "Nombre *", "nombre", "Regresión v2.3 en Torre"), { className: "campo completo" }),
+        selectorEntorno("imp-ej-entorno", e.entorno_pruebas, (_a, nuevo) => { e.entorno_pruebas = nuevo; }),
+        campo("imp-ej-objeto", "Qué se prueba", "objeto", "Firmware 2.3.0"),
+        campo("imp-ej-banco", "Banco / instalación", "entorno"),
+        campo("imp-ej-responsable", "Responsable", "responsable")),
+      S.validacion ? h("label", { class: "opcion-radio" },
+        h("input", { type: "checkbox", checked: IMP.enValidacion, onchange: (ev) => { IMP.enValidacion = ev.target.checked; pintarAsistente(); } }),
+        h("span", { text: `Añadirla a la validación «${S.validacion.datos.nombre}» (se crea dentro de su carpeta)` })) : null,
+      h("p", { class: "ayuda", text: "Queda abierta: puedes revisar los resultados, completar las pendientes y cerrarla después." })),
+    ejemplosImportar("resultado", r.ejemplos),
+    bloqueAvisos(r.avisos));
+}
+
+async function ejecutarImportacionResultados() {
+  const e = IMP.ejecucion;
+  if (!e.nombre.trim()) { aviso("La ejecución necesita un nombre", "error"); return; }
+  if (!e.entorno_pruebas) { aviso("Indica en qué entorno de pruebas se ejecutó", "error"); return; }
+  let carpeta = null;
+  if (!(IMP.enValidacion && S.validacion)) {
+    aviso("Elige dónde guardar la ejecución (se creará una subcarpeta)…");
+    const elegida = await api.importar_elegir_carpeta(e.nombre, true);
+    if (elegida.cancelado) return;
+    carpeta = elegida.carpeta;
+  }
+  const datos = { entorno_pruebas: e.entorno_pruebas, entorno: e.entorno, objeto: e.objeto, responsable: e.responsable };
+  const r = await conEspera("Creando la ejecución con los resultados…",
+    () => api.importar_resultados_ejecutar(IMP.archivo, IMP.mapeo, e.nombre, datos, Boolean(IMP.enValidacion && S.validacion), carpeta));
+  IMP.dlg.close();
+  if (e.responsable) guardarLocal("ejecutor", e.responsable);
+  if (S.modo !== "ejecucion") {
+    S.modo = "ejecucion";
+    guardarLocal("modo", "ejecucion");
+    aplicarResumen(await api.coleccion("pruebas"));
+  }
+  await usarCampana(r.campana);
+  if (S.validacion) await refrescarValidacion();
+  aviso(`Ejecución creada: ${plural(r.pruebas, "prueba", "pruebas")}, ${r.con_resultado} con resultado`, "ok");
 }
 
 const ACCIONES_EXISTENTES = [

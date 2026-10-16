@@ -95,8 +95,7 @@ def escribir_resumen(doc, campaña: dict[str, Any], resumen: dict[str, Any]) -> 
         _parrafo(doc, f"BORRADOR: la ejecución sigue abierta ({resumen['totales']['pendiente']} pruebas pendientes).",
                  negrita=True, color=COLOR_ESTADO["no_ok"], despues=8)
 
-    criterio = "; ".join(f"{k}: {', '.join(map(str, v)) if isinstance(v, list) else v}"
-                         for k, v in dict(datos.get("seleccion") or {}).items()) or "todas las pruebas"
+    criterio = ej.texto_criterio(datos.get("seleccion"))
     filas = [
         ["Qué se prueba", datos.get("objeto", "")],
         ["Entorno de pruebas", datos.get("entorno_pruebas", "")],
