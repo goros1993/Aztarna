@@ -1,0 +1,72 @@
+capitulo: Ejemplo con campos adicionales
+contenido:
+- seccion: Bus CAN
+  nivel: 2
+  contexto:
+  - El controlador publica su estado en el bus CAN cada **100 ms**. Las tramas usadas aquí son inventadas.
+  - texto: Estructura de la trama de estado de cabina.
+    imagenes:
+    - imagenes/trama_can.png
+- prueba:
+    nombre: Trama de estado de cabina
+    nivel: 3
+    id: DEMO-CAN-001
+    titulo: La trama de estado refleja la planta y las puertas
+    descripcion: Comprobar que los bytes de la trama *0x18F* cambian con la posición de la cabina y el estado de las puertas.
+    parametrizacion: []
+    situacion_inicial:
+    - El analizador de bus está conectado y filtra el identificador 0x18F.
+    pasos:
+    - Llevar la cabina a P2 y esperar a que cierre puertas.
+    - Capturar diez tramas consecutivas.
+    - Comparar los bytes 0 y 3 con la tabla de la sección.
+    - El byte 0 vale [[azul|0x02]] y el byte 3 vale [[verde|0x07]] (puertas cerradas).
+    - El periodo entre tramas está entre 95 y 105 ms.
+    maniobra:
+    - Simplex
+    automatizable: medio
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-CAN-010
+    fecha: '2026-09-18'
+    version: '2.0'
+    etiquetas:
+    - regresion
+    - comunicaciones
+    contexto:
+    - Esta prueba solo afecta a la trama de estado; las de diagnóstico se validan en la sección siguiente.
+- prueba:
+    nombre: Pérdida de comunicación
+    nivel: 3
+    id: DEMO-CAN-002
+    titulo: El controlador detecta la pérdida del bus y para en planta
+    descripcion: Simular la desconexión del bus CAN durante un viaje.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina viaja de PB a P3.
+    pasos:
+    - Desconectar el bus CAN desde el panel del banco HIL.
+    - Esperar al menos 1 s.
+    - Se genera la alarma [[rojo|E-210 Comunicación perdida]].
+    - La cabina para en la siguiente planta y abre puertas.
+    maniobra:
+    - Simplex
+    - Dúplex
+    automatizable: medio
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-CAN-020
+    fecha: '2026-09-18'
+    version: '1.0'
+    etiquetas:
+    - regresion
+    - comunicaciones
+    - seguridad
+    campos_adicionales:
+      Tiempo máximo de detección: 500 ms
+      Datos de prueba:
+      - 'Bus: CAN1 a 250 kbit/s'
+      - 'Desconexión: física, desde el relé R4 del banco'

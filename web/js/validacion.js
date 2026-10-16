@@ -294,6 +294,166 @@ function celdaEntorno(p, entorno) {
 }
 
 let filtroTablaValidacion = "";
+let filtroRequisitosValidacion = "";
+let filtroComparacion = null;          // null: todas menos «sin cambios»
+
+/* ---- requisitos de la validación ---- */
+const REQ_VAL_TXT = { fallido: "Fallidos", bloqueado: "Bloqueados", pendiente: "Pendientes", verificado: "Verificados",
+  sin_pruebas: "Sin pruebas aquí", no_aplica: "No aplica" };
+const REQ_VAL_UNO = { fallido: "Fallido", bloqueado: "Bloqueado", pendiente: "Pendiente", verificado: "Verificado",
+  sin_pruebas: "Sin pruebas aquí", no_aplica: "No aplica" };
+const REQ_VAL_ORDEN = ["verificado", "fallido", "bloqueado", "pendiente", "sin_pruebas", "no_aplica"];
+/** Color de un estado de requisito: el del resultado de prueba equivalente. */
+const claseRequisito = (e) => claseEstado({ fallido: "no_ok", bloqueado: "bloqueada", pendiente: "pendiente", verificado: "validada",
+  sin_pruebas: "sin_planificar", no_aplica: "no_aplica" }[e]);
+
+function bloqueRequisitosValidacion(v) {
+  const r = v.requisitos;
+  if (!r) return null;
+  const t = r.totales;
+  const caja = h("div", {});
+  const pintar = () => {
+    const filas = r.lista.filter((x) => !filtroRequisitosValidacion || x.estado === filtroRequisitosValidacion);
+    const pruebaPorId = new Map(v.pruebas.map((p) => [p.id, p]));
+    caja.replaceChildren(
+      h("div", { class: "barra-progreso", role: "img", "aria-label": `${t.verificado} requisitos verificados` },
+        REQ_VAL_ORDEN.map((e) => t[e] ? h("span", { class: "e-" + claseRequisito(e), style: { flexGrow: String(t[e]) }, title: `${REQ_VAL_TXT[e]}: ${t[e]}` }) : null)),
+      h("div", { class: "tarjetas" }, REQ_VAL_ORDEN.map((e) => h("button", {
+        type: "button", class: `tarjeta pulsable e-${claseRequisito(e)}${filtroRequisitosValidacion === e ? " activa" : ""}`,
+        title: "Ver solo estos (vuelve a pulsar para verlos todos)",
+        onclick: () => { filtroRequisitosValidacion = filtroRequisitosValidacion === e ? "" : e; pintar(); },
+      }, h("span", { class: "t-tit", text: REQ_VAL_TXT[e] }), h("span", { class: "t-val", text: String(t[e]) }),
+      e === "verificado" ? h("span", { class: "t-extra", text: `${r.porcentaje_verificados} %` }) : null))),
+      r.impacto.length ? h("div", { class: "aviso-panel aviso-fuera" },
+        h("span", { text: `${plural(r.modificados, "requisito ha cambiado", "requisitos han cambiado")} desde la última revisión de sus pruebas: conviene volver a pasar ${plural(r.impacto.length, "prueba", "pruebas")}.` }),
+        h("button", { class: "btn peq", type: "button", text: "Ejecución de impacto…", onclick: () => nuevaEjecucionImpacto(r.impacto) })) : null,
+      h("table", { class: "tabla-estados tabla-requisitos-val" },
+        h("thead", {}, h("tr", {}, h("th", { text: "Requisito" }), h("th", { class: "centro", text: "Estado" }), h("th", { text: "Pruebas en esta validación" }))),
+        h("tbody", {}, filas.slice(0, 1500).map((x) => h("tr", {},
+          h("td", {}, h("span", { class: "tid", text: x.id }), " ", h("span", { class: "muted", text: x.titulo }),
+            x.modificado ? h("span", { class: "marca-cambio", title: "Ha cambiado: revisa sus pruebas" }, icon("alert")) : null),
+          h("td", { class: "centro" }, h("span", { class: `chip-estado peq e-${claseRequisito(x.estado)}`, text: REQ_VAL_UNO[x.estado] })),
+          h("td", {}, h("div", { class: "pruebas-requisito" },
+            x.pruebas.map((p) => h("button", { type: "button", class: `chip-estado peq e-${claseEstado(p.estado)} pulsable`, text: p.id,
+              title: `${VAL_TXT[p.estado]}: ver la prueba`, onclick: () => { const q = pruebaPorId.get(p.id); if (q) irAPruebaValidacion(q); } })),
+            x.fuera.length ? h("span", { class: "muted peq", text: ` +${x.fuera.length} fuera de la validación`, title: x.fuera.join(", ") } ) : null,
+            !x.pruebas.length && x.necesita && !x.fuera.length ? h("span", { class: "muted peq", text: "ninguna prueba lo cita" }) : null)))))),
+      filas.length > 1500 ? h("p", { class: "muted", text: `Se muestran los 1500 primeros de ${filas.length}.` }) : null);
+  };
+  pintar();
+  return h("section", { class: "bloque" },
+    h("div", { class: "bloque-cab" }, h("h3", { text: "Requisitos" }),
+      h("p", { class: "ayuda", text: "Un requisito está verificado cuando todas las pruebas de esta validación que lo citan están validadas; falla si alguna es NO OK. «Sin pruebas aquí»: necesita pruebas, pero ninguna de esta validación lo cita." })),
+    caja);
+}
+
+/** Ejecución con las pruebas de los requisitos que han cambiado (dentro de la validación). */
+async function nuevaEjecucionImpacto(ids) {
+  const nombre = h("input", { id: "imp-nombre-ej", type: "text", autocomplete: "off", value: "Impacto de requisitos cambiados" });
+  let entorno = "";
+  const responsable = h("input", { id: "imp-responsable", type: "text", autocomplete: "off", value: leerLocal("ejecutor") || "" });
+  const r = await dialogo({
+    titulo: "Ejecución de impacto", ancho: true,
+    cuerpo: h("div", { class: "nueva-campana" },
+      h("p", { text: `Una ejecución nueva, dentro de la validación, con las ${plural(ids.length, "prueba", "pruebas")} de los requisitos que han cambiado: ${ids.join(", ")}.` }),
+      h("div", { class: "rejilla" },
+        h("div", { class: "campo completo" }, h("label", { for: "imp-nombre-ej", text: "Nombre *" }), nombre),
+        selectorEntorno("imp-entorno-ej", "", (_a, n) => { entorno = n; }),
+        h("div", { class: "campo" }, h("label", { for: "imp-responsable", text: "Responsable" }), responsable))),
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Crear ejecución", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  if (!nombre.value.trim()) { aviso("La ejecución necesita un nombre", "error"); return; }
+  if (!entorno) { aviso("Indica en qué entorno de pruebas se ejecuta", "error"); return; }
+  try {
+    await usarCampana(await api.validacion_nueva_ejecucion(nombre.value.trim(), { solo_ids: ids }, { entorno_pruebas: entorno, responsable: responsable.value }));
+    await refrescarValidacion();
+  } catch (e) { fallo(e); }
+}
+
+/* ---- comparar con otra validación (o ejecución) ---- */
+const CMP_TXT = { nuevo_fallo: "Nuevos fallos", arreglada: "Arregladas", sigue_fallando: "Siguen fallando", otros_cambios: "Otros cambios",
+  nueva: "Nuevas", ya_no_esta: "Ya no están", sin_cambios: "Sin cambios" };
+const CMP_CLASE = { nuevo_fallo: "no_ok", arreglada: "ok", sigue_fallando: "no_ok", otros_cambios: "bloqueada", nueva: "pendiente",
+  ya_no_esta: "no_aplica", sin_cambios: "no_aplica" };
+
+/** Cifras y tabla de una comparación. `alPulsar(fila)` abre la prueba (si se puede). */
+function tablaComparacion(c, alPulsar = null) {
+  const caja = h("div", {});
+  const pintar = () => {
+    const orden = Object.keys(CMP_TXT);
+    const filas = c.filas.filter((f) => (filtroComparacion ? f.categoria === filtroComparacion : f.categoria !== "sin_cambios"))
+      .sort((x, y) => orden.indexOf(x.categoria) - orden.indexOf(y.categoria));
+    caja.replaceChildren(
+      h("div", { class: "tarjetas tarjetas-7" }, Object.keys(CMP_TXT).map((k) => h("button", {
+        type: "button", class: `tarjeta pulsable e-${CMP_CLASE[k]}${filtroComparacion === k ? " activa" : ""}`,
+        title: "Ver solo estas (vuelve a pulsar para ver todos los cambios)",
+        onclick: () => { filtroComparacion = filtroComparacion === k ? null : k; pintar(); },
+      }, h("span", { class: "t-tit", text: CMP_TXT[k] }), h("span", { class: "t-val", text: String(c.cuentas[k]) })))),
+      filas.length ? h("table", { class: "tabla-estados" },
+        h("thead", {}, h("tr", {}, h("th", { text: "Prueba" }), h("th", { class: "centro", text: "Antes" }), h("th", { class: "centro", text: "Ahora" }), h("th", { text: "Cambio" }))),
+        h("tbody", {}, filas.slice(0, 1500).map((f) => h("tr", alPulsar && f.ahora ? { class: "pulsable", title: "Ver la prueba", onclick: () => alPulsar(f) } : {},
+          h("td", {}, h("span", { class: "tid", text: f.id }), " ", h("span", { class: "muted", text: f.titulo })),
+          h("td", { class: "centro" }, f.antes ? chipEstadoValidacion(f.antes, "peq") : h("span", { class: "muted", text: "—" })),
+          h("td", { class: "centro" }, f.ahora ? chipEstadoValidacion(f.ahora, "peq") : h("span", { class: "muted", text: "—" })),
+          h("td", { text: CMP_TXT[f.categoria] })))))
+        : h("p", { class: "muted", text: filtroComparacion ? "Ninguna." : "Ningún cambio respecto a la anterior." }));
+  };
+  pintar();
+  return caja;
+}
+
+function bloqueComparacion(v) {
+  const c = v.comparacion;
+  const botones = (...b) => h("div", { class: "fila-botones" }, ...b);
+  const elegir = h("button", { class: "btn peq", type: "button", text: c ? "Cambiar…" : "Comparar con otra validación…", onclick: () => compararValidacionCon() });
+  let cuerpo;
+  if (!c) cuerpo = [h("p", { class: "muted", text: "Compárala con la validación de la versión anterior para ver los nuevos fallos y lo que se ha arreglado. Sale también en el informe." }), botones(elegir)];
+  else if (!c.encontrada) cuerpo = [h("p", { class: "aviso-panel", text: `No se encuentra la validación con la que se compara (${c.ruta}).` }), botones(elegir, botonQuitarComparacion())];
+  else {
+    cuerpo = [
+      h("p", { class: "ayuda" }, "Con ", h("strong", { text: c.nombre }), c.version ? ` (${c.version})` : "", ". ",
+        "«Nuevos fallos»: NO OK ahora y no antes; «Arregladas»: NO OK antes y bien ahora."),
+      tablaComparacion(c, (f) => { const p = v.pruebas.find((x) => x.id === f.id); if (p) irAPruebaValidacion(p); }),
+      botones(elegir, botonQuitarComparacion()),
+    ];
+  }
+  return h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Comparación con la anterior" })), cuerpo);
+}
+
+function botonQuitarComparacion() {
+  return h("button", { class: "btn ghost peq", type: "button", text: "Quitar", onclick: async () => {
+    try { S.validacion = await api.validacion_quitar_comparacion(); mostrarVacio(); } catch (e) { fallo(e); }
+  } });
+}
+
+async function compararValidacionCon() {
+  try {
+    aviso("Elige la carpeta de la otra validación (normalmente, la de la versión anterior)…");
+    const r = await api.validacion_comparar_con();
+    if (r.cancelado) return;
+    S.validacion = r;
+    filtroComparacion = null;
+    mostrarVacio();
+  } catch (e) { fallo(e); }
+}
+
+/** Desde el resumen de una ejecución: compararla con otra (la anterior). */
+async function compararEjecucion() {
+  let r;
+  try {
+    aviso("Elige la carpeta de la otra ejecución (la anterior)…");
+    r = await api.campana_comparar();
+  } catch (e) { fallo(e); return; }
+  if (r.cancelado) return;
+  filtroComparacion = null;
+  await dialogo({
+    titulo: `Comparación: «${r.anterior.nombre}» → «${r.actual.nombre}»`, ancho: true,
+    cuerpo: h("div", {}, h("p", { class: "ayuda", text: "«Nuevos fallos»: NO OK ahora y no antes; «Arregladas»: NO OK antes y OK (o No aplica) ahora." }),
+      tablaComparacion(r)),
+    botones: [{ texto: "Cerrar", valor: "", tipo: "primary" }],
+  });
+}
 
 function mostrarPanelValidacion() {
   const v = S.validacion;
@@ -364,6 +524,8 @@ function mostrarPanelValidacion() {
       barra,
       h("div", { class: "tarjetas" },
         tarjeta("validada", `${v.porcentaje_validadas} %`), tarjeta("no_ok"), tarjeta("bloqueada"), tarjeta("pendiente"), tarjeta("no_aplica"))),
+    bloqueComparacion(v),
+    bloqueRequisitosValidacion(v),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecuciones" })), ejecuciones),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por entorno" }),
       h("p", { class: "ayuda", text: "Cuántas pruebas piden cada entorno y su resultado en él. «Sin planificar»: ninguna ejecución de ese entorno las incluye." })), tablaEntornos),

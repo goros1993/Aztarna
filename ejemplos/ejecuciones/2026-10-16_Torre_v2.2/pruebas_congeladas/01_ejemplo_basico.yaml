@@ -1,0 +1,32 @@
+capitulo: Ejemplo básico
+contenido:
+- seccion: Nivelación
+  nivel: 2
+- prueba:
+    nombre: Precisión de parada
+    nivel: 3
+    id: DEMO-NIV-001
+    titulo: La cabina para dentro de la tolerancia de nivelación
+    descripcion: Medir el desnivel entre el suelo de cabina y el de planta tras una parada normal.
+    parametrizacion:
+    - 'Tolerancia de nivelación: ±5 mm.'
+    situacion_inicial:
+    - Carga en cabina simulada al 0 %.
+    pasos:
+    - Enviar la cabina de PB a P3.
+    - Leer el desnivel informado por el sensor de nivel de P3.
+    - Repetir con carga simulada al 100 %.
+    - El desnivel es menor de [[res:amarillo|±5 mm]] en ambos casos.
+    maniobra:
+    - Dúplex
+    automatizable: si
+    entorno:
+    - Automático
+    - Torre
+    requisitos:
+    - REQ-NIV-001
+    fecha: '2026-09-22'
+    version: '1.1'
+    etiquetas:
+    - smoke
+    - regresion

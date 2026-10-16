@@ -1,0 +1,99 @@
+capitulo: Ejemplo básico
+contenido:
+- seccion: Llamadas
+  nivel: 2
+  contexto:
+  - La instalación simulada tiene cuatro paradas (PB, P1, P2 y P3) y una sola cabina.
+  - texto: Esquema del pozo con los sensores de nivel de cada planta.
+    imagenes:
+    - imagenes/esquema_pozo.png
+- prueba:
+    nombre: Llamada desde cabina
+    nivel: 3
+    id: DEMO-LLAM-001
+    titulo: Una llamada de cabina lleva el ascensor a la planta pedida
+    descripcion: Comprobar que una llamada registrada desde la botonera de cabina se atiende y la cabina se detiene en la planta seleccionada.
+    parametrizacion:
+    - 'Número de paradas: 4 (PB a P3).'
+    - Llamadas de cabina habilitadas en todas las plantas.
+    situacion_inicial:
+    - La cabina está parada en PB con las puertas cerradas.
+    - No hay llamadas pendientes.
+    pasos:
+    - texto: Pulsar el botón **2** de la botonera de cabina.
+      imagenes:
+      - imagenes/botonera_cabina.png
+    - Comprobar que el botón se ilumina y el indicador muestra *▲ 2*.
+    - Esperar a que la cabina llegue a P2.
+    - La cabina se detiene en P2 y abre puertas.
+    - La llamada se borra del registro y el botón se apaga.
+    maniobra:
+    - Simplex
+    - Dúplex
+    automatizable: si
+    entorno:
+    - Automático
+    - Maqueta
+    requisitos:
+    - REQ-LLAM-001
+    fecha: '2026-09-15'
+    version: '1.2'
+    etiquetas:
+    - smoke
+    - regresion
+    - llamadas
+- prueba:
+    nombre: Llamada desde piso
+    nivel: 3
+    id: DEMO-LLAM-002
+    titulo: Una llamada de piso queda registrada y se confirma al pasajero
+    descripcion: Verificar que una llamada desde el pulsador de piso se registra y se confirma con la luz del pulsador.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina está parada en P3.
+    pasos:
+    - Pulsar la llamada de subida en P1.
+    - Observar el pulsador de P1.
+    - El pulsador de P1 queda iluminado hasta que la cabina llega.
+    maniobra:
+    - Simplex
+    automatizable: no
+    entorno:
+    - Automático
+    requisitos:
+    - REQ-LLAM-002
+    fecha: '2026-09-15'
+    version: '1.0'
+    etiquetas:
+    - regresion
+    - llamadas
+- seccion: Nivelación
+  nivel: 2
+- prueba:
+    nombre: Precisión de parada
+    nivel: 3
+    id: DEMO-NIV-001
+    titulo: La cabina para dentro de la tolerancia de nivelación
+    descripcion: Medir el desnivel entre el suelo de cabina y el de planta tras una parada normal.
+    parametrizacion:
+    - 'Tolerancia de nivelación: ±5 mm.'
+    situacion_inicial:
+    - Carga en cabina simulada al 0 %.
+    pasos:
+    - Enviar la cabina de PB a P3.
+    - Leer el desnivel informado por el sensor de nivel de P3.
+    - Repetir con carga simulada al 100 %.
+    - El desnivel es menor de [[res:amarillo|±5 mm]] en ambos casos.
+    maniobra:
+    - Dúplex
+    automatizable: si
+    entorno:
+    - Automático
+    - Torre
+    requisitos:
+    - REQ-NIV-001
+    fecha: '2026-09-22'
+    version: '1.1'
+    etiquetas:
+    - smoke
+    - regresion

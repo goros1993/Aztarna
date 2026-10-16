@@ -163,6 +163,40 @@ class EditorValidacionApi(EditorEjecucionApi):
                 resultado["aviso_pdf"] = f"No se pudo generar el PDF: {error}"
         return resultado
 
+    # --- comparar con la anterior ----------------------------------------------
+    @respuesta
+    def validacion_comparar_con(self, carpeta: str | None = None) -> dict[str, Any]:
+        """Elige la validación con la que se compara esta (normalmente, la de la versión anterior)."""
+        validacion = self._requiere_validacion()
+        if carpeta is None:
+            elegida = self._dialogo_carpeta()
+            if elegida is None:
+                return {"cancelado": True}
+        else:
+            elegida = Path(carpeta)
+        vc.comparar_con(validacion, elegida)
+        return self._estado_validacion()
+
+    @respuesta
+    def validacion_quitar_comparacion(self) -> dict[str, Any]:
+        vc.comparar_con(self._requiere_validacion(), None)
+        return self._estado_validacion()
+
+    @respuesta
+    def campana_comparar(self, carpeta: str | None = None) -> dict[str, Any]:
+        """Compara la ejecución abierta con otra (la elegida es la anterior)."""
+        from app import comparar
+        campaña = self._requiere_campaña()
+        if carpeta is None:
+            elegida = self._dialogo_carpeta()
+            if elegida is None:
+                return {"cancelado": True}
+        else:
+            elegida = Path(carpeta)
+        if not ej.es_campaña(elegida):
+            raise ValueError("Esa carpeta no contiene una ejecución.")
+        return to_plain(comparar.comparar_carpetas(elegida, campaña["carpeta"]))
+
     # --- sus ejecuciones -----------------------------------------------------
     @respuesta
     def validacion_anadir_ejecucion(self, carpeta: str | None = None) -> dict[str, Any]:

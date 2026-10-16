@@ -1,3 +1,4 @@
+formato: 1
 nombre: Validación v2.3 (ejemplo)
 version: Controlador DEMO-A1, firmware 2.3.0
 creada: 2026-11-11T09:00
@@ -10,3 +11,4 @@ ejecuciones:
 - ruta: ../../ejecuciones/2026-11-04_Robot
 - ruta: ../../ejecuciones/2026-11-05_Torre_Luis
 - ruta: ../../ejecuciones/2026-11-10_Torre_Luis_repeticion
+comparar_con: ../validacion_v2.2
