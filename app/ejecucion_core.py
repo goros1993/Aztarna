@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Campañas de ejecución: qué pruebas se pasan, sobre qué y con qué resultado.
+"""Ejecuciones de pruebas: qué pruebas se pasan, sobre qué y con qué resultado.
 
-Los YAML de pruebas no se tocan. Cada campaña es una carpeta elegida por el
-usuario con:
+Los YAML de pruebas no se tocan. Cada ejecución (antes «campaña»; en el código
+siguen llamándose así muchas variables) es una carpeta elegida por el usuario con:
 
-    campaña.yaml      datos de la campaña, criterio de selección y lista
-                      congelada de pruebas (ID + huella de su contenido)
+    ejecucion.yaml    datos de la ejecución, criterio de selección y lista
+                      congelada de pruebas (ID + huella de su contenido);
+                      las carpetas antiguas lo tienen como campaña.yaml
     resultados.yaml   un registro por prueba ejecutada, con su historial
     evidencias/       capturas y archivos adjuntos a los resultados
 
@@ -24,12 +25,14 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
+from app import esquema
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
-ARCHIVO_CAMPAÑA = "campaña.yaml"
+ARCHIVO_EJECUCION = "ejecucion.yaml"
+ARCHIVO_CAMPAÑA = "campaña.yaml"        # nombre antiguo: se sigue leyendo y guardando en esas carpetas
 ARCHIVO_RESULTADOS = "resultados.yaml"
 CARPETA_EVIDENCIAS = "evidencias"
-# Al cerrar, copia de las pruebas de la campaña tal como estaban (mismo formato que la carpeta de pruebas).
+# Al cerrar, copia de las pruebas de la ejecución tal como estaban (mismo formato que la carpeta de pruebas).
 CARPETA_CONGELADA = "pruebas_congeladas"
 
 ESTADOS = ("pendiente", "ok", "no_ok", "bloqueada", "no_aplica")
@@ -183,8 +186,17 @@ def _leer_yaml(ruta: Path) -> Any:
         return roundtrip_yaml().load(f)
 
 
+def archivo_datos(carpeta: str | Path) -> Path:
+    """ejecucion.yaml, o campaña.yaml si la carpeta es de antes del cambio de nombre."""
+    carpeta = Path(carpeta)
+    antiguo = carpeta / ARCHIVO_CAMPAÑA
+    if antiguo.is_file() and not (carpeta / ARCHIVO_EJECUCION).is_file():
+        return antiguo
+    return carpeta / ARCHIVO_EJECUCION
+
+
 def es_campaña(carpeta: str | Path) -> bool:
-    return (Path(carpeta) / ARCHIVO_CAMPAÑA).is_file()
+    return archivo_datos(carpeta).is_file()
 
 
 def _tiene_pruebas(ruta: Path) -> bool:
@@ -192,10 +204,10 @@ def _tiene_pruebas(ruta: Path) -> bool:
 
 
 def rutas_pruebas(carpeta_campaña: Path, pruebas: Path) -> dict[str, str]:
-    """Cómo guardar dónde están las pruebas: relativa a la campaña (si se puede) y absoluta.
+    """Cómo guardar dónde están las pruebas: relativa a la ejecución (si se puede) y absoluta.
 
     La relativa sigue valiendo si se mueven juntas (o se copian a otro PC); la
-    absoluta, si solo se mueve la campaña.
+    absoluta, si solo se mueve la ejecución.
     """
     pruebas = Path(pruebas).resolve()
     datos = {}
@@ -226,12 +238,12 @@ def carpeta_congelada(campaña: dict[str, Any]) -> Path | None:
 
 
 def reubicar_pruebas(campaña: dict[str, Any], nueva: str | Path) -> Path:
-    """Indica dónde están ahora las pruebas de la campaña (si se movieron)."""
+    """Indica dónde están ahora las pruebas de la ejecución (si se movieron)."""
     nueva = tests_dir(Path(nueva).expanduser().resolve())
     if not _tiene_pruebas(nueva):
         raise ValueError("Esa carpeta no contiene YAML de pruebas.")
     if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(campaña)):
-        raise ValueError("Esa carpeta no contiene ninguna prueba de esta campaña.")
+        raise ValueError("Esa carpeta no contiene ninguna prueba de esta ejecución.")
     campaña["datos"].pop("pruebas_yaml", None)
     campaña["datos"].update(rutas_pruebas(campaña["carpeta"], nueva))
     guardar(campaña)
@@ -241,17 +253,18 @@ def reubicar_pruebas(campaña: dict[str, Any], nueva: str | Path) -> Path:
 def cargar(carpeta: str | Path) -> dict[str, Any]:
     carpeta = Path(carpeta)
     if not es_campaña(carpeta):
-        raise ValueError(f"La carpeta no contiene una campaña ({ARCHIVO_CAMPAÑA}).")
-    datos = _leer_yaml(carpeta / ARCHIVO_CAMPAÑA) or {}
+        raise ValueError(f"La carpeta no contiene una ejecución ({ARCHIVO_EJECUCION}).")
+    archivo = archivo_datos(carpeta)
+    datos = _leer_yaml(archivo) or {}
     if not isinstance(datos, dict) or not isinstance(datos.get("pruebas"), list):
-        raise ValueError(f"{ARCHIVO_CAMPAÑA} no tiene el formato esperado (falta 'pruebas').")
+        raise ValueError(f"{archivo.name} no tiene el formato esperado (falta 'pruebas').")
     ruta_resultados = carpeta / ARCHIVO_RESULTADOS
     resultados = _leer_yaml(ruta_resultados) if ruta_resultados.is_file() else None
     return {"carpeta": carpeta, "datos": datos, "resultados": resultados or {}}
 
 
 def guardar(campaña: dict[str, Any]) -> None:
-    _escribir_yaml(campaña["carpeta"] / ARCHIVO_CAMPAÑA, campaña["datos"])
+    _escribir_yaml(archivo_datos(campaña["carpeta"]), campaña["datos"])
     _escribir_yaml(campaña["carpeta"] / ARCHIVO_RESULTADOS, campaña["resultados"])
 
 
@@ -259,36 +272,69 @@ def _comprobar_ids(seleccion: list[dict[str, Any]]) -> None:
     vistos: set[str] = set()
     for item in seleccion:
         if not item["id"]:
-            raise ValueError(f"Hay una prueba sin ID en {item['archivo']}; no se puede incluir en una campaña.")
+            raise ValueError(f"Hay una prueba sin ID en {item['archivo']}; no se puede incluir en una ejecución.")
         if item["id"] in vistos:
-            raise ValueError(f"El ID {item['id']} está repetido; corrígelo antes de crear la campaña.")
+            raise ValueError(f"El ID {item['id']} está repetido; corrígelo antes de crear la ejecución.")
         vistos.add(item["id"])
+
+
+# Datos de la ejecución que se pueden indicar al crearla y cambiar mientras está abierta.
+# `entorno_pruebas` es uno de los entornos de las pruebas (Automático, Maqueta, Torre);
+# `entorno` es el detalle libre (banco o instalación).
+DATOS_EDITABLES = ("objeto", "entorno_pruebas", "entorno", "responsable")
+
+
+def entornos_pruebas() -> tuple[str, ...]:
+    return esquema.OPCIONES_MULTIPLES["entorno"]
+
+
+def _limpiar_datos(datos: dict[str, Any]) -> dict[str, str]:
+    limpios = {}
+    for clave, valor in (datos or {}).items():
+        if clave not in DATOS_EDITABLES:
+            continue
+        texto = str(valor or "").strip()
+        if clave == "entorno_pruebas" and texto and texto not in entornos_pruebas():
+            raise ValueError(f"El entorno de pruebas debe ser uno de: {', '.join(entornos_pruebas())}.")
+        limpios[clave] = texto
+    return limpios
+
+
+def editar_datos(campaña: dict[str, Any], cambios: dict[str, Any]) -> None:
+    """Cambia los datos de una ejecución abierta (qué se prueba, entorno, responsable)."""
+    _exigir_abierta(campaña)
+    for clave, valor in _limpiar_datos(cambios).items():
+        if valor:
+            campaña["datos"][clave] = valor
+        else:
+            campaña["datos"].pop(clave, None)
+    guardar(campaña)
 
 
 def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
           filtro: dict[str, Any], datos: dict[str, Any] | None = None,
           ids_robot: set[str] | None = None) -> dict[str, Any]:
-    """Crea una campaña nueva con las pruebas que cumplen el filtro (lista congelada)."""
+    """Crea una ejecución nueva con las pruebas que cumplen el filtro (lista congelada)."""
     carpeta = Path(carpeta)
     if es_campaña(carpeta):
-        raise ValueError("Esa carpeta ya contiene una campaña.")
+        raise ValueError("Esa carpeta ya contiene una ejecución.")
     if carpeta.exists() and any(carpeta.iterdir()):
-        raise ValueError("Elige una carpeta vacía (o nueva) para la campaña.")
+        raise ValueError("Elige una carpeta vacía (o nueva) para la ejecución.")
     nombre = str(nombre or "").strip()
     if not nombre:
-        raise ValueError("La campaña necesita un nombre.")
+        raise ValueError("La ejecución necesita un nombre.")
     pruebas_yaml = tests_dir(Path(pruebas_yaml).expanduser().resolve())   # admite la carpeta del proyecto
     capitulos = read_chapters(pruebas_yaml)
     seleccion = seleccionar(capitulos, filtro, ids_robot)
     if not seleccion:
         raise ValueError("Ninguna prueba cumple el criterio de selección.")
     _comprobar_ids(seleccion)
-    extra = {k: str(v).strip() for k, v in (datos or {}).items() if str(v or "").strip()}
+    extra = {k: v for k, v in _limpiar_datos(datos or {}).items() if v}
     campaña = {
         "carpeta": carpeta,
         "datos": {
             "nombre": nombre,
-            **{k: extra[k] for k in ("objeto", "entorno", "responsable") if k in extra},
+            **{k: extra[k] for k in DATOS_EDITABLES if k in extra},
             "inicio": ahora(),
             "estado": "abierta",
             **rutas_pruebas(carpeta, pruebas_yaml),
@@ -307,7 +353,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
 # ----------------------------------------------------------------------
 def _exigir_abierta(campaña: dict[str, Any]) -> None:
     if campaña["datos"].get("estado") == "cerrada":
-        raise ValueError("La campaña está cerrada; no se pueden cambiar sus resultados.")
+        raise ValueError("La ejecución está cerrada; no se pueden cambiar sus resultados.")
 
 
 def ids_de(campaña: dict[str, Any]) -> list[str]:
@@ -330,7 +376,7 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
     """
     _exigir_abierta(campaña)
     if test_id not in ids_de(campaña):
-        raise ValueError(f"La prueba {test_id} no forma parte de esta campaña.")
+        raise ValueError(f"La prueba {test_id} no forma parte de esta ejecución.")
     if estado not in ESTADOS:
         raise ValueError(f"Estado no válido: {estado}.")
     resultados = campaña["resultados"]
@@ -420,11 +466,11 @@ def guardar_evidencia(campaña: dict[str, Any], test_id: str, nombre: str, conte
 
 
 def ruta_evidencia(campaña: dict[str, Any], relativa: str) -> Path:
-    """Ruta absoluta de una evidencia, sin permitir salir de la carpeta de la campaña."""
+    """Ruta absoluta de una evidencia, sin permitir salir de la carpeta de la ejecución."""
     base = campaña["carpeta"].resolve()
     ruta = (base / str(relativa)).resolve()
     if base not in ruta.parents:
-        raise ValueError("La evidencia debe estar dentro de la carpeta de la campaña.")
+        raise ValueError("La evidencia debe estar dentro de la carpeta de la ejecución.")
     return ruta
 
 
@@ -481,10 +527,10 @@ def _rutas_imagen(valor: Any) -> set[str]:
 
 
 def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
-    """Copia a `pruebas_congeladas/` las pruebas de la campaña (con sus secciones e imágenes).
+    """Copia a `pruebas_congeladas/` las pruebas de la ejecución (con sus secciones e imágenes).
 
     Tiene el mismo formato que una carpeta de pruebas, así que el informe y la
-    revisión de una campaña cerrada no dependen de cómo evolucionen los YAML.
+    revisión de una ejecución cerrada no dependen de cómo evolucionen los YAML.
     """
     destino = campaña["carpeta"] / CARPETA_CONGELADA
     if destino.exists():
@@ -513,7 +559,7 @@ def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
 
 
 def cerrar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
-    """Cierra la campaña: congela sus pruebas y no admite más cambios. No puede quedar nada pendiente."""
+    """Cierra la ejecución: congela sus pruebas y no admite más cambios. No puede quedar nada pendiente."""
     _exigir_abierta(campaña)
     pendientes = [i for i in ids_de(campaña) if estado_de(campaña, i) == "pendiente"]
     if pendientes:
@@ -535,7 +581,7 @@ def capitulos_de(campaña: dict[str, Any]) -> list[dict[str, Any]]:
             return read_chapters(congelada)
     vigente = carpeta_pruebas(campaña)
     if vigente is None:
-        raise ValueError("No se encuentran las pruebas de la campaña.")
+        raise ValueError("No se encuentran las pruebas de la ejecución.")
     return read_chapters(vigente)
 
 

@@ -11,7 +11,7 @@ programar ni conocer el formato de los archivos.
 3. [La ventana](#3-la-ventana)
 4. [Editar pruebas (modo Pruebas)](#4-editar-pruebas-modo-pruebas)
 5. [Requisitos y trazabilidad (modo Requisitos)](#5-requisitos-y-trazabilidad-modo-requisitos)
-6. [Ejecutar pruebas (modo Ejecución)](#6-ejecutar-pruebas-modo-ejecución)
+6. [Ejecutar y validar (modo Validación)](#6-ejecutar-y-validar-modo-validación)
 7. [Atajos de teclado](#7-atajos-de-teclado)
 8. [Preguntas frecuentes y problemas](#8-preguntas-frecuentes-y-problemas)
 
@@ -19,7 +19,7 @@ programar ni conocer el formato de los archivos.
 
 ## 1. Qué es y cómo se organiza
 
-El editor trabaja con tres cosas distintas:
+El editor trabaja con cuatro cosas distintas:
 
 - **Las pruebas.** Qué hay que probar: título, parametrización, situación
   inicial, ensayo, imágenes… Están en una **carpeta de pruebas** que mantiene
@@ -31,15 +31,21 @@ El editor trabaja con tres cosas distintas:
   editor sabe qué requisitos tienen pruebas y cuáles no (la
   **trazabilidad**).
 
+- **Las ejecuciones.** Una ejecución es una tanda de pruebas que una persona
+  pasa sobre una versión concreta y en un **entorno de pruebas** (Automático,
+  Maqueta o Torre), por ejemplo «Regresión v2.3 en torre». Guarda qué pruebas
+  entran y el resultado de cada una. Cada persona guarda sus ejecuciones donde
+  quiera en su PC.
+- **Las validaciones.** Una validación une las ejecuciones de una versión,
+  normalmente de varias personas y entornos, y da el resultado de cada prueba
+  en cada entorno: una prueba queda **validada** cuando ha salido OK en todos
+  los entornos que pide.
+
 ```text
 proyecto/
 ├── pruebas/       indice.yaml, un archivo por capítulo e imagenes/
 └── requisitos/    indice.yaml y un archivo por capítulo
 ```
-- **Las campañas de ejecución.** Una campaña es una tanda de pruebas que se
-  pasan sobre una versión concreta (por ejemplo, «Regresión v2.3»). Guarda
-  qué pruebas entran y el resultado de cada una. Cada persona guarda sus
-  campañas donde quiera en su PC.
 
 Por eso el editor tiene tres modos, que se eligen arriba a la izquierda:
 
@@ -47,14 +53,14 @@ Por eso el editor tiene tres modos, que se eligen arriba a la izquierda:
 |---|---|
 | **Pruebas** | Crear, cambiar, mover y borrar pruebas. |
 | **Requisitos** | Crear, cambiar, mover y borrar requisitos, y ver qué pruebas cubren cada uno. |
-| **Ejecución** | Pasar las pruebas de una campaña y apuntar el resultado. En este modo las pruebas no se pueden cambiar. |
+| **Validación** | Pasar las pruebas de una ejecución y apuntar el resultado, y unir ejecuciones en la validación de una versión. En este modo las pruebas no se pueden cambiar. |
 
 Los resultados **nunca** se escriben en las pruebas: se guardan en la carpeta
-de la campaña.
+de la ejecución.
 
 > **El ID de cada prueba es su «DNI».** Cada prueba tiene un identificador
 > (por ejemplo `DEMO-LLAM-001`) que debe ser **único** y **no cambiar**. Las
-> campañas reconocen cada prueba por su ID: si se cambia, para ellas pasa a
+> ejecuciones reconocen cada prueba por su ID: si se cambia, para ellas pasa a
 > ser otra prueba. El editor no deja repetir un ID y pide confirmación antes
 > de cambiarlo.
 
@@ -81,7 +87,8 @@ en Ubuntu, *Configuración → Apariencia*.
 
 ![Ventana del editor en modo Pruebas](docs/manual/01_ventana_edicion.png)
 
-- **Barra superior:** modo (Pruebas / Requisitos / Ejecución), carpeta de pruebas,
+- **Barra superior:** modo (Pruebas / Requisitos / Validación), carpeta de
+  pruebas, en el modo Validación la validación y la ejecución abiertas,
   capítulo, *Robot* (configuración de Robot Framework y número de pruebas
   automatizadas), *Recargar* (vuelve a leer los archivos del disco) y
   *Exportar DOCX*.
@@ -124,7 +131,7 @@ El formulario sigue el orden de la tabla de la prueba en el documento:
   escribir, la lista se filtra. **↑ / ↓** y **Intro** (o **Tab**, o un clic)
   añaden el elegido; si no hay ninguno que sirva, **Intro** o una **coma**
   añaden lo escrito. Son el criterio principal para elegir qué pruebas entran
-  en una campaña, así que conviene usar siempre los mismos nombres.
+  en una ejecución, así que conviene usar siempre los mismos nombres.
 
   ![Tags propuestos al escribir](docs/manual/27_tags.png)
 - **Fecha** y **Versión**.
@@ -301,7 +308,7 @@ Las tablas que van **antes del primer título** del capítulo (por ejemplo, el
 historial de cambios al principio) no tienen sección: aparecen en el árbol
 con un icono de tabla y se editan igual.
 
-En modo Ejecución, las tablas del contexto se ven (sin editar) en la ficha
+En modo Validación, las tablas del contexto se ven (sin editar) en la ficha
 de la prueba o de la sección.
 
 ## 5. Requisitos y trazabilidad (modo Requisitos)
@@ -390,7 +397,15 @@ el panel y en la validación).
 
 ---
 
-## 6. Ejecutar pruebas (modo Ejecución)
+## 6. Ejecutar y validar (modo Validación)
+
+El trabajo habitual tiene dos pasos:
+
+1. **Cada persona pasa sus pruebas** en una o dos **ejecuciones**, cada una en
+   un entorno (por ejemplo, Luis en la torre y Ana en la maqueta). Se crean en
+   su PC, sin necesidad de validación (6.2 a 6.9).
+2. **Alguien une las ejecuciones** de todos en la **validación de la versión**
+   y genera el informe final (6.10).
 
 ### 6.1 Los resultados posibles
 
@@ -404,17 +419,19 @@ el panel y en la validación).
 
 El porcentaje de OK se calcula sobre las pruebas que aplican.
 
-### 6.2 Crear una campaña
+### 6.2 Crear una ejecución
 
-![Modo Ejecución sin campaña](docs/manual/08_ejecucion_inicio.png)
+![Modo Validación sin nada abierto](docs/manual/08_ejecucion_inicio.png)
 
-Pasa a **Ejecución** y pulsa **Nueva campaña** (o el botón de la campaña en
-la barra superior).
+Pasa a **Validación** y pulsa **Nueva ejecución** (o el botón de la ejecución,
+✓, en la barra superior).
 
-![Nueva campaña](docs/manual/09_nueva_campana.png)
+![Nueva ejecución](docs/manual/09_nueva_campana.png)
 
-1. Escribe el **nombre** y, si quieres, qué se prueba (la versión), el
-   entorno y el responsable.
+1. Escribe el **nombre**, elige el **entorno de pruebas** (Automático, Maqueta
+   o Torre; es obligatorio) y, si quieres, qué se prueba (la versión), el banco
+   o instalación y el responsable. Al elegir el entorno se marcan las pruebas
+   que lo piden.
 2. Marca **qué pruebas entran**: tags, automatizable, entorno de pruebas,
    maniobra o capítulos. Dentro de un grupo basta con
    cumplir una opción; entre grupos, hay que cumplirlas todas. Sin marcar nada
@@ -426,21 +443,22 @@ la barra superior).
 La lista de pruebas queda fijada al crearla. Si después alguien etiqueta otra
 prueba, entra con **Resincronizar** (en el resumen).
 
-### 6.3 Abrir una campaña
+### 6.3 Abrir una ejecución
 
-Botón de la campaña → **Abrir campaña…** o una de las **recientes**. Al
-entrar en el modo Ejecución se abre la última que usaste. Al abrir una
-campaña se abre también su carpeta de pruebas.
+Botón de la ejecución → **Abrir ejecución…** o una de las **recientes**. Al
+entrar en el modo Validación se abre la última que usaste (o la última
+validación). Al abrir una
+ejecución se abre también su carpeta de pruebas.
 
-Si la carpeta de pruebas se ha movido (o la campaña viene de otro PC), el
+Si la carpeta de pruebas se ha movido (o la ejecución viene de otro PC), el
 editor lo avisa y te pide que indiques dónde está; lo recuerda para la
 próxima vez.
 
 ### 6.4 El resumen
 
-![Resumen de la campaña](docs/manual/10_resumen_campana.png)
+![Resumen de la ejecución](docs/manual/10_resumen_campana.png)
 
-Se ve al abrir la campaña, al pulsar **Resumen** o cuando no hay ninguna
+Se ve al abrir la ejecución, al pulsar **Resumen** o cuando no hay ninguna
 prueba seleccionada:
 
 - avance y totales por resultado;
@@ -450,13 +468,18 @@ prueba seleccionada:
   cambiaron después de ejecutarse, pruebas que ya no existen (haz clic para
   ir a ellas);
 - botones **Ejecutar Robot…** e **Importar Robot…** (ver 6.7), **Generar
-  informe…**, **Cerrar campaña…** y **Siguiente pendiente**.
+  informe…**, **Cerrar ejecución…** y **Siguiente pendiente**;
+- en el apartado **Ejecución**, su entorno de pruebas y sus datos; **Cambiar
+  datos…** los corrige mientras está abierta.
+
+Si la ejecución forma parte de una validación abierta, arriba aparece un
+botón para **volver a la validación**.
 
 ### 6.5 Pasar una prueba
 
 ![Pasar una prueba](docs/manual/11_pasar_prueba.png)
 
-El árbol muestra solo las pruebas de la campaña, con un punto de color según
+El árbol muestra solo las pruebas de la ejecución, con un punto de color según
 su resultado (vacío = pendiente). El desplegable de encima filtra (por
 ejemplo, *Pendientes* o *NO OK*) y el selector de capítulo indica cuántas
 quedan en cada uno.
@@ -491,12 +514,12 @@ Si parte de las pruebas se ejecutan con Robot Framework, sus resultados se
 pueden apuntar de golpe:
 
 1. Ejecuta Robot como siempre. Al terminar deja un archivo `output.xml`.
-2. En el resumen de la campaña pulsa **Importar Robot…** y elige ese
+2. En el resumen de la ejecución pulsa **Importar Robot…** y elige ese
    `output.xml`.
 3. Antes de cambiar nada verás qué resultado tendrá cada prueba (PASS → OK,
    FAIL → NO OK con el motivo, SKIP → No aplica) y los avisos: pruebas que ya
    tenían un resultado manual (no se pierde: pasa al historial), tests de
-   Robot sin enlazar o con un ID que no existe, y pruebas de la campaña que
+   Robot sin enlazar o con un ID que no existe, y pruebas de la ejecución que
    no tienen test automático (esas se pasan a mano como siempre).
 ![Importar resultados de Robot](docs/manual/18_importar_robot.png)
 
@@ -521,13 +544,13 @@ con keywords* para que se propongan al escribir los pasos.
 Con eso, el editor sabe qué pruebas están automatizadas: las marca con un
 robot en el árbol, cada prueba muestra sus tests de Robot, la validación
 avisa de las pruebas marcadas como automatizable «hecho» que no tienen test,
-y al crear una campaña se puede filtrar por *Automatización: con / sin test
+y al crear una ejecución se puede filtrar por *Automatización: con / sin test
 de Robot*.
 
 ![Prueba con sus tests de Robot](docs/manual/19_cobertura_edicion.png)
 
-**Ejecutar Robot desde la campaña.** En el resumen, **Ejecutar Robot…** lanza
-Robot solo con las pruebas de la campaña que tienen test automático (las
+**Ejecutar Robot desde la ejecución.** En el resumen, **Ejecutar Robot…** lanza
+Robot solo con las pruebas de la ejecución que tienen test automático (las
 pendientes o todas). Se ve el avance test a test y se puede cancelar; al
 terminar aparece la misma vista previa de la importación.
 
@@ -535,30 +558,30 @@ terminar aparece la misma vista previa de la importación.
 
 ![Avance de Robot](docs/manual/22_progreso_robot.png)
 
-### 6.8 Cerrar la campaña
+### 6.8 Cerrar la ejecución
 
-![Cerrar la campaña](docs/manual/13_cerrar_campana.png)
+![Cerrar la ejecución](docs/manual/13_cerrar_campana.png)
 
 Cuando no quede ninguna pendiente (ejecútalas o márcalas como *No aplica*),
-pulsa **Cerrar campaña…**. Al cerrarla:
+pulsa **Cerrar ejecución…**. Al cerrarla:
 
-- se guarda dentro de la campaña una **copia de sus pruebas tal como están**,
+- se guarda dentro de la ejecución una **copia de sus pruebas tal como están**,
   con sus imágenes. El informe y la revisión usarán siempre esa copia aunque
   las pruebas cambien después;
 - los resultados ya **no se pueden cambiar**.
 
-![Campaña cerrada](docs/manual/15_campana_cerrada.png)
+![Ejecución cerrada](docs/manual/15_campana_cerrada.png)
 
-Una campaña cerrada se sigue pudiendo abrir para consultarla. La barra
+Una ejecución cerrada se sigue pudiendo abrir para consultarla. La barra
 superior indica *Pruebas congeladas (solo lectura)*: para volver a editar las
 pruebas, abre su carpeta de pruebas con el botón de la carpeta.
 
-### 6.9 Generar el informe
+### 6.9 Informe de la ejecución
 
 ![Generar el informe](docs/manual/14_informe_dialogo.png)
 
 **Generar informe…** crea un documento de Word, y opcionalmente un **PDF**
-(hace falta tener instalado LibreOffice o Microsoft Word). Con la campaña
+(hace falta tener instalado LibreOffice o Microsoft Word). Con la ejecución
 todavía abierta, el informe sale marcado como **BORRADOR**. Mientras se
 genera verás una ruleta; el PDF es lo que más tarda.
 
@@ -566,11 +589,68 @@ genera verás una ruleta; el PDF es lo que más tarda.
 |---|---|
 | ![Resumen del informe](docs/manual/16_informe_resumen.png) | ![Pruebas en el informe](docs/manual/17_informe_pruebas.png) |
 
-El informe empieza con los datos de la campaña, el criterio de selección, los
+El informe empieza con los datos de la ejecución, el criterio de selección, los
 totales, el desglose por capítulo y la lista de pruebas NO OK y bloqueadas.
 Después vienen las pruebas con el mismo aspecto que el documento de pruebas
 y, debajo de cada tabla, el resultado en color con fecha y ejecutor,
 observaciones, incidencia, evidencias e intentos anteriores.
+
+### 6.10 La validación de una versión
+
+![Validación de una versión](docs/manual/32_validacion_panel.png)
+
+**Crear la validación.** Botón de la validación (el de las capas, en la barra
+superior) → **Nueva validación…**: nombre, versión y **qué pruebas hay que
+pasar** (las mismas fichas que al crear una ejecución). Después eliges dónde
+guardarla.
+
+**Añadir las ejecuciones.** **Añadir ejecuciones…** y elige la carpeta de una
+ejecución o una carpeta que contenga varias (por ejemplo, la compartida donde
+cada persona deja las suyas): se añaden todas las que haya. La validación no
+copia las ejecuciones, apunta a ellas, así que conviene dejarlas en un sitio
+fijo. **Nueva ejecución** crea una dentro de la carpeta de la validación,
+partiendo de su criterio. La **×** de cada fila la quita de la validación (no
+la borra).
+
+**Cómo se calcula el resultado.** Cada prueba indica en su campo *Entorno de
+pruebas* dónde hay que pasarla, y cada ejecución en qué entorno se hizo:
+
+- en cada entorno cuenta el resultado **más reciente** de las ejecuciones de
+  ese entorno (los anteriores quedan como historial);
+- una prueba queda **validada** cuando está OK (o No aplica) en **todos** sus
+  entornos; **NO OK** si falla en alguno; **bloqueada** si alguno no se pudo
+  ejecutar; **pendiente** si falta alguno;
+- un resultado en un entorno que la prueba no pide **se muestra, pero no
+  cuenta** (en gris); si es un NO OK, se avisa;
+- una prueba sin entorno indicado vale en cualquiera, con un aviso para
+  completarla.
+
+El panel muestra el resultado de la versión, las ejecuciones (pulsa una para
+abrirla), una tabla **por entorno** (*Sin planificar*: ninguna ejecución de
+ese entorno incluye la prueba), la tabla **prueba × entorno** y los avisos.
+Las cifras y el desplegable filtran la tabla y el árbol.
+
+![Tabla prueba × entorno](docs/manual/33_validacion_matriz.png)
+
+Al pulsar una prueba se ve su ficha con el resultado en cada entorno y su
+historial; el nombre de cada ejecución lleva a esa prueba dentro de ella para
+apuntar o corregir el resultado.
+
+![Una prueba en la validación](docs/manual/34_validacion_prueba.png)
+
+**Informe de la validación.** **Generar informe…** crea un Word apaisado (y,
+si quieres, el PDF) con los datos de la versión, el resultado, las
+ejecuciones, el resultado por entorno, las pruebas no validadas con sus
+observaciones y la tabla prueba × entorno en color. Mientras quede alguna
+ejecución abierta sale como **BORRADOR**. El detalle de cada prueba está en el
+informe de cada ejecución.
+
+**Trabajar sin validación.** Botón de la validación → **Trabajar sin
+validación**: el modo vuelve a funcionar solo con ejecuciones sueltas.
+
+En los ejemplos hay una validación completa:
+`ejemplos/validaciones/validacion_v2.3`, que une cuatro ejecuciones de
+`ejemplos/ejecuciones/` (Robot, torre, una repetición en torre y maqueta).
 
 ---
 
@@ -589,8 +669,8 @@ observaciones, incidencia, evidencias e intentos anteriores.
 | Retroceso | Fila vacía | Borrar la fila |
 | Alt+↑ / Alt+↓ | Lista | Mover la fila |
 | Ctrl+V | Lista o evidencias | Pegar una captura |
-| 1, 2, 3, 4, 0 | Ejecución | OK, NO OK, Bloqueada, No aplica, Pendiente |
-| Ctrl+Intro | Ejecución | Guardar y siguiente pendiente |
+| 1, 2, 3, 4, 0 | Validación (una prueba) | OK, NO OK, Bloqueada, No aplica, Pendiente |
+| Ctrl+Intro | Validación (una prueba) | Guardar y siguiente pendiente |
 
 ---
 
@@ -599,8 +679,10 @@ observaciones, incidencia, evidencias e intentos anteriores.
 **¿Dónde se guarda lo que hago?**
 Las pruebas, en su carpeta de pruebas (un archivo por capítulo, y las
 imágenes en `imagenes/`); los requisitos, en la carpeta `requisitos`, junto
-a la de pruebas. Las campañas, en la carpeta que elegiste al crearlas (`campaña.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
-`pruebas_congeladas/`). El editor no guarda nada en otro sitio.
+a la de pruebas. Las ejecuciones, en la carpeta que elegiste al crearlas
+(`ejecucion.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
+`pruebas_congeladas/`). Las validaciones, en la suya (`validacion.yaml`, que
+solo apunta a sus ejecuciones). El editor no guarda nada en otro sitio.
 
 **«… ha cambiado en el disco desde que se cargó».**
 Otra persona o programa modificó el archivo mientras lo tenías abierto. El
@@ -620,11 +702,15 @@ revisadas** se quita su entrada.
 Las imágenes EMF (diagramas de Word) no tienen miniatura fuera de Windows,
 pero se conservan y salen bien en el documento y en el informe.
 
-**No me deja crear la campaña.**
+**Una ejecución dice que no indica su entorno de pruebas.**
+Sus resultados no cuentan en ninguna validación hasta que lo indiques: ábrela
+y pulsa **Cambiar datos…** (en el apartado *Ejecución* del resumen).
+
+**No me deja crear la ejecución.**
 O ninguna prueba cumple el criterio elegido, o hay IDs repetidos o vacíos
 (revisa la validación en el modo Pruebas).
 
-**No me deja cerrar la campaña.**
+**No me deja cerrar la ejecución.**
 Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
 
 **La opción de PDF no está disponible.**
@@ -632,7 +718,7 @@ Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se
 genera igualmente.
 
 **No puedo editar las pruebas.**
-Probablemente estás viendo las *pruebas congeladas* de una campaña cerrada
+Probablemente estás viendo las *pruebas congeladas* de una ejecución cerrada
 (lo indica la barra superior). Abre la carpeta de pruebas con el botón de la
 carpeta.
 
@@ -646,7 +732,7 @@ cuando el editor ya ha terminado. No se pierde nada.
 
 **Buenas costumbres**
 
-- No cambies el ID de una prueba que ya se ha ejecutado en alguna campaña.
+- No cambies el ID de una prueba que ya se ha pasado en alguna ejecución.
 - Usa siempre las mismas etiquetas (mejor elegirlas de las que propone).
 - Escribe observaciones en todo NO OK y Bloqueada: es lo que leerá quien
   reciba el informe.

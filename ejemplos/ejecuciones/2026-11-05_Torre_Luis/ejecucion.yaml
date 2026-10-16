@@ -1,0 +1,27 @@
+nombre: Regresión v2.3 en torre
+objeto: Firmware 2.3.0-rc2
+entorno_pruebas: Torre
+entorno: Torre de pruebas de Zaragoza
+responsable: Luis Gómez
+inicio: 2026-11-05T08:30
+estado: cerrada
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  etiquetas:
+  - regresion
+  entorno:
+  - Torre
+pruebas:
+- id: DEMO-NIV-001
+  huella: c40a46daee20
+- id: DEMO-CAN-002
+  huella: 21eb111e8587
+- id: DEMO-PUER-001
+  huella: 1207021f4712
+- id: DEMO-PUER-002
+  huella: ea335b52eef8
+- id: DEMO-SEG-001
+  huella: 682f61d88f57
+- id: DEMO-MANT-001
+  huella: 482b7731202c
+fin: 2026-11-05T13:00

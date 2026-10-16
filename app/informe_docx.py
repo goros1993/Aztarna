@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Informe de una campaña de ejecución: DOCX (y PDF si hay con qué convertirlo).
+"""Informe de una ejecución de pruebas: DOCX (y PDF si hay con qué convertirlo).
 
 Mismo aspecto que `yaml_a_docx.py`, con un resumen al principio y el
 resultado de la ejecución debajo de la tabla de cada prueba.
 
 Uso:
-    python herramientas.py informe ruta/a/la/campaña [-o informe.docx] [--pdf]
+    python herramientas.py informe ruta/a/la/ejecución [-o informe.docx] [--pdf]
 """
 from __future__ import annotations
 
@@ -91,14 +91,15 @@ def escribir_resumen(doc, campaña: dict[str, Any], resumen: dict[str, Any]) -> 
     _parrafo(doc, "Informe de ejecución", negrita=True, tamaño=22, despues=2)
     _parrafo(doc, str(datos.get("nombre") or ""), tamaño=15, color="485862", despues=10)
     if not cerrada:
-        _parrafo(doc, f"BORRADOR: la campaña sigue abierta ({resumen['totales']['pendiente']} pruebas pendientes).",
+        _parrafo(doc, f"BORRADOR: la ejecución sigue abierta ({resumen['totales']['pendiente']} pruebas pendientes).",
                  negrita=True, color=COLOR_ESTADO["no_ok"], despues=8)
 
     criterio = "; ".join(f"{k}: {', '.join(map(str, v)) if isinstance(v, list) else v}"
                          for k, v in dict(datos.get("seleccion") or {}).items()) or "todas las pruebas"
     filas = [
         ["Qué se prueba", datos.get("objeto", "")],
-        ["Entorno", datos.get("entorno", "")],
+        ["Entorno de pruebas", datos.get("entorno_pruebas", "")],
+        ["Banco / instalación", datos.get("entorno", "")],
         ["Responsable", datos.get("responsable", "")],
         ["Inicio", _fecha(datos.get("inicio"))],
         ["Fin", _fecha(datos.get("fin")) if cerrada else "(abierta)"],
@@ -106,7 +107,7 @@ def escribir_resumen(doc, campaña: dict[str, Any], resumen: dict[str, Any]) -> 
         ["Pruebas", str(resumen["total"])],
         ["Informe generado", datetime.now().strftime("%d/%m/%Y %H:%M")],
     ]
-    _tabla(doc, ["Campaña", ""], [f for f in filas if str(f[1]).strip()], [5, 12])
+    _tabla(doc, ["Ejecución", ""], [f for f in filas if str(f[1]).strip()], [5, 12])
 
     _apartado(doc, "Resumen")
     t = resumen["totales"]
@@ -206,7 +207,7 @@ def escribir_resultado(tabla, campaña: dict[str, Any], prueba: dict[str, Any]) 
         if otras:
             q = celda.add_paragraph()
             yd.compactar(q)
-            q.add_run("Archivos adjuntos en la carpeta de la campaña: " + ", ".join(otras))
+            q.add_run("Archivos adjuntos en la carpeta de la ejecución: " + ", ".join(otras))
 
     intentos = list(resultado.get("intentos") or [])
     if intentos:
@@ -228,7 +229,7 @@ def escribir_resultado(tabla, campaña: dict[str, Any], prueba: dict[str, Any]) 
 # ----------------------------------------------------------------------
 def generar_informe(campaña: dict[str, Any], salida: str | Path,
                     capitulos: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-    """Genera el DOCX. Usa las pruebas congeladas si la campaña está cerrada."""
+    """Genera el DOCX. Usa las pruebas congeladas si la ejecución está cerrada."""
     capitulos = capitulos if capitulos is not None else ej.capitulos_de(campaña)
     resumen = ej.resumen(campaña, capitulos)
     ids = set(ej.ids_de(campaña))
@@ -318,9 +319,9 @@ def convertir_a_pdf(docx: str | Path) -> Path:
 
 
 def main(argv=None, prog=None) -> None:
-    ap = argparse.ArgumentParser(prog=prog, description="Informe de una campaña de ejecución")
-    ap.add_argument("campaña", help="carpeta de la campaña (con campaña.yaml)")
-    ap.add_argument("-o", "--salida", help="archivo DOCX de salida (por defecto, dentro de la campaña)")
+    ap = argparse.ArgumentParser(prog=prog, description="Informe de una ejecución de pruebas")
+    ap.add_argument("campaña", help="carpeta de la ejecución (con ejecucion.yaml)")
+    ap.add_argument("-o", "--salida", help="archivo DOCX de salida (por defecto, dentro de la ejecución)")
     ap.add_argument("--pdf", action="store_true", help="generar también el PDF")
     args = ap.parse_args(argv)
     try:

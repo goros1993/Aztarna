@@ -109,6 +109,33 @@ class CrearTests(CampañaBase):
         self.assertNotEqual(ej.huella(prueba), ej.huella({**prueba, "titulo": "Otro"}))
 
 
+class DatosTests(CampañaBase):
+    def test_se_guarda_como_ejecucion_yaml(self):
+        self.crear(entorno_pruebas="Torre", entorno="Torre de Zaragoza")
+        self.assertTrue((self.carpeta / ej.ARCHIVO_EJECUCION).is_file())
+        self.assertFalse((self.carpeta / ej.ARCHIVO_CAMPAÑA).exists())
+        datos = ej.cargar(self.carpeta)["datos"]
+        self.assertEqual((datos["entorno_pruebas"], datos["entorno"]), ("Torre", "Torre de Zaragoza"))
+
+    def test_las_carpetas_antiguas_se_siguen_leyendo_y_guardando(self):
+        self.crear()
+        (self.carpeta / ej.ARCHIVO_EJECUCION).rename(self.carpeta / ej.ARCHIVO_CAMPAÑA)
+        campaña = ej.cargar(self.carpeta)
+        ej.editar_datos(campaña, {"entorno_pruebas": "Maqueta"})
+        self.assertFalse((self.carpeta / ej.ARCHIVO_EJECUCION).exists())
+        self.assertEqual(ej.cargar(self.carpeta)["datos"]["entorno_pruebas"], "Maqueta")
+
+    def test_entorno_de_pruebas_de_la_lista(self):
+        with self.assertRaises(ValueError):
+            self.crear(entorno_pruebas="Laboratorio")
+        campaña = self.crear()
+        with self.assertRaises(ValueError):
+            ej.editar_datos(campaña, {"entorno_pruebas": "Laboratorio"})
+        ej.editar_datos(campaña, {"responsable": "Ana", "nombre": "no se cambia"})
+        self.assertEqual(ej.cargar(self.carpeta)["datos"]["responsable"], "Ana")
+        self.assertEqual(ej.cargar(self.carpeta)["datos"]["nombre"], "Regresión v2.3")
+
+
 class ResultadosTests(CampañaBase):
     def setUp(self):
         super().setUp()

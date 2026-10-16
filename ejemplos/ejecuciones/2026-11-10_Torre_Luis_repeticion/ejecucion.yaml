@@ -1,0 +1,16 @@
+nombre: Repetición en torre tras BUG-141
+objeto: Firmware 2.3.0-rc3
+entorno_pruebas: Torre
+entorno: Torre de pruebas de Zaragoza
+responsable: Luis Gómez
+inicio: 2026-11-10T09:00
+estado: abierta
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  incluir_ids:
+  - DEMO-PUER-002
+  capitulos:
+  - (ninguno)
+pruebas:
+- id: DEMO-PUER-002
+  huella: ea335b52eef8

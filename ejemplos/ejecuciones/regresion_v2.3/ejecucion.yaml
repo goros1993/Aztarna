@@ -1,7 +1,8 @@
 nombre: Regresión v2.3 (ejemplo)
 objeto: Controlador DEMO-A1, firmware 2.3.0-rc2
+entorno_pruebas: Maqueta
 entorno: Banco HIL nº 2
-responsable: Equipo de validación
+responsable: Ana Pérez
 inicio: 2026-11-03T09:00
 estado: abierta
 pruebas_yaml: ../../yaml/pruebas

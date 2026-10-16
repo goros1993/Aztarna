@@ -16,7 +16,9 @@ REM web\ va dentro del .exe. No se empaquetan los ejemplos: el .exe se extrae en
 REM carpeta temporal y lo que se editara ahi se perderia al cerrar.
 pyinstaller --noconfirm --clean --onefile --windowed ^
     --name EditorPruebas ^
+    --icon recursos\icono.ico ^
     --add-data "web;web" ^
+    --add-data "recursos\icono.ico;recursos" ^
     --collect-submodules webview ^
     --collect-submodules app ^
     editor_web.py || goto :error

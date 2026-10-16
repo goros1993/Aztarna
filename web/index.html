@@ -32,25 +32,30 @@
     <symbol id="i-plegar" viewBox="0 0 24 24"><polyline points="7 4 12 9 17 4"/><polyline points="7 20 12 15 17 20"/></symbol>
     <symbol id="i-desplegar" viewBox="0 0 24 24"><polyline points="7 9 12 4 17 9"/><polyline points="7 15 12 20 17 15"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-capas" viewBox="0 0 24 24"><polygon points="12 4 21 9 12 14 3 9 12 4"/><polyline points="3 13.5 12 18.5 21 13.5"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></symbol>
   </defs>
 </svg>
 
 <div id="app">
   <header class="barra">
-    <div class="marca">Pruebas YAML</div>
+    <div class="marca"><img src="img/icono.png" alt="" width="22" height="22">Pruebas YAML</div>
     <div class="seg modo" role="group" aria-label="Modo de trabajo">
       <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Pruebas</button>
       <button type="button" id="modo-requisitos" aria-pressed="false" title="Editar los requisitos y ver qué pruebas los cubren">Requisitos</button>
-      <button type="button" id="modo-ejecucion" aria-pressed="false" title="Apuntar resultados en una campaña">Ejecución</button>
+      <button type="button" id="modo-ejecucion" aria-pressed="false" title="Validar una versión: ejecuciones de pruebas y sus resultados">Validación</button>
     </div>
     <button class="btn carpeta" id="btn-carpeta" type="button" title="Cambiar de carpeta">
       <svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>
       <span id="carpeta-ruta">Sin carpeta</span>
     </button>
-    <button class="btn campana solo-ejecucion" id="btn-campana" type="button" title="Crear, abrir o cambiar de campaña">
+    <button class="btn campana solo-ejecucion" id="btn-validacion" type="button" title="Crear o abrir la validación de una versión">
+      <svg class="ico" aria-hidden="true"><use href="#i-capas"/></svg>
+      <span id="validacion-nombre">Sin validación</span>
+    </button>
+    <button class="btn campana solo-ejecucion" id="btn-campana" type="button" title="Crear, abrir o cambiar de ejecución">
       <svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>
-      <span id="campana-nombre">Sin campaña</span>
+      <span id="campana-nombre">Sin ejecución</span>
     </button>
     <label class="capitulo" for="sel-capitulo">
       <span class="sr">Capítulo</span>
@@ -93,7 +98,7 @@
           <option value="ok">OK</option>
           <option value="no_aplica">No aplica</option>
         </select>
-        <button class="btn peq" id="btn-panel-campana" type="button" title="Ver el resumen de la campaña">Resumen</button>
+        <button class="btn peq" id="btn-panel-campana" type="button" title="Ver el resumen de la ejecución">Resumen</button>
       </div>
       <div class="lateral-acciones solo-requisitos">
         <label class="sr" for="filtro-cobertura">Mostrar</label>
@@ -144,6 +149,7 @@
 <script src="js/ejecucion.js"></script>
 <script src="js/robot.js"></script>
 <script src="js/requisitos.js"></script>
+<script src="js/validacion.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -38,12 +38,32 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
 | 2 | Renombrar la herramienta a **Aztarna** (ventana, ejecutable, documentación y repositorio) y probar el `.exe` en Windows tras la reorganización en `app/` | pequeño | un PC con Windows |
 | 3 | Requisitos en las campañas: estado verificado / fallido por requisito según sus pruebas, sección en el informe y «campaña de impacto» con las pruebas de los requisitos cambiados | medio | — |
 | 4 | `convertir --anadir-a`: añadir a una carpeta de YAML existente los capítulos que se importan más tarde, sin pisar archivos ni imágenes | pequeño-medio | esos capítulos |
-| 5 | Validación de una versión: consolidar varias campañas en una vista e informe únicos (ver abajo) | grande | reglas de consolidación |
-| 6 | Comparar campañas: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
+| 5 | Validación de una versión: primera versión hecha (rama `validacion-version`); falta probarla con ejecuciones reales de varias personas y decidir lo que queda abierto (ver abajo) | medio | probarla |
+| 6 | Comparar validaciones o ejecuciones: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
 | 7 | Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
 | 8 | Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
 | 9 | Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
 | 10 | Manual: rehacer las capturas 13, 15 y 22, que muestran la barra superior antigua | pequeño | una campaña cerrada y Robot |
+
+### Cambio de nombre a Aztarna (punto 2)
+
+Sitios con el nombre actual, para cambiarlos todos a la vez:
+
+- **Título de la ventana**: «Editor de pruebas YAML» en `editor_web.py` (también
+  su docstring y la descripción de `--help`).
+- **Interfaz**: `<title>Editor de pruebas</title>` y la marca «Pruebas YAML» de la
+  barra superior en `web/index.html`.
+- **Ejecutable**: `EditorPruebas` en `construir_exe.bat` (→ `Aztarna.exe`) y sus
+  menciones en README y MANUAL.
+- **Carpeta de ajustes**: `EditorPruebasYaml` en `app/ajustes.py` y la
+  variable de entorno `EDITOR_PRUEBAS_AJUSTES`. Mientras nadie use la
+  herramienta no hace falta migrar nada.
+- **Documentación**: títulos de README («Validación: Word y YAML») y MANUAL
+  («Editor de pruebas»), la nota de nombre futuro del README y las capturas.
+- **Repositorio** en GitHub (Settings → Rename); el remoto local sigue
+  funcionando por la redirección.
+- El icono (`recursos/generar_icono.py`: rastro de huellas que acaba en una
+  marca de validación) ya está pensado para el nombre nuevo.
 
 ### Decisiones abiertas
 
@@ -56,23 +76,51 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
 
 ## Propuestas
 
-### Validación de una versión (varias campañas)
+### Validación de una versión (primera versión, por probar)
 
-Una misma versión se valida con campañas distintas: Robot, manuales en el
-banco HIL, en un entorno real, en PCs sin red o repartidas entre varias
-personas. Para dar la versión por válida hace falta una vista única:
+Hecho en la rama `validacion-version`:
 
-- agrupar las campañas de la misma versión (`objeto` de la campaña) y dar,
-  por prueba, el resultado de cada campaña y uno consolidado;
-- reglas a decidir: OK en una y NO OK en otra (¿el último, el peor o un
-  conflicto?), pruebas sin ejecutar en ninguna, pruebas que solo valen en un
-  entorno concreto;
-- avisar si las campañas ejecutaron versiones distintas de una prueba (las
-  huellas ya lo permiten);
-- informe final que cite cada campaña (quién, dónde, cuándo).
+- «Campaña» pasa a llamarse **ejecución** (`ejecucion.yaml`; las carpetas con
+  `campaña.yaml` se siguen leyendo) y el modo del editor, **Validación**.
+- Cada ejecución indica su **entorno de pruebas** (Automático, Maqueta o
+  Torre); el texto libre queda como «Banco / instalación».
+- Una **validación** (`validacion.yaml`) tiene nombre, versión, su criterio de
+  qué pruebas hay que pasar y la lista de ejecuciones (rutas relativas y
+  absolutas; no las copia).
+- Reglas: resultado por prueba y entorno; en un mismo entorno vale el más
+  reciente; un entorno que la prueba no pide se muestra pero no cuenta (un
+  NO OK ahí se avisa); una prueba sin entorno vale en cualquiera (con aviso);
+  validada = OK (o No aplica) en todos sus entornos.
+- Editor: panel de la validación (resultado, ejecuciones, por entorno, tabla
+  prueba × entorno, avisos), ficha de la prueba con su historial por entorno,
+  «Añadir ejecuciones…» (una o todas las de una carpeta), nueva ejecución
+  dentro de la validación y vuelta desde una ejecución.
+- Informe DOCX/PDF de la validación (`herramientas.py validacion`), borrador
+  mientras quede alguna ejecución abierta.
+- Ejemplo: cuatro ejecuciones de varias personas en `ejemplos/ejecuciones/`
+  unidas en `ejemplos/validaciones/validacion_v2.3`.
 
-Para varias personas en una misma campaña sirve lo mismo, o una función
-«Importar resultados de otra copia» que una registros y avise de conflictos.
+Operativa prevista: cada persona hace una o dos ejecuciones en su PC; después
+alguien une tres o cuatro de varias personas en una validación.
+
+Por comprobar al usarla con datos reales:
+
+- **Dónde viven las ejecuciones.** La validación apunta a ellas, no las copia:
+  si llegan de otros PCs (USB, correo, carpeta compartida) hay que dejarlas en
+  un sitio estable. Valorar una opción para **copiarlas a la carpeta de la
+  validación** al añadirlas, para que el entregable quede completo y se pueda
+  archivar.
+- Ejecuciones de otro PC con la carpeta de pruebas en otra ruta: la
+  validación usa sus propias pruebas para consolidar, pero abrir esa ejecución
+  en el editor pide reubicar sus pruebas.
+- Si las reglas de consolidación encajan en la práctica (sobre todo «vale el
+  más reciente» y los entornos que no cuentan).
+- Si hace falta que varias personas trabajen sobre la **misma** ejecución
+  (repartirse sus pruebas) o basta con una ejecución por persona.
+- Requisitos en la validación: un requisito verificado cuando todas sus
+  pruebas están validadas (aplazado).
+- En el código siguen las variables y funciones `campaña` / `campana_*`:
+  renombrarlas es mecánico pero toca mucho; decidir si se hace.
 
 ### Pasos ejecutables (aplazada)
 

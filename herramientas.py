@@ -11,10 +11,11 @@ Importación del Word (carpeta migracion/; se usa hasta que los YAML son la fuen
     auditar     comprueba que la importación no pierde texto (informe HTML)
     ids         propone y aplica IDs nuevos para pruebas con ID repetido
 
-Documentos y campañas (carpeta app/):
+Documentos y ejecuciones (carpeta app/):
     word        genera el Word a partir de los YAML (de pruebas o de requisitos)
-    informe     informe DOCX (y PDF) de una campaña
-    robot       importa en una campaña los resultados de Robot Framework (output.xml)
+    informe     informe DOCX (y PDF) de una ejecución
+    validacion  informe DOCX (y PDF) de la validación de una versión
+    robot       importa en una ejecución los resultados de Robot Framework (output.xml)
 
 Requisitos (carpeta app/):
     trazabilidad  matriz requisitos -> pruebas: cobertura y referencias que no existen
@@ -32,8 +33,9 @@ ORDENES = {
     "auditar": ("migracion.auditar", "Comprueba que la importación no pierde texto"),
     "ids": ("migracion.ids_duplicados", "Propone y aplica IDs nuevos para pruebas con ID repetido"),
     "word": ("app.yaml_a_docx", "Genera el Word a partir de los YAML"),
-    "informe": ("app.informe_docx", "Informe DOCX (y PDF) de una campaña"),
-    "robot": ("app.importar_robot", "Importa resultados de Robot Framework en una campaña"),
+    "informe": ("app.informe_docx", "Informe DOCX (y PDF) de una ejecución"),
+    "validacion": ("app.informe_validacion", "Informe DOCX (y PDF) de la validación de una versión"),
+    "robot": ("app.importar_robot", "Importa resultados de Robot Framework en una ejecución"),
     "trazabilidad": ("app.trazabilidad", "Matriz requisitos -> pruebas: cobertura y referencias que no existen"),
 }
 

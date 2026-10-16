@@ -323,6 +323,7 @@ textarea { resize: none; overflow: hidden; line-height: 1.45; display: block; wi
 .centro h2 { font-size: 20px; margin: 0 0 8px; }
 .centro p { color: var(--ink-2); margin: 0 0 16px; }
 .centro .fila-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+.centro .fila-botones + p { margin-top: 22px; }
 
 /* ---- validación y estado ---- */
 .problemas { border-top: 1px solid var(--rule-strong); background: var(--panel); max-height: 34vh; display: flex; flex-direction: column; }
@@ -434,7 +435,11 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 .chip-estado.cerrada { color: var(--ink-2); background: var(--panel); }
 
 /* ficha + panel de resultado */
-.barra .campana { flex: 0 1 auto; min-width: 120px; max-width: 26vw; }
+.barra .campana { flex: 0 1 auto; min-width: 150px; max-width: 24vw; }
+/* En validación la carpeta de pruebas la decide la validación o la ejecución: solo el icono (la ruta, en el título). */
+#app.modo-ejecucion .barra .carpeta { min-width: 0; max-width: none; padding-left: 9px; padding-right: 9px; }
+#app.modo-ejecucion .barra .carpeta span { display: none; }
+#app.modo-ejecucion .capitulo select { min-width: 160px; max-width: 20vw; }
 .barra .campana span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vista-ejecucion { padding: 0 32px 72px; max-width: 1600px; }
 .vista-ejecucion .acciones { gap: 14px; }
@@ -510,7 +515,7 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .extras-lectura { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; line-height: 1.5; }
 .extras-lectura ul { margin: 0; padding-left: 18px; }
 
-/* panel de la campaña */
+/* panel de la ejecución */
 .panel-campana { max-width: 980px; }
 .barra-progreso { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--rule); margin: 4px 0 14px; }
 .barra-progreso span { display: block; min-width: 3px; }
@@ -545,7 +550,7 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .reciente .muted { font-size: 12px; overflow-wrap: anywhere; }
 .menu-campana { display: flex; flex-direction: column; gap: 4px; }
 
-/* diálogo de nueva campaña */
+/* diálogo de nueva ejecución */
 .nueva-campana h3 { font-size: 14px; margin: 6px 0 2px; color: var(--ink); }
 .nueva-campana .rejilla { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-bottom: 6px; }
 .nueva-campana .rejilla .campo { grid-column: auto; }
@@ -743,3 +748,36 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 .tabla-capitulos tr.pulsable { cursor: pointer; }
 .tabla-capitulos tr.pulsable:hover td { background: var(--hover); }
 .tabla-capitulos tr.pulsable td:first-child { color: var(--accent); }
+
+/* ---- validación de una versión ---- */
+.panel-validacion { max-width: 1400px; }
+.panel-campana > .volver { margin: 0 0 6px; }
+.panel-campana > .volver .ico { transform: rotate(-90deg); }
+.chip-estado.peq { font-size: 11.5px; padding: 0 7px; }
+.chip-estado.e-pendiente { color: var(--ink-3); }
+.tabla-matriz td, .tabla-matriz th { vertical-align: middle; }
+.tabla-matriz .centro { text-align: center; }
+.tabla-matriz tr.pulsable { cursor: pointer; }
+.tabla-matriz tr.pulsable:hover td { background: var(--hover); }
+.tabla-matriz .tid { font: 12px var(--mono); }
+.celda-entorno { text-align: center; white-space: nowrap; width: 110px; }
+.celda-entorno.no-cuenta .chip-estado { opacity: 0.45; border-style: dashed; }
+.celda-entorno.no-pide { color: var(--ink-3); }
+.historial-n { font-size: 11px; }
+.tabla-ejecuciones tr.pulsable { cursor: pointer; }
+.tabla-ejecuciones tr.pulsable:hover td { background: var(--hover); }
+.tabla-ejecuciones .acciones-fila { width: 40px; text-align: right; }
+.e-txt-sin_planificar, .e-txt-pendiente { color: var(--ink-2); }
+.resultados-entorno { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.resultados-entorno h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-2); }
+.resultados-entorno > .chip-estado { align-self: flex-start; }
+.entorno-resultado { border-top: 1px solid var(--rule); padding-top: 10px; }
+.entorno-resultado.no-cuenta { opacity: 0.7; }
+.entorno-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.historial-entorno { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.historial-entorno li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.historial-entorno li.anterior { color: var(--ink-3); }
+.historial-entorno .obs { flex-basis: 100%; padding-left: 18px; font-size: 12px; }
+
+.marca { display: inline-flex; align-items: center; gap: 8px; }
+.marca img { border-radius: 5px; flex: none; }

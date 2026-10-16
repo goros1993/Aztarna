@@ -226,7 +226,7 @@ async function configurarRobot() {
   const r = await dialogo({
     titulo: "Robot Framework", ancho: true,
     cuerpo: h("div", { class: "config-robot" },
-      h("p", { text: "Para saber qué pruebas están automatizadas y poder lanzarlas desde una campaña. La configuración es de este PC y de esta carpeta de pruebas. Cada test de Robot se enlaza con su prueba con la etiqueta id:<ID> (ver docs/robot.md)." }),
+      h("p", { text: "Para saber qué pruebas están automatizadas y poder lanzarlas desde una ejecución. La configuración es de este PC y de esta carpeta de pruebas. Cada test de Robot se enlaza con su prueba con la etiqueta id:<ID> (ver docs/robot.md)." }),
       h("div", { class: "rejilla" }, suites, comando, argumentos, keywords),
       cobertura),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }],
@@ -258,7 +258,7 @@ function resumenCobertura(c, kws) {
     lista("No se pudieron leer", [...c.errores, ...(kws ? kws.errores : [])], "atencion"));
 }
 
-/* ---- ejecutar Robot desde una campaña ---- */
+/* ---- ejecutar Robot desde una ejecución ---- */
 async function ejecutarRobot() {
   if (!S.campana || S.campana.cerrada) return;
   if (!(await guardia())) return;
@@ -271,7 +271,7 @@ async function ejecutarRobot() {
   }
   const pruebas = S.campana.resumen.pruebas.filter((p) => tieneRobot(p.id));
   if (!pruebas.length) {
-    await dialogo({ titulo: "Ejecutar Robot", cuerpo: "Ninguna prueba de esta campaña tiene test de Robot (etiqueta id:<ID>).", botones: [{ texto: "Entendido", valor: "", tipo: "primary" }] });
+    await dialogo({ titulo: "Ejecutar Robot", cuerpo: "Ninguna prueba de esta ejecución tiene test de Robot (etiqueta id:<ID>).", botones: [{ texto: "Entendido", valor: "", tipo: "primary" }] });
     return;
   }
   const pendientes = pruebas.filter((p) => p.estado === "pendiente");
@@ -280,7 +280,7 @@ async function ejecutarRobot() {
   const cuerpo = h("div", { class: "lanzar-robot" },
     h("p", { text: "Se lanzará Robot solo con los tests de estas pruebas. Al terminar verás qué resultados se apuntarían antes de guardarlos." }),
     elegir("pendientes", "Solo las pendientes", pendientes.length),
-    elegir("todas", "Todas las de la campaña con test de Robot (las ya ejecutadas pasan al historial)", pruebas.length),
+    elegir("todas", "Todas las de la ejecución con test de Robot (las ya ejecutadas pasan al historial)", pruebas.length),
     h("ul", { class: "tests-elegidos" }, pruebas.map((p) => h("li", {},
       h("span", { class: "punto-estado e-" + p.estado }), " ", h("span", { class: "tid", text: p.id }), " ", p.titulo))));
   const r = await dialogo({

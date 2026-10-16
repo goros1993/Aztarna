@@ -11,11 +11,12 @@ prueba (trazabilidad) y generar un DOCX de lectura a partir de los YAML.
 ```text
 editor_web.py      el editor de pruebas (python editor_web.py)
 herramientas.py    las utilidades de línea de órdenes (python herramientas.py <orden>)
-app/               lógica del editor, de la trazabilidad y de las campañas
+app/               lógica del editor, de la trazabilidad y de las ejecuciones
 migracion/         importación del Word original (hasta que los YAML son la fuente oficial)
 web/               interfaz del editor (HTML, CSS y JavaScript)
 plantillas/        plantillas de la tabla de cada prueba y de cada requisito, y del informe de auditoría
-ejemplos/          capítulos de pruebas y de requisitos, una campaña y una suite de Robot ficticios
+recursos/          icono de la aplicación (y el script que lo genera)
+ejemplos/          pruebas, requisitos, ejecuciones, una validación y una suite de Robot ficticios
 tests/             pruebas automatizadas (python -m unittest)
 docs/              capturas del manual y documentación de Robot Framework
 ```
@@ -26,16 +27,19 @@ docs/              capturas del manual y documentación de Robot Framework
 | `app/trazabilidad.py` | Cobertura de los requisitos, referencias que no existen, requisitos cambiados y matriz. |
 | `app/editor_core.py` | Lectura, edición y guardado de los YAML, sin interfaz. |
 | `app/editor_api.py` | API del editor que usa la interfaz de `web/`. |
-| `app/ejecucion_core.py`, `app/ejecucion_api.py` | Campañas de ejecución: qué pruebas se pasan y sus resultados. |
+| `app/ejecucion_core.py`, `app/ejecucion_api.py` | Ejecuciones: qué pruebas se pasan, en qué entorno y con qué resultado. |
+| `app/validacion_core.py`, `app/validacion_api.py` | Validación de una versión: une ejecuciones y consolida por prueba y entorno. |
 | `app/robot_core.py` | Robot Framework: cobertura, ejecución e importación de resultados. |
 | `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML (de pruebas o de requisitos). |
-| `app/informe_docx.py` | Informe de una campaña (DOCX y, si se puede, PDF). |
+| `app/informe_docx.py` | Informe de una ejecución (DOCX y, si se puede, PDF). |
+| `app/informe_validacion.py` | Informe de la validación de una versión (DOCX y, si se puede, PDF). |
 | `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot). |
 | `migracion/convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
 | `migracion/inventario.py` | Agrupa las tablas del DOCX por estructura antes de importar. |
 | `migracion/auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
 | `migracion/ids_duplicados.py` | Propone y aplica IDs nuevos para pruebas con ID repetido, vacío o con espacios. |
-| `construir_exe.bat` | Genera el `.exe` del editor para Windows. |
+| `construir_exe.bat` | Genera el `.exe` del editor para Windows (con el icono de `recursos/`). |
+| `recursos/generar_icono.py` | Genera el icono de la aplicación (`recursos/icono.png` e `icono.ico`, `web/img/icono.png`). |
 
 Las utilidades se ejecutan todas con `herramientas.py`:
 
@@ -46,8 +50,8 @@ Las utilidades se ejecutan todas con `herramientas.py`:
 | `python herramientas.py auditar documento.docx importacion/yaml` | Comprueba que la importación no pierde texto |
 | `python herramientas.py ids importacion/yaml` | Propone (y con `--aplicar`, aplica) IDs nuevos para los repetidos |
 | `python herramientas.py word ruta/a/yaml -o pruebas.docx` | Genera el Word a partir de los YAML |
-| `python herramientas.py informe ruta/a/campaña --pdf` | Informe de una campaña |
-| `python herramientas.py robot ruta/a/campaña output.xml` | Importa resultados de Robot Framework |
+| `python herramientas.py informe ruta/a/ejecución --pdf` | Informe de una ejecución |
+| `python herramientas.py robot ruta/a/ejecución output.xml` | Importa resultados de Robot Framework |
 
 `python herramientas.py` sin nada lista las órdenes y `python herramientas.py
 <orden> --help` explica las opciones de cada una.
@@ -186,7 +190,7 @@ Además:
 
 ### Corregir IDs repetidos
 
-Las campañas reconocen cada prueba por su ID, así que conviene corregir los
+Las ejecuciones reconocen cada prueba por su ID, así que conviene corregir los
 repetidos antes de empezar a apuntar resultados:
 
 ```bash
@@ -281,7 +285,7 @@ proyecto/
 ```
 
 El editor, `trazabilidad` y `word` aceptan la carpeta del proyecto o la de
-pruebas; las campañas guardan la ruta de `pruebas/`. Una carpeta de pruebas
+pruebas; las ejecuciones guardan la ruta de `pruebas/`. Una carpeta de pruebas
 suelta (con `indice.yaml` dentro, como la que crea `convertir`) también vale:
 sus requisitos van entonces en su subcarpeta `requisitos/`.
 
@@ -332,30 +336,37 @@ python herramientas.py trazabilidad ejemplos/yaml -o matriz.csv      # y matriz 
 python herramientas.py word ejemplos/yaml/requisitos -o requisitos.docx
 ```
 
-## Ejecución de pruebas (campañas)
+## Ejecuciones y validación de una versión
 
 El editor tiene tres modos, que se eligen arriba a la izquierda: **Pruebas**
 (cambiar las pruebas), **Requisitos** (cambiar los requisitos, ver la sección
-anterior) y **Ejecución** (apuntar los resultados de las pruebas). En ejecución
-los YAML de pruebas solo se leen: los resultados se guardan en la carpeta de
-una *campaña*, que cada uno guarda donde quiera en su PC.
+anterior) y **Validación** (pasar las pruebas y unir los resultados de una
+versión). En este modo los YAML de pruebas solo se leen. Hay dos niveles:
+
+- **Ejecución**: una persona pasa un conjunto de pruebas sobre una versión y
+  en un **entorno de pruebas** (Automático, Maqueta o Torre). Cada una es una
+  carpeta que se guarda donde se quiera.
+- **Validación**: une las ejecuciones de una versión (normalmente de varias
+  personas y entornos) y da el resultado de cada prueba en cada entorno. Ver
+  «Validación de una versión» más abajo.
 
 ```text
 2026-11-03_Regresión_v2.3/
-├── campaña.yaml      # datos, criterio de selección y lista de pruebas
+├── ejecucion.yaml    # datos (entorno de pruebas incluido), criterio y lista de pruebas
 ├── resultados.yaml   # un resultado por prueba, con su historial
 └── evidencias/       # capturas y archivos adjuntos
 ```
 
-**Crear una campaña.** Botón de la campaña → *Nueva campaña*: nombre, qué se
-prueba (versión), entorno, responsable y qué pruebas entran, marcando
+**Crear una ejecución.** Botón de la ejecución → *Nueva ejecución*: nombre,
+entorno de pruebas (obligatorio), qué se prueba (versión), banco o instalación,
+responsable y qué pruebas entran, marcando
 tags, automatizable, entorno de pruebas, maniobra o capítulos (dentro de un
 grupo basta con una opción; entre grupos, todas). La
 vista previa muestra las pruebas que entrarán. Después se elige la carpeta
 donde guardarla y se crea una subcarpeta con la fecha y el nombre. La lista de
 pruebas queda fijada; *Resincronizar* añade las que se etiqueten más tarde.
 
-**Apuntar resultados.** El árbol muestra solo las pruebas de la campaña, con
+**Apuntar resultados.** El árbol muestra solo las pruebas de la ejecución, con
 un punto de color por estado, y se puede filtrar por estado. Al abrir una
 prueba se ve en solo lectura y, a la derecha, su resultado:
 
@@ -378,48 +389,86 @@ muestra el avance, los totales por estado, el porcentaje de OK sobre las
 pruebas que aplican, el desglose por capítulo y avisos como
 NO OK sin observaciones o pruebas que ya no existen.
 
-**Cerrar e informe.** *Cerrar campaña* exige que no quede nada pendiente,
-guarda dentro de la campaña una copia de sus pruebas tal como están
+**Cerrar e informe.** *Cerrar ejecución* exige que no quede nada pendiente,
+guarda dentro de la ejecución una copia de sus pruebas tal como están
 (`pruebas_congeladas/`, con secciones e imágenes) y bloquea los resultados.
-Desde entonces la campaña se revisa y se informa con esa copia, aunque los YAML
+Desde entonces la ejecución se revisa y se informa con esa copia, aunque los YAML
 de pruebas sigan cambiando; el editor la muestra en solo lectura. *Generar
 informe* crea un DOCX con el mismo aspecto que el Word de las pruebas: un resumen al
-principio (datos de la campaña, criterio, totales, desglose por capítulo,
+principio (datos de la ejecución, criterio, totales, desglose por capítulo,
 fallos y bloqueos, avisos) y cada prueba con su resultado, observaciones,
-incidencia, evidencias e intentos anteriores. Con la campaña abierta sale
+incidencia, evidencias e intentos anteriores. Con la ejecución abierta sale
 marcado como BORRADOR. El PDF se genera con LibreOffice o, en Windows, con
 Microsoft Word, si están instalados. También desde la línea de comandos:
 
 ```bash
-python herramientas.py informe ruta/a/la/campaña -o informe.docx --pdf
+python herramientas.py informe ruta/a/la/ejecución -o informe.docx --pdf
 ```
 
-**Cómo se une una campaña con las pruebas.** La campaña no copia las pruebas
-mientras está abierta: guarda dónde están (ruta relativa a la campaña y ruta
+**Cómo se une una ejecución con las pruebas.** La ejecución no copia las pruebas
+mientras está abierta: guarda dónde están (ruta relativa a la ejecución y ruta
 absoluta, y prueba las dos al abrirla) y, de cada prueba, su **ID** y una
 *huella* de su contenido. Si no encuentra la carpeta de pruebas, pregunta
 dónde está y lo recuerda. Por eso **los ID deben ser únicos y estables**: el
 editor no deja guardar un ID repetido, la validación marca los duplicados, no
-se puede crear una campaña con IDs repetidos y, al cambiar el ID de una prueba
-existente, el editor pide confirmación (para las campañas, un ID nuevo es otra
+se puede crear una ejecución con IDs repetidos y, al cambiar el ID de una prueba
+existente, el editor pide confirmación (para las ejecuciones, un ID nuevo es otra
 prueba). Cambiar el texto, los pasos o la ubicación de una prueba no rompe
-nada; si ya se había ejecutado, la campaña avisa de que cambió.
+nada; si ya se había ejecutado, la ejecución avisa de que cambió.
 
 **Pruebas automáticas (Robot Framework).** Cada test de Robot lleva la
 etiqueta `id:<ID de la prueba>`. *Importar Robot…* (en el resumen de la
-campaña) o `python herramientas.py robot <campaña> <output.xml>` apuntan sus
+ejecución) o `python herramientas.py robot <ejecución> <output.xml>` apuntan sus
 resultados (PASS → OK, FAIL → NO OK, SKIP → No aplica) con el log y las
 capturas como evidencias. Con la carpeta de tests de Robot configurada (botón
 *Robot*), el editor marca qué pruebas tienen test automático, avisa de las
-`automatizable: hecho` sin test, permite filtrar campañas por automatización
-y lanza Robot desde la campaña (*Ejecutar Robot…*) con el avance en vivo.
+`automatizable: hecho` sin test, permite filtrar ejecuciones por automatización
+y lanza Robot desde la ejecución (*Ejecutar Robot…*) con el avance en vivo.
 Al escribir situaciones y pasos propone las keywords de Robot (de los
 `.robot`, `.resource` y librerías de Python) y marca los pasos que ya son una
 keyword. Detalles en [docs/robot.md](docs/robot.md).
 
-Para probarlo: modo Ejecución → *Abrir campaña…* →
-`ejemplos/ejecuciones/regresion_v2.3`. Al abrir una campaña se abre también
+Para probarlo: modo Validación → *Abrir ejecución…* →
+`ejemplos/ejecuciones/regresion_v2.3`. Al abrir una ejecución se abre también
 su carpeta de pruebas.
+
+### Validación de una versión
+
+La operativa habitual: cada persona hace una o dos ejecuciones (cada una en su
+entorno) y después alguien las une en la validación de la versión.
+
+```text
+Validación v2.3/
+└── validacion.yaml   # nombre, versión, criterio de qué pruebas hay que pasar
+                      # y las rutas de sus ejecuciones (relativas y absolutas)
+```
+
+Cada prueba indica en su campo `entorno` dónde hay que pasarla y cada ejecución
+en `entorno_pruebas` dónde se hizo. `app/validacion_core.py` consolida:
+
+- por prueba y entorno vale el resultado **más reciente** de las ejecuciones de
+  ese entorno; los anteriores quedan como historial;
+- una prueba está **validada** con OK (o No aplica) en todos sus entornos;
+  **NO OK** si falla en alguno; **bloqueada** si alguno no se pudo ejecutar;
+  **pendiente** si falta alguno (planificado en una ejecución o *sin
+  planificar*);
+- un resultado en un entorno que la prueba no pide se muestra pero no cuenta
+  (un NO OK ahí se avisa); una prueba sin entorno vale en cualquiera, con aviso;
+- también avisa de pruebas que cambiaron después de ejecutarse, ejecuciones sin
+  entorno y ejecuciones que no se encuentran.
+
+En el editor: botón de la validación (barra superior) → nueva o abrir;
+*Añadir ejecuciones…* (una, o todas las de una carpeta), *Nueva ejecución*
+dentro de la validación, panel con el resultado, las ejecuciones, la tabla por
+entorno y la tabla prueba × entorno, ficha de cada prueba con su historial por
+entorno e informe DOCX/PDF (borrador mientras quede alguna ejecución abierta):
+
+```bash
+python herramientas.py validacion ejemplos/validaciones/validacion_v2.3 -o informe.docx --pdf
+```
+
+Las carpetas con `campaña.yaml` (el nombre anterior de las ejecuciones) se
+siguen leyendo.
 
 ## Edición de pruebas en YAML
 
@@ -473,7 +522,7 @@ contenido:
 Todas las pruebas tienen los mismos campos, en el orden de la tabla de
 `plantillas/tabla_prueba.docx`. Se definen en un solo sitio, `app/esquema.py`, que
 usan el importador, el editor (formulario y validación), el DOCX y las
-campañas:
+ejecuciones:
 
 | Campo | En la tabla | Tipo |
 |---|---|---|
@@ -516,7 +565,7 @@ Consejos para crear una prueba:
   y pasos.
 - Usa `etiquetas` para agrupar pruebas (por ejemplo `regresion`, `smoke`,
   `seguridad`); son el criterio principal para elegir qué pruebas entran en una
-  campaña de ejecución.
+  ejecución o una validación.
 - Usa un ID único salvo que la repetición sea deliberada y esté documentada.
 - Mantén `parametrizacion`, `situacion_inicial` y `pasos` como listas, y
   `maniobra`, `entorno`, `requisitos` y `etiquetas` como listas de textos.
@@ -564,6 +613,17 @@ inventado («DEMO-A1») probado en un banco HIL:
   pruebas por revisar (`REQ-PUER-002`, en `revisiones.yaml`). La prueba
   `DEMO-LLAM-003` cita `REQ-COLA-001`, que no existe.
 
+Y, en `ejemplos/`, las ejecuciones y la validación de la versión 2.3, como las
+harían varias personas:
+
+- `ejecuciones/regresion_v2.3` (Ana, Maqueta, abierta),
+  `ejecuciones/2026-11-04_Robot` (resultados de Robot, Automático, cerrada),
+  `ejecuciones/2026-11-05_Torre_Luis` (Torre, cerrada, con un NO OK) y
+  `ejecuciones/2026-11-10_Torre_Luis_repeticion` (repite en torre la que falló).
+- `validaciones/validacion_v2.3`: une las cuatro (4 validadas, 1 NO OK, 1
+  bloqueada, 3 pendientes y 1 no aplica).
+- `robot/`: una suite de Robot ficticia y sus resultados (`output.xml`).
+
 Los ejemplos validan sin errores; el único aviso es esa referencia a un
 requisito que no existe, puesta a propósito. Llevan comentarios YAML que el
 editor conserva al guardar. Las imágenes son sintéticas y están en
@@ -610,8 +670,9 @@ python -m unittest discover -v
 Cubren la conversión Word/YAML, la extracción y exportación de imágenes, las
 funciones del núcleo (navegación jerárquica, inserción, movimiento y borrado),
 la API del editor (edición, validación, imágenes, exportación y cierre), las
-campañas de ejecución (selección, resultados, historial, evidencias, resumen)
-y que los ejemplos validan sin errores.
+ejecuciones (selección, resultados, historial, evidencias, resumen), la
+validación de versión (consolidación por entorno, informe), los requisitos y la
+trazabilidad, y que los ejemplos validan sin errores.
 
 ## Publicación del repositorio
 

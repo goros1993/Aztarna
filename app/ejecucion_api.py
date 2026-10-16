@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""API de las campañas de ejecución para la interfaz web.
+"""API de las ejecuciones de pruebas para la interfaz web.
 
 Amplía `EditorApi`: la misma ventana sirve para editar las pruebas y para
 apuntar sus resultados. La lógica está en `ejecucion_core.py`; aquí solo se
@@ -27,7 +27,7 @@ from app.editor_api import EditorApi, respuesta, to_plain
 def _nombre_carpeta(nombre: str) -> str:
     """«Regresión v2.3» -> «2026-11-03_Regresión_v2.3» (válido en Windows y Linux)."""
     limpio = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", nombre).strip().replace(" ", "_")
-    return f"{date.today().isoformat()}_{limpio or 'campaña'}"
+    return f"{date.today().isoformat()}_{limpio or 'ejecucion'}"
 
 
 class EditorEjecucionApi(EditorApi):
@@ -39,7 +39,7 @@ class EditorEjecucionApi(EditorApi):
     # --- utilidades -----------------------------------------------------------
     def _requiere_campaña(self) -> dict[str, Any]:
         if self._campaña is None:
-            raise ValueError("No hay ninguna campaña abierta.")
+            raise ValueError("No hay ninguna ejecución abierta.")
         return self._campaña
 
     def _estado(self) -> dict[str, Any]:
@@ -47,10 +47,12 @@ class EditorEjecucionApi(EditorApi):
         datos = {k: v for k, v in to_plain(campaña["datos"]).items() if k != "pruebas"}
         return {
             "carpeta": str(campaña["carpeta"]),
+            "archivo": str(ej.archivo_datos(campaña["carpeta"])),
             "datos": datos,
             "cerrada": datos.get("estado") == "cerrada",
             "resumen": ej.resumen(campaña, self._chapters),
             "estados": ej.ESTADOS_VISIBLES,
+            "entornos": list(ej.entornos_pruebas()),
         }
 
     def _dialogo_carpeta(self) -> Path | None:
@@ -78,7 +80,7 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_previsualizar(self, filtro: dict[str, Any]) -> list[dict[str, str]]:
-        """Pruebas que entrarían en una campaña con este filtro."""
+        """Pruebas que entrarían en una ejecución con este filtro."""
         self._require_dir()
         return [
             {"id": item["id"], "archivo": item["archivo"],
@@ -89,7 +91,7 @@ class EditorEjecucionApi(EditorApi):
     @respuesta
     def campana_crear(self, nombre: str, filtro: dict[str, Any], datos: dict[str, Any] | None = None,
                       carpeta: str | None = None) -> dict[str, Any]:
-        """Crea la campaña en una subcarpeta nueva dentro de la carpeta elegida."""
+        """Crea la ejecución en una subcarpeta nueva dentro de la carpeta elegida."""
         pruebas = self._require_dir()
         if carpeta is None:
             padre = self._dialogo_carpeta()
@@ -104,12 +106,12 @@ class EditorEjecucionApi(EditorApi):
         return self._estado()
 
     def _abrir(self, carpeta: Path) -> dict[str, Any]:
-        """Abre la campaña y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
+        """Abre la ejecución y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
         campaña = ej.cargar(carpeta)
         congelada = ej.carpeta_congelada(campaña) if campaña["datos"].get("estado") == "cerrada" else None
         pruebas = congelada or ej.carpeta_pruebas(campaña)
         if pruebas is None:
-            # Se movió la carpeta de pruebas (o la campaña viene de otro PC): la interfaz pregunta dónde está.
+            # Se movió la carpeta de pruebas (o la ejecución viene de otro PC): la interfaz pregunta dónde está.
             return {"faltan_pruebas": True, "carpeta": str(campaña["carpeta"]),
                     "nombre": str(campaña["datos"].get("nombre") or ""),
                     "rutas": [str(campaña["datos"].get(k)) for k in ("pruebas_yaml", "pruebas_yaml_absoluta")
@@ -124,8 +126,14 @@ class EditorEjecucionApi(EditorApi):
         return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None}
 
     @respuesta
+    def campana_editar_datos(self, cambios: dict[str, Any]) -> dict[str, Any]:
+        """Cambia qué se prueba, el entorno de pruebas, el banco o el responsable de la ejecución abierta."""
+        ej.editar_datos(self._requiere_campaña(), cambios or {})
+        return self._estado()
+
+    @respuesta
     def campana_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
-        """Abre una campaña; si sus pruebas están en otra carpeta, abre también esa carpeta."""
+        """Abre una ejecución; si sus pruebas están en otra carpeta, abre también esa carpeta."""
         if carpeta is None:
             elegida = self._dialogo_carpeta()
             if elegida is None:
@@ -136,7 +144,7 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_reubicar(self, carpeta: str, pruebas: str | None = None) -> dict[str, Any]:
-        """Indica dónde están ahora las pruebas de una campaña y la abre."""
+        """Indica dónde están ahora las pruebas de una ejecución y la abre."""
         campaña = ej.cargar(carpeta)
         if pruebas is None:
             elegida = self._dialogo_carpeta()
@@ -153,7 +161,7 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_soltar(self) -> dict[str, Any]:
-        """Deja de trabajar con la campaña abierta (no borra nada)."""
+        """Deja de trabajar con la ejecución abierta (no borra nada)."""
         self._campaña = None
         return {}
 
@@ -234,10 +242,10 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_cerrar(self) -> dict[str, Any]:
-        """Cierra la campaña: congela sus pruebas y pasa a mostrarlas en solo lectura."""
+        """Cierra la ejecución: congela sus pruebas y pasa a mostrarlas en solo lectura."""
         campaña = self._requiere_campaña()
         if self._solo_lectura:
-            raise ValueError("La campaña ya está cerrada.")
+            raise ValueError("La ejecución ya está cerrada.")
         ej.cerrar(campaña, self._chapters)
         return self._abrir(campaña["carpeta"])
 
@@ -300,7 +308,7 @@ class EditorEjecucionApi(EditorApi):
 
     @respuesta
     def campana_robot_importar(self, ruta: str) -> dict[str, Any]:
-        """Apunta en la campaña los resultados del output.xml."""
+        """Apunta en la ejecución los resultados del output.xml."""
         from app import robot_core
 
         datos = robot_core.importar(self._requiere_campaña(), ruta, self._chapters)
@@ -442,7 +450,7 @@ class EditorEjecucionApi(EditorApi):
         """Lanza Robot solo con los tests de esas pruebas; el avance se consulta con campana_robot_progreso."""
         campaña = self._requiere_campaña()
         if campaña["datos"].get("estado") == "cerrada":
-            raise ValueError("La campaña está cerrada.")
+            raise ValueError("La ejecución está cerrada.")
         if self._robot and self._robot["proceso"].poll() is None:
             raise ValueError("Ya hay una ejecución de Robot en marcha.")
         config = self._robot_config()

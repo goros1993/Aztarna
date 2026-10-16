@@ -1,0 +1,6 @@
+DEMO-PUER-002:
+  estado: ok
+  fecha: 2026-11-10T09:30
+  ejecutor: Luis Gómez
+  huella: ea335b52eef8
+  observaciones: Corregido en rc3 (BUG-141).
