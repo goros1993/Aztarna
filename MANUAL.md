@@ -12,8 +12,9 @@ programar ni conocer el formato de los archivos.
 4. [Editar pruebas (modo Pruebas)](#4-editar-pruebas-modo-pruebas)
 5. [Requisitos y trazabilidad (modo Requisitos)](#5-requisitos-y-trazabilidad-modo-requisitos)
 6. [Ejecutar y validar (modo Validación)](#6-ejecutar-y-validar-modo-validación)
-7. [Atajos de teclado](#7-atajos-de-teclado)
-8. [Preguntas frecuentes y problemas](#8-preguntas-frecuentes-y-problemas)
+7. [Importar desde Word](#7-importar-desde-word)
+8. [Atajos de teclado](#8-atajos-de-teclado)
+9. [Preguntas frecuentes y problemas](#9-preguntas-frecuentes-y-problemas)
 
 ---
 
@@ -111,8 +112,8 @@ en Ubuntu, *Configuración → Apariencia*.
 
 El menú **⋯**, a la derecha de la barra superior, reúne:
 
-- **Importar…**: todavía no disponible (traerá pruebas y requisitos desde
-  Word).
+- **Importar desde Word…**: pruebas, requisitos o resultados de una
+  ejecución (ver 7). En el modo Validación, solo resultados.
 - **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
   ver 4.8. No aparece en el modo Validación.
 - **Manual de usuario**: abre este manual en una ventana aparte.
@@ -262,6 +263,16 @@ la posición, el elemento queda **antes**, **dentro** (al final) o **después**
 de ella. Una sección se mueve con todo su contenido (también las tablas de su
 contexto) y los niveles se ajustan solos.
 
+![Varios elegidos para cambiarles el nivel](docs/manual/43_arbol_niveles.png)
+
+Para **cambiar el nivel de varios a la vez**, elígelos con **Ctrl+clic** (uno
+a uno) o **Mayús+clic** (un rango): aparece una barra con **Subir** y
+**Bajar** (un nivel cada vez) y la **×** para quitar la selección (o Esc).
+**Alt+←** / **Alt+→** hacen lo mismo, también con el elemento abierto. Una
+sección se mueve con todo lo que cuelga de ella. Los niveles van del 2 al 6
+(el 1 es el capítulo): si alguno se saldría, no se cambia nada y el editor
+dice cuál.
+
 ### 4.6 Vista YAML
 
 ![Vista YAML](docs/manual/05_vista_yaml.png)
@@ -386,6 +397,15 @@ El formulario sigue la tabla del requisito en el documento: **ID** y
 **Tipo** (Informativo, Obligatorio u Opcional), **Criterio validación**
 (Inspección, Análisis o Test; se pueden marcar varios), **Fase**, **Fecha** y
 **Versión**, y el **Contexto** (texto y tablas que van antes de la tabla).
+
+Si la descripción tiene **tablas o imágenes** (lo normal al importar del
+Word), van en el bloque **Tablas e imágenes de la descripción**, en su orden y
+con los párrafos que las siguen; en el Word exportado salen dentro de la celda
+de la descripción. Los **Campos adicionales** guardan lo que no tiene campo
+propio (por ejemplo, una «Prioridad» del Word) y salen en filas al final de la
+tabla.
+
+![Requisito importado con una tabla en la descripción](docs/manual/42_requisito_detalle.png)
 
 Encima está el bloque **Pruebas que lo cubren**, con su estado y la lista de
 pruebas: pulsa una para abrirla (el editor pasa al modo Pruebas).
@@ -639,7 +659,12 @@ cada persona deja las suyas): se añaden todas las que haya. La validación no
 copia las ejecuciones, apunta a ellas, así que conviene dejarlas en un sitio
 fijo. **Nueva ejecución** crea una dentro de la carpeta de la validación,
 partiendo de su criterio. La **×** de cada fila la quita de la validación (no
-la borra).
+la borra). Los resultados de una ejecución hecha fuera del editor, en un
+Word, se importan como una ejecución nueva (ver 7.5).
+
+Si abres por tu cuenta una ejecución que no forma parte de la validación
+abierta, su resumen lo avisa (sus resultados no cuentan) y ofrece
+**Añadirla a la validación**.
 
 **Cómo se calcula el resultado.** Cada prueba indica en su campo *Entorno de
 pruebas* dónde hay que pasarla, y cada ejecución en qué entorno se hizo:
@@ -683,7 +708,112 @@ En los ejemplos hay una validación completa:
 
 ---
 
-## 7. Atajos de teclado
+## 7. Importar desde Word
+
+**⋯ → Importar desde Word…** trae al proyecto las pruebas o los requisitos de
+un documento de Word, o los resultados de una ejecución. El editor no cambia
+nada hasta el último paso, y recuerda lo que eliges para la próxima vez.
+
+Se espera la forma de las plantillas: la primera fila de cada tabla es
+«**ID** | **Título**» y cada celda de las demás empieza por «**Etiqueta:**
+valor» («Descripción: …», «Fuente: …»). Un párrafo «Etiqueta:» solo en su
+línea abre otro campo dentro de la misma celda («Situación inicial:» y
+«Ensayo:»). Los títulos del Word (Título 1, 2, 3…) dan los capítulos y las
+secciones.
+
+### 7.1 Documento
+
+![Elegir el documento](docs/manual/37_importar_documento.png)
+
+Elige el Word, **qué contiene** (pruebas, requisitos, los dos, o resultados;
+solo sirve para proponer) y **dónde se importa**: en un **proyecto nuevo**
+(una carpeta con `pruebas/` y `requisitos/`; nada de lo que ya tienes se toca)
+o **añadido al proyecto abierto** (sus capítulos van al final del índice).
+
+Con documentos grandes cada paso puede tardar un poco: la ventana se pone gris
+con un mensaje y el tiempo que lleva.
+
+### 7.2 Tablas
+
+![Familias de tablas](docs/manual/38_importar_tablas.png)
+
+El editor agrupa las tablas en **familias**: las que tienen las mismas
+etiquetas (o casi). Para cada una eliges qué es: **pruebas**, **requisitos**,
+**tabla informativa** (se conserva tal cual, en el texto de su sección, como
+un historial de cambios) o **no importar**. Las tablas dentro de una celda se
+conservan: en un requisito, en *Tablas e imágenes de la descripción*; en una
+prueba, en su contexto.
+
+### 7.3 Campos
+
+![A qué campo va cada etiqueta](docs/manual/39_importar_campos.png)
+
+Cada etiqueta del Word, con cuántas tablas la tienen y a qué campo va. El
+editor propone las evidentes («Origen» → *Fuente*, «Método de verificación» →
+*Criterio validación*, «Pasos» → *Ensayo*); cámbialas donde no acierte.
+Además de los campos hay tres opciones:
+
+- **Campo adicional**: se conserva con su nombre (en *Campos adicionales*).
+- **Parte del campo anterior**: el párrafo se queda dentro del campo de antes;
+  sirve para una «Nota:» en mitad de una descripción.
+- **No importar**.
+
+### 7.4 Revisar e importar
+
+![Revisión antes de importar](docs/manual/40_importar_revisar.png)
+
+Antes de importar ves cuántos elementos entran y en qué capítulos, un
+**ejemplo** de cómo queda cada uno (*Ver otro*), los **IDs que revisar**
+(repetidos o vacíos, con el siguiente número libre de la serie propuesto;
+borra la propuesta para conservar el ID) y los **avisos**: por ejemplo, texto
+del Word que no ha llegado a ningún campo. En un proyecto nuevo, **Elegir
+carpeta e importar…** pide dónde crearlo y lo abre.
+
+**Volver a importar un Word en el proyecto abierto.** Si el Word trae IDs que
+ya existen, aparece el bloque **Ya existen en el proyecto** con lo que cambia
+en cada uno y qué hacer:
+
+![Los que ya existen en el proyecto](docs/manual/41_importar_existentes.png)
+
+- **Actualizar el del proyecto**: sus campos pasan a ser los del Word; conserva
+  su sitio en el árbol, su nivel y su encabezado. Si un requisito actualizado
+  tiene pruebas, queda *cambiado, con pruebas por revisar* (ver 5.4), y una
+  prueba ya ejecutada lo mostrará en las ejecuciones.
+- **Importar como nuevo**, con el ID nuevo que escribas.
+- **No importar**.
+
+Por defecto se actualizan los que cambian y no se tocan los que están igual;
+*Para todos…* aplica lo mismo a todos.
+
+### 7.5 Resultados de una ejecución
+
+Para un Word con las tablas de las pruebas y unas filas más con el resultado
+(«Resultado obtenido: Correcto», «Observaciones: …», «Ejecutor: …», «Fecha
+ejecución: …»). Las pruebas tienen que estar ya en el proyecto: los
+resultados se enlazan por el ID de la cabecera de cada tabla.
+
+En **Campos** se indica qué etiqueta es el **Resultado**, las
+**Observaciones**, la **Incidencia**, el **Ejecutor** y la **Fecha de
+ejecución** (las de la propia prueba quedan como *No importar*), y debajo,
+**qué resultado es cada valor** escrito en el Word:
+
+![Qué resultado es cada valor](docs/manual/44_resultados_valores.png)
+
+Un valor que no es ningún resultado deja la prueba pendiente y su texto pasa a
+las observaciones. En **Revisar** ves las cifras, los avisos (pruebas que no
+están en el proyecto, fechas que no se entienden…) y los datos de la
+ejecución que se crea: nombre, **entorno de pruebas** (obligatorio), qué se
+prueba, banco y responsable. Con una validación abierta, se puede crear
+**dentro de ella**.
+
+![Resultados: revisar y crear la ejecución](docs/manual/45_resultados_revisar.png)
+
+La ejecución queda **abierta** con esas pruebas y sus resultados (con su fecha
+y quién la ejecutó): revísala, completa las pendientes y ciérrala.
+
+---
+
+## 8. Atajos de teclado
 
 | Atajo | Dónde | Hace |
 |---|---|---|
@@ -691,6 +821,9 @@ En los ejemplos hay una validación completa:
 | Ctrl+F | Siempre | Ir al buscador |
 | ↑ / ↓ | Árbol | Prueba anterior / siguiente |
 | ← / → | Árbol | Plegar / desplegar sección |
+| Ctrl+clic / Mayús+clic | Árbol | Elegir varios (uno a uno / un rango) |
+| Alt+← / Alt+→ | Árbol | Subir / bajar de nivel lo elegido |
+| Esc | Árbol | Quitar la selección de varios |
 | Ctrl+B / Ctrl+I | Texto | Negrita / cursiva |
 | Ctrl+Z / Ctrl+Y | Texto | Deshacer / rehacer |
 | Intro / Mayús+Intro | Lista | Fila nueva / salto de línea |
@@ -703,7 +836,7 @@ En los ejemplos hay una validación completa:
 
 ---
 
-## 8. Preguntas frecuentes y problemas
+## 9. Preguntas frecuentes y problemas
 
 **¿Dónde se guarda lo que hago?**
 Las pruebas, en su carpeta de pruebas (un archivo por capítulo, y las
@@ -745,6 +878,12 @@ Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
 **La opción de PDF no está disponible.**
 Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se
 genera igualmente.
+
+**Al importar, una prueba o un requisito sale en un nivel que no es.**
+Con varios elegidos en el árbol (Ctrl+clic o Mayús+clic) súbelos o bájalos de
+nivel a la vez (ver 4.5). Si pasa en todo un documento, revisa en el Word que
+los títulos usen los estilos de título (Título 1, 2, 3…) o un estilo basado
+en ellos.
 
 **¿Qué versión del editor tengo?**
 La de la esquina inferior derecha (o **⋯ → Acerca de…**). Las novedades de

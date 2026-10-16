@@ -20,7 +20,7 @@ async function asistenteImportar() {
   IMP = { paso: 0, archivo: "", preferido: S.modo === "ejecucion" ? "resultado" : enRequisitos() ? "requisito" : "prueba", modo: "nuevo", nombre: "",
     analisis: null, mapeo: null, revision: null, ids: {} };
   const dlg = h("dialog", { class: "ancho asistente", "aria-label": "Importar desde Word" });
-  dlg.addEventListener("close", () => { dlg.remove(); IMP = null; });
+  dlg.addEventListener("close", () => { dlg.remove(); if (IMP && IMP.dlg === dlg) IMP = null; });
   dlg.addEventListener("cancel", (e) => { if (document.querySelector(".espera")) e.preventDefault(); });
   document.body.appendChild(dlg);
   IMP.dlg = dlg;

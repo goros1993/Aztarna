@@ -33,6 +33,8 @@ docs/              capturas del manual y documentación de Robot Framework
 | `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML (de pruebas o de requisitos). |
 | `app/informe_docx.py` | Informe de una ejecución (DOCX y, si se puede, PDF). |
 | `app/informe_validacion.py` | Informe de la validación de una versión (DOCX y, si se puede, PDF). |
+| `app/importacion.py`, `app/importacion_api.py` | Importar pruebas o requisitos de un Word con un mapeo de etiquetas (asistente del editor y `herramientas.py importar`). |
+| `app/importacion_resultados.py` | Importar los resultados de una ejecución desde un Word con filas de resultado. |
 | `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot, preferencias de la interfaz). |
 | `app/manual.py` | Convierte `MANUAL.md` en HTML para abrirlo dentro del editor. |
 | `app/__init__.py` | Nombre y versión de la herramienta (único sitio donde se definen). |
@@ -47,7 +49,8 @@ Las utilidades se ejecutan todas con `herramientas.py`:
 
 | Orden | Hace |
 |---|---|
-| `python herramientas.py convertir documento.docx -o importacion` | Word → YAML, con avisos |
+| `python herramientas.py importar documento.docx --tipo requisito -o proyecto` | Word → proyecto (pruebas o requisitos), con el mapeo propuesto |
+| `python herramientas.py convertir documento.docx -o importacion` | Word de pruebas → YAML, con avisos (importación inicial) |
 | `python herramientas.py inventario documento.docx` | Agrupa las tablas del Word por estructura |
 | `python herramientas.py auditar documento.docx importacion/yaml` | Comprueba que la importación no pierde texto |
 | `python herramientas.py ids importacion/yaml` | Propone (y con `--aplicar`, aplica) IDs nuevos para los repetidos |
@@ -110,7 +113,49 @@ En Linux, pywebview usa WebKitGTK a través de PyGObject (en Ubuntu, los paquete
 `--system-site-packages`). En Windows usa WebView2, que viene con Windows 11 y
 con Windows 10 actualizado.
 
-## Importación inicial: DOCX a YAML
+## Importar desde Word (asistente)
+
+En el editor, **⋯ → Importar desde Word…** importa pruebas, requisitos o los
+resultados de una ejecución. Pasos:
+
+1. **Documento**: qué contiene y dónde se importa (proyecto nuevo o añadido al
+   abierto).
+2. **Tablas**: las tablas se agrupan en familias por sus etiquetas
+   (`importacion.analizar`) y se elige qué es cada familia: pruebas,
+   requisitos, tabla informativa o nada.
+3. **Campos**: a qué campo del esquema va cada etiqueta («Origen» → `fuente`,
+   «Pasos» → `pasos`…), campo adicional, «parte del campo anterior» o nada. Se
+   proponen por sinónimos y parecido; lo elegido se recuerda en los ajustes del
+   PC.
+4. **Revisar**: cifras, ejemplo, IDs repetidos o vacíos con un ID nuevo
+   propuesto, avisos (también el texto del Word que no llega a ningún campo)
+   y, al añadir al proyecto, los IDs que ya existen con sus diferencias para
+   **actualizarlos** en su sitio, importarlos como nuevos u omitirlos.
+
+Se espera la forma de las plantillas: primera fila «ID | Título» y celdas
+«Etiqueta: valor». Un título con varias tablas es una sección; los títulos se
+reconocen por su estilo (o el estilo en que se basan) o su nivel de esquema.
+Las tablas dentro de una celda se conservan (en un requisito, en `detalle`).
+
+**Resultados**: con un Word de pruebas con filas de resultado, se elige qué
+etiqueta es el resultado, las observaciones, la incidencia, el ejecutor y la
+fecha, y qué estado es cada valor escrito («Correcto» → OK, «N/A» → No
+aplica…). Se crea una ejecución nueva, abierta, con las pruebas del Word que
+están en el proyecto (también dentro de la validación abierta).
+
+Lo mismo para pruebas o requisitos desde la línea de órdenes:
+
+```bash
+python herramientas.py importar documento.docx --tipo requisito                      # análisis y mapeo propuesto
+python herramientas.py importar documento.docx --guardar-mapeo mapeo.json            # para revisarlo y editarlo
+python herramientas.py importar documento.docx --mapeo mapeo.json -o proyecto --renombrar
+```
+
+## Importación inicial por línea de órdenes: DOCX a YAML
+
+Es la importación del Word de pruebas con la que empezó el proyecto; se
+conserva junto a `inventario`, `auditar` e `ids`. Para importar ahora, el
+asistente anterior hace lo mismo (y también requisitos).
 
 Guarda el documento Word original fuera del repositorio y ejecuta:
 
@@ -253,7 +298,8 @@ aparte) y conserva sus comentarios y su formato.
   texto y formato. Se guarda con las marcas que entiende `app/yaml_a_docx.py`
   (`**negrita**`, `[[rojo|…]]`, `[[res:amarillo|…]]`…).
 - Reordenar y mover pruebas y secciones arrastrando en el árbol; los niveles se
-  ajustan solos.
+  ajustan solos. Varios elementos elegidos (Ctrl+clic, Mayús+clic) se suben o
+  bajan de nivel a la vez (Alt+← / Alt+→), las secciones con su contenido.
 - Vista YAML con resaltado y errores señalados en la línea exacta.
 - Panel de validación (IDs duplicados o vacíos, pruebas sin título, imágenes
   que faltan, valores que no son opciones del esquema, campos que ya no
@@ -331,6 +377,10 @@ Cada requisito es un elemento `requisito:` con la tabla de
     version: '1.0'
 ```
 
+Opcionales: `detalle` (tablas, imágenes y párrafos que siguen a la descripción
+dentro de su celda; salen ahí en el Word exportado y cuentan para la huella)
+y `campos_adicionales` (como en las pruebas).
+
 El enlace se guarda en un solo sitio: el campo `requisitos` de cada prueba
 (lista de IDs). A partir de ahí `app/trazabilidad.py` calcula:
 
@@ -340,7 +390,7 @@ El enlace se guarda en un solo sitio: el campo `requisitos` de cada prueba
   y por sección.
 - **Referencias que no existen** (pruebas que citan un ID que no está en el
   catálogo) y **pruebas sin requisito**.
-- **Requisitos cambiados:** la huella de título, descripción y contexto. Si el
+- **Requisitos cambiados:** la huella de título, descripción (con su `detalle`) y contexto. Si el
   editor guarda un cambio en un requisito con pruebas, lo apunta en
   `requisitos/revisiones.yaml` con el texto revisado por última vez, hasta que
   se marcan sus pruebas como revisadas. Fecha, versión, tipo y criterio no
@@ -695,7 +745,9 @@ funciones del núcleo (navegación jerárquica, inserción, movimiento y borrado
 la API del editor (edición, validación, imágenes, exportación y cierre), las
 ejecuciones (selección, resultados, historial, evidencias, resumen), la
 validación de versión (consolidación por entorno, informe), los requisitos y la
-trazabilidad, y que los ejemplos validan sin errores.
+trazabilidad, la importación desde Word (familias, mapeo, niveles, ida y vuelta
+Word → YAML de los ejemplos sin pérdidas, actualizar los que existen,
+resultados) y que los ejemplos validan sin errores.
 
 ## Publicación del repositorio
 

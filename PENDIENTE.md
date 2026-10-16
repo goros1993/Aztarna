@@ -40,6 +40,11 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   Acerca de; triángulo en el árbol y filtro para pruebas cambiadas después de
   ejecutarse; preferencias y última carpeta de los diálogos guardadas en los
   ajustes del PC.
+- **Importación desde Word en el editor** (versión 0.9.0, issues #1, #2 y #3):
+  asistente con familias de tablas, mapeo de etiquetas, revisión de IDs y de
+  texto no importado; pruebas, requisitos (con tablas en la descripción) y
+  resultados de una ejecución; actualizar los que ya existen; niveles bien
+  calculados y cambio de nivel de varios elementos desde el árbol.
 
 ## Siguientes pasos
 
@@ -49,20 +54,20 @@ discusión van allí. Aquí queda el resumen.
 
 | Issue | Tarea | Tamaño |
 |---|---|---|
-| [#1](https://github.com/goros1993/Validacion/issues/1) | Convertir el Word de requisitos a YAML (`convertir`, `inventario`, `auditar` e `ids` para requisitos) | medio |
-| [#2](https://github.com/goros1993/Validacion/issues/2) | Importar desde el editor: pruebas o requisitos, a un proyecto nuevo o añadiendo al abierto (antes `convertir --anadir-a`); a futuro, resultados de validación | medio |
-| [#3](https://github.com/goros1993/Validacion/issues/3) | Asistente de importación: familias de tablas, mapeo visual de etiquetas al esquema, vista previa, IDs repetidos y perfiles reutilizables | grande |
 | [#7](https://github.com/goros1993/Validacion/issues/7) | Evitar que dos personas editen a la vez las mismas pruebas (necesita decidir cómo se comparte la carpeta) | medio |
 
-Orden propuesto: la importación (#1 → #2 → #3, en una rama; el menú «⋯» ya
-tiene la entrada *Importar* reservada) y #7 cuando esté decidido cómo se
-comparten las carpetas.
+#7, cuando esté decidido cómo se comparten las carpetas.
 
 Sin issue todavía:
 
 | Tarea | Tamaño | Necesita |
 |---|---|---|
-| Probar en el `.exe` de Windows el manual dentro de la aplicación (extensiones de `markdown` empaquetadas) | pequeño | un PC con Windows |
+| Probar en el `.exe` de Windows el manual dentro de la aplicación (extensiones de `markdown` empaquetadas) y el asistente de importación (selector de `.docx`, espera) | pequeño | un PC con Windows |
+| Importar: compartir el mapeo con el equipo (guardar y cargar un perfil desde el asistente; hoy se recuerda en cada PC y la línea de órdenes ya lo lee y escribe) | pequeño | cuando haga falta |
+| Importar: otras formas de tabla (etiqueta en una celda y valor en la siguiente; una tabla con una fila por elemento; el ID fuera de la primera celda) | medio | un Word que las use |
+| Importar: mover una tabla suelta a otra familia (hoy el tipo se elige por familia) | pequeño | — |
+| Importar resultados desde la línea de órdenes (hoy, solo en el editor) | pequeño | — |
+| Decidir si se retiran `convertir`, `inventario` y `auditar` (la importación por familias hace lo mismo; se conservan por ahora) | — | usarla con los Word reales |
 | Renombrar la herramienta a **Aztarna** (ver abajo) y probar el `.exe` en Windows | pequeño | un PC con Windows |
 | Requisitos en la validación: verificado / fallido por requisito según sus pruebas, sección en el informe y ejecución «de impacto» con las pruebas de los requisitos cambiados | medio | — |
 | Comparar validaciones o ejecuciones: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
