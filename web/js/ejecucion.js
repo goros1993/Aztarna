@@ -209,6 +209,7 @@ async function abrirCampana(carpeta = null) {
 async function menuCampana() {
   const lista = recientes().filter((r) => !S.campana || r.carpeta !== S.campana.carpeta);
   const cuerpo = h("div", { class: "menu-campana" },
+    S.validacion ? h("p", { class: "muted", text: `Validación abierta: «${S.validacion.datos.nombre}». Las ejecuciones nuevas se crean dentro de ella; una que abras y no forme parte de ella se puede añadir desde su resumen.` }) : null,
     S.campana ? h("p", {}, "Abierta: ", h("strong", { text: S.campana.datos.nombre }), h("br"), h("span", { class: "muted", text: S.campana.carpeta })) : null,
     lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
     lista.map((r) => h("button", {
@@ -223,7 +224,7 @@ async function menuCampana() {
       { texto: "Nueva ejecución…", valor: "nueva", tipo: "primary" },
     ],
   });
-  if (r === "nueva") await nuevaCampana();
+  if (r === "nueva") await nuevaCampana({ enValidacion: Boolean(S.validacion) });
   else if (r === "abrir") await abrirCampana();
   else if (r && r.startsWith("reciente:")) await abrirCampana(r.slice(9));
 }
@@ -458,6 +459,9 @@ function mostrarPanelCampana() {
   mostrar(h("div", { class: "formulario panel-campana" },
     S.validacion ? h("button", { class: "btn ghost peq volver", type: "button", onclick: volverAValidacion },
       icon("up"), `Validación «${S.validacion.datos.nombre}»`) : null,
+    S.validacion && c.en_validacion === false ? h("div", { class: "aviso-panel aviso-fuera" },
+      h("span", { text: `Esta ejecución no forma parte de la validación «${S.validacion.datos.nombre}»: sus resultados no cuentan en ella.` }),
+      h("button", { class: "btn peq", type: "button", onclick: anadirAbiertaAValidacion, text: "Añadirla a la validación" })) : null,
     h("div", { class: "acciones" },
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
         h("span", { class: "ruta", text: [d.objeto, d.entorno_pruebas, d.entorno, d.responsable].filter(Boolean).join(" · ") || c.carpeta })),

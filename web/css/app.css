@@ -801,3 +801,5 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 .acerca-cab img { border-radius: 12px; flex: none; }
 .acerca-cab p { margin: 0; color: var(--ink-2); }
 .acerca-de dd { overflow-wrap: anywhere; }
+
+.aviso-fuera { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
