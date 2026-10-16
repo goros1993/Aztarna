@@ -33,6 +33,7 @@ function setDirty(valor) {
   const antes = S.dirty;
   S.dirty = Boolean(valor);
   if (S.dirty !== antes) api.marcar_cambios(S.dirty).catch(() => {});   // para avisar al cerrar la ventana
+  if (S.dirty && !antes) tomarBloqueo();                                   // empieza a editar: el capítulo es suyo
   const barra = $("#estado-guardado");
   if (barra) barra.hidden = !S.dirty;
   const cab = $("#cab-sin-guardar");
@@ -98,6 +99,7 @@ function aplicarResumen(resumen) {
 }
 
 async function cargarNavegacion() {
+  await comprobarBloqueo();
   if (!S.capitulos.length) { S.nodos = []; renderArbol(); return; }
   S.nodos = await api.navegacion(S.capitulo, S.consulta);
   if (S.modo === "ejecucion") S.nodos = filtrarNodosEjecucion(S.nodos);
@@ -172,6 +174,7 @@ async function cambiarCapitulo(valor) {
   setDirty(false);
   S.capitulo = Number(valor);
   S.seleccion = null;
+  await cambioDeCapitulo();
   await cargarNavegacion();
   mostrarVacio();
   if (!S.alcanceTodos) renderProblemas();
@@ -354,6 +357,7 @@ function conectar() {
     } catch (e) { fallo(e); }
   });
   iniciarMenu();
+  iniciarBloqueos();
   $("#btn-nueva-prueba").addEventListener("click", nuevaPrueba);
   $("#btn-plegar-todo").addEventListener("click", () => plegarTodo(true));
   $("#btn-desplegar-todo").addEventListener("click", () => plegarTodo(false));

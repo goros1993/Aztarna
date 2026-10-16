@@ -320,8 +320,14 @@ aparte) y conserva sus comentarios y su formato.
 - Si se cierra la ventana con cambios sin guardar, pregunta si guardar, salir
   sin guardar o seguir editando.
 
-El editor está pensado para un usuario de confianza en el mismo equipo. Haz
-copias de seguridad de los YAML antes de ediciones masivas.
+Varias personas pueden abrir la misma carpeta (por ejemplo, en una unidad de
+red): cada capítulo lo edita una a la vez. Al primer cambio, el editor crea
+junto al capítulo `.<archivo>.yaml.lock` con la persona, el PC y la hora; los
+demás lo ven en solo lectura con un aviso, y el backend no guarda nunca en un
+capítulo reservado por otro. La reserva se renueva cada minuto, caduca a los 5
+sin renovar, se suelta al cambiar de capítulo, al cerrar o tras 15 minutos sin
+cambios, y se puede forzar (`app/bloqueos.py`). Con Git, cada uno con su copia,
+no se usa. Haz copias de seguridad de los YAML antes de ediciones masivas.
 
 `web/vendor/yaml-editor.js` es un bundle precompilado de CodeMirror 6 (licencia
 MIT) para la vista YAML; no hace falta Node para usar el editor. Toda la

@@ -3,6 +3,14 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 0.10.0
+
+- **Varias personas en la misma carpeta** (issue #7): cada capítulo lo edita
+  una persona a la vez. Al primer cambio se reserva a su nombre; los demás lo
+  ven en solo lectura con un aviso de quién lo edita y desde cuándo, y no se
+  puede guardar en él. La reserva caduca si el editor se cierra mal, se suelta
+  al cambiar de capítulo o tras 15 minutos sin cambios, y se puede forzar.
+
 ## 0.9.0
 
 Importación desde Word en el editor (issues #1, #2 y #3):

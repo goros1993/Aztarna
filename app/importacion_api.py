@@ -135,6 +135,13 @@ class EditorImportacionApi(EditorValidacionApi):
             destino = self._abierto()
             if destino is None:
                 raise ValueError("No hay ningún proyecto abierto al que añadir.")
+            # Se pueden actualizar capítulos que ya existen: ninguno puede estar en manos de otra persona.
+            from app import bloqueos
+            ocupados = [bloqueos.texto(otro, archivo.name) for carpeta in imp.carpetas_destino(destino, "anadir").values()
+                        if carpeta.is_dir() for archivo in sorted(carpeta.glob("*.yaml"))
+                        if (otro := self._bloqueos.de_otro(archivo))]
+            if ocupados:
+                raise ValueError("No se puede importar ahora: " + "; ".join(ocupados) + ".")
         else:
             if carpeta is None:
                 padre = self._dialogo_carpeta()

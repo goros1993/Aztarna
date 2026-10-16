@@ -13,7 +13,11 @@ let F = null;
 const formularioActual = () => F;
 
 const principal = () => $("#principal");
-function mostrar(nodo) { principal().replaceChildren(nodo); principal().scrollTop = 0; }
+function mostrar(nodo) {
+  principal().replaceChildren(nodo);
+  principal().scrollTop = 0;
+  if (typeof capituloBloqueado === "function" && capituloBloqueado()) desactivarFormulario(nodo);
+}
 
 /* ---- pantallas sin formulario ---- */
 function mostrarSinCarpeta() {
@@ -179,7 +183,7 @@ function cabecera() {
   const sinGuardar = h("span", { class: "sin-guardar", id: "cab-sin-guardar", hidden: !S.dirty, text: "Sin guardar" });
   const botones = [];
   if (editando) {
-    botones.push(h("div", { class: "seg", role: "group", "aria-label": "Vista" },
+    botones.push(h("div", { class: "seg vista-conmutador", role: "group", "aria-label": "Vista" },
       h("button", { type: "button", "aria-pressed": String(F.vista !== "yaml"), onclick: () => cambiarVista("form"), text: "Formulario" }),
       h("button", { type: "button", "aria-pressed": String(F.vista === "yaml"), onclick: () => cambiarVista("yaml"), text: "YAML" })));
     if (esPrueba && F.vista !== "yaml") {

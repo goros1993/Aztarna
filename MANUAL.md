@@ -83,6 +83,24 @@ que lo dejaste, la última validación y ejecución, el ejecutor, el ancho del
 panel izquierdo y la última carpeta elegida en los diálogos (que se abren
 allí). Lo guarda en los ajustes de tu PC (en **⋯ → Acerca de** se ve dónde).
 
+### Varias personas en la misma carpeta
+
+Si la carpeta está en una unidad de red y la abren varias personas, cada
+**capítulo** solo lo puede editar una a la vez. Al hacer tu primer cambio en
+un capítulo, el editor lo reserva a tu nombre (el **ejecutor** que usas en las
+ejecuciones o, si no, tu usuario de Windows). Quien lo abra mientras tanto lo
+ve así:
+
+![Capítulo que está editando otra persona](docs/manual/46_capitulo_bloqueado.png)
+
+Puede leerlo (también en la vista YAML), pero no cambiarlo ni guardarlo; los
+demás capítulos están libres. El aviso desaparece solo cuando lo dejas: al
+cambiar de capítulo, de modo o de carpeta, al cerrar el editor o tras 15
+minutos sin cambios (si no tienes nada sin guardar). Si un editor se cierra
+mal, la reserva caduca en 5 minutos. **Forzar…** la quita antes; úsalo solo si
+sabes que la otra persona no lo está usando, porque no podrá guardar lo que
+tenga a medias.
+
 El editor usa el tema claro u oscuro de tu sistema. Para cambiarlo:
 en Windows, *Configuración → Personalización → Colores → Modo de aplicación*;
 en Ubuntu, *Configuración → Apariencia*.
@@ -845,6 +863,11 @@ a la de pruebas. Las ejecuciones, en la carpeta que elegiste al crearlas
 (`ejecucion.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
 `pruebas_congeladas/`). Las validaciones, en la suya (`validacion.yaml`, que
 solo apunta a sus ejecuciones). El editor no guarda nada en otro sitio.
+
+**«… está editando … : no se ha guardado».**
+Otra persona tenía el capítulo reservado cuando guardaste (ver «Varias
+personas en la misma carpeta», en 2). Copia lo que hayas escrito, espera a que
+lo deje (o pulsa **Comprobar de nuevo**) y repite el cambio.
 
 **«… ha cambiado en el disco desde que se cargó».**
 Otra persona o programa modificó el archivo mientras lo tenías abierto. El

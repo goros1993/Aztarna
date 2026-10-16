@@ -40,7 +40,7 @@ function contarPruebas(nodos) {
 const ELEGIDOS = new Set();
 let anclaEleccion = null;
 
-const puedeElegirVarios = () => S.modo !== "ejecucion" && !S.soloLectura;
+const puedeElegirVarios = () => S.modo !== "ejecucion" && !S.soloLectura && !capituloBloqueado();
 
 function alternarEleccion(n, rango) {
   if (n.tipo === "tabla") return;
@@ -135,7 +135,7 @@ function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
     "aria-level": String(profundidad + 1),
     "aria-selected": String(Boolean(seleccionada || elegida)),
     tabIndex: seleccionada ? 0 : -1,
-    draggable: S.modo !== "ejecucion",   // en ejecución no se reordena
+    draggable: S.modo !== "ejecucion" && !capituloBloqueado(),   // en ejecución (o si lo edita otra persona) no se reordena
     dataset: { tipo: n.tipo, indice: String(n.indice) },
     style: { "--prof": String(profundidad) },
     onclick: (e) => {

@@ -4,7 +4,7 @@
 # La versión sigue el versionado semántico; cada versión publicada lleva su etiqueta de Git (v0.8.0…)
 # y su entrada en CHANGELOG.md.
 NOMBRE = "Pruebas YAML"
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 
 
 def firma() -> str:

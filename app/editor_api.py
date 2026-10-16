@@ -28,7 +28,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import ajustes, esquema, trazabilidad
+from app import ajustes, bloqueos, esquema, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -355,6 +355,10 @@ class EditorApi:
         self._solo_lectura = False     # p. ej., las pruebas congeladas de una ejecución cerrada
         self._sin_guardar = False      # la interfaz avisa cuando hay cambios pendientes
         self._cierre_aceptado = False
+        # Bloqueo de capítulos para que dos personas no editen el mismo (ver bloqueos.py).
+        self._bloqueos = bloqueos.Bloqueos(persona=self._persona, ocupado=lambda: self._sin_guardar)
+        import atexit
+        atexit.register(self._bloqueos.cerrar)
 
     # --- estado ------------------------------------------------------
     def _requisitos(self) -> bool:
@@ -407,6 +411,7 @@ class EditorApi:
         return chapter, element
 
     def _load(self, yaml_dir: Path) -> None:
+        self._bloqueos.soltar_todos()           # los de la carpeta anterior
         yaml_dir = tests_dir(yaml_dir)          # si se abre el proyecto, su carpeta pruebas/
         chapters = read_chapters(yaml_dir)
         if not chapters:
@@ -447,11 +452,33 @@ class EditorApi:
                 "Para editar las pruebas, abre su carpeta de pruebas."
             )
 
+    @staticmethod
+    def _persona() -> str:
+        """Nombre para los bloqueos: el ejecutor que se usa en las ejecuciones o, si no hay, el usuario del sistema."""
+        interfaz = ajustes.leer().get("interfaz")
+        nombre = str(interfaz.get("ejecutor") or "").strip() if isinstance(interfaz, dict) else ""
+        return nombre or bloqueos.persona_del_sistema()
+
+    def _nombre_capitulo(self, chapter: dict[str, Any]) -> str:
+        return str(chapter["data"].get("capitulo") or chapter["path"].name)
+
+    def _tomar_bloqueo(self, chapter: dict[str, Any], forzar: bool = False) -> None:
+        """Toma el bloqueo del capítulo o explica quién lo tiene (sin cambiar nada)."""
+        otro = self._bloqueos.tomar(chapter["path"], forzar)
+        if otro:
+            raise ValueError(f"{bloqueos.texto(otro, self._nombre_capitulo(chapter))}: no se ha guardado. "
+                             "Espera a que lo deje o, si sabes que no lo está usando, fuerza el bloqueo.")
+
     def _persist(self, chapter: dict[str, Any]) -> None:
         """Guarda el capítulo; si falla, vuelve a leer el disco para no divergir."""
         if self._solo_lectura:
             self._reload_chapter(chapter)      # deshace lo que se cambió en memoria
             self._exigir_escritura()
+        try:
+            self._tomar_bloqueo(chapter)
+        except ValueError:
+            self._reload_chapter(chapter)
+            raise
         path: Path = chapter["path"]
         if path.exists() and path.stat().st_mtime_ns != self._mtimes.get(path):
             self._reload_chapter(chapter)
@@ -717,6 +744,11 @@ class EditorApi:
 
     def _renombrar_en_pruebas(self, anterior: str, nuevo: str) -> int:
         """Cambia un ID de requisito en el campo «requisitos» de todas las pruebas que lo citan."""
+        # Antes de tocar nada, los capítulos afectados tienen que estar libres.
+        for chapter in self._chapters:
+            if any(anterior in [str(r).strip() for r in test.get("requisitos") or [] if isinstance(test.get("requisitos"), list)]
+                   for _i, test in tests_in_chapter(chapter)):
+                self._tomar_bloqueo(chapter)
         cambiadas = 0
         for chapter in self._chapters:
             tocado = False
@@ -1434,6 +1466,34 @@ class EditorApi:
             "resumen": lines[-1] if lines else "",
             "avisos": [line for line in lines if line.startswith("AVISO")],
         }
+
+    # --- bloqueo de capítulos ---------------------------------------------------
+    def _info_bloqueo(self, chapter: dict[str, Any]) -> dict[str, Any]:
+        otro = self._bloqueos.de_otro(chapter["path"])
+        return {"otro": {**otro, "texto": bloqueos.texto(otro)} if otro else None,
+                "mio": self._bloqueos.es_mio(chapter["path"])}
+
+    @respuesta
+    def bloqueo(self, capitulo: int) -> dict[str, Any]:
+        """Si otra persona está editando el capítulo (y quién)."""
+        if self._solo_lectura or not self._activos():
+            return {"otro": None, "mio": False}
+        return self._info_bloqueo(self._require_chapter(capitulo))
+
+    @respuesta
+    def bloquear(self, capitulo: int, forzar: bool = False) -> dict[str, Any]:
+        """Toma el bloqueo del capítulo al empezar a editarlo (o lo fuerza). Si lo tiene otra persona, dice quién."""
+        if self._solo_lectura:
+            return {"otro": None, "mio": False}
+        chapter = self._require_chapter(capitulo)
+        self._bloqueos.tomar(chapter["path"], bool(forzar))
+        return self._info_bloqueo(chapter)
+
+    @respuesta
+    def soltar_bloqueos(self) -> dict[str, Any]:
+        """Suelta los bloqueos de esta sesión (al cambiar de capítulo o de colección)."""
+        self._bloqueos.soltar_todos()
+        return {}
 
     # --- cierre de la ventana -----------------------------------------------------
     @respuesta

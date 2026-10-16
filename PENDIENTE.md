@@ -45,6 +45,8 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   texto no importado; pruebas, requisitos (con tablas en la descripción) y
   resultados de una ejecución; actualizar los que ya existen; niveles bien
   calculados y cambio de nivel de varios elementos desde el árbol.
+- **Varias personas en la misma carpeta** (versión 0.10.0, issue #7): bloqueo
+  por capítulo con aviso, solo lectura, caducidad y forzar (`app/bloqueos.py`).
 
 ## Siguientes pasos
 
@@ -52,16 +54,13 @@ Cada tarea grande o independiente tiene su issue en GitHub
 (<https://github.com/goros1993/Validacion/issues>); el detalle, las dudas y la
 discusión van allí. Aquí queda el resumen.
 
-| Issue | Tarea | Tamaño |
-|---|---|---|
-| [#7](https://github.com/goros1993/Validacion/issues/7) | Evitar que dos personas editen a la vez las mismas pruebas (necesita decidir cómo se comparte la carpeta) | medio |
-
-#7, cuando esté decidido cómo se comparten las carpetas.
+Ahora mismo no hay ninguno abierto.
 
 Sin issue todavía:
 
 | Tarea | Tamaño | Necesita |
 |---|---|---|
+| Bloqueos: probarlos en la unidad de red real con dos PCs; marcar en el selector de capítulos los que edita otra persona | pequeño | dos PCs |
 | Probar en el `.exe` de Windows el manual dentro de la aplicación (extensiones de `markdown` empaquetadas) y el asistente de importación (selector de `.docx`, espera) | pequeño | un PC con Windows |
 | Importar: compartir el mapeo con el equipo (guardar y cargar un perfil desde el asistente; hoy se recuerda en cada PC y la línea de órdenes ya lo lee y escribe) | pequeño | cuando haga falta |
 | Importar: otras formas de tabla (etiqueta en una celda y valor en la siguiente; una tabla con una fila por elemento; el ID fuera de la primera celda) | medio | un Word que las use |

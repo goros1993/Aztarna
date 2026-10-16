@@ -61,6 +61,7 @@ async function cambiarModo(modo) {
       S.consulta = ""; $("#buscar").value = "";
       S.capitulo = S.capituloPorModo[coleccionDe(modo)] || 0;
       aplicarResumen(await api.coleccion(coleccionDe(modo)));
+      await cambioDeCapitulo();
       if (S.capitulo >= S.capitulos.length) S.capitulo = 0;
       $("#sel-capitulo").value = String(S.capitulo);
       S.problemas = []; S.resumen = null; renderResumenProblemas(); renderProblemas();

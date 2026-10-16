@@ -868,3 +868,12 @@ dialog.asistente .asistente-cuerpo { max-height: min(68vh, 760px); padding-top: 
 .existentes-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .existentes .tabla-mapeo select, .existentes .tabla-mapeo input { min-width: 150px; }
 .existentes .tabla-mapeo input:disabled { opacity: 0.45; }
+
+/* ---- capítulo que edita otra persona ---- */
+.aviso-bloqueo { margin: 0 10px 8px; padding: 8px 10px; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-size: 12.5px; line-height: 1.4; }
+.aviso-bloqueo[hidden] { display: none; }
+.aviso-bloqueo-texto { display: flex; gap: 8px; align-items: flex-start; }
+.aviso-bloqueo-texto .ico { flex: none; margin-top: 1px; }
+.aviso-bloqueo-texto strong { color: var(--ink); font-weight: 600; }
+.aviso-bloqueo-botones { display: flex; gap: 6px; margin-top: 6px; justify-content: flex-end; }
+body.capitulo-bloqueado .formulario [disabled] { cursor: not-allowed; }

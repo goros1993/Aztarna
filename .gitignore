@@ -27,3 +27,6 @@ ids.csv
 .ruff_cache/
 .DS_Store
 Thumbs.db
+
+# Bloqueos de capítulos del editor (ver app/bloqueos.py)
+.*.yaml.lock
