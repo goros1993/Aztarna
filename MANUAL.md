@@ -77,6 +77,11 @@ de la ejecución.
 Para cambiar de carpeta de pruebas, pulsa el botón de la carpeta en la barra
 superior.
 
+El editor recuerda, de una vez para otra, la carpeta de pruebas, el modo en
+que lo dejaste, la última validación y ejecución, el ejecutor, el ancho del
+panel izquierdo y la última carpeta elegida en los diálogos (que se abren
+allí). Lo guarda en los ajustes de tu PC (en **⋯ → Acerca de** se ve dónde).
+
 El editor usa el tema claro u oscuro de tu sistema. Para cambiarlo:
 en Windows, *Configuración → Personalización → Colores → Modo de aplicación*;
 en Ubuntu, *Configuración → Apariencia*.
@@ -90,16 +95,35 @@ en Ubuntu, *Configuración → Apariencia*.
 - **Barra superior:** modo (Pruebas / Requisitos / Validación), carpeta de
   pruebas, en el modo Validación la validación y la ejecución abiertas,
   capítulo, *Robot* (configuración de Robot Framework y número de pruebas
-  automatizadas), *Recargar* (vuelve a leer los archivos del disco) y
-  *Exportar DOCX*.
+  automatizadas), *Recargar* (vuelve a leer los archivos del disco) y el
+  menú **⋯** (ver abajo).
 - **Panel izquierdo:** buscador (por ID o texto) y el **árbol** del capítulo
   con sus secciones y pruebas. Las secciones se pliegan y despliegan con la
   flecha; los dos botones junto al buscador **pliegan** o **despliegan todas**
   a la vez. El ancho del panel se ajusta arrastrando su borde.
 - **Zona central:** la prueba o sección seleccionada. Con la ventana
   maximizada, el formulario se ensancha para aprovechar la pantalla.
-- **Barra inferior:** resultado de la validación (errores y avisos) y el
-  aviso de *Cambios sin guardar*.
+- **Barra inferior:** resultado de la validación (errores y avisos), el
+  aviso de *Cambios sin guardar* y, a la derecha, la versión del editor (al
+  pulsarla se abre *Acerca de*).
+
+![Menú ⋯](docs/manual/35_menu.png)
+
+El menú **⋯**, a la derecha de la barra superior, reúne:
+
+- **Importar…**: todavía no disponible (traerá pruebas y requisitos desde
+  Word).
+- **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
+  ver 4.8. No aparece en el modo Validación.
+- **Manual de usuario**: abre este manual en una ventana aparte.
+- **Acerca de…**: versión, dónde guarda este PC sus ajustes, enlace al
+  proyecto en GitHub y botón del manual.
+
+![Acerca de](docs/manual/36_acerca.png)
+
+Cuando avises de un problema, indica la versión que aparece aquí; también
+figura en el pie de los informes y en las propiedades de los documentos de
+Word que genera el editor.
 
 ---
 
@@ -265,10 +289,10 @@ requisitos citados que no existen en el catálogo.
 
 ![Exportar DOCX](docs/manual/07_exportar.png)
 
-**Exportar DOCX** genera un documento de Word con todos los capítulos, en el
-orden del índice, con títulos numerados y una tabla por prueba. Puedes indicar
-el número del primer título (por ejemplo, 8 si el documento original empezaba
-en el capítulo 8). Después eliges dónde guardarlo; mientras se genera verás
+**⋯ → Exportar DOCX…** genera un documento de Word con todos los capítulos,
+en el orden del índice, con títulos numerados y una tabla por prueba. Puedes
+indicar el número del primer título (por ejemplo, 8 si el documento original
+empezaba en el capítulo 8). Después eliges dónde guardarlo; mientras se genera verás
 una ruleta (con muchas pruebas e imágenes puede tardar un poco). El documento
 es una copia para leer o compartir: los cambios se hacen siempre en el editor.
 
@@ -315,7 +339,7 @@ de la prueba o de la sección.
 
 Los requisitos se editan igual que las pruebas: árbol con capítulos y
 secciones, **+ Requisito** y **+ Sección**, arrastrar para reordenar, vista
-YAML, validación y **Exportar DOCX** (un documento con una tabla por
+YAML, validación y **⋯ → Exportar DOCX de requisitos…** (un documento con una tabla por
 requisito). La diferencia es que el editor relaciona cada requisito con las
 pruebas que lo citan en su campo **Requisitos**.
 
@@ -483,6 +507,11 @@ El árbol muestra solo las pruebas de la ejecución, con un punto de color segú
 su resultado (vacío = pendiente). El desplegable de encima filtra (por
 ejemplo, *Pendientes* o *NO OK*) y el selector de capítulo indica cuántas
 quedan en cada uno.
+
+Un **triángulo de aviso** junto a una prueba indica que se editó después de
+ejecutarse (al pasar el ratón se ve en qué entorno o ejecución). La opción
+*Cambiadas tras ejecutarse* del desplegable deja solo esas pruebas, para
+decidir cuáles repetir.
 
 A la izquierda está la prueba en solo lectura; a la derecha, su resultado:
 
@@ -716,6 +745,10 @@ Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
 **La opción de PDF no está disponible.**
 Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se
 genera igualmente.
+
+**¿Qué versión del editor tengo?**
+La de la esquina inferior derecha (o **⋯ → Acerca de…**). Las novedades de
+cada versión están en `CHANGELOG.md`.
 
 **No puedo editar las pruebas.**
 Probablemente estás viendo las *pruebas congeladas* de una ejecución cerrada

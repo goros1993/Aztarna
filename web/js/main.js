@@ -13,7 +13,7 @@ const S = {
   problemas: [],
   resumen: null,        // {errores, avisos}
   alcanceTodos: false,
-  modo: ["ejecucion", "requisitos"].includes(leerLocal("modo")) ? leerLocal("modo") : "edicion",
+  modo: "edicion",      // se pone el último usado al arrancar (preferencias)
   capituloPorModo: {},  // último capítulo abierto en pruebas y en requisitos
   hayRequisitos: false, // si la carpeta tiene requisitos (subcarpeta requisitos/)
   filtroCobertura: "",  // en requisitos: mostrar solo los de este estado de cobertura
@@ -92,7 +92,7 @@ function aplicarResumen(resumen) {
   $("#resumen-datos").textContent = S.capitulos.length
     ? `${plural(S.capitulos.length, "capítulo", "capítulos")} · ${plural(S.capitulos.reduce((a, c) => a + c.pruebas, 0), uno, varios)}`
     : "";
-  for (const id of ["btn-nueva-prueba", "btn-nueva-seccion", "btn-exportar", "btn-recargar", "btn-problemas"]) {
+  for (const id of ["btn-nueva-prueba", "btn-nueva-seccion", "btn-recargar", "btn-problemas"]) {
     $("#" + id).disabled = !S.capitulos.length;
   }
 }
@@ -353,7 +353,7 @@ function conectar() {
       aviso("Archivos recargados desde el disco", "ok");
     } catch (e) { fallo(e); }
   });
-  $("#btn-exportar").addEventListener("click", exportarDocx);
+  iniciarMenu();
   $("#btn-nueva-prueba").addEventListener("click", nuevaPrueba);
   $("#btn-plegar-todo").addEventListener("click", () => plegarTodo(true));
   $("#btn-desplegar-todo").addEventListener("click", () => plegarTodo(false));
@@ -394,6 +394,8 @@ function conectar() {
 }
 
 async function arrancar() {
+  await cargarPreferencias();
+  if (["ejecucion", "requisitos"].includes(leerLocal("modo"))) S.modo = leerLocal("modo");
   conectar();
   pintarModo();
   mostrarSinCarpeta();

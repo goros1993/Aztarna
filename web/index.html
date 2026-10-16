@@ -33,6 +33,10 @@
     <symbol id="i-desplegar" viewBox="0 0 24 24"><polyline points="7 9 12 4 17 9"/><polyline points="7 15 12 20 17 15"/></symbol>
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
     <symbol id="i-capas" viewBox="0 0 24 24"><polygon points="12 4 21 9 12 14 3 9 12 4"/><polyline points="3 13.5 12 18.5 21 13.5"/></symbol>
+    <symbol id="i-mas" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M5 14v5h14v-5"/><line x1="12" y1="15" x2="12" y2="4"/><polyline points="7.5 8.5 12 4 16.5 8.5"/></symbol>
+    <symbol id="i-libro" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.6" x2="12" y2="7.8"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><line x1="16" y1="16" x2="20" y2="20"/></symbol>
   </defs>
 </svg>
@@ -68,8 +72,8 @@
     <button class="btn ghost" id="btn-recargar" type="button" title="Volver a leer los archivos del disco">
       <svg class="ico" aria-hidden="true"><use href="#i-reload"/></svg>Recargar
     </button>
-    <button class="btn solo-edicion" id="btn-exportar" type="button" title="Generar el documento de Word con todos los capítulos">
-      <svg class="ico" aria-hidden="true"><use href="#i-export"/></svg>Exportar DOCX
+    <button class="btn icono" id="btn-menu" type="button" title="Más opciones: importar, exportar, manual…" aria-label="Más opciones" aria-haspopup="menu" aria-expanded="false">
+      <svg class="ico" aria-hidden="true"><use href="#i-mas"/></svg>
     </button>
   </header>
 
@@ -97,6 +101,7 @@
           <option value="bloqueada">Bloqueadas</option>
           <option value="ok">OK</option>
           <option value="no_aplica">No aplica</option>
+          <option value="cambiada">Cambiadas tras ejecutarse</option>
         </select>
         <button class="btn peq" id="btn-panel-campana" type="button" title="Ver el resumen de la ejecución">Resumen</button>
       </div>
@@ -136,6 +141,7 @@
     <span id="resumen-datos" class="muted"></span>
     <div class="relleno"></div>
     <span id="estado-guardado" class="estado-guardado" hidden>Cambios sin guardar</span>
+    <button class="btn ghost peq version" id="btn-version" type="button" title="Acerca de"></button>
   </footer>
 </div>
 
@@ -150,6 +156,7 @@
 <script src="js/robot.js"></script>
 <script src="js/requisitos.js"></script>
 <script src="js/validacion.js"></script>
+<script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

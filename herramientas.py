@@ -27,6 +27,8 @@ from __future__ import annotations
 import importlib
 import sys
 
+from app import firma
+
 ORDENES = {
     "convertir": ("migracion.convertir", "Word -> YAML (un archivo por capítulo), con avisos"),
     "inventario": ("migracion.inventario", "Agrupa las tablas del Word por estructura"),
@@ -42,9 +44,10 @@ ORDENES = {
 
 def ayuda() -> str:
     ancho = max(len(o) for o in ORDENES)
-    lineas = ["Uso: python herramientas.py <orden> [opciones]", "", "Órdenes:"]
+    lineas = [firma(), "", "Uso: python herramientas.py <orden> [opciones]", "", "Órdenes:"]
     lineas += [f"  {orden:<{ancho}}  {texto}" for orden, (_m, texto) in ORDENES.items()]
     lineas += ["", "Cada orden tiene su ayuda: python herramientas.py <orden> --help",
+               "Versión: python herramientas.py --version",
                "El editor se abre con: python editor_web.py"]
     return "\n".join(lineas)
 
@@ -53,6 +56,9 @@ def main(argv: list[str] | None = None) -> None:
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help", "ayuda"):
         print(ayuda())
+        return
+    if argv[0] in ("-V", "--version", "version"):
+        print(firma())
         return
     orden, resto = argv[0], argv[1:]
     if orden not in ORDENES:

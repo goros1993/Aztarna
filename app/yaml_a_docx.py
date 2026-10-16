@@ -28,6 +28,7 @@ from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
+from app import firma
 from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS, REQ_ETIQUETAS
 
 # ----------------------------------------------------------------------
@@ -570,6 +571,8 @@ def generar_docx(entrada, salida, primer_capitulo=1):
 
     doc = preparar_documento(primer_capitulo)
     total = escribir_capitulos(doc, capitulos)
+    # En las propiedades del documento (no en el texto): con qué versión se generó.
+    doc.core_properties.comments = f"Generado con {firma()}"
     doc.save(salida)
     return total, len(capitulos)
 

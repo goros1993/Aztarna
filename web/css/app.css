@@ -781,3 +781,23 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 
 .marca { display: inline-flex; align-items: center; gap: 8px; }
 .marca img { border-radius: 5px; flex: none; }
+
+/* ---- menú «…» y acerca de ---- */
+.menu-flotante {
+  position: fixed; z-index: 60; min-width: 230px; padding: 4px;
+  background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column;
+}
+.menu-opcion {
+  display: flex; align-items: center; gap: 10px; padding: 7px 12px; border: 0; border-radius: 4px;
+  background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+}
+.menu-opcion:hover:not([disabled]), .menu-opcion:focus-visible { background: var(--accent-soft); outline: none; }
+.menu-opcion[disabled] { color: var(--ink-3); cursor: default; }
+.menu-opcion .ico { width: 16px; height: 16px; flex: none; }
+.menu-separador { height: 1px; background: var(--rule); margin: 4px 6px; }
+.estado .version { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.acerca-cab { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+.acerca-cab img { border-radius: 12px; flex: none; }
+.acerca-cab p { margin: 0; color: var(--ink-2); }
+.acerca-de dd { overflow-wrap: anywhere; }

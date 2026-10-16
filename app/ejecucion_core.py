@@ -602,6 +602,7 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
         resultado = campaña["resultados"].get(test_id) or {}
         totales[estado] += 1
         encontrada = por_id.get(test_id)
+        cambiada = False
         if not encontrada:
             problemas.append({"id": test_id, "tipo": "error",
                               "mensaje": "La prueba ya no existe en los YAML de pruebas."})
@@ -613,6 +614,7 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
             actual = huella(prueba)
             ejecutada = resultado.get("huella")
             if estado != "pendiente" and ejecutada and ejecutada != actual:
+                cambiada = True
                 problemas.append({"id": test_id, "tipo": "aviso",
                                   "mensaje": "La prueba ha cambiado después de ejecutarse."})
         if estado in ("no_ok", "bloqueada") and not str(resultado.get("observaciones") or "").strip():
@@ -624,6 +626,7 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
             "archivo": encontrada["archivo"] if encontrada else None,
             "indice": encontrada["indice"] if encontrada else None,
             "intentos": len(resultado.get("intentos") or []) + (1 if resultado else 0),
+            "cambiada": cambiada,
         })
     total = len(campaña["datos"]["pruebas"])
     ejecutadas = total - totales["pendiente"]

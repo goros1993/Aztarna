@@ -16,7 +16,7 @@ import os
 import sys
 from pathlib import Path
 
-from app import ajustes
+from app import ajustes, firma
 from app.validacion_api import EditorValidacionApi as EditorApi
 
 
@@ -50,6 +50,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Editor de pruebas YAML")
     parser.add_argument("carpeta", nargs="?", help="carpeta del proyecto (pruebas/ y requisitos/) o la de pruebas")
     parser.add_argument("--depurar", action="store_true", help="activa las herramientas de desarrollo")
+    parser.add_argument("-V", "--version", action="version", version=firma())
     args = parser.parse_args()
 
     try:
@@ -80,6 +81,14 @@ def main() -> None:
     )
     api._window = ventana
     ventana.events.closing += api._al_cerrar_ventana   # pregunta si hay cambios sin guardar
+
+    def cerrar_las_demas() -> None:
+        """Al cerrar el editor se cierran también sus otras ventanas (el manual)."""
+        for otra in list(webview.windows):
+            if otra is not ventana:
+                otra.destroy()
+
+    ventana.events.closed += cerrar_las_demas
     # Icono de la ventana. En Windows pywebview usa un Icon de .NET, que solo admite .ico.
     icono = recurso("recursos/icono.ico" if sys.platform.startswith("win") else "recursos/icono.png")
     webview.start(debug=args.depurar, icon=str(icono) if icono.is_file() else None)

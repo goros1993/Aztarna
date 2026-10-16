@@ -282,6 +282,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         actual = ej.huella(prueba)
         resultados = resultados_por_id.get(test_id, [])
         celdas: dict[str, dict[str, Any]] = {}
+        cambiada_en: list[str] = []
         for entorno in requeridos or [CUALQUIERA]:
             suyos = [r for r in resultados if entorno == CUALQUIERA or r["entorno"] == entorno]
             vigente = _vigente(suyos)
@@ -289,6 +290,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
             celdas[entorno] = {"estado": estado, "cuenta": True, "vigente": vigente,
                                "historial": sorted(suyos, key=lambda r: r["fecha"], reverse=True)}
             if vigente and estado != "pendiente" and vigente["huella"] and vigente["huella"] != actual:
+                cambiada_en.append(entorno)
                 avisos.append({"tipo": "aviso", "id": test_id, "mensaje": f"La prueba ha cambiado después de ejecutarse en {entorno} («{vigente['ejecucion']}»)."})
             pe = por_entorno[entorno]
             pe["necesitan"] += 1
@@ -311,6 +313,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         pruebas.append({
             "id": test_id, "titulo": str(prueba.get("titulo") or prueba.get("nombre") or ""), "archivo": item["archivo"], "capitulo": capitulo,
             "indice": item["indice"], "requeridos": requeridos, "estado": estado, "entornos": celdas,
+            "cambiada_en": cambiada_en,     # entornos cuyo resultado vigente es de una versión anterior de la prueba
         })
 
     en_validacion = {p["id"] for p in pruebas}

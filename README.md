@@ -33,7 +33,9 @@ docs/              capturas del manual y documentación de Robot Framework
 | `app/yaml_a_docx.py` | Genera el DOCX a partir de los YAML (de pruebas o de requisitos). |
 | `app/informe_docx.py` | Informe de una ejecución (DOCX y, si se puede, PDF). |
 | `app/informe_validacion.py` | Informe de la validación de una versión (DOCX y, si se puede, PDF). |
-| `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot). |
+| `app/ajustes.py` | Ajustes de este PC (última carpeta, configuración de Robot, preferencias de la interfaz). |
+| `app/manual.py` | Convierte `MANUAL.md` en HTML para abrirlo dentro del editor. |
+| `app/__init__.py` | Nombre y versión de la herramienta (único sitio donde se definen). |
 | `migracion/convertir.py` | Importación inicial: DOCX → YAML (un archivo por capítulo). |
 | `migracion/inventario.py` | Agrupa las tablas del DOCX por estructura antes de importar. |
 | `migracion/auditar.py` | Comprueba que la importación no pierde texto (informe HTML y resumen sin contenido). |
@@ -52,13 +54,23 @@ Las utilidades se ejecutan todas con `herramientas.py`:
 | `python herramientas.py word ruta/a/yaml -o pruebas.docx` | Genera el Word a partir de los YAML |
 | `python herramientas.py informe ruta/a/ejecución --pdf` | Informe de una ejecución |
 | `python herramientas.py robot ruta/a/ejecución output.xml` | Importa resultados de Robot Framework |
+| `python herramientas.py trazabilidad ruta/al/proyecto` | Cobertura de los requisitos y matriz CSV |
+| `python herramientas.py validacion ruta/a/la/validación --pdf` | Informe de la validación de una versión |
 
 `python herramientas.py` sin nada lista las órdenes y `python herramientas.py
 <orden> --help` explica las opciones de cada una.
 
 El manual para quien usa el editor (sin detalles técnicos) está en
-[MANUAL.md](MANUAL.md). El trabajo pendiente y las propuestas están en
-[PENDIENTE.md](PENDIENTE.md).
+[MANUAL.md](MANUAL.md) y se abre también desde el editor (**⋯ → Manual de
+usuario**). El trabajo pendiente y las propuestas están en
+[PENDIENTE.md](PENDIENTE.md); las novedades de cada versión, en
+[CHANGELOG.md](CHANGELOG.md).
+
+La versión se define solo en `app/__init__.py` (`__version__`). Aparece en
+la barra inferior del editor, en `python herramientas.py --version` y
+`python editor_web.py --version`, en el pie de los informes y en las
+propiedades de los Word generados (no en su texto). Al publicar una versión,
+súbela allí y añade su entrada en `CHANGELOG.md`.
 
 ## Fuente de verdad y flujo de trabajo
 
@@ -220,6 +232,7 @@ los documentos o contenidos confidenciales.
 python editor_web.py                 # última carpeta usada, o ejemplos/yaml
 python editor_web.py ruta/a/yaml     # otra carpeta
 python editor_web.py --depurar       # con herramientas de desarrollo
+python editor_web.py --version       # versión de la herramienta
 ```
 
 Abre una ventana local: no inicia ningún servidor ni abre el navegador. El
@@ -244,8 +257,17 @@ aparte) y conserva sus comentarios y su formato.
 - Vista YAML con resaltado y errores señalados en la línea exacta.
 - Panel de validación (IDs duplicados o vacíos, pruebas sin título, imágenes
   que faltan, valores que no son opciones del esquema, campos que ya no
-  existen, saltos de nivel) y botón **Exportar DOCX**.
-- Recuerda la última carpeta abierta.
+  existen, saltos de nivel).
+- Menú **⋯** en la barra superior: Exportar DOCX, manual de usuario (en una
+  ventana aparte, generado desde `MANUAL.md` con la librería `markdown`, sin
+  internet) y *Acerca de* (versión y ruta de los ajustes). *Importar* está
+  reservado para el issue #2.
+- Recuerda la última carpeta abierta, el modo, la última validación y
+  ejecución, el ejecutor, el ancho del panel y la última carpeta de los
+  diálogos. Se guarda en los ajustes del PC (sección `interfaz`), no en el
+  `localStorage` del navegador, que pywebview borra al cerrar.
+- En el modo Validación, un triángulo en el árbol marca las pruebas editadas
+  después de ejecutarse; el filtro *Cambiadas tras ejecutarse* las deja solas.
 - Al borrar una prueba solo se elimina esa prueba. Al borrar una sección
   desaparece su encabezado, pero su contexto se conserva como texto y sus
   pruebas y subsecciones se mantienen, subidas un nivel.
@@ -268,7 +290,8 @@ WebKitGTK al apagarse, cuando el editor ya ha terminado: no se pierde nada.
 
 En un Windows con Python 3.10 o posterior, ejecuta `construir_exe.bat`. Crea un
 entorno limpio, instala `requirements.txt` y PyInstaller, y deja
-`dist\EditorPruebas.exe` (un solo archivo, sin consola). PyInstaller no compila
+`dist\EditorPruebas.exe` (un solo archivo, sin consola), con el manual y sus
+capturas dentro. PyInstaller no compila
 de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
 incluyen en el .exe: en el primer arranque pide una carpeta y después la
 recuerda.
@@ -682,7 +705,7 @@ confidenciales:
 
 ```bash
 git status
-git add .gitignore README.md MANUAL.md PENDIENTE.md docs/ requirements.txt construir_exe.bat \
+git add .gitignore README.md MANUAL.md PENDIENTE.md CHANGELOG.md docs/ requirements.txt construir_exe.bat \
   editor_web.py herramientas.py app/ migracion/ web/ plantillas/ tests/ ejemplos/
 git status
 git commit -m "Descripción del cambio"

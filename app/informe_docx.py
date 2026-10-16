@@ -22,6 +22,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Pt, RGBColor
 
 from app import ejecucion_core as ej
+from app import firma
 from app import yaml_a_docx as yd
 
 COLOR_ESTADO = {"ok": "2B7A4B", "no_ok": "B3261E", "bloqueada": "9A5B00", "no_aplica": "6B7B85", "pendiente": "72838D"}
@@ -252,7 +253,7 @@ def generar_informe(campaña: dict[str, Any], salida: str | Path,
         lambda _doc, tabla, prueba, _base: escribir_resultado(tabla, campaña, prueba),
     )
     pie = seccion.footer.paragraphs[0]
-    pie.text = f"{campaña['datos'].get('nombre', '')} · informe de ejecución"
+    pie.text = f"{campaña['datos'].get('nombre', '')} · informe de ejecución · generado con {firma()}"
     for run in pie.runs:
         run.font.size = Pt(8)
         run.font.color.rgb = RGBColor.from_string("72838D")

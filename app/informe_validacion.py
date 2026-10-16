@@ -18,6 +18,7 @@ from typing import Any
 from docx.enum.section import WD_ORIENT
 from docx.shared import Cm, Pt, RGBColor
 
+from app import firma
 from app import informe_docx as inf
 from app import validacion_core as vc
 from app import yaml_a_docx as yd
@@ -164,7 +165,7 @@ def generar_informe(validacion: dict[str, Any], salida: str | Path,
     doc.add_page_break()
     escribir_matriz(doc, d)
     pie = doc.sections[0].footer.paragraphs[0]
-    pie.text = f"{validacion['datos'].get('nombre', '')} · informe de validación"
+    pie.text = f"{validacion['datos'].get('nombre', '')} · informe de validación · generado con {firma()}"
     for run in pie.runs:
         run.font.size = Pt(8)
         run.font.color.rgb = RGBColor.from_string("72838D")

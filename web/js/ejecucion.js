@@ -94,6 +94,34 @@ function etiquetarCapitulos() {
   for (const c of S.capitulos) if (opciones[c.indice]) opciones[c.indice].textContent = textoCapitulo(c);
 }
 
+/**
+ * Pruebas que han cambiado después de ejecutarse: ID -> explicación.
+ * Con una ejecución abierta, las de esa ejecución; si no, las de la validación.
+ */
+let cacheCambiadas = { fuente: null, mapa: new Map() };
+function pruebasCambiadas() {
+  const fuente = S.campana ? S.campana.resumen : S.validacion;
+  if (cacheCambiadas.fuente === fuente) return cacheCambiadas.mapa;
+  const mapa = new Map();
+  if (S.campana) {
+    for (const p of S.campana.resumen.pruebas) {
+      if (p.cambiada) mapa.set(p.id, "La prueba ha cambiado después de ejecutarse en esta ejecución: revisa si hay que repetirla.");
+    }
+  } else if (S.validacion) {
+    for (const p of S.validacion.pruebas) {
+      if ((p.cambiada_en || []).length) mapa.set(p.id, `La prueba ha cambiado después de ejecutarse en ${p.cambiada_en.join(", ")}: revisa si hay que repetirla.`);
+    }
+  }
+  cacheCambiadas = { fuente, mapa };
+  return mapa;
+}
+
+/** Triángulo de aviso para una prueba cambiada después de ejecutarse (o null). */
+function marcaCambiada(id) {
+  const motivo = pruebasCambiadas().get(id);
+  return motivo ? h("span", { class: "marca-cambio", title: motivo, role: "img", "aria-label": motivo }, icon("alert")) : null;
+}
+
 /** En ejecución el árbol solo muestra las pruebas de la ejecución (y las secciones que las contienen). */
 function filtrarNodosEjecucion(nodos) {
   if (!S.campana && !S.validacion) return [];
@@ -102,7 +130,7 @@ function filtrarNodosEjecucion(nodos) {
   const quedan = new Set();
   for (const n of nodos) {
     if (n.tipo !== "prueba" || !estados.has(n.id)) continue;
-    if (S.filtroEstado && estados.get(n.id) !== S.filtroEstado) continue;
+    if (S.filtroEstado === "cambiada" ? !pruebasCambiadas().has(n.id) : S.filtroEstado && estados.get(n.id) !== S.filtroEstado) continue;
     quedan.add(n.indice);
     for (let p = n.padre; p !== null && p !== undefined; p = padres.get(p)) quedan.add(p);
   }

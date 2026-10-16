@@ -28,7 +28,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import esquema, trazabilidad
+from app import ajustes, esquema, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -509,6 +509,64 @@ class EditorApi:
             raise ValueError(self._req_error)
         self._coleccion = "requisitos"
         return self._summary()
+
+    # --- acerca de -------------------------------------------------------------
+    @respuesta
+    def acerca_de(self) -> dict[str, Any]:
+        """Nombre y versión de la herramienta y dónde guarda sus ajustes este PC."""
+        import platform
+
+        from app import NOMBRE, __version__
+
+        return {"nombre": NOMBRE, "version": __version__, "ajustes": str(ajustes.archivo()),
+                "python": platform.python_version(), "sistema": f"{platform.system()} {platform.release()}"}
+
+    @respuesta
+    def abrir_manual(self) -> dict[str, Any]:
+        """Abre el manual de usuario (MANUAL.md convertido a HTML) en una ventana aparte."""
+        from app import firma, manual
+
+        ruta = manual.generar()
+        if self._window is None:          # sin interfaz (pruebas): solo se genera
+            return {"archivo": str(ruta)}
+        import webview
+
+        webview.create_window(f"Manual · {firma()}", url=ruta.as_uri(), width=1040, height=820, text_select=True)
+        return {"archivo": str(ruta)}
+
+    @respuesta
+    def abrir_enlace(self, url: str) -> dict[str, Any]:
+        """Abre una dirección web en el navegador del sistema."""
+        import webbrowser
+
+        if not str(url).startswith(("https://", "http://")):
+            raise ValueError("Solo se abren direcciones web.")
+        webbrowser.open(str(url))
+        return {}
+
+    # --- preferencias de la interfaz ------------------------------------------
+    @respuesta
+    def preferencias(self) -> dict[str, str]:
+        """Preferencias de la interfaz guardadas en este PC (recientes, modo, ejecutor…).
+
+        Van en los ajustes del PC y no en el almacenamiento del navegador, que
+        pywebview borra al cerrar la ventana.
+        """
+        valor = ajustes.leer().get("interfaz")
+        return {str(k): str(v) for k, v in valor.items()} if isinstance(valor, dict) else {}
+
+    @respuesta
+    def guardar_preferencias(self, cambios: dict[str, Any]) -> dict[str, Any]:
+        """Fusiona `cambios` con las preferencias; un valor None borra la clave."""
+        actuales = ajustes.leer().get("interfaz")
+        actuales = dict(actuales) if isinstance(actuales, dict) else {}
+        for clave, valor in (cambios or {}).items():
+            if valor is None:
+                actuales.pop(str(clave), None)
+            else:
+                actuales[str(clave)] = str(valor)
+        ajustes.guardar({"interfaz": actuales})
+        return {}
 
     @respuesta
     def iniciar(self) -> dict[str, Any]:

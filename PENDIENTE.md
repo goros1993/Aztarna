@@ -17,37 +17,68 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   validación, arrastre en el árbol, plegar/desplegar todo, tags y keywords de
   Robot propuestos al escribir, botón Descartar y exportación a Word con la
   plantilla.
-- **Campañas de ejecución**: selección por tags, automatizable, entorno,
+- **Ejecuciones** (antes «campañas»): selección por tags, automatizable, entorno,
   maniobra, capítulo o Robot; resultados con historial y evidencias; huellas
   para detectar pruebas cambiadas; resincronizar; resumen con capítulos
   pulsables; cerrar (pruebas congeladas) e informe DOCX/PDF.
 - **Robot Framework**: enlace por la etiqueta `id:<ID>`, cobertura en el
-  editor, importar `output.xml` (RF 6 y 7), lanzar Robot desde la campaña
+  editor, importar `output.xml` (RF 6 y 7), lanzar Robot desde la ejecución
   con avance en vivo. Detalles en [docs/robot.md](docs/robot.md).
 - **Requisitos y trazabilidad**: esquema con `plantillas/tabla_requisito.docx`,
   proyecto con `pruebas/` y `requisitos/`, cobertura por requisito, sección y
   capítulo, referencias a requisitos que no existen, requisitos cambiados con
   pruebas por revisar (`revisiones.yaml`), modo Requisitos en el editor,
   matriz CSV, Word de requisitos y `herramientas.py trazabilidad`.
+- **Validación de una versión**: ejecuciones con su entorno de pruebas
+  (Automático, Maqueta, Torre), validación que las une y consolida por prueba
+  y entorno, panel con la tabla prueba × entorno e informe DOCX/PDF. Detalle y
+  puntos por comprobar en «Propuestas».
+- **Icono** de la aplicación (`recursos/`).
+- **Uso diario** (versión 0.8.0, issues #4, #5, #6 y #8): versión de la
+  herramienta en el editor, `--version`, informes y propiedades de los Word
+  (`CHANGELOG.md`); menú «⋯» con Exportar, manual dentro de la aplicación y
+  Acerca de; triángulo en el árbol y filtro para pruebas cambiadas después de
+  ejecutarse; preferencias y última carpeta de los diálogos guardadas en los
+  ajustes del PC.
 
 ## Siguientes pasos
 
-| # | Tarea | Tamaño | Necesita |
-|---|---|---|---|
-| 1 | Importar el Word real de requisitos: adaptar `inventario`, `convertir` y `auditar` a la tabla de requisitos | medio | el inventario del Word |
-| 2 | Renombrar la herramienta a **Aztarna** (ventana, ejecutable, documentación y repositorio) y probar el `.exe` en Windows tras la reorganización en `app/` | pequeño | un PC con Windows |
-| 3 | Requisitos en las campañas: estado verificado / fallido por requisito según sus pruebas, sección en el informe y «campaña de impacto» con las pruebas de los requisitos cambiados | medio | — |
-| 4 | `convertir --anadir-a`: añadir a una carpeta de YAML existente los capítulos que se importan más tarde, sin pisar archivos ni imágenes | pequeño-medio | esos capítulos |
-| 5 | Validación de una versión: primera versión hecha (rama `validacion-version`); falta probarla con ejecuciones reales de varias personas y decidir lo que queda abierto (ver abajo) | medio | probarla |
-| 6 | Comparar validaciones o ejecuciones: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
-| 7 | Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
-| 8 | Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
-| 9 | Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
-| 10 | Manual: rehacer las capturas 13, 15 y 22, que muestran la barra superior antigua | pequeño | una campaña cerrada y Robot |
+Cada tarea grande o independiente tiene su issue en GitHub
+(<https://github.com/goros1993/Validacion/issues>); el detalle, las dudas y la
+discusión van allí. Aquí queda el resumen.
 
-### Cambio de nombre a Aztarna (punto 2)
+| Issue | Tarea | Tamaño |
+|---|---|---|
+| [#1](https://github.com/goros1993/Validacion/issues/1) | Convertir el Word de requisitos a YAML (`convertir`, `inventario`, `auditar` e `ids` para requisitos) | medio |
+| [#2](https://github.com/goros1993/Validacion/issues/2) | Importar desde el editor: pruebas o requisitos, a un proyecto nuevo o añadiendo al abierto (antes `convertir --anadir-a`); a futuro, resultados de validación | medio |
+| [#3](https://github.com/goros1993/Validacion/issues/3) | Asistente de importación: familias de tablas, mapeo visual de etiquetas al esquema, vista previa, IDs repetidos y perfiles reutilizables | grande |
+| [#7](https://github.com/goros1993/Validacion/issues/7) | Evitar que dos personas editen a la vez las mismas pruebas (necesita decidir cómo se comparte la carpeta) | medio |
+
+Orden propuesto: la importación (#1 → #2 → #3, en una rama; el menú «⋯» ya
+tiene la entrada *Importar* reservada) y #7 cuando esté decidido cómo se
+comparten las carpetas.
+
+Sin issue todavía:
+
+| Tarea | Tamaño | Necesita |
+|---|---|---|
+| Probar en el `.exe` de Windows el manual dentro de la aplicación (extensiones de `markdown` empaquetadas) | pequeño | un PC con Windows |
+| Renombrar la herramienta a **Aztarna** (ver abajo) y probar el `.exe` en Windows | pequeño | un PC con Windows |
+| Requisitos en la validación: verificado / fallido por requisito según sus pruebas, sección en el informe y ejecución «de impacto» con las pruebas de los requisitos cambiados | medio | — |
+| Comparar validaciones o ejecuciones: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
+| Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
+| Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
+| Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
+| Manual: rehacer la captura 22 (Robot en marcha) | pequeño | ejecutar Robot |
+| Validación de una versión: integrada en `main`; quedan los puntos «por comprobar» de más abajo al usarla con datos reales | — | usarla |
+
+### Cambio de nombre a Aztarna
 
 Sitios con el nombre actual, para cambiarlos todos a la vez:
+
+- **Nombre en el código**: `NOMBRE` en `app/__init__.py` (lo usan la versión,
+  «Acerca de», el manual, los pies de los informes y `--version`) y el
+  archivo temporal del manual (`pruebas_yaml_manual.html` en `app/manual.py`).
 
 - **Título de la ventana**: «Editor de pruebas YAML» en `editor_web.py` (también
   su docstring y la descripción de `--help`).
@@ -76,9 +107,9 @@ Sitios con el nombre actual, para cambiarlos todos a la vez:
 
 ## Propuestas
 
-### Validación de una versión (primera versión, por probar)
+### Validación de una versión (primera versión)
 
-Hecho en la rama `validacion-version`:
+Hecho (integrado en `main`):
 
 - «Campaña» pasa a llamarse **ejecución** (`ejecucion.yaml`; las carpetas con
   `campaña.yaml` se siguen leyendo) y el modo del editor, **Validación**.

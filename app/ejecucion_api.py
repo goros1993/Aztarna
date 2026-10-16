@@ -61,8 +61,15 @@ class EditorEjecucionApi(EditorApi):
         if self._window is None:
             raise ValueError("El selector de carpetas solo está disponible en la aplicación.")
         kind = getattr(getattr(webview, "FileDialog", None), "FOLDER", None) or webview.FOLDER_DIALOG
-        elegida = self._window.create_file_dialog(kind, directory=str(Path.home()))
-        return Path(elegida[0]) if elegida else None
+        # Empieza donde se eligió la última vez (normalmente, la carpeta con las ejecuciones o validaciones).
+        guardada = ajustes.leer().get("carpeta_dialogos")
+        inicio = Path(guardada) if isinstance(guardada, str) and Path(guardada).is_dir() else Path.home()
+        elegida = self._window.create_file_dialog(kind, directory=str(inicio))
+        if not elegida:
+            return None
+        carpeta = Path(elegida[0])
+        ajustes.guardar({"carpeta_dialogos": str(carpeta.parent if carpeta.parent.is_dir() else carpeta)})
+        return carpeta
 
     def _prueba(self, test_id: str) -> dict[str, Any] | None:
         encontrada = ej.indice_por_id(self._chapters).get(test_id)

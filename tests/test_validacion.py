@@ -149,6 +149,8 @@ class ConsolidarTests(ValidacionBase):
         ej.registrar(torre, "DEMO-PUER-002", "ok", fecha="2026-11-01T10:00", huella_actual="otra")
         d = vc.consolidar(self.val)
         self.assertTrue(any(a["id"] == "DEMO-PUER-002" and "ha cambiado" in a["mensaje"] for a in d["avisos"]))
+        self.assertEqual(self.prueba(d, "DEMO-PUER-002")["cambiada_en"], ["Torre"])
+        self.assertEqual(self.prueba(d, "DEMO-NIV-001")["cambiada_en"], [])
 
     def test_borrador_hasta_cerrar_todas(self):
         torre = self.ejecucion("torre", "Torre", ["DEMO-PUER-002"])

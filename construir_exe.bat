@@ -19,8 +19,11 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
     --icon recursos\icono.ico ^
     --add-data "web;web" ^
     --add-data "recursos\icono.ico;recursos" ^
+    --add-data "MANUAL.md;." ^
+    --add-data "docs\manual;docs\manual" ^
     --collect-submodules webview ^
     --collect-submodules app ^
+    --collect-submodules markdown ^
     editor_web.py || goto :error
 
 echo.

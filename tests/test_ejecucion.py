@@ -201,8 +201,10 @@ class ResumenTests(CampañaBase):
         capitulos = self.capitulos()
         capitulos[0]["data"]["contenido"][3]["prueba"]["titulo"] = "Título cambiado"
         del capitulos[0]["data"]["contenido"][4]          # DEMO-LLAM-002 desaparece
-        mensajes = {(p["id"], p["mensaje"]) for p in ej.resumen(self.campaña, capitulos)["problemas"]}
+        resumen = ej.resumen(self.campaña, capitulos)
+        mensajes = {(p["id"], p["mensaje"]) for p in resumen["problemas"]}
         self.assertIn(("DEMO-LLAM-001", "La prueba ha cambiado después de ejecutarse."), mensajes)
+        self.assertEqual([p["id"] for p in resumen["pruebas"] if p["cambiada"]], ["DEMO-LLAM-001"])
         self.assertIn(("DEMO-LLAM-002", "La prueba ya no existe en los YAML de pruebas."), mensajes)
         self.assertIn(("DEMO-LLAM-002", "Resultado NO OK sin observaciones."), mensajes)
 

@@ -199,11 +199,25 @@ function visorImagen(ruta, nombre, fuente = datosImagen) {
   });
 }
 
-function guardarLocal(clave, valor) {
-  try { localStorage.setItem(clave, valor); } catch (_e) { /* sin almacenamiento */ }
+/* ---- preferencias de la interfaz ----
+   Se guardan en los ajustes del PC (Python), porque pywebview borra el
+   almacenamiento del navegador al cerrar la ventana. Se cargan una vez al
+   arrancar (cargarPreferencias) y desde entonces se leen de memoria. */
+const PREFS = {};
+
+async function cargarPreferencias() {
+  try { Object.assign(PREFS, await api.preferencias()); } catch (_e) { /* se usan los valores por defecto */ }
 }
+
+function guardarLocal(clave, valor) {
+  const texto = valor === null || valor === undefined ? null : String(valor);
+  if (PREFS[clave] === texto) return;
+  if (texto === null) delete PREFS[clave]; else PREFS[clave] = texto;
+  api.guardar_preferencias({ [clave]: texto }).catch(() => { /* no poder guardarla no impide trabajar */ });
+}
+
 function leerLocal(clave) {
-  try { return localStorage.getItem(clave); } catch (_e) { return null; }
+  return Object.prototype.hasOwnProperty.call(PREFS, clave) ? PREFS[clave] : null;
 }
 
 /* ---- formato de texto en línea ----
