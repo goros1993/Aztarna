@@ -101,9 +101,12 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
     - `capitulos`: nombres de archivo de capítulo.
     - `robot`: ["con"] o ["sin"] test de Robot (necesita `ids_robot`).
     - `incluir_ids` entra siempre; `excluir_ids` no entra nunca.
+    - `solo_ids`: solo esas pruebas, sin mirar lo demás (p. ej., las de un Word de resultados importado).
     Un criterio vacío no filtra.
     """
     test_id = str(prueba.get("id") or "").strip()
+    if filtro.get("solo_ids"):
+        return test_id in _lista(filtro.get("solo_ids"))
     if test_id in _lista(filtro.get("excluir_ids")):
         return False
     if test_id in _lista(filtro.get("incluir_ids")):
@@ -124,6 +127,19 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
         if (robot[0] == "con") != tiene:
             return False
     return True
+
+
+def texto_criterio(seleccion: dict[str, Any] | None) -> str:
+    """El criterio de selección en una línea, para el informe."""
+    partes = []
+    for k, v in dict(seleccion or {}).items():
+        if k == "solo_ids":
+            partes.append(f"{len(_lista(v))} pruebas elegidas una a una")
+        elif k == "importado_de":
+            partes.append(f"resultados importados de {v}")
+        else:
+            partes.append(f"{k}: {', '.join(map(str, v)) if isinstance(v, list) else v}")
+    return "; ".join(partes) or "todas las pruebas"
 
 
 def seleccionar(capitulos: list[dict[str, Any]], filtro: dict[str, Any],
@@ -368,11 +384,12 @@ def estado_de(campaña: dict[str, Any], test_id: str) -> str:
 def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
               observaciones: str = "", incidencia: str = "", evidencias: list[str] | None = None,
               ejecutor: str = "", huella_actual: str = "", fecha: str | None = None,
-              origen: str = "") -> dict[str, Any]:
+              origen: str = "", guardar_ahora: bool = True) -> dict[str, Any]:
     """Apunta el resultado de una prueba. El resultado anterior pasa al historial.
 
     `fecha` permite indicar cuándo se ejecutó (por defecto, ahora) y `origen`
-    de dónde viene el resultado si no es manual (por ejemplo, «robot»).
+    de dónde viene el resultado si no es manual (por ejemplo, «robot»). Con
+    `guardar_ahora=False` no se escribe el archivo (para apuntar muchos y guardar una vez).
     """
     _exigir_abierta(campaña)
     if test_id not in ids_de(campaña):
@@ -415,7 +432,8 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
         if intentos:
             nuevo["intentos"] = intentos
     resultados[test_id] = nuevo
-    guardar(campaña)
+    if guardar_ahora:
+        guardar(campaña)
     return nuevo
 
 

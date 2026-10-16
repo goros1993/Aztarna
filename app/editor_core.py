@@ -330,6 +330,38 @@ def _set_level(element: dict[str, Any], level: int) -> None:
     target["nivel"] = level
 
 
+def change_levels(chapter: dict[str, Any], indices: list[int], delta: int) -> int:
+    """Sube (delta < 0) o baja (delta > 0) de nivel varias secciones, pruebas o requisitos.
+
+    Una sección arrastra todo su bloque, para que lo que cuelga de ella siga
+    colgando. Cada elemento se mueve una sola vez aunque se haya elegido también
+    dentro de una sección elegida. Los niveles van de 2 a 6 (el 1 es el
+    capítulo); si alguno se saldría, no se cambia nada. Devuelve cuántos cambian.
+    """
+    if delta not in (-1, 1):
+        raise ValueError("Solo se puede subir o bajar un nivel cada vez.")
+    contents = chapter["data"]["contenido"]
+    afectados: set[int] = set()
+    for index in indices:
+        if not isinstance(index, int) or not 0 <= index < len(contents):
+            raise ValueError("Alguno de los elementos elegidos ya no existe.")
+        start, end = block_range(contents, index)
+        afectados.update(i for i in range(start, end) if element_level(contents[i]) is not None)
+    if not afectados:
+        raise ValueError("Elige secciones, pruebas o requisitos (las tablas no tienen nivel).")
+    nuevos = {}
+    for i in sorted(afectados):
+        nivel = element_level(contents[i]) + delta
+        if not 2 <= nivel <= 6:
+            e = contents[i]
+            nombre = e["seccion"] if isinstance(e.get("seccion"), str) else str(e[item_key(e)].get("id") or "(sin ID)")
+            raise ValueError(f"«{nombre}» quedaría en el nivel {nivel}: los niveles van del 2 al 6 (el 1 es el capítulo).")
+        nuevos[i] = nivel
+    for i, nivel in nuevos.items():
+        _set_level(contents[i], nivel)
+    return len(nuevos)
+
+
 def move_block(
     chapter: dict[str, Any],
     index: int,

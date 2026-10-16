@@ -259,6 +259,37 @@ def etiqueta_lista(celda, primera, etiqueta, items, doc, base_dir, numerada=Fals
     escribir_lista(doc, celda, items, numerada, base_dir)
 
 
+def filas_adicionales(t, extras):
+    """Una fila más al final de la tabla por cada campo adicional: «Etiqueta: valor»."""
+    for etiqueta, valor in (extras or {}).items():
+        fila = t.add_row()
+        celda = fila.cells[0].merge(fila.cells[-1])
+        p = celda.paragraphs[0]
+        compactar(p)
+        p.add_run(f"{etiqueta}: ").bold = True
+        lineas = valor if isinstance(valor, list) else str(valor or "").splitlines()
+        if lineas:
+            escribir_inline(p, str(lineas[0]))
+            for linea in lineas[1:]:
+                parrafo = celda.add_paragraph()
+                compactar(parrafo)
+                escribir_inline(parrafo, str(linea))
+
+
+def escribir_detalle(celda, items, base_dir, ancho):
+    """Tablas, imágenes y párrafos que siguen a la descripción, dentro de su celda."""
+    for item in items or []:
+        if isinstance(item, dict) and isinstance(item.get("tabla"), dict):
+            tabla_informativa(celda, item["tabla"], base_dir, ancho)
+            continue
+        p = celda.add_paragraph()
+        compactar(p)
+        escribir_inline(p, item.get("texto", "") if isinstance(item, dict) else str(item))
+        if isinstance(item, dict):
+            for imagen in [*(item.get("imagenes") or []), *([item["imagen"]] if item.get("imagen") else [])]:
+                insertar_imagen(celda, base_dir, imagen)
+
+
 def unir(valores, separador):
     valores = valores if isinstance(valores, list) else ([valores] if valores else [])
     return separador.join(str(v) for v in valores)
@@ -316,19 +347,7 @@ def tabla_prueba(doc, prueba, base_dir):
     etiqueta_valor(t.cell(6, 0), ETIQUETAS["fecha"], prueba.get("fecha"))
     etiqueta_valor(fusionar(6, 1, 2), ETIQUETAS["version"], prueba.get("version"))
 
-    for etiqueta, valor in (prueba.get("campos_adicionales") or {}).items():
-        fila = t.add_row()
-        celda = fila.cells[0].merge(fila.cells[-1])
-        p = celda.paragraphs[0]
-        compactar(p)
-        p.add_run(f"{etiqueta}: ").bold = True
-        lineas = valor if isinstance(valor, list) else str(valor or "").splitlines()
-        if lineas:
-            escribir_inline(p, str(lineas[0]))
-            for linea in lineas[1:]:
-                parrafo = celda.add_paragraph()
-                compactar(parrafo)
-                escribir_inline(parrafo, str(linea))
+    filas_adicionales(t, prueba.get("campos_adicionales"))
 
     for imagen in prueba.get("imagenes", []):
         fila = t.add_row()
@@ -363,6 +382,7 @@ def tabla_requisito(doc, req, base_dir):
     # Filas 1-3: descripción, fuente y referencia
     for fila, clave in ((1, "descripcion"), (2, "fuente"), (3, "referencia")):
         etiqueta_valor(fusionar(fila, 0, 2), REQ_ETIQUETAS[clave], req.get(clave))
+    escribir_detalle(t.cell(1, 0), req.get("detalle"), base_dir, sum(ANCHOS_REQUISITO_CM) - 0.6)
 
     # Fila 4: tipo | criterio de validación
     etiqueta_valor(t.cell(4, 0), REQ_ETIQUETAS["tipo"], req.get("tipo"))
@@ -372,16 +392,19 @@ def tabla_requisito(doc, req, base_dir):
     for col, clave in enumerate(("fase", "fecha", "version")):
         etiqueta_valor(t.cell(5, col), REQ_ETIQUETAS[clave], req.get(clave))
 
+    filas_adicionales(t, req.get("campos_adicionales"))
+
     sep = doc.add_paragraph()
     compactar(sep)
     return t
 
 
-def tabla_informativa(doc, tabla, base_dir):
+def tabla_informativa(doc, tabla, base_dir, ancho_cm=ANCHO_TABLA_CM):
     """Tabla que no es una prueba (historial, parámetros…), tal como venía en el Word.
 
     Cada fila es una lista de celdas; una celda es un texto (con marcas de
-    formato y saltos de línea) o {texto, imagenes, columnas}.
+    formato y saltos de línea) o {texto, imagenes, columnas}. `doc` puede ser
+    el documento o una celda (tabla dentro de la descripción de un requisito).
     """
     filas = [f for f in (tabla.get("filas") or []) if isinstance(f, list)]
     ancho = lambda celda: max(int(celda.get("columnas", 1)), 1) if isinstance(celda, dict) else 1
@@ -389,7 +412,7 @@ def tabla_informativa(doc, tabla, base_dir):
     t = doc.add_table(rows=len(filas) or 1, cols=columnas)
     t.style = "Table Grid"
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
-    fijar_anchos(t, [ANCHO_TABLA_CM / columnas] * columnas)
+    fijar_anchos(t, [ancho_cm / columnas] * columnas)
     for i, fila in enumerate(filas):
         col = 0
         for j, celda in enumerate(fila):

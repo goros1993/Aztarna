@@ -6,6 +6,7 @@ from ruamel.yaml import YAML
 
 from app import editor_api
 from app import editor_core
+from app.editor_core import change_levels, element_level
 
 
 class EditorCoreTests(unittest.TestCase):
@@ -282,6 +283,38 @@ class EditorCoreTests(unittest.TestCase):
                 (Path("capitulo.yaml"), 0),
             )
         )
+
+
+class CambiarNiveles(unittest.TestCase):
+    def capitulo(self):
+        return {"data": {"contenido": [
+            {"seccion": "A", "nivel": 2},
+            {"prueba": {"id": "T1", "nivel": 3}},
+            {"seccion": "A.1", "nivel": 3},
+            {"prueba": {"id": "T2", "nivel": 4}},
+            {"tabla": {"filas": [["x"]]}},
+            {"seccion": "B", "nivel": 2},
+            {"prueba": {"id": "T3", "nivel": 3}},
+        ]}}
+
+    def niveles(self, cap):
+        return [element_level(e) for e in cap["data"]["contenido"]]
+
+    def test_bajar_varios_y_la_seccion_arrastra_su_bloque(self):
+        cap = self.capitulo()
+        # A.1 (con T2) y T2 elegida también: T2 solo baja una vez.
+        self.assertEqual(change_levels(cap, [2, 3, 6], 1), 3)
+        self.assertEqual(self.niveles(cap), [2, 3, 4, 5, None, 2, 4])
+
+    def test_subir_fuera_de_rango_no_cambia_nada(self):
+        cap = self.capitulo()
+        with self.assertRaisesRegex(ValueError, "«A» quedaría en el nivel 1"):
+            change_levels(cap, [0, 6], -1)
+        self.assertEqual(self.niveles(cap), [2, 3, 3, 4, None, 2, 3])
+        with self.assertRaises(ValueError):
+            change_levels(cap, [4], 1)                    # una tabla no tiene nivel
+        with self.assertRaises(ValueError):
+            change_levels(cap, [1], 2)
 
 
 if __name__ == "__main__":

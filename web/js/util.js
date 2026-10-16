@@ -101,16 +101,26 @@ function fallo(error) {
  * Tapa la ventana con una ruleta y `mensaje` mientras dura `tarea()` (una
  * promesa); no deja hacer clic en nada hasta que termina, bien o con error.
  */
-async function conEspera(mensaje, tarea) {
+async function conEspera(mensaje, tarea, detalle = "") {
+  const tiempo = h("p", { class: "espera-tiempo", "aria-live": "off" });
   const capa = h("div", { class: "espera", role: "alert", "aria-busy": "true", "aria-live": "assertive" },
-    h("div", { class: "espera-caja" }, h("div", { class: "ruleta", "aria-hidden": "true" }), h("p", { text: mensaje })));
+    h("div", { class: "espera-caja" }, h("div", { class: "ruleta", "aria-hidden": "true" }), h("p", { text: mensaje }),
+      detalle ? h("p", { class: "espera-detalle", text: detalle }) : null, tiempo));
   const foco = document.activeElement;
-  document.body.appendChild(capa);
+  // Dentro del diálogo abierto, si lo hay: un diálogo modal tapa todo lo que está fuera de él.
+  const abiertos = document.querySelectorAll("dialog[open]");
+  (abiertos.length ? abiertos[abiertos.length - 1] : document.body).appendChild(capa);
   capa.tabIndex = -1;
   capa.focus();
+  const inicio = Date.now();
+  const reloj = setInterval(() => {
+    const s = Math.round((Date.now() - inicio) / 1000);
+    tiempo.textContent = s < 3 ? "" : `Lleva ${s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`}`;
+  }, 1000);
   try {
     return await tarea();
   } finally {
+    clearInterval(reloj);
     capa.remove();
     if (foco && foco.focus) foco.focus();
   }

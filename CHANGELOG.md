@@ -3,6 +3,36 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 0.9.0
+
+Importación desde Word en el editor (issues #1, #2 y #3):
+
+- **⋯ → Importar desde Word…**: asistente en cuatro pasos (documento, tablas,
+  campos, revisar) para pruebas, requisitos o los dos a la vez. Agrupa las
+  tablas por sus etiquetas, propone a qué campo va cada una («Origen» →
+  Fuente, «Pasos» → Ensayo…) y recuerda el mapeo elegido. También
+  `herramientas.py importar`.
+- Revisión antes de importar: IDs repetidos, vacíos o que ya existen (con un ID
+  nuevo propuesto), ejemplo de cómo queda, avisos y texto del Word que no llega
+  a ningún campo.
+- **Actualizar desde un Word**: al importar en el proyecto abierto, los que ya
+  existen se comparan y se elige actualizarlos, importarlos como nuevos u
+  omitirlos. Un requisito actualizado con pruebas queda por revisar.
+- **Resultados de una ejecución** desde un Word con filas de resultado: qué
+  estado es cada valor («Correcto» → OK, «N/A» → No aplica…) y ejecución nueva
+  con esas pruebas, también dentro de la validación abierta.
+- Niveles bien calculados: un título con varias tablas es una sección; los
+  títulos se reconocen también por su nivel de esquema o el estilo en que se
+  basan.
+- Requisitos: tablas e imágenes de la descripción (`detalle`) y campos
+  adicionales, en el editor y en el Word exportado.
+- Árbol: elegir varios elementos (Ctrl+clic, Mayús+clic) y subirlos o bajarlos
+  de nivel (también Alt+← / Alt+→).
+- La espera de las tareas largas se ve también dentro de los diálogos, con el
+  tiempo que lleva.
+- Validación: aviso cuando la ejecución abierta no forma parte de la validación
+  abierta, con un botón para añadirla.
+
 ## 0.8.0
 
 Primera versión numerada. Incluye:

@@ -32,6 +32,7 @@ from app import ajustes, esquema, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
+    change_levels,
     delete_section,
     delete_test,
     find_duplicate_id,
@@ -312,6 +313,8 @@ def clean_requirement_changes(changes: dict[str, Any]) -> dict[str, Any]:
             cleaned[field] = [o for o in opciones if o in valores]
         elif field in esquema.REQ_CAMPOS_LISTA:
             cleaned[field] = _clean_list(value, field)
+        elif field == "campos_adicionales":
+            cleaned[field] = _clean_extras(value)
         elif field == "nivel":
             cleaned[field] = normalize_level(value)
         else:
@@ -1057,6 +1060,15 @@ class EditorApi:
         self._persist(chapter)
         return {"indice": new_index}
 
+    @respuesta
+    def cambiar_niveles(self, capitulo: int, indices: list[int], delta: int) -> dict[str, Any]:
+        """Sube o baja un nivel varias secciones, pruebas o requisitos del capítulo (las secciones, con su contenido)."""
+        self._exigir_escritura()
+        chapter = self._require_chapter(capitulo)
+        cambiados = change_levels(chapter, [int(i) for i in indices or []], int(delta))
+        self._persist(chapter)
+        return {"cambiados": cambiados}
+
     # --- YAML en bruto ---------------------------------------------------------
     @respuesta
     def aplicar_yaml(self, capitulo: int, indice: int, texto: str) -> dict[str, Any]:
@@ -1325,6 +1337,7 @@ class EditorApi:
                     if otros:
                         add("aviso", ci, index, req_id, f"{esquema.REQ_ETIQUETAS[field]}: «{', '.join(otros)}» no es una opción ({', '.join(opciones)}).")
                 self._check_context_tables(add, ci, index, req_id, req.get("contexto"))
+                self._check_context_tables(add, ci, index, req_id, req.get("detalle"))
                 self._check_images(add, base, ci, index, req_id, _image_values(req))
         for req_id, places in seen.items():
             if len(places) > 1:
