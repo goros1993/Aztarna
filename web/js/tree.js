@@ -72,7 +72,80 @@ function pintarBarraNiveles() {
     h("span", { class: "cuenta-elegidos", text: `${plural(ELEGIDOS.size, "elegido", "elegidos")} · nivel` }),
     h("button", { class: "btn peq", type: "button", title: "Subir un nivel (Alt+←): las secciones, con su contenido", onclick: () => cambiarNiveles(-1) }, icon("chevron", "girar-izq"), "Subir"),
     h("button", { class: "btn peq", type: "button", title: "Bajar un nivel (Alt+→): las secciones, con su contenido", onclick: () => cambiarNiveles(1) }, "Bajar", icon("chevron", "girar-der")),
+    h("button", { class: "btn peq", type: "button", title: "Cambiar un campo (tags, entorno, automatizable…) en todos los elegidos", onclick: cambiarCamposVarios }, "Campos…"),
     h("button", { class: "btn icono peq", type: "button", title: "Quitar la selección (Esc)", "aria-label": "Quitar la selección", onclick: soltarEleccion }, icon("x")));
+}
+
+/* ---- cambiar un campo en todos los elegidos ---- */
+function camposVarios() {
+  const e = S.esquema || { opciones: {}, automatizable: [], requisito: { opciones: {}, tipos: [] } };
+  if (enRequisitos()) {
+    return {
+      criterio_validacion: { texto: "Criterio validación", clase: "lista", opciones: e.requisito.opciones.criterio_validacion },
+      tipo: { texto: "Tipo", clase: "opcion", opciones: e.requisito.tipos.map((x) => ({ valor: x, texto: x })) },
+      fuente: { texto: "Fuente", clase: "texto" }, fase: { texto: "Fase", clase: "texto" },
+      fecha: { texto: "Fecha", clase: "texto" }, version: { texto: "Versión", clase: "texto" },
+    };
+  }
+  return {
+    etiquetas: { texto: "Tags", clase: "lista" },
+    requisitos: { texto: "Requisitos", clase: "lista" },
+    entorno: { texto: "Entorno de pruebas", clase: "lista", opciones: e.opciones.entorno },
+    maniobra: { texto: "Maniobra", clase: "lista", opciones: e.opciones.maniobra },
+    automatizable: { texto: "Automatizable", clase: "opcion", opciones: [{ valor: "", texto: "(vacío)" }, ...e.automatizable] },
+    fecha: { texto: "Fecha", clase: "texto" }, version: { texto: "Versión", clase: "texto" },
+  };
+}
+
+async function cambiarCamposVarios() {
+  if (!puedeElegirVarios() || !ELEGIDOS.size) return;
+  if (!(await guardia())) return;
+  setDirty(false);
+  const campos = camposVarios();
+  const estado = { campo: Object.keys(campos)[0], modo: "anadir" };
+  const zona = h("div", {});
+  const pintar = () => {
+    const c = campos[estado.campo];
+    if (c.clase !== "lista") estado.modo = "poner";
+    else if (estado.modo === "poner" && !c.opciones) estado.modo = "anadir";
+    const modos = c.clase === "lista" ? [["anadir", "Añadir"], ["quitar", "Quitar"], ["poner", "Dejar solo estos"]] : [["poner", "Poner"]];
+    let valor;
+    if (c.clase === "lista" && c.opciones) {
+      valor = h("div", { class: "opciones-varios" }, c.opciones.map((o) => h("label", { class: "opcion-radio" },
+        h("input", { type: "checkbox", value: o }), h("span", { text: o }))));
+    } else if (c.clase === "opcion") {
+      valor = h("select", { id: "varios-valor" }, c.opciones.map((o) => h("option", { value: o.valor, text: o.texto })));
+    } else {
+      valor = h("input", { id: "varios-valor", type: "text", autocomplete: "off",
+        placeholder: c.clase === "lista" ? "Separados por comas: regresion, smoke" : "" });
+    }
+    zona.replaceChildren(
+      h("div", { class: "campo" }, h("label", { for: "varios-campo", text: "Campo" }),
+        h("select", { id: "varios-campo", onchange: (ev) => { estado.campo = ev.target.value; pintar(); } },
+          Object.entries(campos).map(([k, x]) => h("option", { value: k, text: x.texto, selected: k === estado.campo })))),
+      h("fieldset", { class: "grupo-radio" }, h("legend", { text: "Qué hacer" }),
+        modos.map(([m, txt]) => h("label", { class: "opcion-radio" },
+          h("input", { type: "radio", name: "varios-modo", value: m, checked: estado.modo === m, onchange: () => { estado.modo = m; } }), h("span", { text: txt })))),
+      h("div", { class: "campo" }, h("label", { text: "Valor" }), valor));
+    zona.leerValor = () => (c.clase === "lista" && c.opciones
+      ? [...zona.querySelectorAll(".opciones-varios input:checked")].map((x) => x.value)
+      : zona.querySelector("#varios-valor").value);
+  };
+  pintar();
+  const que = enRequisitos() ? "requisitos" : "pruebas";
+  const r = await dialogo({
+    titulo: `Cambiar un campo en ${plural(ELEGIDOS.size, "elemento elegido", "elementos elegidos")}`,
+    cuerpo: h("div", { class: "cambiar-varios" },
+      h("p", { class: "muted", text: `Se cambia en las ${que} elegidas y en las de las secciones elegidas. Se guarda al aceptar.` }), zona),
+    botones: [{ texto: "Cancelar", valor: "", tipo: "ghost" }, { texto: "Cambiar", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  try {
+    const res = await api.editar_varios(S.capitulo, [...ELEGIDOS], estado.campo, estado.modo, zona.leerValor());
+    await refrescarTodo(S.seleccion ? { seleccionar: S.seleccion } : {});
+    aviso(res.cambiados ? `${campos[estado.campo].texto}: cambiado en ${res.cambiados} de ${res.elegidos} ${que}`
+      : `No había nada que cambiar en las ${res.elegidos} ${que}`, "ok");
+  } catch (e) { fallo(e); }
 }
 
 /** Sube (-1) o baja (+1) un nivel lo elegido, o el elemento abierto si no hay varios elegidos. */

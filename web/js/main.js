@@ -361,6 +361,7 @@ function conectar() {
   iniciarBloqueos();
   $("#btn-nueva-prueba").addEventListener("click", nuevaPrueba);
   $("#btn-plegar-todo").addEventListener("click", () => plegarTodo(true));
+  $("#btn-buscar-todo").addEventListener("click", buscarEnTodo);
   $("#btn-desplegar-todo").addEventListener("click", () => plegarTodo(false));
   $("#btn-nueva-seccion").addEventListener("click", nuevaSeccion);
   $("#filtro-cobertura").addEventListener("change", async (e) => {
@@ -393,6 +394,9 @@ function conectar() {
       guardarActual();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f" && !e.shiftKey) {
       if (!document.activeElement.closest(".cm-editor")) { e.preventDefault(); $("#buscar").focus(); $("#buscar").select(); }
+    } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "f" && !document.querySelector("dialog[open]")) {
+      e.preventDefault();
+      buscarEnTodo();
     }
   });
   window.addEventListener("beforeunload", (e) => { if (S.dirty) { e.preventDefault(); e.returnValue = ""; } });

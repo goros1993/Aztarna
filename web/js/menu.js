@@ -17,6 +17,7 @@ function opcionesMenu() {
       desactivada: !conCapitulos, ayuda: "Generar el documento de Word con todos los capítulos",
     },
     "-",
+    { texto: "Ajustes…", icono: "engranaje", accion: abrirAjustes, ayuda: "Tu nombre, dónde se publica el programa y la dirección de las incidencias" },
     { texto: "Manual de usuario", icono: "libro", accion: abrirManual, ayuda: "Abrir el manual en una ventana aparte" },
     { texto: "Acerca de…", icono: "info", accion: acercaDe },
   ].filter(Boolean);
@@ -86,5 +87,84 @@ function iniciarMenu() {
   // Versión en la barra inferior (abre «Acerca de»).
   const version = $("#btn-version");
   api.acerca_de().then((d) => { version.textContent = `v${d.version}`; }, () => { version.hidden = true; });
-  version.addEventListener("click", acercaDe);
+  version.addEventListener("click", () => (NUEVA_VERSION ? avisoNuevaVersion() : acercaDe()));
+  cargarAjustesGenerales().then(comprobarVersion);
+}
+
+/* ---- ajustes de este PC ---- */
+const AJUSTES = { persona: "", carpeta_versiones: "", url_incidencias: "" };
+let NUEVA_VERSION = null;
+
+async function cargarAjustesGenerales() {
+  try { Object.assign(AJUSTES, await api.ajustes_generales()); } catch (_e) { /* sin ajustes */ }
+}
+
+async function abrirAjustes() {
+  await cargarAjustesGenerales();
+  const campo = (id, etiqueta, valor, ayuda, extra = null) => h("div", { class: "campo completo" },
+    h("label", { for: id, text: etiqueta }),
+    h("div", { class: "fila-archivo" }, h("input", { id, type: "text", autocomplete: "off", value: valor, placeholder: ayuda.ejemplo || "" }), extra),
+    h("span", { class: "ayuda", text: ayuda.texto }));
+  const elegir = h("button", { type: "button", class: "btn", text: "Elegir…", onclick: async () => {
+    try { const r = await api.elegir_carpeta_versiones(); if (!r.cancelado) cuerpo.querySelector("#aj-versiones").value = r.carpeta; } catch (e) { fallo(e); }
+  } });
+  const cuerpo = h("div", { class: "rejilla ajustes" },
+    campo("aj-persona", "Tu nombre", AJUSTES.persona, { ejemplo: AJUSTES.persona_sistema,
+      texto: "Sale como ejecutor en los resultados y en el aviso cuando editas un capítulo. Vacío: tu usuario de Windows." }),
+    campo("aj-versiones", "Carpeta con la última versión del programa", AJUSTES.carpeta_versiones, { ejemplo: "\\\\servidor\\pruebas\\programa",
+      texto: "Donde se publican EditorPruebas.exe y version.txt. Al abrir el editor, avisa si allí hay una versión más nueva que la tuya." }, elegir),
+    campo("aj-incidencias", "Dirección de las incidencias", AJUSTES.url_incidencias, { ejemplo: "https://jira.empresa.com/browse/{id}",
+      texto: "Con {id} donde va el número. Las incidencias (BUG-123…) de los resultados se abren con un clic." }));
+  const r = await dialogo({ titulo: "Ajustes de este PC", cuerpo, ancho: true,
+    botones: [{ texto: "Cancelar", valor: "", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }] });
+  if (r !== "si") return;
+  try {
+    Object.assign(AJUSTES, await api.guardar_ajustes_generales({
+      persona: cuerpo.querySelector("#aj-persona").value,
+      carpeta_versiones: cuerpo.querySelector("#aj-versiones").value,
+      url_incidencias: cuerpo.querySelector("#aj-incidencias").value,
+    }));
+    if (AJUSTES.persona) guardarLocal("ejecutor", AJUSTES.persona);
+    aviso("Ajustes guardados", "ok");
+    comprobarVersion();
+  } catch (e) { fallo(e); }
+}
+
+/* ---- versión nueva publicada ---- */
+async function comprobarVersion() {
+  let r;
+  try { r = await api.comprobar_version(); } catch (_e) { return; }
+  const boton = $("#btn-version");
+  NUEVA_VERSION = r.nueva ? r : null;
+  boton.classList.toggle("nueva", Boolean(r.nueva));
+  boton.textContent = r.nueva ? `v${r.actual} · hay una versión nueva (${r.version})` : `v${r.actual}`;
+  boton.title = r.nueva ? "Hay una versión nueva del programa: pulsa para ver cómo actualizar" : "Acerca de";
+  if (r.nueva) aviso(`Hay una versión nueva del programa (${r.version}). Tienes la ${r.actual}.`, "info", { texto: "Ver", hacer: avisoNuevaVersion });
+}
+
+async function avisoNuevaVersion() {
+  const r = NUEVA_VERSION;
+  if (!r) return;
+  const accion = await dialogo({
+    titulo: `Versión nueva: ${r.version}`,
+    cuerpo: h("div", {},
+      h("p", {}, "Tienes la ", h("strong", { text: r.actual }), " y en la carpeta del programa está la ", h("strong", { text: r.version }), "."),
+      h("p", { text: "Para actualizar: cierra el editor, copia EditorPruebas.exe de esa carpeta encima del tuyo y vuelve a abrirlo. Tus ajustes y tus datos no cambian." }),
+      h("p", { class: "muted", text: r.carpeta })),
+    botones: [{ texto: "Más tarde", valor: "", tipo: "ghost" }, { texto: "Abrir la carpeta", valor: "abrir", tipo: "primary" }],
+  });
+  if (accion === "abrir") api.mostrar_en_carpeta(`${r.carpeta}/version.txt`).catch(fallo);
+}
+
+/* ---- incidencias ---- */
+const PATRON_INCIDENCIA = /[A-Za-z][A-Za-z0-9_]*-\d+/g;
+
+/** Enlaces a las incidencias de un texto («BUG-123, BUG-130»), si hay dirección configurada. */
+function enlacesIncidencia(texto) {
+  const ids = [...new Set(String(texto || "").match(PATRON_INCIDENCIA) || [])];
+  if (!AJUSTES.url_incidencias || !ids.length) return null;
+  return h("span", { class: "enlaces-incidencia" }, ids.map((id) => h("button", {
+    type: "button", class: "enlace", text: id, title: "Abrir la incidencia en el navegador",
+    onclick: () => api.abrir_enlace(AJUSTES.url_incidencias.replace("{id}", encodeURIComponent(id))).catch(fallo),
+  })));
 }

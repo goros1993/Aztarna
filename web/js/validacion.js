@@ -257,6 +257,15 @@ async function volverAValidacion() {
   mostrarVacio();
 }
 
+/** Resultados en CSV para Excel (de la validación o de la ejecución abierta). */
+async function exportarResultadosCsv(de) {
+  try {
+    const r = await (de === "validacion" ? api.validacion_exportar_csv() : api.campana_exportar_csv());
+    if (r.cancelado) return;
+    aviso("Resultados exportados", "ok", { texto: "Mostrar", hacer: () => api.mostrar_en_carpeta(r.archivo).catch(fallo) });
+  } catch (e) { fallo(e); }
+}
+
 /* ---- árbol ---- */
 function mapaValidacion() {
   return new Map(S.validacion ? S.validacion.pruebas.map((p) => [p.id, p.estado]) : []);
@@ -346,6 +355,8 @@ function mostrarPanelValidacion() {
       h("button", { class: "btn", type: "button", onclick: editarValidacion, text: "Cambiar datos…" }),
       h("button", { class: "btn", type: "button", onclick: informeValidacion, text: "Generar informe…",
         title: v.borrador ? "Borrador: alguna ejecución sigue abierta" : "Informe de la versión" }),
+      h("button", { class: "btn", type: "button", onclick: () => exportarResultadosCsv("validacion"), text: "Excel…",
+        title: "Resultados de cada prueba y entorno en un CSV que se abre con Excel" }),
       h("button", { class: "btn primary", type: "button", onclick: () => nuevaCampana({ enValidacion: true }) }, icon("plus"), "Nueva ejecución")),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Resultado de la versión" }),

@@ -116,6 +116,27 @@ class EditorValidacionApi(EditorEjecucionApi):
             return {"carpeta_pruebas": self._summary()}
         return {}
 
+    # --- resultados en CSV para Excel -------------------------------------------
+    @respuesta
+    def validacion_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
+        from app import exportar_resultados
+        validacion = self._requiere_validacion()
+        if salida is None:
+            salida = self._guardar_como(validacion["carpeta"], f"resultados_{validacion['carpeta'].name}.csv", "CSV para Excel (*.csv)")
+            if salida is None:
+                return {"cancelado": True}
+        return {"archivo": str(exportar_resultados.csv_validacion(self._estado_validacion(), salida))}
+
+    @respuesta
+    def campana_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
+        from app import exportar_resultados
+        campaña = self._requiere_campaña()
+        if salida is None:
+            salida = self._guardar_como(campaña["carpeta"], f"resultados_{Path(campaña['carpeta']).name}.csv", "CSV para Excel (*.csv)")
+            if salida is None:
+                return {"cancelado": True}
+        return {"archivo": str(exportar_resultados.csv_ejecucion(campaña, ej.capitulos_de(campaña), salida))}
+
     # --- informe ---------------------------------------------------------------
     @respuesta
     def validacion_elegir_destino_informe(self) -> dict[str, Any]:
