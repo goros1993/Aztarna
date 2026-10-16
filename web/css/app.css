@@ -856,3 +856,10 @@ dialog.asistente .asistente-cuerpo { max-height: min(68vh, 760px); padding-top: 
   .familia-cab { flex-wrap: wrap; }
   .tabla-mapeo select, .tabla-mapeo input { min-width: 120px; }
 }
+
+/* ---- varios elegidos en el árbol (cambiar de nivel) ---- */
+.fila.elegida { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.barra-niveles { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; padding: 6px 10px; margin: 0 10px 6px; border-radius: 6px; background: var(--accent-soft); font-size: 12.5px; }
+.barra-niveles[hidden] { display: none; }
+.barra-niveles .cuenta-elegidos { font-weight: 600; color: var(--accent); margin-right: auto; }
+.ico.girar-izq { transform: rotate(180deg); }

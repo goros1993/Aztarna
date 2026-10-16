@@ -90,7 +90,7 @@
       <div class="lateral-acciones solo-edicion">
         <button class="btn peq" id="btn-nueva-prueba" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span id="txt-nueva">Prueba</span></button>
         <button class="btn peq" id="btn-nueva-seccion" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Sección</button>
-        <span class="ayuda-arrastre">Arrastra para reordenar</span>
+        <span class="ayuda-arrastre" title="Arrastra para reordenar. Ctrl+clic o Mayús+clic eligen varios para cambiarles el nivel (también Alt+← / Alt+→).">Arrastra para reordenar</span>
       </div>
       <div class="lateral-acciones solo-ejecucion">
         <label class="sr" for="filtro-estado">Mostrar</label>
@@ -116,7 +116,8 @@
         </select>
         <button class="btn peq" id="btn-panel-traza" type="button" title="Ver la cobertura de todos los requisitos">Cobertura</button>
       </div>
-      <ul id="arbol" class="arbol" role="tree" aria-label="Secciones y pruebas"></ul>
+      <div id="barra-niveles" class="barra-niveles" hidden></div>
+      <ul id="arbol" class="arbol" role="tree" aria-label="Secciones y pruebas" aria-multiselectable="true"></ul>
     </aside>
     <div class="divisor" id="divisor" role="separator" aria-orientation="vertical" aria-label="Ajustar el ancho del panel" tabindex="0"></div>
     <main class="principal" id="principal" tabindex="-1"></main>

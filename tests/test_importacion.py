@@ -8,7 +8,7 @@ from docx import Document
 from app import importacion as imp
 from app import yaml_a_docx
 from app.editor_api import to_plain
-from app.editor_core import items_in_chapter, read_chapters
+from app.editor_core import items_in_chapter, navigation_entries, read_chapters
 
 RAIZ = Path(__file__).resolve().parents[1]
 EJEMPLOS = RAIZ / "ejemplos" / "yaml"
@@ -16,6 +16,16 @@ EJEMPLOS = RAIZ / "ejemplos" / "yaml"
 
 def _items(carpeta, tipo):
     return {str(e.get("id")): to_plain(e) for c in read_chapters(Path(carpeta)) for _i, e in items_in_chapter(c, tipo)}
+
+
+def _estructura(carpeta):
+    """Árbol de cada capítulo: (tipo, ID o título, nivel, padre), sin las tablas informativas."""
+    resultado = []
+    for c in read_chapters(Path(carpeta)):
+        nav = navigation_entries(c)
+        titulos = {i: t for _k, i, t, _p, _n in nav}
+        resultado.append([(k, t.split(" — ")[0], n, titulos.get(p)) for k, _i, t, p, n in nav if k != "table"])
+    return resultado
 
 
 def _requisito(doc, ident, titulo, celdas, tabla_en_descripcion=None, despues_de_tabla=None):
@@ -72,6 +82,8 @@ class TestIdaYVuelta(unittest.TestCase):
             self.assertTrue((Path(tmp) / "proyecto" / "avisos.txt").is_file())
             original, importado = _items(EJEMPLOS / "requisitos", "requisito"), _items(r["carpetas"]["requisito"], "requisito")
             self.assertEqual(set(original), set(importado))
+            # Mismas secciones y niveles: los títulos con varias tablas (o sin tabla propia) son secciones.
+            self.assertEqual(_estructura(EJEMPLOS / "requisitos"), _estructura(r["carpetas"]["requisito"]))
             for ident, req in original.items():
                 for campo in ("titulo", "descripcion", "fuente", "referencia", "tipo", "fase", "fecha", "version"):
                     self.assertEqual(str(req.get(campo) or ""), importado[ident][campo], f"{ident} {campo}")
@@ -86,6 +98,7 @@ class TestIdaYVuelta(unittest.TestCase):
             carpeta = Path(r["carpetas"]["prueba"])
             original, importado = _items(EJEMPLOS / "pruebas", "prueba"), _items(carpeta, "prueba")
             self.assertEqual(set(original), set(importado))
+            self.assertEqual(_estructura(EJEMPLOS / "pruebas"), _estructura(carpeta))     # cada prueba con su título
 
             def textos(lista):
                 return [x if isinstance(x, str) else x.get("texto") for x in lista or [] if (x if isinstance(x, str) else x.get("texto"))]
@@ -98,6 +111,35 @@ class TestIdaYVuelta(unittest.TestCase):
                     self.assertEqual(prueba.get(campo) or [], importado[ident][campo], f"{ident} {campo}")
             # Las imágenes se copian a la carpeta de pruebas.
             self.assertTrue(any((carpeta / "imagenes").iterdir()))
+
+
+class TestNiveles(unittest.TestCase):
+    def test_titulos_con_estilo_propio_y_secciones_profundas(self):
+        from docx.enum.style import WD_STYLE_TYPE
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+        doc = Document()
+        doc.add_heading("Capítulo", 1)
+        doc.add_heading("Sistema", 2)
+        propio = doc.styles.add_style("Requisitos 3", WD_STYLE_TYPE.PARAGRAPH)
+        propio.base_style = doc.styles["Heading 3"]
+        doc.add_paragraph("Arranque", style=propio)                  # estilo propio basado en Título 3
+        _requisito(doc, "R-1", "Uno", ["Descripción: a"])
+        _requisito(doc, "R-2", "Dos", ["Descripción: b"])
+        p = doc.add_paragraph("Parada")                              # texto normal con nivel de esquema 3
+        ppr = p._p.get_or_add_pPr()
+        nivel = OxmlElement("w:outlineLvl")
+        nivel.set(qn("w:val"), "2")
+        ppr.append(nivel)
+        _requisito(doc, "R-3", "Tres", ["Descripción: c"])
+        with tempfile.TemporaryDirectory() as tmp:
+            docx = Path(tmp) / "niveles.docx"
+            doc.save(docx)
+            r = imp.importar(docx, imp.mapeo_propuesto(imp.analizar(docx, "requisito")), Path(tmp) / "p")
+            self.assertEqual(_estructura(r["carpetas"]["requisito"]), [[
+                ("section", "Sistema", 2, None), ("section", "Arranque", 3, "Sistema"),
+                ("requirement", "R-1", 4, "Arranque"), ("requirement", "R-2", 4, "Arranque"),
+                ("section", "Parada", 3, "Sistema"), ("requirement", "R-3", 4, "Parada")]])
 
 
 class TestMapeo(unittest.TestCase):
@@ -144,7 +186,7 @@ class TestMapeo(unittest.TestCase):
         conversion = imp.preparar(self.docx, mapeo)["conversion"]
         reqs = imp.elementos(conversion["capitulos"], "requisito")
         r1, r2 = reqs[0], reqs[1]
-        self.assertEqual(r1["nombre"], "Arranque")
+        self.assertEqual((r1["nombre"], r1["nivel"]), ("", 3))          # «Arranque» es una sección
         self.assertEqual(r1["descripcion"], "Desde que se alimenta.")
         self.assertEqual(r1["fuente"], "cliente")
         self.assertEqual(r1["tipo"], "Obligatorio")

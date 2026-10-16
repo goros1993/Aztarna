@@ -32,6 +32,7 @@ from app import ajustes, esquema, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
+    change_levels,
     delete_section,
     delete_test,
     find_duplicate_id,
@@ -1058,6 +1059,15 @@ class EditorApi:
             raise
         self._persist(chapter)
         return {"indice": new_index}
+
+    @respuesta
+    def cambiar_niveles(self, capitulo: int, indices: list[int], delta: int) -> dict[str, Any]:
+        """Sube o baja un nivel varias secciones, pruebas o requisitos del capítulo (las secciones, con su contenido)."""
+        self._exigir_escritura()
+        chapter = self._require_chapter(capitulo)
+        cambiados = change_levels(chapter, [int(i) for i in indices or []], int(delta))
+        self._persist(chapter)
+        return {"cambiados": cambiados}
 
     # --- YAML en bruto ---------------------------------------------------------
     @respuesta

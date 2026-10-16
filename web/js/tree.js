@@ -36,9 +36,64 @@ function contarPruebas(nodos) {
   return cuenta;
 }
 
+/* ---- varios elegidos (Ctrl+clic, Mayús+clic) para cambiarles el nivel ---- */
+const ELEGIDOS = new Set();
+let anclaEleccion = null;
+
+const puedeElegirVarios = () => S.modo !== "ejecucion" && !S.soloLectura;
+
+function alternarEleccion(n, rango) {
+  if (n.tipo === "tabla") return;
+  if (!ELEGIDOS.size && S.seleccion && S.seleccion.tipo !== "tabla") ELEGIDOS.add(S.seleccion.indice);
+  if (rango && anclaEleccion !== null) {
+    const filas = filasVisibles().filter((f) => f.dataset.tipo !== "tabla").map((f) => Number(f.dataset.indice));
+    const [a, b] = [filas.indexOf(anclaEleccion), filas.indexOf(n.indice)].sort((x, y) => x - y);
+    if (a >= 0) filas.slice(a, b + 1).forEach((i) => ELEGIDOS.add(i));
+    else ELEGIDOS.add(n.indice);
+  } else if (ELEGIDOS.has(n.indice)) ELEGIDOS.delete(n.indice);
+  else ELEGIDOS.add(n.indice);
+  anclaEleccion = n.indice;
+  renderArbol();
+}
+
+function soltarEleccion() {
+  ELEGIDOS.clear();
+  anclaEleccion = null;
+  renderArbol();
+}
+
+function pintarBarraNiveles() {
+  const barra = $("#barra-niveles");
+  const visibles = new Set(S.nodos.map((n) => n.indice));
+  [...ELEGIDOS].filter((i) => !visibles.has(i)).forEach((i) => ELEGIDOS.delete(i));
+  barra.hidden = ELEGIDOS.size < 2 || !puedeElegirVarios();
+  if (barra.hidden) { barra.replaceChildren(); return; }
+  barra.replaceChildren(
+    h("span", { class: "cuenta-elegidos", text: `${plural(ELEGIDOS.size, "elegido", "elegidos")} · nivel` }),
+    h("button", { class: "btn peq", type: "button", title: "Subir un nivel (Alt+←): las secciones, con su contenido", onclick: () => cambiarNiveles(-1) }, icon("chevron", "girar-izq"), "Subir"),
+    h("button", { class: "btn peq", type: "button", title: "Bajar un nivel (Alt+→): las secciones, con su contenido", onclick: () => cambiarNiveles(1) }, "Bajar", icon("chevron", "girar-der")),
+    h("button", { class: "btn icono peq", type: "button", title: "Quitar la selección (Esc)", "aria-label": "Quitar la selección", onclick: soltarEleccion }, icon("x")));
+}
+
+/** Sube (-1) o baja (+1) un nivel lo elegido, o el elemento abierto si no hay varios elegidos. */
+async function cambiarNiveles(delta) {
+  if (!puedeElegirVarios()) return;
+  const indices = ELEGIDOS.size ? [...ELEGIDOS] : (S.seleccion && S.seleccion.tipo !== "tabla" ? [S.seleccion.indice] : []);
+  if (!indices.length) return;
+  if (!(await guardia())) return;
+  setDirty(false);
+  try {
+    const r = await api.cambiar_niveles(S.capitulo, indices, delta);
+    await refrescarTodo(S.seleccion ? { seleccionar: S.seleccion } : {});
+    aviso(`${plural(r.cambiados, "elemento", "elementos")} ${delta < 0 ? "subidos" : "bajados"} de nivel`, "ok");
+    enfocarSeleccion();
+  } catch (e) { fallo(e); }
+}
+
 function renderArbol() {
   const ul = $("#arbol");
   ul.replaceChildren();
+  pintarBarraNiveles();
   if (!S.nodos.length) {
     const texto = S.modo === "ejecucion"
       ? (S.campana ? "Ninguna prueba de la ejecución en este capítulo con este filtro."
@@ -73,16 +128,22 @@ function renderArbol() {
 
 function filaArbol(n, profundidad, cerrada, tieneHijos, cuenta, marca) {
   const seleccionada = S.seleccion && S.seleccion.indice === n.indice;
+  const elegida = ELEGIDOS.size > 1 && ELEGIDOS.has(n.indice);
   const li = h("li", {
-    class: `fila ${n.tipo}${seleccionada ? " sel" : ""}`,
+    class: `fila ${n.tipo}${seleccionada ? " sel" : ""}${elegida ? " elegida" : ""}`,
     role: "treeitem",
     "aria-level": String(profundidad + 1),
-    "aria-selected": String(Boolean(seleccionada)),
+    "aria-selected": String(Boolean(seleccionada || elegida)),
     tabIndex: seleccionada ? 0 : -1,
     draggable: S.modo !== "ejecucion",   // en ejecución no se reordena
     dataset: { tipo: n.tipo, indice: String(n.indice) },
     style: { "--prof": String(profundidad) },
-    onclick: () => seleccionar(n.tipo, n.indice),
+    onclick: (e) => {
+      if ((e.ctrlKey || e.metaKey || e.shiftKey) && puedeElegirVarios()) { e.preventDefault(); alternarEleccion(n, e.shiftKey); return; }
+      if (ELEGIDOS.size) { ELEGIDOS.clear(); }
+      anclaEleccion = n.indice;
+      seleccionar(n.tipo, n.indice).then(() => renderArbol());
+    },
   });
   if (n.tipo === "seccion") {
     li.setAttribute("aria-expanded", String(!cerrada));
@@ -167,6 +228,12 @@ function teclasArbol(e) {
   if (!filas.length) return;
   const actual = filas.findIndex((f) => f.classList.contains("sel"));
   const nodo = (fila) => S.nodos.find((n) => n.indice === Number(fila.dataset.indice));
+  if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+    e.preventDefault();
+    cambiarNiveles(e.key === "ArrowLeft" ? -1 : 1);
+    return;
+  }
+  if (e.key === "Escape" && ELEGIDOS.size) { e.preventDefault(); soltarEleccion(); return; }
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
     e.preventDefault();
     const siguiente = filas[Math.min(Math.max(actual + (e.key === "ArrowDown" ? 1 : -1), 0), filas.length - 1)];

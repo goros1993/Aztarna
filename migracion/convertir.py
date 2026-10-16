@@ -125,7 +125,7 @@ TIPOS_AVISO = {
     "id_no_valido": ("ID con espacios o con forma extraña", "aviso"),
     "titulo_vacio": ("Prueba sin título", "error"),
     "tabla_dudosa": ("Tabla dudosa: conservada como tabla, revisar si es una prueba", "aviso"),
-    "sin_titulo": ("Tabla sin título previo (sin encabezado en el documento)", "aviso"),
+    "sin_titulo": ("Tabla sin título ni sección (directamente en el capítulo)", "aviso"),
     "valor_descartado": ("Valor que no encaja en el esquema (descartado)", "aviso"),
     "campos_eliminados": ("Datos de campos que ya no existen (eliminados)", "info"),
     "etiqueta_desconocida": ("Etiqueta desconocida (conservada en campos adicionales)", "aviso"),
@@ -519,9 +519,90 @@ def tabla_informativa(tabla, motivo, guardar_imagen=None):
 # ----------------------------------------------------------------------
 # Estructura del documento
 # ----------------------------------------------------------------------
+def _nivel_esquema(ppr):
+    """Nivel de esquema de unas propiedades de párrafo: 1-9, 0 si es texto normal, None si no lo dicen."""
+    outline = ppr.find(qn("w:outlineLvl")) if ppr is not None else None
+    if outline is None:
+        return None
+    try:
+        valor = int(outline.get(qn("w:val")))
+    except (TypeError, ValueError):
+        return None
+    return valor + 1 if 0 <= valor < 9 else 0
+
+
 def nivel_titulo(p):
-    m = re.match(r"^(?:heading|t[ií]tulo)\s*(\d+)$", p.style.name.strip(), re.I)
-    return int(m.group(1)) if m else None
+    """Nivel de título de un párrafo (1 = capítulo) o None si es texto.
+
+    Vale el nivel de esquema del propio párrafo; si no lo tiene, el de su estilo
+    o el de los estilos en que se basa («Título 2», «Heading 3» o un estilo
+    propio basado en ellos o con nivel de esquema).
+    """
+    nivel = _nivel_esquema(p._p.pPr)
+    if nivel is not None:
+        return nivel or None
+    estilo, vistos = p.style, set()
+    while estilo is not None and estilo.style_id not in vistos:
+        vistos.add(estilo.style_id)
+        m = re.match(r"^(?:heading|t[ií]tulo)\s*(\d+)\b", (estilo.name or "").strip(), re.I)
+        if m:
+            return int(m.group(1))
+        nivel = _nivel_esquema(estilo.element.pPr)
+        if nivel is not None:
+            return nivel or None
+        estilo = estilo.base_style
+    return None
+
+
+def ajustar_niveles(contenido, avisos, capitulo="", titulos_son_secciones=()):
+    """Nivel de las pruebas (o requisitos) que no tienen un título justo antes.
+
+    - Un título seguido de varias tablas es una sección: la primera tabla deja
+      de tomarlo como su encabezado y todas quedan un nivel por debajo. En los
+      tipos de `titulos_son_secciones` (los de un documento donde la mayoría de
+      las tablas no tienen título propio), lo es siempre.
+    - Una tabla sin título va un nivel por debajo de la sección en la que está
+      (nivel 2 si está directamente en el capítulo, y entonces se avisa).
+    """
+    resultado = []
+    pila = []                                     # niveles de las secciones abiertas
+
+    def clave_item(e):
+        return next((k for k in ("prueba", "requisito") if isinstance(e, dict) and isinstance(e.get(k), dict)), None)
+
+    for i, e in enumerate(contenido):
+        if isinstance(e, dict) and isinstance(e.get("seccion"), str):
+            pila = [n for n in pila if n < e["nivel"]] + [e["nivel"]]
+            resultado.append(e)
+            continue
+        clave = clave_item(e)
+        if clave is None:
+            resultado.append(e)
+            continue
+        item = e[clave]
+        tabla = item.pop("_tabla", None)
+        if item.get("nivel") is not None:
+            n = item["nivel"]
+            siguiente = contenido[i + 1] if i + 1 < len(contenido) else None
+            sigue_otra = clave_item(siguiente) and siguiente[clave_item(siguiente)].get("nivel") is None
+            if sigue_otra or clave in titulos_son_secciones:
+                seccion = {"seccion": item["nombre"], "nivel": n}
+                if item.get("contexto"):
+                    seccion["contexto"] = item.pop("contexto")
+                resultado.append(seccion)
+                pila = [x for x in pila if x < n] + [n]
+                item["nombre"], item["nivel"] = "", min(n + 1, 6)
+            else:
+                pila = [x for x in pila if x < n]
+            resultado.append(e)
+            continue
+        item["nivel"] = min(pila[-1] + 1, 6) if pila else 2
+        if not pila:
+            aviso = Aviso("sin_titulo", "tabla sin título ni sección: queda directamente en el capítulo", item.get("id", ""))
+            aviso.capitulo, aviso.tabla = capitulo, tabla
+            avisos.append(aviso)
+        resultado.append(e)
+    contenido[:] = resultado
 
 
 def crear_guardador_imagenes(directorio):
@@ -651,8 +732,7 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None, leer_tabla=leer_tabla_pr
                     pendiente = None
                     texto_pendiente = []
                 else:
-                    cab = {"nombre": "", "nivel": None}
-                    avisos.append(Aviso("sin_titulo", "tabla sin título previo", prueba["id"]))
+                    cab = {"nombre": "", "nivel": None, "_tabla": numero_tabla}  # ver ajustar_niveles
                 ident = prueba["id"]
                 if not ident:
                     avisos.append(Aviso("id_vacio", f"{'el requisito' if clave == 'requisito' else 'la prueba'} no tiene ID (primera celda de la tabla vacía)"))
@@ -667,6 +747,24 @@ def extraer_capitulos(doc, avisos, guardar_imagen=None, leer_tabla=leer_tabla_pr
                     aviso.capitulo = capitulos[-1]["capitulo"] or ""
                     aviso.tabla = numero_tabla
     volcar()
+    # ¿Cada tabla lleva su título (pruebas) o los títulos son secciones con varias tablas (requisitos)?
+    # Un título seguido de varias tablas no cuenta como «con título»: es una sección.
+    con, sin = {}, {}
+    for capitulo in capitulos:
+        contenido = capitulo["contenido"]
+        for i, e in enumerate(contenido):
+            for k in ("prueba", "requisito"):
+                if not (isinstance(e, dict) and isinstance(e.get(k), dict)):
+                    continue
+                siguiente = contenido[i + 1] if i + 1 < len(contenido) else None
+                seccion = isinstance(siguiente, dict) and isinstance(siguiente.get(k), dict) and siguiente[k].get("nivel") is None
+                if e[k].get("nivel") is None:
+                    sin[k] = sin.get(k, 0) + 1
+                elif not seccion:
+                    con[k] = con.get(k, 0) + 1
+    secciones = {k for k in sin if sin[k] >= con.get(k, 0)}
+    for capitulo in capitulos:
+        ajustar_niveles(capitulo["contenido"], avisos, capitulo["capitulo"] or "", secciones)
 
     if not capitulos[0]["contenido"]:
         capitulos.pop(0)
