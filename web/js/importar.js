@@ -58,8 +58,11 @@ async function siguientePaso() {
   } else if (IMP.paso === 2) {
     IMP.revision = await conEspera("Preparando la vista previa…", () => api.importar_revisar(IMP.archivo, IMP.mapeo, IMP.modo), "Se lee todo el documento con el mapeo elegido. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.ids = {};
+    IMP.acciones = {};
     for (const [tipo, datos] of Object.entries(IMP.revision.tipos)) {
-      IMP.ids[tipo] = Object.fromEntries(datos.ids.filter((p) => p.propuesta).map((p) => [String(p.orden), p.propuesta]));
+      IMP.ids[tipo] = Object.fromEntries([...datos.ids, ...datos.existentes].filter((p) => p.propuesta).map((p) => [String(p.orden), p.propuesta]));
+      // Los que cambian se actualizan; los que están igual, no se tocan.
+      IMP.acciones[tipo] = Object.fromEntries(datos.existentes.map((c) => [String(c.orden), c.cambios.length ? "actualizar" : "omitir"]));
     }
   }
   IMP.paso += 1;
@@ -180,12 +183,25 @@ function pasoRevisar() {
   const tipos = Object.entries(r.tipos);
   if (!tipos.length) return h("p", { class: "aviso-panel", text: "Con este mapeo no hay ninguna prueba ni ningún requisito que importar. Vuelve atrás y revisa qué es cada familia." });
   const destino = IMP.modo === "nuevo" ? `en el proyecto nuevo «${IMP.nombre || IMP.analisis.nombre_propuesto}»` : "en el proyecto abierto";
-  const partes = tipos.map(([tipo, d]) => plural(d.total, tipo, TIPO_PLURAL[tipo]));
+  const resumen = h("p", { class: "resumen-importar" });
+  const pintarResumen = () => {
+    const partes = tipos.map(([tipo, d]) => {
+      const acciones = Object.values(IMP.acciones[tipo] || {});
+      const cuenta = (a) => acciones.filter((x) => x === a).length;
+      const nuevos = d.total - cuenta("actualizar") - cuenta("omitir");
+      return [nuevos ? plural(nuevos, `${tipo} nuevo`, `${TIPO_PLURAL[tipo]} nuevos`) : "",
+        cuenta("actualizar") ? plural(cuenta("actualizar"), "actualizado", "actualizados") : "",
+        cuenta("omitir") ? `${cuenta("omitir")} sin tocar` : ""].filter(Boolean).join(", ");
+    });
+    resumen.replaceChildren(h("strong", { text: partes.join(" · ") }), ` ${destino}.`);
+  };
+  pintarResumen();
   return h("div", { class: "revision-importar" },
-    h("p", { class: "resumen-importar" }, h("strong", { text: `Se importarán ${partes.join(" y ")}` }), ` ${destino}.`),
+    resumen,
     tipos.map(([tipo, d]) => h("section", { class: "bloque-mapeo" },
       h("h3", { text: tipo === "prueba" ? "Pruebas" : "Requisitos" }),
       h("p", { class: "muted", text: d.capitulos.map((c) => `${c.nombre} (${c.elementos})`).join(" · ") }),
+      tablaExistentes(tipo, d.existentes, pintarResumen),
       tablaIds(tipo, d.ids),
       ejemplosImportar(tipo, d.ejemplos))),
     r.avisos.length ? h("section", { class: "bloque-mapeo" },
@@ -194,6 +210,53 @@ function pasoRevisar() {
         h("summary", {}, h("strong", { text: String(g.total) }), ` ${g.titulo}`),
         h("ul", {}, g.ejemplos.map((e) => h("li", {}, e.donde ? h("span", { class: "muted", text: e.donde + ": " }) : null, e.mensaje)),
           g.total > g.ejemplos.length ? h("li", { class: "muted", text: `y ${g.total - g.ejemplos.length} más` }) : null)))) : null);
+}
+
+const ACCIONES_EXISTENTES = [
+  { valor: "actualizar", texto: "Actualizar el del proyecto" },
+  { valor: "nuevo", texto: "Importar como nuevo (otro ID)" },
+  { valor: "omitir", texto: "No importar" },
+];
+
+/** Los que ya existen en el proyecto: qué cambia y qué hacer con cada uno. */
+function tablaExistentes(tipo, existentes, alCambiar) {
+  if (!existentes.length) return null;
+  const acciones = IMP.acciones[tipo];
+  const filas = existentes.map((c) => {
+    const id = h("input", { type: "text", class: "mono", value: IMP.ids[tipo][String(c.orden)] || "", "aria-label": `ID nuevo para ${c.id}`,
+      oninput: (e) => { IMP.ids[tipo][String(c.orden)] = e.target.value.trim(); } });
+    const sel = h("select", { "aria-label": `Qué hacer con ${c.id}`, onchange: (e) => poner(e.target.value) },
+      ACCIONES_EXISTENTES.map((a) => h("option", { value: a.valor, text: a.texto, selected: acciones[String(c.orden)] === a.valor })));
+    function poner(valor) {
+      acciones[String(c.orden)] = valor;
+      sel.value = valor;
+      id.disabled = valor !== "nuevo";
+      alCambiar();
+    }
+    id.disabled = acciones[String(c.orden)] !== "nuevo";
+    const fila = h("tr", {},
+      h("td", { class: "mono", text: c.id }),
+      h("td", {}, h("span", { text: c.titulo }), h("br"), h("span", { class: "muted peq", text: `en ${c.capitulo}` })),
+      h("td", { class: c.cambios.length ? "" : "muted", text: c.cambios.length ? c.cambios.join(", ") : "Sin cambios" }),
+      h("td", {}, sel),
+      h("td", {}, id));
+    fila.poner = poner;
+    return fila;
+  });
+  const todos = h("select", { "aria-label": "Qué hacer con todos", onchange: (e) => {
+    if (!e.target.value) return;
+    filas.forEach((f) => f.poner(e.target.value));
+    e.target.value = "";
+  } }, h("option", { value: "", text: "Para todos…" }), ACCIONES_EXISTENTES.map((a) => h("option", { value: a.valor, text: a.texto })));
+  return h("div", { class: "existentes" },
+    h("div", { class: "existentes-cab" },
+      h("strong", { text: `${plural(existentes.length, "ya existe", "ya existen")} en el proyecto` }), todos),
+    h("p", { class: "ayuda", text: "Actualizar cambia sus campos por los del Word y conserva su sitio en el árbol. "
+      + (tipo === "requisito" ? "Si un requisito actualizado tiene pruebas, quedará marcado para revisarlas. " : "")
+      + "Por defecto se actualizan los que cambian y no se tocan los que están igual." }),
+    h("table", { class: "tabla-mapeo" },
+      h("thead", {}, h("tr", {}, h("th", { text: "ID" }), h("th", { text: "Título" }), h("th", { text: "Qué cambia" }), h("th", { text: "Qué hacer" }), h("th", { text: "ID nuevo" }))),
+      h("tbody", {}, filas)));
 }
 
 function tablaIds(tipo, problemas) {
@@ -234,13 +297,16 @@ async function ejecutarImportacion() {
     if (elegida.cancelado) return;
     carpeta = elegida.carpeta;
   }
-  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta),
+  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta, IMP.acciones),
     "Se lee el documento, se copian las imágenes y se escriben los YAML. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
   if (r.cancelado) return;
   IMP.dlg.close();
-  const totales = Object.entries(r.resultado.totales).map(([t, n]) => plural(n, t, TIPO_PLURAL[t])).join(" y ");
-  aviso(`Importados ${totales}${r.resultado.avisos ? ` (${plural(r.resultado.avisos, "aviso", "avisos")})` : ""}`);
-  const soloRequisitos = !r.resultado.totales.prueba && r.resultado.totales.requisito;
+  const res = r.resultado;
+  const hechos = ["prueba", "requisito"].map((t) => [
+    res.totales[t] ? plural(res.totales[t], `${t} importado`, `${TIPO_PLURAL[t]} importados`) : "",
+    res.actualizados[t] ? plural(res.actualizados[t], `${t} actualizado`, `${TIPO_PLURAL[t]} actualizados`) : ""].filter(Boolean).join(", ")).filter(Boolean);
+  aviso(`${hechos.join(" · ")}${res.avisos ? ` (${plural(res.avisos, "aviso", "avisos")})` : ""}`, "ok");
+  const soloRequisitos = !res.totales.prueba && !res.actualizados.prueba && (res.totales.requisito || res.actualizados.requisito);
   S.modo = soloRequisitos ? "requisitos" : "edicion";
   guardarLocal("modo", S.modo);
   setDirty(false);

@@ -294,6 +294,20 @@ def _item_lista(p: Paragraph, desde: int, guardar_imagen) -> Any:
     return item
 
 
+def _texto_plano(valor: Any) -> str:
+    """Todo el texto de un valor (listas, tablas, campos adicionales), sin marcas de formato."""
+    if isinstance(valor, dict):
+        return " ".join(_texto_plano(v) for v in valor.values())
+    if isinstance(valor, list):
+        return " ".join(_texto_plano(v) for v in valor)
+    return re.sub(r"\[\[[^\]|]*\||\]\]|\*", "", str(valor or ""))
+
+
+def _letras(texto: str) -> str:
+    """Solo letras y números, en minúsculas: para comparar textos sin fijarse en espacios, viñetas o signos."""
+    return re.sub(r"[\W_]+", "", str(texto).lower())
+
+
 def _tiene_imagen(p: Paragraph) -> bool:
     return bool(p._p.xpath(".//a:blip | .//*[local-name()='imagedata']"))
 
@@ -359,7 +373,8 @@ class _Lector:
         extras: dict[str, str] = {}
         detalle: list[Any] = []                      # tablas e imágenes (requisito: `detalle`; prueba: contexto)
         imagenes: list[str] = list(imagenes_cab)
-        for s in self.segmentos(filas):
+        segmentos = self.segmentos(filas)
+        for s in segmentos:
             destino = s["destino"]
             if destino == "ignorar":
                 continue
@@ -384,7 +399,22 @@ class _Lector:
                 d[destino] = f"{d[destino]} {valor}".strip() if d.get(destino) else valor
         if extras:
             d["campos_adicionales"] = extras
-        return self.normalizar(d, detalle, imagenes, avisos)
+        resultado = self.normalizar(d, detalle, imagenes, avisos)
+        self.comprobar_texto(segmentos, resultado, avisos)
+        return resultado
+
+    def comprobar_texto(self, segmentos, item, avisos) -> None:
+        """Avisa de los párrafos del Word que no han llegado a ningún campo (sin contar los que se
+        mapean a «No importar» ni los de opciones, que se normalizan: «Auto» → «Automático»)."""
+        plano = _letras(_texto_plano(item))
+        for s in segmentos:
+            if s["destino"] == "ignorar" or self.clases.get(s["destino"]) == "opciones" or s["destino"] in ("automatizable", "tipo"):
+                continue
+            for tipo, b, desde in s["partes"]:
+                textos = [cv.texto_celda(c) for f in b.rows for c in cv.celdas_unicas(f)] if tipo == "t" else [cv.texto(b)[desde:]]
+                for texto in textos:
+                    if len(_letras(texto)) >= 3 and _letras(texto) not in plano:
+                        avisos.append(cv.Aviso("texto_no_importado", f"«{' '.join(texto.split())[:80]}» ({s['etiqueta'] or 'sin etiqueta'})", item.get("id", "")))
 
     def valor(self, s, clase, destino, detalle, imagenes, avisos, ident) -> Any:
         partes = s["partes"]
@@ -396,7 +426,13 @@ class _Lector:
                     self.tabla_anidada(b, s, detalle, avisos, ident)
                     continue
                 item = _item_lista(b, desde, self.guardar)
-                if not _vacio(item):
+                solo_imagen = isinstance(item, dict) and not item.get("texto") and item.get("imagenes") and not item.get("nivel")
+                if solo_imagen and items and not (isinstance(items[-1], dict) and "tabla" in items[-1]):
+                    # Una imagen en su propio párrafo, justo después de un paso, es de ese paso (como en el editor).
+                    anterior = items[-1] if isinstance(items[-1], dict) else {"texto": items[-1]}
+                    anterior["imagenes"] = [*(anterior.get("imagenes") or []), *item["imagenes"]]
+                    items[-1] = anterior
+                elif not _vacio(item):
                     items.append(item)
             return items
         lineas = []
@@ -631,8 +667,133 @@ def _resumen_elemento(e: dict[str, Any], tipo: str) -> list[list[str]]:
     return filas
 
 
-def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None = None) -> dict[str, Any]:
-    """Lo que se va a importar: cifras, capítulos, avisos, IDs a revisar y ejemplos."""
+# ----------------------------------------------------------------------
+# Los que ya existen en el proyecto: actualizar, importar como nuevos u omitir
+# ----------------------------------------------------------------------
+ACCIONES = ("actualizar", "nuevo", "omitir")
+
+
+def _comparable(valor: Any, imagen: Callable[[str], str]) -> Any:
+    """Valor para comparar: sin vacíos y con cada imagen sustituida por una huella de su contenido."""
+    if isinstance(valor, dict) and "imagen" in valor:                 # forma antigua: una sola imagen
+        valor = {**{k: v for k, v in valor.items() if k != "imagen"}, "imagenes": [*(valor.get("imagenes") or []), valor["imagen"]]}
+    if isinstance(valor, dict):
+        limpio = {k: _comparable(v, imagen) for k, v in valor.items()}
+        return {k: v for k, v in limpio.items() if v is not None} or None
+    if isinstance(valor, list):
+        # Una imagen en un párrafo propio cuenta como parte del elemento anterior (el Word no distingue).
+        unidos: list[Any] = []
+        for v in valor:
+            solo_imagen = isinstance(v, dict) and not v.get("texto") and (v.get("imagenes") or v.get("imagen")) and not v.get("nivel")
+            if solo_imagen and unidos and not (isinstance(unidos[-1], dict) and "tabla" in unidos[-1]):
+                anterior = dict(unidos[-1]) if isinstance(unidos[-1], dict) else {"texto": unidos[-1]}
+                anterior["imagenes"] = [*(anterior.get("imagenes") or []), *([v["imagen"]] if v.get("imagen") else []), *(v.get("imagenes") or [])]
+                unidos[-1] = anterior
+            else:
+                unidos.append(v)
+        return [_comparable(v, imagen) for v in unidos] or None
+    if isinstance(valor, str) and valor.startswith("imagenes/"):
+        return imagen(valor)
+    return None if valor in (None, "") else valor
+
+
+def _huella_bytes(datos: bytes | None) -> str:
+    import hashlib
+    return hashlib.sha1(datos).hexdigest() if datos is not None else "(no está)"
+
+
+def del_proyecto(carpeta: Path, tipo: str) -> dict[str, tuple[dict[str, Any], Any]]:
+    """{ID: (capítulo, elemento)} de la carpeta (el primero, si un ID está repetido)."""
+    from app.editor_core import items_in_chapter, read_chapters
+    if not carpeta.is_dir() or not any(carpeta.glob("*.yaml")):
+        return {}
+    resultado: dict[str, tuple[dict[str, Any], Any]] = {}
+    for capitulo in read_chapters(carpeta):
+        for _i, e in items_in_chapter(capitulo, tipo):
+            resultado.setdefault(str(e.get("id") or "").strip(), (capitulo, e))
+    return resultado
+
+
+def diferencias(nuevo: dict[str, Any], actual: Any, tipo: str, imagenes: dict[str, bytes], carpeta: Path) -> list[str]:
+    """Campos que cambiarían al actualizar `actual` con `nuevo` (sin contar encabezado ni nivel)."""
+    from app.editor_api import to_plain
+    actual = to_plain(actual)
+    de_nuevo = lambda ruta: _huella_bytes(imagenes.get(ruta))
+    del_actual = lambda ruta: _huella_bytes((carpeta / ruta).read_bytes() if (carpeta / ruta).is_file() else None)
+    cambios = []
+    for k in [k for k in (*nuevo, *actual) if k not in ("nombre", "nivel")]:
+        if k in cambios or NOMBRES[tipo].get(k, k) in cambios:
+            continue
+        x, y = _comparable(nuevo.get(k), de_nuevo), _comparable(actual.get(k), del_actual)
+        if k == "campos_adicionales" and isinstance(x, dict) and isinstance(y, dict):
+            # Un campo adicional en forma de lista sale en el Word como líneas: es lo mismo.
+            x, y = ({n: "\n".join(map(str, v)) if isinstance(v, list) else v for n, v in d.items()} for d in (x, y))
+        if CLASES[tipo].get(k) == "opciones" and isinstance(x, list) and isinstance(y, list):
+            x, y = sorted(map(str, x)), sorted(map(str, y))           # «Test, Análisis» = «Análisis, Test»
+        if x != y:
+            cambios.append(NOMBRES[tipo].get(k, k))
+    return list(dict.fromkeys(cambios))
+
+
+def coincidencias(capitulos: list[dict[str, Any]], tipo: str, carpeta: Path, imagenes: dict[str, bytes]) -> list[dict[str, Any]]:
+    """Elementos del Word cuyo ID ya está en el proyecto, con lo que cambiaría al actualizarlos."""
+    proyecto = del_proyecto(carpeta, tipo)
+    resultado = []
+    for orden, e in enumerate(elementos(capitulos, tipo)):
+        ident = str(e.get("id") or "").strip()
+        if ident and ident in proyecto:
+            capitulo, actual = proyecto[ident]
+            resultado.append({"orden": orden, "id": ident, "titulo": str(e.get("titulo") or ""),
+                              "capitulo": str(capitulo["data"].get("capitulo") or capitulo["path"].name),
+                              "cambios": diferencias(e, actual, tipo, imagenes, carpeta)})
+    return resultado
+
+
+def actualizar_en_proyecto(carpeta: Path, tipo: str, nuevos: list[dict[str, Any]], imagenes: dict[str, bytes],
+                           carpeta_pruebas: Path | None = None) -> int:
+    """Cambia los elementos del proyecto con el mismo ID por los del Word, en su sitio.
+
+    Se conservan su encabezado, su nivel y su posición; el resto de campos pasa
+    a ser el del Word. Un requisito cambiado que ya tiene pruebas queda con sus
+    pruebas por revisar (como al editarlo a mano).
+    """
+    from app import trazabilidad
+    from app.editor_api import apply_changes, to_plain
+    from app.editor_core import read_chapters, save_chapter, tests_in_chapter
+    proyecto = del_proyecto(carpeta, tipo)
+    revisiones = trazabilidad.leer_revisiones(carpeta) if tipo == "requisito" else {}
+    citados: set[str] = set()
+    if tipo == "requisito" and carpeta_pruebas is not None and carpeta_pruebas.is_dir():
+        citados = {r for c in read_chapters(carpeta_pruebas) for _i, p in tests_in_chapter(c) for r in trazabilidad.lista(p.get("requisitos"))}
+    tocados: dict[Path, dict[str, Any]] = {}
+    cambian_revisiones = False
+    for nuevo in nuevos:
+        ident = str(nuevo.get("id") or "").strip()
+        if ident not in proyecto:
+            continue
+        capitulo, actual = proyecto[ident]
+        anterior = to_plain(actual)
+        cambios = {k: v for k, v in nuevo.items() if k not in ("nombre", "nivel")}
+        for k in [k for k in actual if k not in cambios and k not in ("nombre", "nivel")]:
+            del actual[k]
+        apply_changes(actual, cambios)
+        for ruta in _rutas_imagenes(cambios):
+            if ruta in imagenes and not (carpeta / ruta).exists():
+                (carpeta / ruta).parent.mkdir(parents=True, exist_ok=True)
+                (carpeta / ruta).write_bytes(imagenes[ruta])
+        tocados[capitulo["path"]] = capitulo
+        if tipo == "requisito" and (ident in citados or ident in revisiones):
+            cambian_revisiones = trazabilidad.anotar_cambio(revisiones, anterior, actual) or cambian_revisiones
+    for capitulo in tocados.values():
+        save_chapter(capitulo)
+    if cambian_revisiones:
+        trazabilidad.guardar_revisiones(carpeta, revisiones)
+    return len(nuevos)
+
+
+def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None = None,
+             carpetas: dict[str, Path] | None = None, imagenes: dict[str, bytes] | None = None) -> dict[str, Any]:
+    """Lo que se va a importar: cifras, capítulos, avisos, IDs a revisar, los que ya existen y ejemplos."""
     capitulos = conversion["capitulos"]
     existentes = existentes or {}
     tipos = {}
@@ -641,11 +802,18 @@ def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None 
         if not lista:
             continue
         caps = separar(capitulos, tipo)
+        ids = problemas_ids(capitulos, tipo, existentes.get(tipo))
+        ya = coincidencias(capitulos, tipo, carpetas[tipo], imagenes or {}) if carpetas and existentes.get(tipo) else []
+        propuestas = {p["orden"]: p["propuesta"] for p in ids}
+        for c in ya:
+            c["propuesta"] = propuestas.get(c["orden"], "")
+        en_proyecto = {c["orden"] for c in ya}
         tipos[tipo] = {
             "total": len(lista),
             "capitulos": [{"nombre": c["capitulo"] or "(antes del primer capítulo)",
                            "elementos": sum(1 for e in c["contenido"] if isinstance(e, dict) and tipo in e)} for c in caps],
-            "ids": problemas_ids(capitulos, tipo, existentes.get(tipo)),
+            "ids": [p for p in ids if p["orden"] not in en_proyecto],
+            "existentes": ya,
             "ejemplos": [{"id": e.get("id", ""), "titulo": e.get("titulo", ""), "campos": _resumen_elemento(e, tipo)}
                          for e in lista[:3]],
         }
@@ -664,6 +832,7 @@ def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None 
 
 
 TIPOS_AVISO = {
+    "texto_no_importado": ("Texto del Word que no ha llegado a ningún campo", "aviso"),
     "tabla_informativa": ("Tabla informativa (se conserva tal cual)", "info"),
     "tabla_en_celda": ("Tabla dentro de una celda (se conserva en el contexto)", "aviso"),
     "campo_desconocido": ("Etiqueta mapeada a un campo que no existe", "aviso"),
@@ -756,11 +925,14 @@ def preparar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path | None
 
 
 def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo: str = "nuevo",
-             ids: dict[str, dict[Any, str]] | None = None, renombrar_propuestos: bool = False) -> dict[str, Any]:
+             ids: dict[str, dict[Any, str]] | None = None, renombrar_propuestos: bool = False,
+             acciones: dict[str, dict[Any, str]] | None = None) -> dict[str, Any]:
     """Importa el Word en `destino` (modo "nuevo": carpeta de un proyecto nuevo; "anadir": el proyecto abierto).
 
     `ids`: IDs nuevos por tipo ({"prueba": {orden: id}}); con `renombrar_propuestos`,
     los que no se indiquen toman el ID propuesto en la revisión.
+    `acciones`: qué hacer con los que ya existen en el proyecto ({"requisito": {orden:
+    "actualizar" | "nuevo" | "omitir"}}); sin indicar, se importan como nuevos.
     """
     if modo not in ("nuevo", "anadir"):
         raise ValueError(f"Modo de importación desconocido: {modo}")
@@ -769,16 +941,35 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
         raise ValueError(f"La carpeta {destino} no está vacía: elige una carpeta nueva para el proyecto.")
     p = preparar(ruta, mapeo, destino, modo)
     conversion, capitulos = p["conversion"], p["conversion"]["capitulos"]
-    resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "totales": {}, "ids_cambiados": {}}
+    resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "totales": {}, "ids_cambiados": {},
+                                 "actualizados": {}, "omitidos": {}}
     for tipo in CLASES:
-        if not elementos(capitulos, tipo):
+        lista = elementos(capitulos, tipo)
+        if not lista:
             continue
-        nuevos = dict((ids or {}).get(tipo) or {})
+        # Los que ya existen: actualizar en su sitio, omitir o (por defecto) importar como nuevos.
+        elegidas = {int(k): v for k, v in ((acciones or {}).get(tipo) or {}).items()}
+        if any(v not in ACCIONES for v in elegidas.values()):
+            raise ValueError(f"Acción desconocida: elige entre {', '.join(ACCIONES)}.")
+        ya = p["existentes"].get(tipo) or set()
+        apartar = {orden: elegidas.get(orden, "nuevo") for orden, e in enumerate(lista)
+                   if str(e.get("id") or "").strip() in ya and elegidas.get(orden, "nuevo") != "nuevo"}
+        nuevos = {k: v for k, v in dict((ids or {}).get(tipo) or {}).items() if int(k) not in apartar}
         if renombrar_propuestos:
-            for prob in problemas_ids(capitulos, tipo, p["existentes"].get(tipo)):
-                if prob["propuesta"]:
+            for prob in problemas_ids(capitulos, tipo, ya):
+                if prob["propuesta"] and prob["orden"] not in apartar:
                     nuevos.setdefault(str(prob["orden"]), prob["propuesta"])
         resultado["ids_cambiados"][tipo] = aplicar_ids(capitulos, tipo, nuevos)
+        if apartar:
+            quitar = {id(lista[o]) for o in apartar}
+            para_actualizar = [lista[o] for o, accion in apartar.items() if accion == "actualizar"]
+            for c in capitulos:
+                c["contenido"] = [e for e in c["contenido"] if not (isinstance(e, dict) and isinstance(e.get(tipo), dict) and id(e[tipo]) in quitar)]
+            if para_actualizar:
+                resultado["actualizados"][tipo] = actualizar_en_proyecto(
+                    p["carpetas"][tipo], tipo, para_actualizar, p["imagenes"], p["carpetas"].get("prueba"))
+                resultado["carpetas"][tipo] = str(p["carpetas"][tipo])
+            resultado["omitidos"][tipo] = sum(1 for a in apartar.values() if a == "omitir")
     for tipo in CLASES:
         caps = separar(capitulos, tipo)
         if not caps:
@@ -788,6 +979,8 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
         resultado["carpetas"][tipo] = str(carpeta)
         resultado["totales"][tipo] = len(elementos(caps, tipo))
     if not resultado["carpetas"]:
+        if any(resultado["omitidos"].values()):
+            raise ValueError("No hay nada que importar: todos los que ya existían se han marcado como «No importar».")
         raise ValueError("Con este mapeo no hay ninguna prueba ni ningún requisito que importar.")
     if modo == "nuevo" and "prueba" not in resultado["carpetas"]:
         # El editor abre siempre una carpeta de pruebas: el proyecto empieza con un capítulo vacío.

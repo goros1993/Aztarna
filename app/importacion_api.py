@@ -34,14 +34,6 @@ class EditorImportacionApi(EditorValidacionApi):
     def _abierto(self) -> Path | None:
         return self._yaml_dir if self._yaml_dir is not None and not self._solo_lectura else None
 
-    def _existentes(self, modo: str) -> dict[str, set[str]]:
-        if modo != "anadir":
-            return {}
-        abierto = self._abierto()
-        if abierto is None:
-            raise ValueError("No hay ningún proyecto abierto al que añadir (o está en solo lectura).")
-        return imp.ids_existentes(imp.carpetas_destino(abierto, "anadir"))
-
     @staticmethod
     def _documento(archivo: str) -> Path:
         ruta = Path(str(archivo or ""))
@@ -82,9 +74,14 @@ class EditorImportacionApi(EditorValidacionApi):
 
     @respuesta
     def importar_revisar(self, archivo: str, mapeo: dict[str, Any], modo: str = "nuevo") -> dict[str, Any]:
-        """Lo que se importaría con este mapeo: cifras, capítulos, avisos, IDs a revisar y ejemplos."""
-        conversion = imp.convertir_documento_ruta(self._documento(archivo), mapeo)
-        return to_plain(imp.revision(conversion, self._existentes(modo)))
+        """Lo que se importaría con este mapeo: cifras, capítulos, avisos, IDs a revisar, los que ya existen y ejemplos."""
+        documento = self._documento(archivo)
+        if modo == "anadir":
+            if self._abierto() is None:
+                raise ValueError("No hay ningún proyecto abierto al que añadir (o está en solo lectura).")
+            p = imp.preparar(documento, mapeo, self._abierto(), "anadir")
+            return to_plain(imp.revision(p["conversion"], p["existentes"], p["carpetas"], p["imagenes"]))
+        return to_plain(imp.revision(imp.convertir_documento_ruta(documento, mapeo)))
 
     @respuesta
     def importar_elegir_carpeta(self, nombre: str = "") -> dict[str, Any]:
@@ -100,7 +97,7 @@ class EditorImportacionApi(EditorValidacionApi):
     @respuesta
     def importar_ejecutar(self, archivo: str, mapeo: dict[str, Any], modo: str = "nuevo",
                           ids: dict[str, dict[str, str]] | None = None, nombre: str = "",
-                          carpeta: str | None = None) -> dict[str, Any]:
+                          carpeta: str | None = None, acciones: dict[str, dict[str, str]] | None = None) -> dict[str, Any]:
         """Importa y abre el resultado. En modo «nuevo», sin `carpeta`, pide dónde crear el proyecto."""
         documento = self._documento(archivo)
         if modo == "anadir":
@@ -120,7 +117,7 @@ class EditorImportacionApi(EditorValidacionApi):
                 destino = Path(carpeta)
             if destino.exists() and any(destino.iterdir()):
                 raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
-        resultado = imp.importar(documento, mapeo, destino, modo, ids=ids)
+        resultado = imp.importar(documento, mapeo, destino, modo, ids=ids, acciones=acciones if modo == "anadir" else None)
         self._recordar_mapeo(mapeo)
         self._campaña = None
         self._load(destino)

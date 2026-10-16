@@ -315,3 +315,83 @@ class TestApi(unittest.TestCase):
         self.assertIn("'Prioridad': 'baja'", str(api.obtener(0, indice)["datos"]))
         self.assertIn("'nota'", str(api.obtener(0, indice)["datos"]))
         self.assertEqual(api.validar()["datos"]["errores"], 0)
+
+
+class TestActualizar(unittest.TestCase):
+    """Volver a importar un Word en el proyecto: actualizar los que ya existen, omitirlos o importarlos como nuevos."""
+
+    def documento(self, ruta, descripcion):
+        doc = Document()
+        doc.add_heading("Requisitos", 1)
+        doc.add_heading("Arranque", 2)
+        _requisito(doc, "SR-001", "Arranque rápido", [f"Descripción: {descripcion}", "Tipo: Obligatorio"])
+        _requisito(doc, "SR-002", "Parada", ["Descripción: igual", "Tipo: Obligatorio"])
+        _requisito(doc, "SR-009", "Nuevo", ["Descripción: nuevo", "Tipo: Opcional"])
+        doc.save(ruta)
+
+    def test_actualizar_omitir_y_nuevo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            self.documento(tmp / "v1.docx", "en menos de 5 s")
+            mapeo = imp.mapeo_propuesto(imp.analizar(tmp / "v1.docx", "requisito"))
+            imp.importar(tmp / "v1.docx", mapeo, tmp / "p")
+            # Una prueba cita SR-001: al cambiar el requisito, quedará por revisar.
+            (tmp / "p" / "pruebas" / "01_pruebas.yaml").write_text(
+                "capitulo: Pruebas\ncontenido:\n- prueba:\n    id: T-1\n    titulo: Arranca\n    requisitos: [SR-001]\n", encoding="utf-8")
+            self.documento(tmp / "v2.docx", "en menos de 3 s")
+            p = imp.preparar(tmp / "v2.docx", mapeo, tmp / "p", "anadir")
+            rev = imp.revision(p["conversion"], p["existentes"], p["carpetas"], p["imagenes"])["tipos"]["requisito"]
+            self.assertEqual([(c["id"], c["cambios"]) for c in rev["existentes"]],
+                             [("SR-001", ["Descripción"]), ("SR-002", []), ("SR-009", [])])
+            self.assertEqual(rev["existentes"][0]["propuesta"], "SR-010")
+            self.assertEqual(rev["ids"], [])
+            # SR-001 se actualiza, SR-002 se omite y SR-009 se importa como nuevo con otro ID.
+            r = imp.importar(tmp / "v2.docx", mapeo, tmp / "p", "anadir", ids={"requisito": {"2": "SR-020"}},
+                             acciones={"requisito": {"0": "actualizar", "1": "omitir", "2": "nuevo"}})
+            self.assertEqual((r["actualizados"], r["omitidos"], r["totales"]), ({"requisito": 1}, {"requisito": 1}, {"requisito": 1}))
+            reqs = _items(tmp / "p" / "requisitos", "requisito")
+            self.assertEqual(sorted(reqs), ["SR-001", "SR-002", "SR-009", "SR-020"])
+            self.assertEqual(reqs["SR-001"]["descripcion"], "en menos de 3 s")
+            self.assertEqual(reqs["SR-001"]["nivel"], 3)                         # conserva su sitio
+            capitulos = read_chapters(tmp / "p" / "requisitos")
+            self.assertEqual(len(capitulos), 2)                                  # SR-020 en un capítulo nuevo
+            self.assertEqual([e for _i, e in items_in_chapter(capitulos[1], "requisito")][0]["id"], "SR-020")
+            from app import trazabilidad
+            revisiones = trazabilidad.leer_revisiones(tmp / "p" / "requisitos")
+            self.assertEqual(revisiones["SR-001"]["descripcion"], "en menos de 5 s")   # texto anterior, para revisar T-1
+            # Si todo se omite, no hay nada que importar.
+            with self.assertRaisesRegex(ValueError, "No importar"):
+                imp.importar(tmp / "v2.docx", mapeo, tmp / "p", "anadir",
+                             acciones={"requisito": {"0": "omitir", "1": "omitir", "2": "omitir", "3": "omitir"}})
+
+    def test_reimportar_el_word_exportado_no_cambia_nada(self):
+        """Exportar las pruebas a Word y volver a importarlas sobre el proyecto: solo cambia lo que el mapeo deja fuera."""
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            shutil.copytree(EJEMPLOS, tmp / "yaml")
+            for coleccion, tipo, esperado in (("pruebas", "prueba", [("DEMO-VAR-001", ["Campos adicionales"])]),
+                                              ("requisitos", "requisito", [])):
+                yaml_a_docx.generar_docx(tmp / "yaml" / coleccion, tmp / f"{coleccion}.docx")
+                mapeo = imp.mapeo_propuesto(imp.analizar(tmp / f"{coleccion}.docx"))
+                p = imp.preparar(tmp / f"{coleccion}.docx", mapeo, tmp / "yaml", "anadir")
+                ya = imp.revision(p["conversion"], p["existentes"], p["carpetas"], p["imagenes"])["tipos"][tipo]["existentes"]
+                self.assertEqual(len(ya), len(_items(EJEMPLOS / coleccion, tipo)))
+                # «Criterio de aceptación» (formato antiguo) se propone como «No importar».
+                self.assertEqual([(c["id"], c["cambios"]) for c in ya if c["cambios"]], esperado)
+
+    def test_texto_no_importado(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = Document()
+            doc.add_heading("Requisitos", 1)
+            _requisito(doc, "SR-001", "Uno", ["Descripción: algo"])
+            doc.save(Path(tmp) / "a.docx")
+            lector = imp._Lector("requisito", {}, None)
+            tabla = Document(Path(tmp) / "a.docx").tables[0]
+            segmentos = lector.segmentos(imp.cv.filas_sin_repetir(tabla))
+            avisos = []
+            lector.comprobar_texto(segmentos, {"id": "SR-001", "titulo": "Uno", "descripcion": ""}, avisos)
+            self.assertEqual([a.tipo for a in avisos], ["texto_no_importado"])
+            avisos = []
+            lector.comprobar_texto(segmentos, {"id": "SR-001", "descripcion": "**algo**"}, avisos)
+            self.assertEqual(avisos, [])

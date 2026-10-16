@@ -864,3 +864,7 @@ dialog.asistente .asistente-cuerpo { max-height: min(68vh, 760px); padding-top: 
 .barra-niveles .cuenta-elegidos { font-weight: 600; color: var(--accent); margin-right: auto; }
 .ico.girar-izq { transform: rotate(180deg); }
 .aviso-fuera { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.existentes { margin: 8px 0 14px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 6px; }
+.existentes-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.existentes .tabla-mapeo select, .existentes .tabla-mapeo input { min-width: 150px; }
+.existentes .tabla-mapeo input:disabled { opacity: 0.45; }
