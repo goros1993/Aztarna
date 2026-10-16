@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import formato
 from app.editor_core import read_chapters, tests_dir
 
 ARCHIVO_VALIDACION = "validacion.yaml"
@@ -90,6 +91,8 @@ def cargar(carpeta: str | Path) -> dict[str, Any]:
 
 
 def guardar(validacion: dict[str, Any]) -> None:
+    formato.comprobar_datos(validacion["datos"], f"La validación «{validacion['datos'].get('nombre', '')}»")
+    formato.marcar_datos(validacion["datos"])
     ej._escribir_yaml(validacion["carpeta"] / ARCHIVO_VALIDACION, validacion["datos"])
 
 

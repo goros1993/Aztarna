@@ -47,6 +47,9 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   calculados y cambio de nivel de varios elementos desde el árbol.
 - **Varias personas en la misma carpeta** (versión 0.10.0, issue #7): bloqueo
   por capítulo con aviso, solo lectura, caducidad y forzar (`app/bloqueos.py`).
+- **Versión del formato de los datos** (versión 0.11.0): `formato.yaml` por
+  carpeta y `formato` en ejecuciones y validaciones; una copia antigua del
+  programa no guarda en datos de un formato más nuevo (`app/formato.py`).
 
 ## Siguientes pasos
 

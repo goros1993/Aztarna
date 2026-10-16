@@ -796,6 +796,8 @@ def main(argv=None, prog=None):
     with open(out / "indice.yaml", "w", encoding="utf-8") as f:
         yaml.dump(indice, f)
     escribir_avisos(avisos, Path(args.salida))
+    from app import formato
+    formato.marcar_carpeta(out)
 
     n = sum(1 for c in capitulos for e in c["contenido"] if "prueba" in e)
     def tablas_en(elemento):

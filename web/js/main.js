@@ -79,6 +79,7 @@ function aplicarResumen(resumen) {
   S.errorRequisitos = resumen.error_requisitos || null;
   const boton = $("#carpeta-ruta");
   S.soloLectura = Boolean(resumen.solo_lectura);
+  S.avisoFormato = resumen.aviso_formato || null;
   boton.textContent = S.carpeta ? (S.soloLectura ? "Pruebas congeladas (solo lectura)" : S.carpeta) : "Sin carpeta";
   boton.title = S.soloLectura
     ? "Pruebas tal como estaban al cerrar la ejecución. No se pueden editar; para editar, abre la carpeta de pruebas."

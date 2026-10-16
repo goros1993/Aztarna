@@ -15,13 +15,13 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
-from app import esquema
+from app import esquema, formato
 
 LIST_FIELDS = esquema.CAMPOS_LISTA
 # Claves de los elementos con ficha propia: pruebas y, en la carpeta de requisitos, requisitos.
 ITEM_KEYS = ("prueba", "requisito")
 # YAML de una carpeta que no son capítulos (revisiones.yaml: requisitos cambiados, ver trazabilidad.py).
-NOT_CHAPTERS = ("indice.yaml", "revisiones.yaml")
+NOT_CHAPTERS = ("indice.yaml", "revisiones.yaml", formato.ARCHIVO)
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 
@@ -513,6 +513,7 @@ def save_chapter(chapter: dict[str, Any]) -> None:
     finally:
         if temp_path is not None and temp_path.exists():
             temp_path.unlink()
+    formato.marcar_carpeta(path.parent)
 
 
 def save_uploaded_images(uploaded_files: list[Any], image_dir: Path) -> list[str]:

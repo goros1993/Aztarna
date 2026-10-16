@@ -75,6 +75,11 @@ de la ejecución.
   recuerda.
 - **Linux:** desde la carpeta del proyecto, `python editor_web.py`.
 
+Cada persona tiene su copia del programa. Cuando salga una versión nueva,
+cópiala: la versión que tienes está abajo a la derecha. Si otra persona guardó
+la carpeta con una versión más nueva y los datos cambiaron de formato, tu copia
+la abrirá en solo lectura y te pedirá que la actualices (no la estropea).
+
 Para cambiar de carpeta de pruebas, pulsa el botón de la carpeta en la barra
 superior.
 
@@ -868,6 +873,11 @@ solo apunta a sus ejecuciones). El editor no guarda nada en otro sitio.
 Otra persona tenía el capítulo reservado cuando guardaste (ver «Varias
 personas en la misma carpeta», en 2). Copia lo que hayas escrito, espera a que
 lo deje (o pulsa **Comprobar de nuevo**) y repite el cambio.
+
+**«… se guardó con una versión más nueva del programa».**
+La carpeta (o la ejecución, o la validación) la guardó alguien con una versión
+del programa que guarda los datos de otra forma. Tu copia la deja ver, pero no
+guardar, para no estropearla: copia la versión nueva del programa.
 
 **«… ha cambiado en el disco desde que se cargó».**
 Otra persona o programa modificó el archivo mientras lo tenías abierto. El

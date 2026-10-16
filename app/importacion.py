@@ -42,7 +42,7 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from ruamel.yaml import YAML
 
-from app import esquema
+from app import esquema, formato
 from migracion import convertir as cv
 from migracion.ids_duplicados import _ID_VALIDO, _siguiente
 
@@ -886,6 +886,7 @@ def escribir(capitulos: list[dict[str, Any]], carpeta: Path, imagenes: dict[str,
                 (carpeta / ruta).write_bytes(imagenes[ruta])
     with indice_ruta.open("w", encoding="utf-8") as f:
         yaml.dump(indice, f)
+    formato.marcar_carpeta(carpeta)
     return nuevos
 
 
@@ -940,6 +941,8 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
     if modo == "nuevo" and destino.exists() and any(destino.iterdir()):
         raise ValueError(f"La carpeta {destino} no está vacía: elige una carpeta nueva para el proyecto.")
     p = preparar(ruta, mapeo, destino, modo)
+    for tipo, carpeta in p["carpetas"].items():
+        formato.comprobar_carpeta(carpeta, f"La carpeta de {TIPOS_VISIBLES[tipo].lower()}")
     conversion, capitulos = p["conversion"], p["conversion"]["capitulos"]
     resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "totales": {}, "ids_cambiados": {},
                                  "actualizados": {}, "omitidos": {}}

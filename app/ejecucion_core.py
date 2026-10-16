@@ -25,7 +25,7 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app import esquema
+from app import esquema, formato
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_EJECUCION = "ejecucion.yaml"
@@ -280,6 +280,8 @@ def cargar(carpeta: str | Path) -> dict[str, Any]:
 
 
 def guardar(campaña: dict[str, Any]) -> None:
+    formato.comprobar_datos(campaña["datos"], f"La ejecución «{campaña['datos'].get('nombre', '')}»")
+    formato.marcar_datos(campaña["datos"])
     _escribir_yaml(archivo_datos(campaña["carpeta"]), campaña["datos"])
     _escribir_yaml(campaña["carpeta"] / ARCHIVO_RESULTADOS, campaña["resultados"])
 

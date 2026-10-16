@@ -28,7 +28,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import ajustes, bloqueos, esquema, trazabilidad
+from app import ajustes, bloqueos, esquema, formato, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -353,6 +353,7 @@ class EditorApi:
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
         self._al_cargar: Callable[[Path], None] | None = None   # p. ej. recordar la carpeta
         self._solo_lectura = False     # p. ej., las pruebas congeladas de una ejecución cerrada
+        self._formato_nuevo: str | None = None   # los datos son de una versión más nueva del programa
         self._sin_guardar = False      # la interfaz avisa cuando hay cambios pendientes
         self._cierre_aceptado = False
         # Bloqueo de capítulos para que dos personas no editen el mismo (ver bloqueos.py).
@@ -421,6 +422,14 @@ class EditorApi:
         self._chapters = chapters
         self._mtimes = {c["path"]: c["path"].stat().st_mtime_ns for c in chapters}
         self._cargar_requisitos()
+        # Datos de una versión más nueva del programa: se pueden ver, pero no guardar (ver formato.py).
+        self._formato_nuevo = None
+        for carpeta, que in ((self._yaml_dir, "Esta carpeta de pruebas"), (self._req_dir(), "La carpeta de requisitos")):
+            try:
+                formato.comprobar_carpeta(carpeta, que)
+            except formato.FormatoNuevo as error:
+                self._formato_nuevo = str(error)
+                break
         self._thumbs.clear()
         if self._al_cargar is not None:
             try:
@@ -446,6 +455,8 @@ class EditorApi:
         self._mtimes[chapter["path"]] = chapter["path"].stat().st_mtime_ns
 
     def _exigir_escritura(self) -> None:
+        if self._formato_nuevo:
+            raise formato.FormatoNuevo(self._formato_nuevo)
         if self._solo_lectura:
             raise ValueError(
                 "Esta carpeta es la copia congelada de una ejecución cerrada y no se puede modificar. "
@@ -471,7 +482,7 @@ class EditorApi:
 
     def _persist(self, chapter: dict[str, Any]) -> None:
         """Guarda el capítulo; si falla, vuelve a leer el disco para no divergir."""
-        if self._solo_lectura:
+        if self._solo_lectura or self._formato_nuevo:
             self._reload_chapter(chapter)      # deshace lo que se cambió en memoria
             self._exigir_escritura()
         try:
@@ -498,6 +509,7 @@ class EditorApi:
         return {
             "carpeta": str(self._yaml_dir) if self._yaml_dir else None,
             "solo_lectura": self._solo_lectura,
+            "aviso_formato": self._formato_nuevo,
             "coleccion": self._coleccion,
             "hay_requisitos": bool(self._req_chapters),
             "error_requisitos": self._req_error,

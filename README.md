@@ -348,6 +348,13 @@ de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
 incluyen en el .exe: en el primer arranque pide una carpeta y después la
 recuerda.
 
+Cada persona usa su copia del `.exe`; los ajustes de cada una están en su PC
+(`%APPDATA%\EditorPruebasYaml\ajustes.json`) y los datos, en la carpeta que
+abre. Al publicar una versión, reparte el `.exe` nuevo: las copias antiguas no
+guardan en datos de un formato más nuevo (ver «Versión del formato de los
+datos»), y el bloqueo de capítulos solo lo respetan las versiones que lo
+tienen (0.10.0 o posterior).
+
 ## Requisitos y trazabilidad
 
 Un proyecto tiene dos carpetas con el mismo formato (índice, capítulos y
@@ -651,6 +658,22 @@ Consejos para crear una prueba:
 - Para añadir una imagen, guarda el archivo en la carpeta de imágenes del
   capítulo y añade su ruta relativa al elemento de lista o contexto pertinente.
 - Añade el capítulo al `indice.yaml` si creas un archivo de capítulo nuevo.
+
+### Versión del formato de los datos
+
+Para poder migrar los datos algún día, cada carpeta indica en qué formato
+están (`app/formato.py`). No es la versión del programa: es un número que solo
+sube cuando cambia la forma de guardar los datos.
+
+- `pruebas/` y `requisitos/` tienen un `formato.yaml` (`formato: 1` y
+  `escrito_con: Pruebas YAML …`); no es un capítulo.
+- `ejecucion.yaml` y `validacion.yaml` llevan la clave `formato`.
+- Lo que no lo indica es del formato 1. Se marca al guardar.
+
+Un programa que encuentra un formato más nuevo que el suyo deja consultar,
+pero no guarda (una copia antigua no estropea datos que no entiende). Para
+cambiar de formato: sube `FORMATO`, escribe la migración desde el anterior y
+anótalo en `CHANGELOG.md`.
 
 ### Formato en línea
 

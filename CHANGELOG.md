@@ -3,6 +3,16 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 0.11.0
+
+- **Versión del formato de los datos**, para poder migrarlos algún día:
+  `formato.yaml` en las carpetas de pruebas y de requisitos y la clave
+  `formato` en ejecuciones y validaciones (formato 1). Lo anterior cuenta como
+  formato 1 y se marca al guardar.
+- **Protección para copias antiguas del programa**: si los datos están en un
+  formato más nuevo que el que entiende, se pueden consultar (en solo lectura,
+  con un aviso), pero no se guardan.
+
 ## 0.10.0
 
 - **Varias personas en la misma carpeta** (issue #7): cada capítulo lo edita

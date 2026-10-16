@@ -7,7 +7,8 @@
 let BLOQUEO = { capitulo: null, otro: null, mio: false };
 
 const editaCapitulos = () => S.modo !== "ejecucion" && !S.soloLectura && S.capitulos.length > 0;
-const capituloBloqueado = () => Boolean(editaCapitulos() && BLOQUEO.otro && BLOQUEO.capitulo === S.capitulo);
+// También en solo lectura: datos guardados con una versión más nueva del programa (ver app/formato.py).
+const capituloBloqueado = () => Boolean(editaCapitulos() && (S.avisoFormato || (BLOQUEO.otro && BLOQUEO.capitulo === S.capitulo)));
 
 async function comprobarBloqueo(reabrir = false) {
   const antes = capituloBloqueado();
@@ -56,6 +57,11 @@ function pintarBloqueo() {
   caja.hidden = !bloqueado;
   for (const id of ["btn-nueva-prueba", "btn-nueva-seccion"]) $("#" + id).disabled = bloqueado || !S.capitulos.length;
   if (!bloqueado) { caja.replaceChildren(); return; }
+  if (S.avisoFormato) {
+    caja.replaceChildren(h("div", { class: "aviso-bloqueo-texto" }, icon("alert"), h("span", { text: S.avisoFormato })));
+    desactivarFormulario(principal());
+    return;
+  }
   caja.replaceChildren(
     h("div", { class: "aviso-bloqueo-texto" }, icon("candado"),
       h("span", {}, h("strong", { text: BLOQUEO.otro.texto }), ". Puedes consultarlo, pero no cambiarlo hasta que lo deje.")),
