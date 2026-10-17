@@ -96,6 +96,15 @@ Sin issue todavía:
   de requisitos? (se verá al importarlo).
 - Qué campos adicionales de las pruebas pasan a formar parte del esquema.
 - Qué datos se versionan en Git y cuáles van a un repositorio privado.
+  Previsto: pruebas, requisitos y `aztarna.yaml` en un repositorio privado
+  (cada persona con su clon); ejecuciones y validaciones en una carpeta
+  compartida (manual, apartado 1).
+- Cómo se reparte el programa: un solo `Aztarna.exe` en red que abren todos
+  (siempre la última versión, pero no arranca sin red) o una copia en cada PC
+  con el aviso de `version.txt`. Decidir con la práctica.
+- Ejecuciones sin red: se crean en una carpeta local y después se copian a la
+  carpeta compartida y se añaden a la validación. Ver si basta así o conviene
+  algo más cómodo (p. ej., «Mover a la validación…» desde la ejecución).
 
 ## Propuestas
 
