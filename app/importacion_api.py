@@ -66,8 +66,8 @@ class EditorImportacionApi(EditorValidacionApi):
         """Carpeta de pruebas con la que se enlazan los resultados (la de la validación, si hay una abierta)."""
         if self._validacion is not None and vc.carpeta_pruebas(self._validacion) is not None:
             return vc.carpeta_pruebas(self._validacion)
-        if self._campaña is not None and ej.carpeta_pruebas(self._campaña) is not None:
-            return ej.carpeta_pruebas(self._campaña)
+        if self._ejecucion is not None and ej.carpeta_pruebas(self._ejecucion) is not None:
+            return ej.carpeta_pruebas(self._ejecucion)
         if self._abierto() is None:
             raise ValueError("Abre primero la carpeta de pruebas del proyecto: los resultados se enlazan con sus pruebas por el ID.")
         return self._abierto()
@@ -154,7 +154,7 @@ class EditorImportacionApi(EditorValidacionApi):
                 raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
         resultado = imp.importar(documento, mapeo, destino, modo, ids=ids, acciones=acciones if modo == "anadir" else None)
         self._recordar_mapeo(mapeo)
-        self._campaña = None
+        self._ejecucion = None
         self._load(destino)
         self._coleccion = "requisitos" if "prueba" not in resultado["carpetas"] and self._req_chapters else "pruebas"
         return {"resultado": resultado, "carpeta": self._summary(), "proyecto": str(destino)}
@@ -191,9 +191,9 @@ class EditorImportacionApi(EditorValidacionApi):
         cambia = self._solo_lectura or self._yaml_dir is None or pruebas.resolve() != self._yaml_dir
         if cambia:                               # p. ej., estaban abiertas las pruebas congeladas de otra ejecución
             self._load(pruebas)
-        self._campaña = r["campaña"]
+        self._ejecucion = r["ejecucion"]
         estado = {**self._estado(), "carpeta_pruebas": self._summary() if cambia else None}
-        return {"campana": estado, "pruebas": r["pruebas"], "con_resultado": r["con_resultado"], "avisos": r["avisos"]}
+        return {"ejecucion": estado, "pruebas": r["pruebas"], "con_resultado": r["con_resultado"], "avisos": r["avisos"]}
 
     @staticmethod
     def _recordar_mapeo_resultados(mapeo: dict[str, Any]) -> None:

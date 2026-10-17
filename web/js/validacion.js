@@ -39,7 +39,7 @@ async function usarValidacion(r, { silencio = false } = {}) {
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = ""; S.colapsadas.clear();
     aplicarResumen(r.carpeta_pruebas);
     await cargarCobertura();
-    S.campana = null;
+    S.ejecucion = null;
   }
   S.validacion = r;
   guardarLocal("sin-validacion", "0");
@@ -79,7 +79,7 @@ async function soltarValidacion() {
 
 async function menuValidacion() {
   const lista = recientesValidacion().filter((r) => !S.validacion || r.carpeta !== S.validacion.carpeta);
-  const cuerpo = h("div", { class: "menu-campana" },
+  const cuerpo = h("div", { class: "menu-ejecucion" },
     h("p", { class: "muted", text: "Una validación agrupa las ejecuciones de una versión (en Automático, Maqueta, Torre…) y da el resultado de cada prueba en cada entorno." }),
     S.validacion ? h("p", {}, "Abierta: ", h("strong", { text: S.validacion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.validacion.carpeta })) : null,
     lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
@@ -102,12 +102,12 @@ async function nuevaValidacion() {
   if (!(await guardia())) return;
   setDirty(false);
   let opciones;
-  try { opciones = await api.campana_opciones(); } catch (e) { fallo(e); return; }
+  try { opciones = await api.ejecucion_opciones(); } catch (e) { fallo(e); return; }
   const filtro = {};
   const { grupos, vista } = selectorFiltro(opciones, filtro, " hay que pasar para validar la versión:");
   const campo = (id, etiqueta, ayuda = "") => h("div", { class: "campo" },
     h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", placeholder: ayuda }));
-  const cuerpo = h("div", { class: "nueva-campana" },
+  const cuerpo = h("div", { class: "nueva-ejecucion" },
     h("div", { class: "rejilla" },
       campo("v-nombre", "Nombre *", "Validación v2.3"),
       campo("v-version", "Versión", "Firmware 2.3.0")),
@@ -125,7 +125,7 @@ async function nuevaValidacion() {
     aviso("Elige la carpeta donde guardar la validación (se creará una subcarpeta)…");
     const v = await api.validacion_crear(nombre, cuerpo.querySelector("#v-version").value, filtro);
     if (v.cancelado) return;
-    S.campana = null;
+    S.ejecucion = null;
     await usarValidacion(v);
   } catch (e) { fallo(e); }
 }
@@ -150,7 +150,7 @@ async function editarValidacion() {
 
 async function informeValidacion() {
   let conPdf = null;
-  try { conPdf = await api.campana_pdf_disponible(); } catch (_e) { /* sin PDF */ }
+  try { conPdf = await api.ejecucion_pdf_disponible(); } catch (_e) { /* sin PDF */ }
   const casilla = h("input", { type: "checkbox", id: "informe-val-pdf", disabled: !conPdf });
   casilla.checked = Boolean(conPdf) && leerLocal("informe-pdf") === "si";
   const casillaDetalle = h("input", { type: "checkbox", id: "informe-val-detalle" });
@@ -195,8 +195,8 @@ async function anadirEjecucionExistente() {
     aviso("Elige la carpeta de una ejecución, o una carpeta con varias (por ejemplo, la compartida donde las deja cada persona)…");
     const r = await api.validacion_anadir_ejecucion();
     if (r.cancelado) return;
-    const { anadidas, ya_estaban: estaban, campana, ...estado } = r;
-    if (campana) S.campana = campana;
+    const { anadidas, ya_estaban: estaban, ejecucion, ...estado } = r;
+    if (ejecucion) S.ejecucion = ejecucion;
     S.validacion = estado;
     pintarModo();
     await cargarNavegacion();
@@ -212,7 +212,7 @@ async function quitarEjecucion(e) {
   if (!ok) return;
   try {
     S.validacion = await api.validacion_quitar_ejecucion(e.indice);
-    if (S.campana && e.carpeta && S.campana.carpeta === e.carpeta) S.campana = null;
+    if (S.ejecucion && e.carpeta && S.ejecucion.carpeta === e.carpeta) S.ejecucion = null;
     pintarModo();
     await cargarNavegacion();
     mostrarVacio();
@@ -224,10 +224,10 @@ async function abrirEjecucionDeValidacion(carpeta, testId = null) {
   if (!(await guardia())) return;
   setDirty(false);
   try {
-    await usarCampana(await api.campana_abrir(carpeta), { silencio: Boolean(testId) });
+    await usarEjecucion(await api.ejecucion_abrir(carpeta), { silencio: Boolean(testId) });
     if (testId) {
       await cargarNavegacion();
-      await irAPruebaCampana(testId);
+      await irAPruebaEjecucion(testId);
     }
   } catch (e) { fallo(e); }
 }
@@ -235,9 +235,9 @@ async function abrirEjecucionDeValidacion(carpeta, testId = null) {
 /** Añade a la validación abierta la ejecución abierta (que se abrió por su cuenta). */
 async function anadirAbiertaAValidacion() {
   try {
-    const { anadidas, ya_estaban: _estaban, campana, ...estado } = await api.validacion_anadir_ejecucion(S.campana.carpeta);
+    const { anadidas, ya_estaban: _estaban, ejecucion, ...estado } = await api.validacion_anadir_ejecucion(S.ejecucion.carpeta);
     S.validacion = estado;
-    if (campana) S.campana = campana;
+    if (ejecucion) S.ejecucion = ejecucion;
     pintarModo();
     mostrarVacio();
     if (anadidas.length) aviso(`Ejecución añadida a la validación «${estado.datos.nombre}»`, "ok");
@@ -249,13 +249,13 @@ async function volverAValidacion() {
   if (!(await guardia())) return;
   setDirty(false);
   let r;
-  try { r = await api.campana_soltar(); } catch (e) { fallo(e); return; }
+  try { r = await api.ejecucion_soltar(); } catch (e) { fallo(e); return; }
   if (r && r.carpeta_pruebas) {
     cacheImagenes.clear();
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = "";
     aplicarResumen(r.carpeta_pruebas);
   }
-  S.campana = null;
+  S.ejecucion = null;
   R = null;
   S.seleccion = null;
   S.filtroEstado = ""; $("#filtro-estado").value = "";
@@ -267,7 +267,7 @@ async function volverAValidacion() {
 /** Resultados en CSV para Excel (de la validación o de la ejecución abierta). */
 async function exportarResultadosCsv(de) {
   try {
-    const r = await (de === "validacion" ? api.validacion_exportar_csv() : api.campana_exportar_csv());
+    const r = await (de === "validacion" ? api.validacion_exportar_csv() : api.ejecucion_exportar_csv());
     if (r.cancelado) return;
     aviso("Resultados exportados", "ok", { texto: "Mostrar", hacer: () => api.mostrar_en_carpeta(r.archivo).catch(fallo) });
   } catch (e) { fallo(e); }
@@ -476,7 +476,7 @@ async function nuevaEjecucionImpacto(ids) {
   const responsable = h("input", { id: "imp-responsable", type: "text", autocomplete: "off", value: leerLocal("ejecutor") || "" });
   const r = await dialogo({
     titulo: "Ejecución de impacto", ancho: true,
-    cuerpo: h("div", { class: "nueva-campana" },
+    cuerpo: h("div", { class: "nueva-ejecucion" },
       h("p", { text: `Una ejecución nueva, dentro de la validación, con las ${plural(ids.length, "prueba", "pruebas")} de los requisitos que han cambiado: ${ids.join(", ")}.` }),
       h("div", { class: "rejilla" },
         h("div", { class: "campo completo" }, h("label", { for: "imp-nombre-ej", text: "Nombre *" }), nombre),
@@ -488,7 +488,7 @@ async function nuevaEjecucionImpacto(ids) {
   if (!nombre.value.trim()) { aviso("La ejecución necesita un nombre", "error"); return; }
   if (!entorno) { aviso("Indica en qué entorno de pruebas se ejecuta", "error"); return; }
   try {
-    await usarCampana(await api.validacion_nueva_ejecucion(nombre.value.trim(), { solo_ids: ids }, { entorno_pruebas: entorno, responsable: responsable.value }));
+    await usarEjecucion(await api.validacion_nueva_ejecucion(nombre.value.trim(), { solo_ids: ids }, { entorno_pruebas: entorno, responsable: responsable.value }));
     await refrescarValidacion();
   } catch (e) { fallo(e); }
 }
@@ -608,7 +608,7 @@ async function compararEjecucion() {
   let r;
   try {
     aviso("Elige la carpeta de la otra ejecución (la anterior)…");
-    r = await api.campana_comparar();
+    r = await api.ejecucion_comparar();
   } catch (e) { fallo(e); return; }
   if (r.cancelado) return;
   filtroComparacion = null;
@@ -734,7 +734,7 @@ function pestanaResumen(v) {
       h("p", { class: "ayuda", text: "Cuántas pruebas piden cada entorno y su resultado en él. «Sin planificar»: ninguna ejecución de ese entorno las incluye." })), tablaEntornos),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: `Avisos (${v.avisos.length})` })), avisos),
     h("section", { class: "bloque" },
-      h("dl", { class: "datos-campana" },
+      h("dl", { class: "datos-ejecucion" },
         h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: v.carpeta, onclick: () => api.mostrar_en_carpeta(v.carpeta + "/validacion.yaml").catch(fallo) })),
         h("dt", { text: "Pruebas" }), h("dd", { text: String(v.datos.pruebas_yaml || "") }))),
   ];
@@ -754,7 +754,7 @@ function mostrarPanelValidacion() {
     cuenta[k] ? h("span", { class: "cuenta-pestana" + (k === "comparacion" ? " e-txt-no_ok" : ""), text: String(cuenta[k]) }) : null)));
   const contenido = { resumen: pestanaResumen, pruebas: pestanaPruebas, requisitos: pestanaRequisitos, comparacion: pestanaComparacion }[pestanaValidacion](v);
 
-  mostrar(h("div", { class: "formulario panel-campana panel-validacion" },
+  mostrar(h("div", { class: "formulario panel-ejecucion panel-validacion" },
     h("div", { class: "acciones" },
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: d.nombre }),
         h("span", { class: "ruta", text: [d.version, `${plural(v.total, "prueba", "pruebas")}`, plural(v.ejecuciones.length, "ejecución", "ejecuciones")].filter(Boolean).join(" · ") })),
@@ -763,7 +763,7 @@ function mostrarPanelValidacion() {
       h("button", { class: "btn", type: "button", onclick: editarValidacion, text: "Cambiar datos…" }),
       h("button", { class: "btn", type: "button", onclick: informeValidacion, text: "Generar informe…",
         title: v.borrador ? "Borrador: alguna ejecución sigue abierta" : "Informe de la versión" }),
-      h("button", { class: "btn primary", type: "button", onclick: () => nuevaCampana({ enValidacion: true }) }, icon("plus"), "Nueva ejecución")),
+      h("button", { class: "btn primary", type: "button", onclick: () => nuevaEjecucion({ enValidacion: true }) }, icon("plus"), "Nueva ejecución")),
     selector,
     ...contenido));
 }

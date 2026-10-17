@@ -5,6 +5,7 @@ from pathlib import Path
 
 from docx import Document
 
+from app import esquema
 from app import importacion as imp
 from app import yaml_a_docx
 from app.editor_api import to_plain
@@ -90,12 +91,14 @@ class TestIdaYVuelta(unittest.TestCase):
                 self.assertEqual(sorted(req.get("criterio_validacion") or []), importado[ident]["criterio_validacion"])
 
     def test_pruebas(self):
+        esquema.configurar(EJEMPLOS / "pruebas")
         with tempfile.TemporaryDirectory() as tmp:
             docx = Path(tmp) / "pruebas.docx"
             yaml_a_docx.generar_docx(EJEMPLOS / "pruebas", docx)
             analisis = imp.analizar(docx)
             r = imp.importar(docx, imp.mapeo_propuesto(analisis), Path(tmp) / "proyecto")
             carpeta = Path(r["carpetas"]["prueba"])
+            self.assertTrue((Path(tmp) / "proyecto" / "aztarna.yaml").is_file())   # conserva las opciones
             original, importado = _items(EJEMPLOS / "pruebas", "prueba"), _items(carpeta, "prueba")
             self.assertEqual(set(original), set(importado))
             self.assertEqual(_estructura(EJEMPLOS / "pruebas"), _estructura(carpeta))     # cada prueba con su título

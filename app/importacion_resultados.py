@@ -291,15 +291,15 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], carpeta: str | Path, prueb
     if not str((datos or {}).get("entorno_pruebas") or "").strip():
         raise ValueError("Indica en qué entorno de pruebas se ejecutó (Automático, Maqueta o Torre).")
     filtro = {"importado_de": Path(ruta).name, "solo_ids": [r["id"] for r in resultados]}
-    campaña = ej.crear(carpeta, pruebas, nombre, filtro, datos or {})
-    huellas = {p["id"]: p["huella"] for p in campaña["datos"]["pruebas"]}
+    ejecucion = ej.crear(carpeta, pruebas, nombre, filtro, datos or {})
+    huellas = {p["id"]: p["huella"] for p in ejecucion["datos"]["pruebas"]}
     apuntados = 0
     for r in resultados:
         if r["estado"] == SIN_RESULTADO:
             continue
-        ej.registrar(campaña, r["id"], r["estado"], observaciones=r["observaciones"], incidencia=r["incidencia"],
+        ej.registrar(ejecucion, r["id"], r["estado"], observaciones=r["observaciones"], incidencia=r["incidencia"],
                      ejecutor=r["ejecutor"] or str((datos or {}).get("responsable") or ""), huella_actual=huellas.get(r["id"], ""),
                      fecha=leer_fecha(r["fecha"]) if r["fecha"] else None, origen="word", guardar_ahora=False)
         apuntados += 1
-    ej.guardar(campaña)
-    return {"campaña": campaña, "pruebas": len(resultados), "con_resultado": apuntados, "avisos": len(preparado["avisos"])}
+    ej.guardar(ejecucion)
+    return {"ejecucion": ejecucion, "pruebas": len(resultados), "con_resultado": apuntados, "avisos": len(preparado["avisos"])}

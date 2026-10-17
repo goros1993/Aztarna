@@ -105,7 +105,7 @@ class ConLosEjemplos(unittest.TestCase):
         e = ok(self, api.validacion_nueva_ejecucion("Impacto", {"solo_ids": ["DEMO-PUER-002"]}, {"entorno_pruebas": "Torre"}))
         self.assertEqual([p["id"] for p in ej.cargar(e["carpeta"])["datos"]["pruebas"]], ["DEMO-PUER-002"])
         self.assertTrue(e["carpeta"].startswith(str(self.v23)))
-        r = ok(self, api.campana_comparar(str(self.base / "ejecuciones" / "2026-10-16_Torre_v2.2")))
+        r = ok(self, api.ejecucion_comparar(str(self.base / "ejecuciones" / "2026-10-16_Torre_v2.2")))
         self.assertEqual(r["cuentas"]["nueva"], 0)
 
 

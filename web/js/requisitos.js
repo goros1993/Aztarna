@@ -304,7 +304,7 @@ async function mostrarPanelTrazabilidad() {
   const sin = d.requisitos.filter((r) => r.estado === "sin_cobertura");
   const cambiados = d.requisitos.filter((r) => r.modificado);
 
-  mostrar(h("div", { class: "formulario panel-campana panel-traza" },
+  mostrar(h("div", { class: "formulario panel-ejecucion panel-traza" },
     h("div", { class: "acciones" },
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: "Cobertura de requisitos" }),
         h("span", { class: "ruta", text: `${plural(t.requisitos, "requisito", "requisitos")} en ${plural(d.capitulos.length, "capítulo", "capítulos")}` })),

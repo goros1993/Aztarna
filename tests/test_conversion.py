@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from docx import Document
 
 from migracion import convertir
-from app import yaml_a_docx
+from app import esquema, yaml_a_docx
 
 
 PNG_1X1 = base64.b64decode(
@@ -245,7 +245,7 @@ class ParsearTablaVarianteTests(unittest.TestCase):
         tabla.cell(1, 0).text = "Descripción: Algo."
         tabla.cell(2, 0).text = "Parametrización:\nVelocidad 1 m/s\nCarga 0 %"
         tabla.cell(3, 0).text = "Situación inicial:\nEn reposo.\nEnsayo:\nPaso uno.\nPaso dos."
-        tabla.cell(4, 0).text = "Maniobra: S/D"
+        tabla.cell(4, 0).text = "Maniobra: S/duplex"
         tabla.cell(4, 1).text = "Automatizable: Medio"
         tabla.cell(4, 2).text = "Entorno de pruebas: A / T"
         tabla.cell(5, 0).text = "Requisitos:\nREQ_1\nREQ_2"
@@ -253,10 +253,15 @@ class ParsearTablaVarianteTests(unittest.TestCase):
         tabla.cell(6, 0).text = "Fecha: 15/10/2026"
         tabla.cell(6, 1).text = "Versión: 1.2"
         avisos = []
-        prueba = convertir.parsear(tabla, avisos)
+        with TemporaryDirectory() as tmp:          # opciones de maniobra del proyecto (aztarna.yaml)
+            (Path(tmp) / "aztarna.yaml").write_text(
+                "opciones:\n  maniobra: [Simplex, Dúplex]\nequivalencias:\n  maniobra: {S: Simplex}\n", encoding="utf-8")
+            esquema.configurar(tmp)
+            self.addCleanup(esquema.configurar, None)
+            prueba = convertir.parsear(tabla, avisos)
         self.assertEqual(prueba["parametrizacion"], ["Velocidad 1 m/s", "Carga 0 %"])
         self.assertEqual(prueba["pasos"], ["Paso uno.", "Paso dos."])
-        self.assertEqual(prueba["maniobra"], ["Simplex", "Dúplex"])
+        self.assertEqual(prueba["maniobra"], ["Simplex", "Dúplex"])       # equivalencia y sin tilde
         self.assertEqual(prueba["entorno"], ["Automático", "Torre"])
         self.assertEqual(prueba["requisitos"], ["REQ_1", "REQ_2"])
         self.assertEqual(prueba["etiquetas"], ["smoke", "puertas"])

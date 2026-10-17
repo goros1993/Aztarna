@@ -20,6 +20,7 @@ from typing import Any
 
 from app import ajustes
 from app import ejecucion_core as ej
+from app import esquema
 from app import robot_core
 from app.editor_api import EditorApi, respuesta, to_plain
 
@@ -33,24 +34,24 @@ def _nombre_carpeta(nombre: str) -> str:
 class EditorEjecucionApi(EditorApi):
     def __init__(self, carpeta_inicial: str | Path | None = None) -> None:
         super().__init__(carpeta_inicial)
-        self._campaña: dict[str, Any] | None = None
+        self._ejecucion: dict[str, Any] | None = None
         self._robot: dict[str, Any] | None = None       # ejecución de Robot en curso (o la última)
 
     # --- utilidades -----------------------------------------------------------
-    def _requiere_campaña(self) -> dict[str, Any]:
-        if self._campaña is None:
+    def _requiere_ejecucion(self) -> dict[str, Any]:
+        if self._ejecucion is None:
             raise ValueError("No hay ninguna ejecución abierta.")
-        return self._campaña
+        return self._ejecucion
 
     def _estado(self) -> dict[str, Any]:
-        campaña = self._requiere_campaña()
-        datos = {k: v for k, v in to_plain(campaña["datos"]).items() if k != "pruebas"}
+        ejecucion = self._requiere_ejecucion()
+        datos = {k: v for k, v in to_plain(ejecucion["datos"]).items() if k != "pruebas"}
         return {
-            "carpeta": str(campaña["carpeta"]),
-            "archivo": str(ej.archivo_datos(campaña["carpeta"])),
+            "carpeta": str(ejecucion["carpeta"]),
+            "archivo": str(ej.archivo_datos(ejecucion["carpeta"])),
             "datos": datos,
             "cerrada": datos.get("estado") == "cerrada",
-            "resumen": ej.resumen(campaña, self._chapters),
+            "resumen": ej.resumen(ejecucion, self._chapters),
             "estados": ej.ESTADOS_VISIBLES,
             "entornos": list(ej.entornos_pruebas()),
         }
@@ -77,7 +78,7 @@ class EditorEjecucionApi(EditorApi):
 
     # --- crear y abrir ------------------------------------------------------------
     @respuesta
-    def campana_opciones(self) -> dict[str, list[str]]:
+    def ejecucion_opciones(self) -> dict[str, list[str]]:
         """Valores que existen para cada criterio de selección."""
         self._require_dir()
         opciones = ej.opciones_filtro(self._chapters)
@@ -86,7 +87,7 @@ class EditorEjecucionApi(EditorApi):
         return opciones
 
     @respuesta
-    def campana_previsualizar(self, filtro: dict[str, Any]) -> list[dict[str, str]]:
+    def ejecucion_previsualizar(self, filtro: dict[str, Any]) -> list[dict[str, str]]:
         """Pruebas que entrarían en una ejecución con este filtro."""
         self._require_dir()
         return [
@@ -96,8 +97,8 @@ class EditorEjecucionApi(EditorApi):
         ]
 
     @respuesta
-    def campana_crear(self, nombre: str, filtro: dict[str, Any], datos: dict[str, Any] | None = None,
-                      carpeta: str | None = None) -> dict[str, Any]:
+    def ejecucion_crear(self, nombre: str, filtro: dict[str, Any], datos: dict[str, Any] | None = None,
+                        carpeta: str | None = None) -> dict[str, Any]:
         """Crea la ejecución en una subcarpeta nueva dentro de la carpeta elegida."""
         pruebas = self._require_dir()
         if carpeta is None:
@@ -109,37 +110,39 @@ class EditorEjecucionApi(EditorApi):
                 raise ValueError(f"Ya existe {destino}. Elige otra carpeta o cambia el nombre.")
         else:
             destino = Path(carpeta)
-        self._campaña = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
+        self._ejecucion = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
         return self._estado()
 
     def _abrir(self, carpeta: Path) -> dict[str, Any]:
         """Abre la ejecución y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
-        campaña = ej.cargar(carpeta)
-        congelada = ej.carpeta_congelada(campaña) if campaña["datos"].get("estado") == "cerrada" else None
-        pruebas = congelada or ej.carpeta_pruebas(campaña)
+        ejecucion = ej.cargar(carpeta)
+        congelada = ej.carpeta_congelada(ejecucion) if ejecucion["datos"].get("estado") == "cerrada" else None
+        pruebas = congelada or ej.carpeta_pruebas(ejecucion)
         if pruebas is None:
             # Se movió la carpeta de pruebas (o la ejecución viene de otro PC): la interfaz pregunta dónde está.
-            return {"faltan_pruebas": True, "carpeta": str(campaña["carpeta"]),
-                    "nombre": str(campaña["datos"].get("nombre") or ""),
-                    "rutas": [str(campaña["datos"].get(k)) for k in ("pruebas_yaml", "pruebas_yaml_absoluta")
-                              if campaña["datos"].get(k)]}
+            return {"faltan_pruebas": True, "carpeta": str(ejecucion["carpeta"]),
+                    "nombre": str(ejecucion["datos"].get("nombre") or ""),
+                    "rutas": [str(ejecucion["datos"].get(k)) for k in ("pruebas_yaml", "pruebas_yaml_absoluta")
+                              if ejecucion["datos"].get(k)]}
         solo_lectura = congelada is not None
         cambia_carpeta = (self._yaml_dir is None or pruebas.resolve() != self._yaml_dir
                           or self._solo_lectura != solo_lectura)
         if cambia_carpeta:
             self._load(pruebas)
+            if congelada is not None and esquema.CONFIGURACION is None and ej.carpeta_pruebas(ejecucion):
+                esquema.configurar(ej.carpeta_pruebas(ejecucion))   # cerrada antes de copiar el aztarna.yaml
         self._solo_lectura = solo_lectura
-        self._campaña = campaña
+        self._ejecucion = ejecucion
         return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None}
 
     @respuesta
-    def campana_editar_datos(self, cambios: dict[str, Any]) -> dict[str, Any]:
+    def ejecucion_editar_datos(self, cambios: dict[str, Any]) -> dict[str, Any]:
         """Cambia qué se prueba, el entorno de pruebas, el banco o el responsable de la ejecución abierta."""
-        ej.editar_datos(self._requiere_campaña(), cambios or {})
+        ej.editar_datos(self._requiere_ejecucion(), cambios or {})
         return self._estado()
 
     @respuesta
-    def campana_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
+    def ejecucion_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
         """Abre una ejecución; si sus pruebas están en otra carpeta, abre también esa carpeta."""
         if carpeta is None:
             elegida = self._dialogo_carpeta()
@@ -150,71 +153,71 @@ class EditorEjecucionApi(EditorApi):
         return self._abrir(elegida)
 
     @respuesta
-    def campana_reubicar(self, carpeta: str, pruebas: str | None = None) -> dict[str, Any]:
+    def ejecucion_reubicar(self, carpeta: str, pruebas: str | None = None) -> dict[str, Any]:
         """Indica dónde están ahora las pruebas de una ejecución y la abre."""
-        campaña = ej.cargar(carpeta)
+        ejecucion = ej.cargar(carpeta)
         if pruebas is None:
             elegida = self._dialogo_carpeta()
             if elegida is None:
                 return {"cancelado": True}
         else:
             elegida = Path(pruebas)
-        ej.reubicar_pruebas(campaña, elegida)
+        ej.reubicar_pruebas(ejecucion, elegida)
         return self._abrir(Path(carpeta))
 
     @respuesta
-    def campana_estado(self) -> dict[str, Any] | None:
-        return self._estado() if self._campaña is not None else None
+    def ejecucion_estado(self) -> dict[str, Any] | None:
+        return self._estado() if self._ejecucion is not None else None
 
     @respuesta
-    def campana_soltar(self) -> dict[str, Any]:
+    def ejecucion_soltar(self) -> dict[str, Any]:
         """Deja de trabajar con la ejecución abierta (no borra nada)."""
-        self._campaña = None
+        self._ejecucion = None
         return {}
 
     # --- resultados ------------------------------------------------------------------
     @respuesta
-    def campana_resultado(self, test_id: str) -> dict[str, Any]:
-        campaña = self._requiere_campaña()
-        resultado = to_plain(campaña["resultados"].get(test_id) or {"estado": "pendiente"})
+    def ejecucion_resultado(self, test_id: str) -> dict[str, Any]:
+        ejecucion = self._requiere_ejecucion()
+        resultado = to_plain(ejecucion["resultados"].get(test_id) or {"estado": "pendiente"})
         prueba = self._prueba(test_id)
         ejecutada = resultado.get("huella")
         return {
             "resultado": resultado,
-            "en_campaña": test_id in ej.ids_de(campaña),
+            "en_ejecucion": test_id in ej.ids_de(ejecucion),
             "prueba_cambiada": bool(prueba is not None and ejecutada and ejecutada != ej.huella(prueba)),
         }
 
     @respuesta
-    def campana_registrar(self, test_id: str, estado: str, observaciones: str = "", incidencia: str = "",
-                          evidencias: list[str] | None = None, ejecutor: str = "") -> dict[str, Any]:
+    def ejecucion_registrar(self, test_id: str, estado: str, observaciones: str = "", incidencia: str = "",
+                            evidencias: list[str] | None = None, ejecutor: str = "") -> dict[str, Any]:
         """Guarda el resultado. Con el mismo estado solo se corrigen las notas (sin otro intento)."""
-        campaña = self._requiere_campaña()
-        actual = ej.estado_de(campaña, test_id)
+        ejecucion = self._requiere_ejecucion()
+        actual = ej.estado_de(ejecucion, test_id)
         if estado == actual and actual != "pendiente":
-            ej.editar_notas(campaña, test_id, observaciones=observaciones, incidencia=incidencia,
+            ej.editar_notas(ejecucion, test_id, observaciones=observaciones, incidencia=incidencia,
                             evidencias=list(evidencias or []))
         else:
             prueba = self._prueba(test_id)
-            ej.registrar(campaña, test_id, estado, observaciones=observaciones, incidencia=incidencia,
+            ej.registrar(ejecucion, test_id, estado, observaciones=observaciones, incidencia=incidencia,
                          evidencias=list(evidencias or []), ejecutor=ejecutor,
                          huella_actual=ej.huella(prueba) if prueba is not None else "")
         return self._estado()
 
     @respuesta
-    def campana_evidencia_base64(self, test_id: str, nombre: str, datos: str) -> dict[str, str]:
+    def ejecucion_evidencia_base64(self, test_id: str, nombre: str, datos: str) -> dict[str, str]:
         """Guarda una evidencia pegada o soltada en la ventana."""
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if "," in datos[:100]:
             datos = datos.split(",", 1)[1]
-        return {"ruta": ej.guardar_evidencia(campaña, test_id, nombre, base64.b64decode(datos))}
+        return {"ruta": ej.guardar_evidencia(ejecucion, test_id, nombre, base64.b64decode(datos))}
 
     @respuesta
-    def campana_elegir_evidencias(self, test_id: str) -> dict[str, list[str]]:
+    def ejecucion_elegir_evidencias(self, test_id: str) -> dict[str, list[str]]:
         """Selector del sistema; copia los archivos elegidos a `evidencias/`."""
         import webview
 
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if self._window is None:
             raise ValueError("El selector de archivos solo está disponible en la aplicación.")
         kind = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or webview.OPEN_DIALOG
@@ -224,18 +227,18 @@ class EditorEjecucionApi(EditorApi):
             ruta = Path(archivo)
             if ruta.stat().st_size > ej.MAX_EVIDENCIA_BYTES:
                 raise ValueError(f"{ruta.name} supera los 25 MB.")
-            rutas.append(ej.guardar_evidencia(campaña, test_id, ruta.name, ruta.read_bytes()))
+            rutas.append(ej.guardar_evidencia(ejecucion, test_id, ruta.name, ruta.read_bytes()))
         return {"rutas": rutas}
 
     @respuesta
-    def campana_imagen(self, ruta: str, ancho: int = 480) -> dict[str, Any]:
+    def ejecucion_imagen(self, ruta: str, ancho: int = 480) -> dict[str, Any]:
         """Miniatura de una evidencia (si es una imagen)."""
-        return self._miniatura(ej.ruta_evidencia(self._requiere_campaña(), ruta), ancho)
+        return self._miniatura(ej.ruta_evidencia(self._requiere_ejecucion(), ruta), ancho)
 
     @respuesta
-    def campana_abrir_evidencia(self, ruta: str) -> dict[str, Any]:
+    def ejecucion_abrir_evidencia(self, ruta: str) -> dict[str, Any]:
         """Abre una evidencia con el programa predeterminado del sistema."""
-        archivo = ej.ruta_evidencia(self._requiere_campaña(), ruta)
+        archivo = ej.ruta_evidencia(self._requiere_ejecucion(), ruta)
         if not archivo.is_file():
             raise ValueError("No se encuentra el archivo.")
         if sys.platform.startswith("win"):
@@ -248,38 +251,38 @@ class EditorEjecucionApi(EditorApi):
         return {}
 
     @respuesta
-    def campana_cerrar(self) -> dict[str, Any]:
+    def ejecucion_cerrar(self) -> dict[str, Any]:
         """Cierra la ejecución: congela sus pruebas y pasa a mostrarlas en solo lectura."""
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if self._solo_lectura:
             raise ValueError("La ejecución ya está cerrada.")
-        ej.cerrar(campaña, self._chapters)
-        return self._abrir(campaña["carpeta"])
+        ej.cerrar(ejecucion, self._chapters)
+        return self._abrir(ejecucion["carpeta"])
 
     @respuesta
-    def campana_pdf_disponible(self) -> str | None:
+    def ejecucion_pdf_disponible(self) -> str | None:
         from app import informe_docx
 
         return informe_docx.pdf_disponible()
 
     @respuesta
-    def campana_elegir_destino_informe(self) -> dict[str, Any]:
+    def ejecucion_elegir_destino_informe(self) -> dict[str, Any]:
         """«Guardar como» para el informe; la interfaz muestra la espera solo mientras se genera."""
-        campaña = self._requiere_campaña()
-        archivo = self._guardar_como(campaña["carpeta"], f"Informe_{campaña['carpeta'].name}.docx")
+        ejecucion = self._requiere_ejecucion()
+        archivo = self._guardar_como(ejecucion["carpeta"], f"Informe_{ejecucion['carpeta'].name}.docx")
         return {"archivo": archivo} if archivo else {"cancelado": True}
 
     @respuesta
-    def campana_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
+    def ejecucion_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
         """Genera el informe DOCX (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
         from app import informe_docx
 
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if salida is None:
-            salida = self._guardar_como(campaña["carpeta"], f"Informe_{campaña['carpeta'].name}.docx")
+            salida = self._guardar_como(ejecucion["carpeta"], f"Informe_{ejecucion['carpeta'].name}.docx")
             if salida is None:
                 return {"cancelado": True}
-        datos = informe_docx.generar_informe(campaña, salida, self._chapters)
+        datos = informe_docx.generar_informe(ejecucion, salida, self._chapters)
         resultado = {"archivo": datos["archivo"], "pruebas": datos["pruebas"], "pdf": None, "aviso_pdf": None}
         if pdf:
             try:
@@ -290,16 +293,16 @@ class EditorEjecucionApi(EditorApi):
 
     # --- Robot Framework ---------------------------------------------------------------
     @respuesta
-    def campana_robot_elegir(self) -> dict[str, Any]:
+    def ejecucion_robot_elegir(self) -> dict[str, Any]:
         """Selector del sistema para elegir el output.xml de Robot Framework."""
         import webview
 
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if self._window is None:
             raise ValueError("El selector de archivos solo está disponible en la aplicación.")
         kind = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or webview.OPEN_DIALOG
         elegido = self._window.create_file_dialog(
-            kind, directory=str(campaña["carpeta"].parent),
+            kind, directory=str(ejecucion["carpeta"].parent),
             file_types=("Resultados de Robot Framework (*.xml)", "Todos los archivos (*.*)"),
         )
         if not elegido:
@@ -307,24 +310,24 @@ class EditorEjecucionApi(EditorApi):
         return {"ruta": elegido if isinstance(elegido, str) else elegido[0]}
 
     @respuesta
-    def campana_robot_previsualizar(self, ruta: str) -> dict[str, Any]:
+    def ejecucion_robot_previsualizar(self, ruta: str) -> dict[str, Any]:
         """Qué haría la importación del output.xml, sin cambiar nada."""
         from app import robot_core
 
-        return robot_core.plan(self._requiere_campaña(), robot_core.leer_output(ruta), self._chapters)
+        return robot_core.plan(self._requiere_ejecucion(), robot_core.leer_output(ruta), self._chapters)
 
     @respuesta
-    def campana_robot_importar(self, ruta: str) -> dict[str, Any]:
+    def ejecucion_robot_importar(self, ruta: str) -> dict[str, Any]:
         """Apunta en la ejecución los resultados del output.xml."""
         from app import robot_core
 
-        datos = robot_core.importar(self._requiere_campaña(), ruta, self._chapters)
+        datos = robot_core.importar(self._requiere_ejecucion(), ruta, self._chapters)
         return {**self._estado(), "importacion": datos}
 
     @respuesta
-    def campana_resincronizar(self) -> dict[str, Any]:
-        campaña = self._requiere_campaña()
-        cambios = ej.resincronizar(campaña, self._chapters, self._ids_robot(campaña["datos"].get("seleccion")))
+    def ejecucion_resincronizar(self) -> dict[str, Any]:
+        ejecucion = self._requiere_ejecucion()
+        cambios = ej.resincronizar(ejecucion, self._chapters, self._ids_robot(ejecucion["datos"].get("seleccion")))
         return {**self._estado(), "cambios": cambios}
 
     # --- Robot Framework: configuración y cobertura ---------------------------------
@@ -453,10 +456,10 @@ class EditorEjecucionApi(EditorApi):
 
     # --- Robot Framework: ejecutar desde el editor -----------------------------------
     @respuesta
-    def campana_robot_lanzar(self, ids: list[str]) -> dict[str, Any]:
-        """Lanza Robot solo con los tests de esas pruebas; el avance se consulta con campana_robot_progreso."""
-        campaña = self._requiere_campaña()
-        if campaña["datos"].get("estado") == "cerrada":
+    def ejecucion_robot_lanzar(self, ids: list[str]) -> dict[str, Any]:
+        """Lanza Robot solo con los tests de esas pruebas; el avance se consulta con ejecucion_robot_progreso."""
+        ejecucion = self._requiere_ejecucion()
+        if ejecucion["datos"].get("estado") == "cerrada":
             raise ValueError("La ejecución está cerrada.")
         if self._robot and self._robot["proceso"].poll() is None:
             raise ValueError("Ya hay una ejecución de Robot en marcha.")
@@ -465,7 +468,7 @@ class EditorEjecucionApi(EditorApi):
         if suites is None or not suites.exists():
             raise ValueError("Configura antes la carpeta de tests de Robot (botón Robot de la barra superior).")
         marca = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        salida = campaña["carpeta"] / ej.CARPETA_EVIDENCIAS / "robot" / marca
+        salida = ejecucion["carpeta"] / ej.CARPETA_EVIDENCIAS / "robot" / marca
         argumentos = robot_core.preparar_ejecucion(
             salida, suites, [str(i) for i in ids], self._partir_comando(config.get("argumentos", "")))
         orden = [*self._partir_comando(config.get("comando") or self._comando_por_defecto()), *argumentos]
@@ -482,7 +485,7 @@ class EditorEjecucionApi(EditorApi):
         return {"carpeta": str(salida), "pruebas": len(ids)}
 
     @respuesta
-    def campana_robot_progreso(self) -> dict[str, Any] | None:
+    def ejecucion_robot_progreso(self) -> dict[str, Any] | None:
         if not self._robot:
             return None
         ejecucion = self._robot
@@ -508,7 +511,7 @@ class EditorEjecucionApi(EditorApi):
         }
 
     @respuesta
-    def campana_robot_cancelar(self) -> dict[str, Any]:
+    def ejecucion_robot_cancelar(self) -> dict[str, Any]:
         if self._robot and self._robot["proceso"].poll() is None:
             self._robot["cancelada"] = True
             self._robot["proceso"].terminate()

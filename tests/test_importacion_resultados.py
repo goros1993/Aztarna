@@ -93,11 +93,11 @@ class Importar(unittest.TestCase):
         r = ir.importar(self.docx, self.mapeo, self.tmp / "ejecucion", self.tmp / "yaml",
                         "Regresión importada", {"entorno_pruebas": "Torre", "responsable": "Ana"})
         self.assertEqual((r["pruebas"], r["con_resultado"]), (14, 4))
-        campaña = ej.cargar(self.tmp / "ejecucion")
-        self.assertEqual(campaña["datos"]["estado"], "abierta")
-        self.assertEqual(campaña["datos"]["entorno_pruebas"], "Torre")
-        self.assertEqual(campaña["datos"]["seleccion"]["importado_de"], "resultados.docx")
-        res = campaña["resultados"]
+        ejecucion = ej.cargar(self.tmp / "ejecucion")
+        self.assertEqual(ejecucion["datos"]["estado"], "abierta")
+        self.assertEqual(ejecucion["datos"]["entorno_pruebas"], "Torre")
+        self.assertEqual(ejecucion["datos"]["seleccion"]["importado_de"], "resultados.docx")
+        res = ejecucion["resultados"]
         self.assertEqual({k: v["estado"] for k, v in res.items()},
                          {"DEMO-LLAM-001": "ok", "DEMO-LLAM-002": "no_ok", "DEMO-LLAM-003": "no_aplica", "DEMO-NIV-001": "bloqueada"})
         self.assertEqual((res["DEMO-LLAM-001"]["fecha"], res["DEMO-LLAM-001"]["ejecutor"], res["DEMO-LLAM-001"]["origen"]),
@@ -106,7 +106,7 @@ class Importar(unittest.TestCase):
         self.assertIn("La puerta tarda 4 s", res["DEMO-LLAM-002"]["observaciones"])
         self.assertIn("Fecha de ejecución: septiembre", res["DEMO-LLAM-002"]["observaciones"])
         # Las pruebas sin resultado siguen pendientes en la ejecución.
-        resumen = ej.resumen(campaña, read_chapters(self.tmp / "yaml" / "pruebas"))
+        resumen = ej.resumen(ejecucion, read_chapters(self.tmp / "yaml" / "pruebas"))
         self.assertEqual((resumen["total"], resumen["totales"]["pendiente"]), (14, 10))
 
     def test_api_dentro_de_la_validacion(self):
@@ -123,8 +123,8 @@ class Importar(unittest.TestCase):
         self.assertEqual(rev["pruebas"], 14)
         r = api.importar_resultados_ejecutar(str(self.docx), a["mapeo"], "Torre importada", {"entorno_pruebas": "Torre"}, True)
         self.assertTrue(r["ok"], r)
-        self.assertIs(r["datos"]["campana"]["en_validacion"], True)
-        self.assertTrue(r["datos"]["campana"]["carpeta"].startswith(str(self.tmp / "val")))
+        self.assertIs(r["datos"]["ejecucion"]["en_validacion"], True)
+        self.assertTrue(r["datos"]["ejecucion"]["carpeta"].startswith(str(self.tmp / "val")))
         v = vc.consolidar(vc.cargar(self.tmp / "val"))
         llam = next(p for p in v["pruebas"] if p["id"] == "DEMO-LLAM-001")
         self.assertEqual(llam["entornos"]["Torre"]["estado"], "ok")

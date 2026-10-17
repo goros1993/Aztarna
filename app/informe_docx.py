@@ -86,8 +86,8 @@ def _tabla(doc, cabecera: list[str], filas: list[list[str]], anchos: list[float]
 # ----------------------------------------------------------------------
 # Resumen inicial
 # ----------------------------------------------------------------------
-def escribir_resumen(doc, campaña: dict[str, Any], resumen: dict[str, Any]) -> None:
-    datos = campaña["datos"]
+def escribir_resumen(doc, ejecucion: dict[str, Any], resumen: dict[str, Any]) -> None:
+    datos = ejecucion["datos"]
     cerrada = datos.get("estado") == "cerrada"
     _parrafo(doc, "Informe de ejecución", negrita=True, tamaño=22, despues=2)
     _parrafo(doc, str(datos.get("nombre") or ""), tamaño=15, color="485862", despues=10)
@@ -136,7 +136,7 @@ def escribir_resumen(doc, campaña: dict[str, Any], resumen: dict[str, Any]) -> 
         _apartado(doc, "Pruebas NO OK y bloqueadas")
         filas, colores = [], []
         for p in problemas:
-            r = campaña["resultados"].get(p["id"]) or {}
+            r = ejecucion["resultados"].get(p["id"]) or {}
             filas.append([p["id"], p["titulo"], ej.ESTADOS_VISIBLES[p["estado"]],
                           str(r.get("observaciones") or ""), str(r.get("incidencia") or "")])
             colores.append(None)
@@ -168,9 +168,9 @@ def _etiqueta(p, etiqueta: str, valor: str) -> None:
     yd.escribir_inline(p, valor)
 
 
-def escribir_resultado(tabla, campaña: dict[str, Any], prueba: dict[str, Any]) -> None:
+def escribir_resultado(tabla, ejecucion: dict[str, Any], prueba: dict[str, Any]) -> None:
     test_id = str(prueba.get("id") or "").strip()
-    resultado = campaña["resultados"].get(test_id) or {}
+    resultado = ejecucion["resultados"].get(test_id) or {}
     estado = str(resultado.get("estado") or "pendiente")
 
     celda, p = _fila(tabla)
@@ -201,7 +201,7 @@ def escribir_resultado(tabla, campaña: dict[str, Any], prueba: dict[str, Any]) 
         otras = []
         for ruta in evidencias:
             if Path(ruta).suffix.lower() in EXTENSIONES_IMAGEN:
-                yd.insertar_imagen(celda, campaña["carpeta"], ruta)
+                yd.insertar_imagen(celda, ejecucion["carpeta"], ruta)
             else:
                 otras.append(Path(ruta).name)
         if otras:
@@ -227,12 +227,12 @@ def escribir_resultado(tabla, campaña: dict[str, Any], prueba: dict[str, Any]) 
 # ----------------------------------------------------------------------
 # Documento completo
 # ----------------------------------------------------------------------
-def generar_informe(campaña: dict[str, Any], salida: str | Path,
+def generar_informe(ejecucion: dict[str, Any], salida: str | Path,
                     capitulos: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Genera el DOCX. Usa las pruebas congeladas si la ejecución está cerrada."""
-    capitulos = capitulos if capitulos is not None else ej.capitulos_de(campaña)
-    resumen = ej.resumen(campaña, capitulos)
-    ids = set(ej.ids_de(campaña))
+    capitulos = capitulos if capitulos is not None else ej.capitulos_de(ejecucion)
+    resumen = ej.resumen(ejecucion, capitulos)
+    ids = set(ej.ids_de(ejecucion))
     salida = Path(salida)
     if salida.suffix.lower() != ".docx":
         salida = salida.with_suffix(".docx")
@@ -241,7 +241,7 @@ def generar_informe(campaña: dict[str, Any], salida: str | Path,
     doc = yd.preparar_documento(1)
     seccion = doc.sections[0]
     seccion.different_first_page_header_footer = False
-    escribir_resumen(doc, campaña, resumen)
+    escribir_resumen(doc, ejecucion, resumen)
     doc.add_page_break()
     contenido = [
         (c["data"].get("capitulo"), ej.filtrar_contenido(c["data"]["contenido"], ids), c["path"].parent)
@@ -249,10 +249,10 @@ def generar_informe(campaña: dict[str, Any], salida: str | Path,
     ]
     total = yd.escribir_capitulos(
         doc, [c for c in contenido if c[1]],
-        lambda _doc, tabla, prueba, _base: escribir_resultado(tabla, campaña, prueba),
+        lambda _doc, tabla, prueba, _base: escribir_resultado(tabla, ejecucion, prueba),
     )
     pie = seccion.footer.paragraphs[0]
-    pie.text = f"{campaña['datos'].get('nombre', '')} · informe de ejecución · generado con {firma()}"
+    pie.text = f"{ejecucion['datos'].get('nombre', '')} · informe de ejecución · generado con {firma()}"
     for run in pie.runs:
         run.font.size = Pt(8)
         run.font.color.rgb = RGBColor.from_string("72838D")
@@ -320,14 +320,14 @@ def convertir_a_pdf(docx: str | Path) -> Path:
 
 def main(argv=None, prog=None) -> None:
     ap = argparse.ArgumentParser(prog=prog, description="Informe de una ejecución de pruebas")
-    ap.add_argument("campaña", help="carpeta de la ejecución (con ejecucion.yaml)")
+    ap.add_argument("ejecucion", help="carpeta de la ejecución (con ejecucion.yaml)")
     ap.add_argument("-o", "--salida", help="archivo DOCX de salida (por defecto, dentro de la ejecución)")
     ap.add_argument("--pdf", action="store_true", help="generar también el PDF")
     args = ap.parse_args(argv)
     try:
-        campaña = ej.cargar(args.campaña)
-        salida = args.salida or campaña["carpeta"] / f"Informe_{campaña['carpeta'].name}.docx"
-        datos = generar_informe(campaña, salida)
+        ejecucion = ej.cargar(args.ejecucion)
+        salida = args.salida or ejecucion["carpeta"] / f"Informe_{ejecucion['carpeta'].name}.docx"
+        datos = generar_informe(ejecucion, salida)
         print(f"{datos['pruebas']} pruebas -> {datos['archivo']}")
         if args.pdf:
             print(f"PDF -> {convertir_a_pdf(datos['archivo'])}")

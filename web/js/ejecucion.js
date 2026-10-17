@@ -17,11 +17,11 @@ const AUTOMATIZABLE_TXT = { si: "Sí", no: "No", corto: "Corto", medio: "Medio",
 let R = null;   // resultado que se está editando: {id, estado, observaciones, incidencia, evidencias, ejecutor}
 
 const enEjecucion = () => S.modo === "ejecucion";
-const cerrada = () => Boolean(S.campana && S.campana.cerrada);
+const cerrada = () => Boolean(S.ejecucion && S.ejecucion.cerrada);
 
 /** Estado de cada prueba: el de la ejecución abierta o, sin ejecución, el consolidado de la validación. */
 function mapaEstados() {
-  if (S.campana) return new Map(S.campana.resumen.pruebas.map((p) => [p.id, p.estado]));
+  if (S.ejecucion) return new Map(S.ejecucion.resumen.pruebas.map((p) => [p.id, p.estado]));
   return new Map(S.validacion ? S.validacion.pruebas.map((p) => [p.id, claseEstado(p.estado)]) : []);
 }
 
@@ -37,9 +37,9 @@ function pintarModo() {
   $("#buscar").placeholder = enRequisitos() ? "Buscar requisito por ID o texto" : "Buscar por ID o texto";
   $("#validacion-nombre").textContent = S.validacion ? S.validacion.datos.nombre : "Sin validación";
   $("#btn-validacion").title = S.validacion ? S.validacion.carpeta : "Crear o abrir la validación de una versión";
-  const nombre = $("#campana-nombre");
-  nombre.textContent = S.campana ? S.campana.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin ejecución";
-  $("#btn-campana").title = S.campana ? S.campana.carpeta : "Crear o abrir una ejecución";
+  const nombre = $("#ejecucion-nombre");
+  nombre.textContent = S.ejecucion ? S.ejecucion.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin ejecución";
+  $("#btn-ejecucion").title = S.ejecucion ? S.ejecucion.carpeta : "Crear o abrir una ejecución";
   $("#filtro-estado").value = S.filtroEstado;
   etiquetarCapitulos();
 }
@@ -68,7 +68,7 @@ async function cambiarModo(modo) {
     } catch (e) { fallo(e); }
   }
   if (modo === "ejecucion" && !S.validacion) await recuperarValidacion();
-  if (modo === "ejecucion" && !S.campana && !S.validacion) await recuperarCampana();
+  if (modo === "ejecucion" && !S.ejecucion && !S.validacion) await recuperarEjecucion();
   pintarModo();
   await cargarNavegacion();
   mostrarVacio();
@@ -77,14 +77,14 @@ async function cambiarModo(modo) {
 
 /** Texto de cada capítulo en el selector: en ejecución, cuántas pruebas de la ejecución quedan. */
 function textoCapitulo(c) {
-  if (enEjecucion() && !S.campana && S.validacion) {
+  if (enEjecucion() && !S.ejecucion && S.validacion) {
     const suyas = S.validacion.pruebas.filter((p) => p.archivo === c.archivo);
     if (!suyas.length) return `${c.nombre} (fuera de la validación)`;
     const validadas = suyas.filter((p) => p.estado === "validada").length;
     return `${c.nombre} (${validadas} de ${suyas.length} validadas)`;
   }
-  if (!enEjecucion() || !S.campana) return `${c.nombre} (${c.pruebas})`;
-  const suyas = S.campana.resumen.pruebas.filter((p) => p.archivo === c.archivo);
+  if (!enEjecucion() || !S.ejecucion) return `${c.nombre} (${c.pruebas})`;
+  const suyas = S.ejecucion.resumen.pruebas.filter((p) => p.archivo === c.archivo);
   if (!suyas.length) return `${c.nombre} (fuera de la ejecución)`;
   const pendientes = suyas.filter((p) => p.estado === "pendiente").length;
   return `${c.nombre} (${pendientes ? `${pendientes} de ${suyas.length} pendientes` : `${suyas.length} ejecutadas`})`;
@@ -101,11 +101,11 @@ function etiquetarCapitulos() {
  */
 let cacheCambiadas = { fuente: null, mapa: new Map() };
 function pruebasCambiadas() {
-  const fuente = S.campana ? S.campana.resumen : S.validacion;
+  const fuente = S.ejecucion ? S.ejecucion.resumen : S.validacion;
   if (cacheCambiadas.fuente === fuente) return cacheCambiadas.mapa;
   const mapa = new Map();
-  if (S.campana) {
-    for (const p of S.campana.resumen.pruebas) {
+  if (S.ejecucion) {
+    for (const p of S.ejecucion.resumen.pruebas) {
       if (p.cambiada) mapa.set(p.id, "La prueba ha cambiado después de ejecutarse en esta ejecución: revisa si hay que repetirla.");
     }
   } else if (S.validacion) {
@@ -125,7 +125,7 @@ function marcaCambiada(id) {
 
 /** En ejecución el árbol solo muestra las pruebas de la ejecución (y las secciones que las contienen). */
 function filtrarNodosEjecucion(nodos) {
-  if (!S.campana && !S.validacion) return [];
+  if (!S.ejecucion && !S.validacion) return [];
   const estados = mapaEstados();
   const padres = new Map(nodos.map((n) => [n.indice, n.padre]));
   const quedan = new Set();
@@ -140,32 +140,32 @@ function filtrarNodosEjecucion(nodos) {
 
 function marcaEstado(id) {
   const estado = mapaEstados().get(id) || "pendiente";
-  const texto = !S.campana && S.validacion ? VAL_TXT[(S.validacion.pruebas.find((p) => p.id === id) || {}).estado] || ESTADO_TXT[estado] : ESTADO_TXT[estado];
+  const texto = !S.ejecucion && S.validacion ? VAL_TXT[(S.validacion.pruebas.find((p) => p.id === id) || {}).estado] || ESTADO_TXT[estado] : ESTADO_TXT[estado];
   return h("span", { class: "punto-estado e-" + estado, title: texto, role: "img", "aria-label": texto });
 }
 
 /* ---- ejecuciones: abrir, crear, recientes ---- */
 function recientes() {
-  try { return JSON.parse(leerLocal("campanas-recientes") || "[]"); } catch (_e) { return []; }
+  try { return JSON.parse(leerLocal("ejecuciones-recientes") || leerLocal("campanas-recientes") || "[]"); } catch (_e) { return []; }
 }
 
 function recordarReciente() {
-  const lista = recientes().filter((r) => r.carpeta !== S.campana.carpeta);
-  lista.unshift({ carpeta: S.campana.carpeta, nombre: S.campana.datos.nombre });
-  guardarLocal("campanas-recientes", JSON.stringify(lista.slice(0, 8)));
+  const lista = recientes().filter((r) => r.carpeta !== S.ejecucion.carpeta);
+  lista.unshift({ carpeta: S.ejecucion.carpeta, nombre: S.ejecucion.datos.nombre });
+  guardarLocal("ejecuciones-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
 /** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada. */
-async function recuperarCampana() {
+async function recuperarEjecucion() {
   try {
-    const actual = await api.campana_estado();
-    if (actual) { S.campana = actual; return; }
+    const actual = await api.ejecucion_estado();
+    if (actual) { S.ejecucion = actual; return; }
     const ultima = recientes()[0];
-    if (ultima) await usarCampana(await api.campana_abrir(ultima.carpeta), { silencio: true });
+    if (ultima) await usarEjecucion(await api.ejecucion_abrir(ultima.carpeta), { silencio: true });
   } catch (_e) { /* la última ejecución ya no existe: se elegirá otra */ }
 }
 
-async function usarCampana(r, { silencio = false } = {}) {
+async function usarEjecucion(r, { silencio = false } = {}) {
   if (!r || r.cancelado) return;
   if (r.faltan_pruebas) {
     if (silencio) return;
@@ -178,7 +178,7 @@ async function usarCampana(r, { silencio = false } = {}) {
       botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Buscar la carpeta…", valor: "si", tipo: "primary" }],
     });
     if (respuesta !== "si") return;
-    try { await usarCampana(await api.campana_reubicar(r.carpeta), { silencio }); } catch (e) { fallo(e); }
+    try { await usarEjecucion(await api.ejecucion_reubicar(r.carpeta), { silencio }); } catch (e) { fallo(e); }
     return;
   }
   if (r.carpeta_pruebas) {      // la ejecución usa otra carpeta de pruebas: se abre esa
@@ -187,7 +187,7 @@ async function usarCampana(r, { silencio = false } = {}) {
     aplicarResumen(r.carpeta_pruebas);
     await cargarCobertura();
   }
-  S.campana = r;
+  S.ejecucion = r;
   S.seleccion = null;
   S.filtroEstado = "";
   R = null;
@@ -201,17 +201,17 @@ async function usarCampana(r, { silencio = false } = {}) {
   }
 }
 
-async function abrirCampana(carpeta = null) {
+async function abrirEjecucion(carpeta = null) {
   if (!(await guardia())) return;
   setDirty(false);
-  try { await usarCampana(await api.campana_abrir(carpeta)); } catch (e) { fallo(e); }
+  try { await usarEjecucion(await api.ejecucion_abrir(carpeta)); } catch (e) { fallo(e); }
 }
 
-async function menuCampana() {
-  const lista = recientes().filter((r) => !S.campana || r.carpeta !== S.campana.carpeta);
-  const cuerpo = h("div", { class: "menu-campana" },
+async function menuEjecucion() {
+  const lista = recientes().filter((r) => !S.ejecucion || r.carpeta !== S.ejecucion.carpeta);
+  const cuerpo = h("div", { class: "menu-ejecucion" },
     S.validacion ? h("p", { class: "muted", text: `Validación abierta: «${S.validacion.datos.nombre}». Las ejecuciones nuevas se crean dentro de ella; una que abras y no forme parte de ella se puede añadir desde su resumen.` }) : null,
-    S.campana ? h("p", {}, "Abierta: ", h("strong", { text: S.campana.datos.nombre }), h("br"), h("span", { class: "muted", text: S.campana.carpeta })) : null,
+    S.ejecucion ? h("p", {}, "Abierta: ", h("strong", { text: S.ejecucion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.ejecucion.carpeta })) : null,
     lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
     lista.map((r) => h("button", {
       type: "button", class: "btn ghost reciente", title: r.carpeta,
@@ -225,9 +225,9 @@ async function menuCampana() {
       { texto: "Nueva ejecución…", valor: "nueva", tipo: "primary" },
     ],
   });
-  if (r === "nueva") await nuevaCampana({ enValidacion: Boolean(S.validacion) });
-  else if (r === "abrir") await abrirCampana();
-  else if (r && r.startsWith("reciente:")) await abrirCampana(r.slice(9));
+  if (r === "nueva") await nuevaEjecucion({ enValidacion: Boolean(S.validacion) });
+  else if (r === "abrir") await abrirEjecucion();
+  else if (r && r.startsWith("reciente:")) await abrirEjecucion(r.slice(9));
 }
 
 /**
@@ -243,7 +243,7 @@ function selectorFiltro(opciones, filtro, textoLista) {
   const vista = h("div", { class: "vista-seleccion" });
   const actualizar = debounce(async () => {
     try {
-      const lista = await api.campana_previsualizar(filtro);
+      const lista = await api.ejecucion_previsualizar(filtro);
       vista.replaceChildren(
         h("p", {}, h("strong", { text: plural(lista.length, "prueba", "pruebas") }), lista.length ? textoLista : " cumplen el criterio."),
         h("ul", {}, lista.slice(0, 300).map((p) => h("li", {}, h("span", { class: "tid", text: p.id }), " ", p.titulo))));
@@ -269,12 +269,12 @@ function selectorFiltro(opciones, filtro, textoLista) {
 
 /* ---- nueva ejecución ---- */
 /** Nueva ejecución. Desde una validación (`enValidacion`) parte de su criterio y se guarda dentro de ella. */
-async function nuevaCampana({ enValidacion = false } = {}) {
+async function nuevaEjecucion({ enValidacion = false } = {}) {
   if (!S.capitulos.length) { aviso("Abre primero la carpeta de pruebas", "error"); return; }
   if (!(await guardia())) return;
   setDirty(false);
   let opciones;
-  try { opciones = await api.campana_opciones(); } catch (e) { fallo(e); return; }
+  try { opciones = await api.ejecucion_opciones(); } catch (e) { fallo(e); return; }
   const filtro = enValidacion && S.validacion ? JSON.parse(JSON.stringify(S.validacion.datos.seleccion || {})) : {};
   const campo = (id, etiqueta, ayuda = "") => h("div", { class: "campo" },
     h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", placeholder: ayuda }));
@@ -286,7 +286,7 @@ async function nuevaCampana({ enValidacion = false } = {}) {
       if (ficha && (ficha.getAttribute("aria-pressed") === "true") !== marcar) ficha.click();
     }
   });
-  const cuerpo = h("div", { class: "nueva-campana" },
+  const cuerpo = h("div", { class: "nueva-ejecucion" },
     h("div", { class: "rejilla" },
       Object.assign(campo("c-nombre", "Nombre *", "Regresión v2.3 en Torre"), { className: "campo completo" }),
       campo("c-objeto", "Qué se prueba", "Firmware 2.3.0-rc2"),
@@ -318,12 +318,12 @@ async function nuevaCampana({ enValidacion = false } = {}) {
   };
   try {
     if (enValidacion) {
-      await usarCampana(await api.validacion_nueva_ejecucion(nombre, filtro, datos));
+      await usarEjecucion(await api.validacion_nueva_ejecucion(nombre, filtro, datos));
       await refrescarValidacion();
       return;
     }
     aviso("Elige la carpeta donde guardar la ejecución (se creará una subcarpeta)…");
-    await usarCampana(await api.campana_crear(nombre, filtro, datos));
+    await usarEjecucion(await api.ejecucion_crear(nombre, filtro, datos));
   } catch (e) { fallo(e); }
 }
 
@@ -340,9 +340,9 @@ function selectorEntorno(id, valor, alCambiar = null) {
 }
 
 /** Cambiar los datos de la ejecución abierta. */
-async function editarDatosCampana() {
-  if (!S.campana || S.campana.cerrada) return;
-  const d = S.campana.datos;
+async function editarDatosEjecucion() {
+  if (!S.ejecucion || S.ejecucion.cerrada) return;
+  const d = S.ejecucion.datos;
   const campo = (id, etiqueta, valor) => h("div", { class: "campo" },
     h("label", { for: id, text: etiqueta }), h("input", { id, type: "text", autocomplete: "off", value: valor || "" }));
   const cuerpo = h("div", { class: "rejilla" },
@@ -356,7 +356,7 @@ async function editarDatosCampana() {
   });
   if (r !== "si") return;
   try {
-    S.campana = await api.campana_editar_datos({
+    S.ejecucion = await api.ejecucion_editar_datos({
       objeto: cuerpo.querySelector("#d-objeto").value,
       entorno_pruebas: cuerpo.querySelector("#d-entorno-pruebas").value,
       entorno: cuerpo.querySelector("#d-entorno").value,
@@ -369,8 +369,8 @@ async function editarDatosCampana() {
 }
 
 /* ---- navegación entre pruebas de la ejecución ---- */
-async function irAPruebaCampana(id) {
-  const p = S.campana && S.campana.resumen.pruebas.find((x) => x.id === id);
+async function irAPruebaEjecucion(id) {
+  const p = S.ejecucion && S.ejecucion.resumen.pruebas.find((x) => x.id === id);
   if (!p || !p.archivo) { aviso(`La prueba ${id} ya no está en los YAML de pruebas`, "error"); return; }
   const ci = S.capitulos.findIndex((c) => c.archivo === p.archivo);
   if (ci < 0) return;
@@ -393,16 +393,16 @@ async function irAPruebaCampana(id) {
 }
 
 /** Desde el resumen: abre el capítulo y su primera prueba pendiente (o la primera, si no queda ninguna). */
-async function irACapituloCampana(ci) {
+async function irACapituloEjecucion(ci) {
   const archivo = S.capitulos[ci] && S.capitulos[ci].archivo;
-  const suyas = S.campana ? S.campana.resumen.pruebas.filter((p) => p.archivo === archivo) : [];
+  const suyas = S.ejecucion ? S.ejecucion.resumen.pruebas.filter((p) => p.archivo === archivo) : [];
   const destino = suyas.find((p) => p.estado === "pendiente") || suyas[0];
-  if (destino) { await irAPruebaCampana(destino.id); return; }
+  if (destino) { await irAPruebaEjecucion(destino.id); return; }
   if (ci !== S.capitulo) { $("#sel-capitulo").value = String(ci); await cambiarCapitulo(String(ci)); }
 }
 
 async function siguientePendiente(desdeId = null) {
-  const lista = S.campana ? S.campana.resumen.pruebas : [];
+  const lista = S.ejecucion ? S.ejecucion.resumen.pruebas : [];
   const inicio = desdeId ? lista.findIndex((p) => p.id === desdeId) : -1;
   const orden = [...lista.slice(inicio + 1), ...lista.slice(0, inicio + 1)];
   const siguiente = orden.find((p) => p.estado === "pendiente" && p.archivo);
@@ -413,14 +413,14 @@ async function siguientePendiente(desdeId = null) {
     mostrarVacio();
     return;
   }
-  await irAPruebaCampana(siguiente.id);
+  await irAPruebaEjecucion(siguiente.id);
 }
 
 /* ---- panel de la ejecución (sin prueba seleccionada) ---- */
-function mostrarPanelCampana() {
+function mostrarPanelEjecucion() {
   R = null;
-  if (!S.campana && S.validacion) { mostrarPanelValidacion(); return; }
-  if (!S.campana) {
+  if (!S.ejecucion && S.validacion) { mostrarPanelValidacion(); return; }
+  if (!S.ejecucion) {
     const lista = recientes();
     mostrar(h("div", { class: "centro" },
       h("h2", { text: "Validación de una versión" }),
@@ -430,14 +430,14 @@ function mostrarPanelCampana() {
         h("button", { class: "btn", type: "button", onclick: () => abrirValidacion(), text: "Abrir validación…" })),
       h("p", { class: "muted", text: "También puedes trabajar con una ejecución suelta, sin validación:" }),
       h("div", { class: "fila-botones" },
-        h("button", { class: "btn", type: "button", onclick: () => nuevaCampana(), text: "Nueva ejecución" }),
-        h("button", { class: "btn", type: "button", onclick: () => abrirCampana(), text: "Abrir ejecución…" })),
+        h("button", { class: "btn", type: "button", onclick: () => nuevaEjecucion(), text: "Nueva ejecución" }),
+        h("button", { class: "btn", type: "button", onclick: () => abrirEjecucion(), text: "Abrir ejecución…" })),
       lista.length ? h("div", { class: "recientes" }, h("p", { class: "muted", text: "Recientes" }),
-        lista.map((r) => h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: () => abrirCampana(r.carpeta) },
+        lista.map((r) => h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: () => abrirEjecucion(r.carpeta) },
           h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta })))) : null));
     return;
   }
-  const c = S.campana;
+  const c = S.ejecucion;
   const r = c.resumen;
   const d = c.datos;
   const barra = h("div", { class: "barra-progreso", role: "img", "aria-label": `Avance ${r.progreso} %` },
@@ -448,17 +448,17 @@ function mostrarPanelCampana() {
     h("thead", {}, h("tr", {}, h("th", { text: titulo }), ESTADOS.map((e) => h("th", { class: "num", text: ESTADO_TXT[e] })))),
     h("tbody", {}, Object.entries(datos).map(([nombre, t]) => {
       const ci = S.capitulos.findIndex((cap) => cap.nombre === nombre);
-      return h("tr", ci < 0 ? {} : { class: "pulsable", title: "Ir a este capítulo", onclick: () => irACapituloCampana(ci) },
+      return h("tr", ci < 0 ? {} : { class: "pulsable", title: "Ir a este capítulo", onclick: () => irACapituloEjecucion(ci) },
         h("td", { text: nombre }),
         ESTADOS.map((e) => h("td", { class: "num" + (t[e] ? " e-txt-" + e : ""), text: t[e] ? String(t[e]) : "·" })));
     })));
   const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => (k === "solo_ids" ? `${[].concat(v).length} pruebas elegidas una a una`
     : k === "importado_de" ? `resultados importados de ${v}` : `${k}: ${[].concat(v).join(", ")}`)).join(" · ") || "todas las pruebas";
   const problemas = r.problemas.length
-    ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: "Ir a la prueba", onclick: () => irAPruebaCampana(p.id) },
+    ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: "Ir a la prueba", onclick: () => irAPruebaEjecucion(p.id) },
       h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id }), h("span", { text: p.mensaje }))))
     : h("p", { class: "muted", text: "Sin avisos." });
-  mostrar(h("div", { class: "formulario panel-campana" },
+  mostrar(h("div", { class: "formulario panel-ejecucion" },
     S.validacion ? h("button", { class: "btn ghost peq volver", type: "button", onclick: volverAValidacion },
       icon("up"), `Validación «${S.validacion.datos.nombre}»`) : null,
     S.validacion && c.en_validacion === false ? h("div", { class: "aviso-panel aviso-fuera" },
@@ -472,7 +472,7 @@ function mostrarPanelCampana() {
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la ejecución sigue abierta" }),
       h("button", { class: "btn", type: "button", onclick: compararEjecucion, text: "Comparar con…", title: "Comparar con otra ejecución (la anterior): nuevos fallos y arreglos" }),
-      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar ejecución…" }),
+      c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarEjecucion, text: "Cerrar ejecución…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Avance" }),
@@ -488,10 +488,10 @@ function mostrarPanelCampana() {
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Avisos" })), problemas),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecución" }),
-        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: editarDatosCampana, text: "Cambiar datos…", title: "Qué se prueba, entorno de pruebas, banco y responsable" }),
+        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: editarDatosEjecucion, text: "Cambiar datos…", title: "Qué se prueba, entorno de pruebas, banco y responsable" }),
         c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: resincronizar, text: "Resincronizar", title: "Añadir las pruebas nuevas que cumplen el criterio" })),
       d.entorno_pruebas ? null : h("p", { class: "aviso-panel", text: "Esta ejecución no indica su entorno de pruebas (Automático, Maqueta o Torre): en la validación de la versión sus resultados no contarán para ningún entorno. Indícalo con «Cambiar datos…»." }),
-      h("dl", { class: "datos-campana" },
+      h("dl", { class: "datos-ejecucion" },
         h("dt", { text: "Entorno de pruebas" }), h("dd", { text: d.entorno_pruebas || "(sin indicar)" }),
         d.entorno ? [h("dt", { text: "Banco / instalación" }), h("dd", { text: d.entorno })] : null,
         h("dt", { text: "Criterio" }), h("dd", { text: criterio }),
@@ -501,13 +501,13 @@ function mostrarPanelCampana() {
 
 /* ---- resultados de Robot Framework ---- */
 async function importarRobot(ruta = null) {
-  if (!S.campana || S.campana.cerrada) return;
+  if (!S.ejecucion || S.ejecucion.cerrada) return;
   if (!(await guardia())) return;
   setDirty(false);
   try {
-    const elegido = typeof ruta === "string" ? { ruta } : await api.campana_robot_elegir();
+    const elegido = typeof ruta === "string" ? { ruta } : await api.ejecucion_robot_elegir();
     if (elegido.cancelado) return;
-    const plan = await api.campana_robot_previsualizar(elegido.ruta);
+    const plan = await api.ejecucion_robot_previsualizar(elegido.ruta);
     const t = plan.totales;
     const lista = (titulo, ids, clase = "") => ids.length ? h("div", { class: "aviso-robot " + clase },
       h("strong", { text: `${titulo} (${ids.length})` }), h("span", { text: ids.join(", ") })) : null;
@@ -525,7 +525,7 @@ async function importarRobot(ruta = null) {
       lista("Sustituyen un resultado manual (el manual queda en el historial)", plan.sustituyen_manual, "atencion"),
       lista("Tests de Robot sin etiqueta id:", plan.sin_id),
       lista("IDs que no existen en las pruebas", plan.inexistentes, "atencion"),
-      lista("IDs que no están en esta ejecución", plan.fuera_de_campaña),
+      lista("IDs que no están en esta ejecución", plan.fuera_de_ejecucion),
       lista("Pruebas de la ejecución sin resultado en este archivo (siguen como están)", plan.sin_robot));
     const r = await dialogo({
       titulo: "Importar resultados de Robot Framework", cuerpo, ancho: true,
@@ -535,8 +535,8 @@ async function importarRobot(ruta = null) {
       ].filter(Boolean),
     });
     if (r !== "si") return;
-    const estado = await api.campana_robot_importar(elegido.ruta);
-    S.campana = estado;
+    const estado = await api.ejecucion_robot_importar(elegido.ruta);
+    S.ejecucion = estado;
     S.seleccion = null;
     R = null;
     pintarModo();
@@ -547,11 +547,11 @@ async function importarRobot(ruta = null) {
 }
 
 /* ---- cierre e informe ---- */
-async function cerrarCampana() {
-  if (!S.campana || S.campana.cerrada) return;
+async function cerrarEjecucion() {
+  if (!S.ejecucion || S.ejecucion.cerrada) return;
   if (!(await guardia())) return;
   setDirty(false);
-  const t = S.campana.resumen.totales;
+  const t = S.ejecucion.resumen.totales;
   if (t.pendiente) {
     await dialogo({
       titulo: "Aún no se puede cerrar",
@@ -572,9 +572,9 @@ async function cerrarCampana() {
   });
   if (r !== "si") return;
   try {
-    const estado = await api.campana_cerrar();
+    const estado = await api.ejecucion_cerrar();
     if (estado.carpeta_pruebas) { cacheImagenes.clear(); S.capitulo = 0; aplicarResumen(estado.carpeta_pruebas); }
-    S.campana = estado;
+    S.ejecucion = estado;
     S.seleccion = null;
     R = null;
     pintarModo();
@@ -586,18 +586,18 @@ async function cerrarCampana() {
 }
 
 async function generarInforme() {
-  if (!S.campana) return;
+  if (!S.ejecucion) return;
   if (!(await guardia())) return;
   setDirty(false);
   let conPdf = null;
-  try { conPdf = await api.campana_pdf_disponible(); } catch (_e) { /* sin PDF */ }
+  try { conPdf = await api.ejecucion_pdf_disponible(); } catch (_e) { /* sin PDF */ }
   const casilla = h("input", { type: "checkbox", id: "informe-pdf", disabled: !conPdf });
   casilla.checked = Boolean(conPdf) && leerLocal("informe-pdf") === "si";
   const r = await dialogo({
-    titulo: S.campana.cerrada ? "Informe de la ejecución" : "Informe (borrador)",
+    titulo: S.ejecucion.cerrada ? "Informe de la ejecución" : "Informe (borrador)",
     cuerpo: h("div", {},
       h("p", { text: "Un documento de Word con un resumen al principio (datos de la ejecución, totales, desglose por capítulo, fallos y bloqueos) y después cada prueba con su resultado, observaciones, evidencias e intentos anteriores." }),
-      S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }),
+      S.ejecucion.cerrada ? null : h("p", { class: "aviso-panel", text: "La ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }),
       h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
         conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Resultados en Excel (CSV)…", valor: "csv", tipo: "" },
@@ -607,10 +607,10 @@ async function generarInforme() {
   if (r !== "si") return;
   guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
   try {
-    const destino = await api.campana_elegir_destino_informe();
+    const destino = await api.ejecucion_elegir_destino_informe();
     if (destino.cancelado) return;
     const d = await conEspera(casilla.checked ? "Generando el informe y el PDF…" : "Generando el informe…",
-      () => api.campana_informe(destino.archivo, casilla.checked));
+      () => api.ejecucion_informe(destino.archivo, casilla.checked));
     const respuesta = await dialogo({
       titulo: "Informe generado",
       cuerpo: h("div", {},
@@ -626,8 +626,8 @@ async function generarInforme() {
 
 async function resincronizar() {
   try {
-    const r = await api.campana_resincronizar();
-    S.campana = r;
+    const r = await api.ejecucion_resincronizar();
+    S.ejecucion = r;
     const { añadidas, ya_no_cumplen: fuera } = r.cambios;
     aviso(añadidas.length ? `Añadidas: ${añadidas.join(", ")}` : "No hay pruebas nuevas que cumplan el criterio", "ok");
     if (fuera.length) aviso(`Ya no cumplen el criterio (se mantienen): ${fuera.join(", ")}`);
@@ -687,9 +687,9 @@ function fichaPrueba(el) {
 /* ---- panel de resultado ---- */
 const cacheEvidencias = new Map();
 function datosEvidencia(ruta, ancho) {
-  const clave = `${S.campana.carpeta}|${ruta}|${ancho}`;
+  const clave = `${S.ejecucion.carpeta}|${ruta}|${ancho}`;
   if (!cacheEvidencias.has(clave)) {
-    const promesa = api.campana_imagen(ruta, ancho);
+    const promesa = api.ejecucion_imagen(ruta, ancho);
     cacheEvidencias.set(clave, promesa);
     promesa.catch(() => cacheEvidencias.delete(clave));
   }
@@ -700,7 +700,7 @@ const esImagen = (ruta) => /\.(png|jpe?g|gif|bmp|tiff?)$/i.test(ruta);
 
 async function mostrarEnEjecucion(datos) {
   F = null;
-  if (!S.campana && S.validacion && datos.tipo === "prueba") { mostrarPruebaValidacion(datos); return; }
+  if (!S.ejecucion && S.validacion && datos.tipo === "prueba") { mostrarPruebaValidacion(datos); return; }
   if (datos.tipo !== "prueba") {
     const sec = datos.elemento;
     R = null;
@@ -712,14 +712,14 @@ async function mostrarEnEjecucion(datos) {
   }
   const el = datos.elemento;
   const id = String(el.id || "");
-  const info = await api.campana_resultado(id);
+  const info = await api.ejecucion_resultado(id);
   const res = info.resultado;
   R = {
     id, original: res.estado || "pendiente", estado: res.estado || "pendiente",
     observaciones: String(res.observaciones || ""), incidencia: String(res.incidencia || ""),
     evidencias: aLista(res.evidencias).map(String),
-    ejecutor: String(res.ejecutor || leerLocal("ejecutor") || S.campana.datos.responsable || ""),
-    intentos: aLista(res.intentos), fecha: res.fecha, cambiada: info.prueba_cambiada, enCampana: info.en_campaña,
+    ejecutor: String(res.ejecutor || leerLocal("ejecutor") || S.ejecucion.datos.responsable || ""),
+    intentos: aLista(res.intentos), fecha: res.fecha, cambiada: info.prueba_cambiada, enLaEjecucion: info.en_ejecucion,
     origen: res.origen || "",
   };
   mostrar(h("div", { class: "vista-ejecucion" },
@@ -733,7 +733,7 @@ async function mostrarEnEjecucion(datos) {
 
 function panelResultado() {
   const panel = h("aside", { class: "panel-resultado", "aria-label": "Resultado de la prueba" });
-  const bloqueada = cerrada() || !R.enCampana;
+  const bloqueada = cerrada() || !R.enLaEjecucion;
   function pintar() {
     const botones = ESTADOS.filter((e) => e !== "pendiente").map((e, i) => h("button", {
       type: "button", class: "estado-btn e-" + e, "aria-pressed": String(R.estado === e), disabled: bloqueada,
@@ -744,12 +744,12 @@ function panelResultado() {
       const quitar = bloqueada ? null : () => { R.evidencias.splice(k, 1); tocarResultado(); pintar(); };
       if (esImagen(ruta)) return miniatura(ruta, quitar, datosEvidencia);
       return h("div", { class: "archivo-evidencia" },
-        h("button", { type: "button", class: "enlace", text: ruta.split("/").pop(), title: "Abrir con el programa del sistema", onclick: () => api.campana_abrir_evidencia(ruta).catch(fallo) }),
+        h("button", { type: "button", class: "enlace", text: ruta.split("/").pop(), title: "Abrir con el programa del sistema", onclick: () => api.ejecucion_abrir_evidencia(ruta).catch(fallo) }),
         quitar ? h("button", { type: "button", class: "btn icono quitar", "aria-label": "Quitar evidencia", onclick: quitar }, icon("x")) : null);
     }));
     panel.replaceChildren();
     append(panel, [
-      !R.enCampana ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la ejecución." }) : null,
+      !R.enLaEjecucion ? h("p", { class: "aviso-panel", text: "Esta prueba no forma parte de la ejecución." }) : null,
       cerrada() ? h("p", { class: "aviso-panel", text: "La ejecución está cerrada: los resultados no se pueden cambiar." }) : null,
       R.origen === "robot" ? h("p", { class: "origen-panel", text: "Resultado importado de Robot Framework. Si lo cambias a mano, el importado queda en el historial." }) : null,
       tieneRobot(R.id) ? h("div", { class: "seccion-panel robot-panel" },
@@ -844,7 +844,7 @@ async function añadirEvidencias(archivos) {
   try {
     for (const archivo of archivos) {
       const datos = await leerComoDataUrl(archivo);
-      const { ruta } = await api.campana_evidencia_base64(R.id, archivo.name || "captura.png", datos);
+      const { ruta } = await api.ejecucion_evidencia_base64(R.id, archivo.name || "captura.png", datos);
       R.evidencias.push(ruta);
     }
     tocarResultado();
@@ -855,7 +855,7 @@ async function añadirEvidencias(archivos) {
 
 async function elegirEvidencias() {
   try {
-    const { rutas } = await api.campana_elegir_evidencias(R.id);
+    const { rutas } = await api.ejecucion_elegir_evidencias(R.id);
     if (!rutas.length) return;
     R.evidencias.push(...rutas);
     tocarResultado();
@@ -875,7 +875,7 @@ async function guardarResultado() {
     return true;
   }
   try {
-    S.campana = await api.campana_registrar(R.id, R.estado, R.observaciones, R.incidencia, R.evidencias, R.ejecutor);
+    S.ejecucion = await api.ejecucion_registrar(R.id, R.estado, R.observaciones, R.incidencia, R.evidencias, R.ejecutor);
     if (R.ejecutor.trim()) guardarLocal("ejecutor", R.ejecutor.trim());
     setDirty(false);
     pintarModo();
@@ -904,9 +904,9 @@ function iniciarEjecucion() {
   $("#modo-edicion").addEventListener("click", () => cambiarModo("edicion"));
   $("#modo-requisitos").addEventListener("click", () => cambiarModo("requisitos"));
   $("#modo-ejecucion").addEventListener("click", () => cambiarModo("ejecucion"));
-  $("#btn-campana").addEventListener("click", menuCampana);
+  $("#btn-ejecucion").addEventListener("click", menuEjecucion);
   $("#btn-validacion").addEventListener("click", menuValidacion);
-  $("#btn-panel-campana").addEventListener("click", async () => {
+  $("#btn-panel-ejecucion").addEventListener("click", async () => {
     if (!(await guardia())) return;
     setDirty(false);
     S.seleccion = null;
@@ -918,7 +918,7 @@ function iniciarEjecucion() {
     await cargarNavegacion();
   });
   document.addEventListener("keydown", (e) => {
-    if (!enEjecucion() || !R || cerrada() || !R.enCampana || document.querySelector("dialog[open]")) return;
+    if (!enEjecucion() || !R || cerrada() || !R.enLaEjecucion || document.querySelector("dialog[open]")) return;
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); guardarYSiguiente(); return; }
     const escribiendo = e.target.closest && e.target.closest("input, textarea, select, [contenteditable]");
     if (escribiendo || e.ctrlKey || e.metaKey || e.altKey) return;

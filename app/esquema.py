@@ -7,6 +7,10 @@ Para añadir, quitar o cambiar un campo en todas las pruebas: cámbialo aquí
 (y, si el Word trae datos que convertir, la regla en `migrar_prueba`) y
 vuelve a importar el Word.
 
+Las opciones de maniobra y de entorno son de cada proyecto: se leen de su
+`aztarna.yaml` (ver `configurar`). Sin ese archivo, maniobra no tiene opciones
+y entorno usa las de los ejemplos.
+
 Orden de la tabla de cada prueba (plantilla en plantillas/tabla_prueba.docx):
 
     ID | Título
@@ -21,6 +25,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from pathlib import Path
 from typing import Any
 
 # ----------------------------------------------------------------------
@@ -30,11 +35,19 @@ from typing import Any
 CAMPOS_TEXTO = ("nombre", "id", "titulo", "descripcion", "automatizable", "fecha", "version")
 # Listas de elementos con formato, imágenes y subpuntos.
 CAMPOS_LISTA = ("contexto", "parametrizacion", "situacion_inicial", "pasos")
-# Varias opciones de una lista cerrada (se pueden marcar varias).
-OPCIONES_MULTIPLES = {
-    "maniobra": ("Simplex", "Dúplex"),
+# Varias opciones de una lista cerrada (se pueden marcar varias). Son las de
+# partida: `configurar` las cambia por las del aztarna.yaml del proyecto.
+OPCIONES_BASE: dict[str, tuple[str, ...]] = {
+    "maniobra": (),
     "entorno": ("Automático", "Maqueta", "Torre"),
 }
+# Otras formas de escribir una opción que se reconocen al importar («A» → Automático).
+EQUIVALENCIAS_BASE: dict[str, dict[str, str]] = {
+    "maniobra": {},
+    "entorno": {"A": "Automático", "Auto": "Automático", "Automática": "Automático", "M": "Maqueta", "T": "Torre"},
+}
+OPCIONES_MULTIPLES: dict[str, tuple[str, ...]] = dict(OPCIONES_BASE)
+EQUIVALENCIAS: dict[str, dict[str, str]] = {k: dict(v) for k, v in EQUIVALENCIAS_BASE.items()}
 # Una opción de una lista cerrada.
 AUTOMATIZABLE = ("si", "no", "corto", "medio", "largo", "hecho")
 AUTOMATIZABLE_VISIBLE = {"si": "Sí", "no": "No", "corto": "Corto", "medio": "Medio", "largo": "Largo", "hecho": "Hecho"}
@@ -100,33 +113,30 @@ def _clave(texto: str) -> str:
     return re.sub(r"\s+", "", _sin_tildes(str(texto))).lower()
 
 
-ENTORNO_PALABRAS = {"a": "Automático", "auto": "Automático", "automatico": "Automático", "automatica": "Automático",
-                    "m": "Maqueta", "maqueta": "Maqueta", "t": "Torre", "torre": "Torre"}
+def _clave_opcion(texto: Any) -> str:
+    """Forma de comparar opciones: sin tildes, espacios, guiones ni mayúsculas («Modo 1» = «modo1»)."""
+    return re.sub(r"[\s_\-.]", "", _sin_tildes(str(texto))).lower()
 
 
-def normalizar_entorno(valor: Any) -> tuple[list[str], list[str]]:
-    """Entornos válidos y lo que no se reconoce. Admite «A», «M», «T» y mezclas («A/M», «AM», «A, T»)."""
-    textos = valor if isinstance(valor, list) else [valor]
-    validos, descartados = [], []
-    for texto in textos:
-        for trozo in re.split(r"[/,;]|\s+y\s+|\s+", str(texto or "").strip()):
-            if not trozo:
-                continue
-            clave = _sin_tildes(trozo).lower().strip(".")
-            if clave in ENTORNO_PALABRAS:
-                encontrados = [ENTORNO_PALABRAS[clave]]
-            elif re.fullmatch(r"[amt]{2,3}", clave):              # «AM», «AMT»
-                encontrados = [ENTORNO_PALABRAS[letra] for letra in clave]
-            else:
-                descartados.append(trozo)
-                continue
-            validos.extend(e for e in encontrados if e not in validos)
-    orden = OPCIONES_MULTIPLES["entorno"]
-    return sorted(validos, key=orden.index), descartados
+def _reconocer(campo: str, trozo: str) -> list[str] | None:
+    """Opciones que nombra un trozo de texto (una opción, una equivalencia o, si son
+    letras sueltas, varias juntas: «AM» → Automático y Maqueta); None si no encaja."""
+    claves = {_clave_opcion(o): o for o in OPCIONES_MULTIPLES[campo]}
+    claves.update({_clave_opcion(k): v for k, v in EQUIVALENCIAS[campo].items()})
+    clave = _clave_opcion(trozo)
+    if clave in claves:
+        return [claves[clave]]
+    palabras = trozo.split()
+    if len(palabras) > 1 and all(_clave_opcion(p) in claves for p in palabras):
+        return [claves[_clave_opcion(p)] for p in palabras]
+    if len(clave) > 1 and all(letra in claves for letra in clave):
+        return [claves[letra] for letra in clave]
+    return None
 
 
-def normalizar_maniobra(valor: Any) -> tuple[list[str], list[str]]:
-    """Maniobras válidas («S», «Simplex», «D»…) y lo que no se reconoce."""
+def normalizar_opciones(campo: str, valor: Any) -> tuple[list[str], list[str]]:
+    """Opciones válidas de `campo` y lo que no se reconoce. Admite las opciones escritas
+    de otra forma, sus equivalencias y mezclas («A/M», «AM», «A, T»)."""
     textos = valor if isinstance(valor, list) else [valor]
     validos, descartados = [], []
     for texto in textos:
@@ -134,16 +144,23 @@ def normalizar_maniobra(valor: Any) -> tuple[list[str], list[str]]:
             trozo = trozo.strip()
             if not trozo:
                 continue
-            clave = re.sub(r"[\s_\-]", "", trozo).upper()
-            m = re.fullmatch(r"MODO(3|III)(\+?)", clave)
-            if m:
-                maniobra = "Simplex" + m.group(2)
-                if maniobra not in validos:
-                    validos.append(maniobra)
-            else:
+            encontrados = _reconocer(campo, trozo)
+            if encontrados is None:
                 descartados.append(trozo)
-    orden = OPCIONES_MULTIPLES["maniobra"]
+            else:
+                validos.extend(e for e in encontrados if e not in validos)
+    orden = OPCIONES_MULTIPLES[campo]
     return sorted(validos, key=orden.index), descartados
+
+
+def normalizar_entorno(valor: Any) -> tuple[list[str], list[str]]:
+    """Entornos válidos y lo que no se reconoce («A», «M», «T» y mezclas como «A/M» o «AM»)."""
+    return normalizar_opciones("entorno", valor)
+
+
+def normalizar_maniobra(valor: Any) -> tuple[list[str], list[str]]:
+    """Maniobras válidas (las del proyecto y sus equivalencias) y lo que no se reconoce."""
+    return normalizar_opciones("maniobra", valor)
 
 
 def normalizar_automatizable(valor: Any) -> str | None:
@@ -260,6 +277,93 @@ def completar(prueba: Any) -> None:
     for clave, valor in prueba_vacia().items():
         if clave not in prueba and clave not in ("nombre", "nivel", "contexto", "campos_adicionales", "imagenes"):
             _poner(prueba, clave, valor)
+
+
+# ----------------------------------------------------------------------
+# Opciones del proyecto (aztarna.yaml)
+# ----------------------------------------------------------------------
+#     opciones:
+#       maniobra: [Simplex, Dúplex]
+#       entorno: [Automático, Maqueta, Torre]
+#     equivalencias:                  # otras formas de escribirlas en el Word
+#       maniobra: {S: Simplex, D: Dúplex}
+#
+# Va en la carpeta del proyecto (junto a pruebas/ y requisitos/) o, en una
+# carpeta de pruebas suelta, dentro de ella. Un campo que no aparece conserva sus
+# opciones de partida; uno con opciones y sin equivalencias usa las de partida que
+# lleven a una de sus opciones.
+ARCHIVO_CONFIGURACION = "aztarna.yaml"
+# El aztarna.yaml que se está usando (None: las opciones de partida) y su contenido.
+CONFIGURACION: Path | None = None
+_CONTENIDO_CONFIGURACION: bytes = b""
+
+
+def archivo_configuracion(carpeta_pruebas: str | Path) -> Path | None:
+    """El aztarna.yaml de una carpeta de pruebas (o del proyecto que la contiene), si lo hay."""
+    carpeta = Path(carpeta_pruebas)
+    candidatos = [carpeta / ARCHIVO_CONFIGURACION]
+    if carpeta.name == CARPETA_PRUEBAS:
+        candidatos.append(carpeta.parent / ARCHIVO_CONFIGURACION)
+    return next((c for c in candidatos if c.is_file()), None)
+
+
+def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[str, dict[str, str]]]:
+    from ruamel.yaml import YAML
+    from ruamel.yaml.error import YAMLError
+
+    try:
+        with ruta.open(encoding="utf-8") as f:
+            datos = YAML(typ="safe").load(f) or {}
+    except (OSError, YAMLError) as error:
+        raise ValueError(f"No se puede leer {ruta}: {error}") from error
+    if not isinstance(datos, dict) or set(datos) - {"opciones", "equivalencias"}:
+        raise ValueError(f"{ruta}: solo admite «opciones» y «equivalencias».")
+    opciones, equivalencias = {}, {}
+    for campo, valores in (datos.get("opciones") or {}).items():
+        if campo not in OPCIONES_BASE:
+            raise ValueError(f"{ruta}: «{campo}» no es un campo con opciones ({', '.join(OPCIONES_BASE)}).")
+        valores = [str(v).strip() for v in (valores if isinstance(valores, list) else [valores]) if str(v or "").strip()]
+        if len({_clave_opcion(v) for v in valores}) != len(valores):
+            raise ValueError(f"{ruta}: hay opciones repetidas en «{campo}».")
+        opciones[campo] = tuple(valores)
+    for campo, pares in (datos.get("equivalencias") or {}).items():
+        if campo not in OPCIONES_BASE or not isinstance(pares, dict):
+            raise ValueError(f"{ruta}: las equivalencias de «{campo}» deben ser «forma: opción».")
+        validas = opciones.get(campo, OPCIONES_BASE[campo])
+        for forma, opcion in pares.items():
+            if str(opcion) not in validas:
+                raise ValueError(f"{ruta}: la equivalencia «{forma}» lleva a «{opcion}», que no es una opción de «{campo}».")
+        equivalencias[campo] = {str(k): str(v) for k, v in pares.items()}
+    return opciones, equivalencias
+
+
+def configurar(carpeta_pruebas: str | Path | None) -> Path | None:
+    """Usa las opciones del aztarna.yaml de esa carpeta (o las de partida si no tiene).
+
+    También admite la ruta del propio archivo. Devuelve el archivo leído. Un archivo
+    mal escrito da ValueError y deja las opciones como estaban.
+    """
+    global CONFIGURACION, _CONTENIDO_CONFIGURACION
+    ruta = None
+    if carpeta_pruebas is not None:
+        ruta = Path(carpeta_pruebas) if Path(carpeta_pruebas).is_file() else archivo_configuracion(carpeta_pruebas)
+    opciones, equivalencias = _leer_configuracion(ruta) if ruta else ({}, {})
+    for campo, base in OPCIONES_BASE.items():
+        OPCIONES_MULTIPLES[campo] = opciones.get(campo, base)
+        if campo in equivalencias:
+            EQUIVALENCIAS[campo] = equivalencias[campo]
+        else:
+            EQUIVALENCIAS[campo] = {k: v for k, v in EQUIVALENCIAS_BASE[campo].items() if v in OPCIONES_MULTIPLES[campo]}
+    CONFIGURACION = ruta
+    _CONTENIDO_CONFIGURACION = ruta.read_bytes() if ruta else b""
+    return ruta
+
+
+def copiar_configuracion(destino: str | Path) -> None:
+    """Deja en `destino` (un proyecto o una carpeta de pruebas nuevos) el aztarna.yaml que se está usando."""
+    if CONFIGURACION is not None and not (Path(destino) / ARCHIVO_CONFIGURACION).exists():
+        Path(destino).mkdir(parents=True, exist_ok=True)
+        (Path(destino) / ARCHIVO_CONFIGURACION).write_bytes(_CONTENIDO_CONFIGURACION)
 
 
 # ----------------------------------------------------------------------

@@ -169,7 +169,7 @@ function renderArbol() {
   pintarBarraNiveles();
   if (!S.nodos.length) {
     const texto = S.modo === "ejecucion"
-      ? (S.campana ? "Ninguna prueba de la ejecución en este capítulo con este filtro."
+      ? (S.ejecucion ? "Ninguna prueba de la ejecución en este capítulo con este filtro."
         : S.validacion ? "Ninguna prueba de la validación en este capítulo con este filtro." : "Abre o crea una validación o una ejecución.")
       : S.consulta ? "Nada coincide con la búsqueda."
         : enRequisitos() ? (S.filtroCobertura ? "Ningún requisito de este capítulo con este filtro." : "Este capítulo no tiene requisitos todavía.")

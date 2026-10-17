@@ -57,17 +57,17 @@ def estados_validacion(consolidado: dict[str, Any]) -> dict[str, dict[str, Any]]
     return {p["id"]: {"estado": p["estado"], "titulo": p["titulo"]} for p in consolidado["pruebas"]}
 
 
-def estados_ejecucion(campaña: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def estados_ejecucion(ejecucion: dict[str, Any]) -> dict[str, dict[str, Any]]:
     from app import ejecucion_core as ej
     from app.editor_core import tests_in_chapter
     titulos = {}
     try:
-        for capitulo in ej.capitulos_de(campaña):
+        for capitulo in ej.capitulos_de(ejecucion):
             for _i, prueba in tests_in_chapter(capitulo):
                 titulos[str(prueba.get("id") or "").strip()] = str(prueba.get("titulo") or "")
     except (OSError, ValueError):
         pass                                        # sin sus pruebas: se compara sin títulos
-    return {i: {"estado": ej.estado_de(campaña, i), "titulo": titulos.get(i, "")} for i in ej.ids_de(campaña)}
+    return {i: {"estado": ej.estado_de(ejecucion, i), "titulo": titulos.get(i, "")} for i in ej.ids_de(ejecucion)}
 
 
 def describir(carpeta: str | Path) -> dict[str, Any]:
@@ -81,11 +81,11 @@ def describir(carpeta: str | Path) -> dict[str, Any]:
         return {"tipo": "validacion", "carpeta": str(carpeta), "nombre": str(datos.get("nombre") or carpeta.name),
                 "version": str(datos.get("version") or ""),
                 "estados": estados_validacion(vc.consolidar(validacion, con_comparacion=False, con_requisitos=False))}
-    if ej.es_campaña(carpeta):
-        campaña = ej.cargar(carpeta)
-        datos = campaña["datos"]
+    if ej.es_ejecucion(carpeta):
+        ejecucion = ej.cargar(carpeta)
+        datos = ejecucion["datos"]
         return {"tipo": "ejecucion", "carpeta": str(carpeta), "nombre": str(datos.get("nombre") or carpeta.name),
-                "version": str(datos.get("objeto") or ""), "estados": estados_ejecucion(campaña)}
+                "version": str(datos.get("objeto") or ""), "estados": estados_ejecucion(ejecucion)}
     raise ValueError(f"{carpeta} no es una validación ni una ejecución.")
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ejecuciones de pruebas: qué pruebas se pasan, sobre qué y con qué resultado.
 
-Los YAML de pruebas no se tocan. Cada ejecución (antes «campaña»; en el código
+Los YAML de pruebas no se tocan. Cada ejecución (antes «ejecucion»; en el código
 siguen llamándose así muchas variables) es una carpeta elegida por el usuario con:
 
     ejecucion.yaml    datos de la ejecución, criterio de selección y lista
@@ -166,6 +166,8 @@ def opciones_filtro(capitulos: list[dict[str, Any]]) -> dict[str, list[str]]:
             for campo in CAMPOS_FILTRO:
                 opciones[campo].update(_lista(prueba.get(campo)))
     resultado = {campo: sorted(valores) for campo, valores in opciones.items()}
+    for campo, orden in esquema.OPCIONES_MULTIPLES.items():   # en el orden de las opciones; las que no lo son, al final
+        resultado[campo].sort(key=lambda v: (orden.index(v) if v in orden else len(orden), v))
     resultado["capitulos"] = [c["path"].name for c in capitulos]
     return resultado
 
@@ -211,7 +213,7 @@ def archivo_datos(carpeta: str | Path) -> Path:
     return carpeta / ARCHIVO_EJECUCION
 
 
-def es_campaña(carpeta: str | Path) -> bool:
+def es_ejecucion(carpeta: str | Path) -> bool:
     return archivo_datos(carpeta).is_file()
 
 
@@ -219,7 +221,7 @@ def _tiene_pruebas(ruta: Path) -> bool:
     return ruta.is_dir() and ((ruta / "indice.yaml").is_file() or any(ruta.glob("*.yaml")))
 
 
-def rutas_pruebas(carpeta_campaña: Path, pruebas: Path) -> dict[str, str]:
+def rutas_pruebas(carpeta_ejecucion: Path, pruebas: Path) -> dict[str, str]:
     """Cómo guardar dónde están las pruebas: relativa a la ejecución (si se puede) y absoluta.
 
     La relativa sigue valiendo si se mueven juntas (o se copian a otro PC); la
@@ -228,47 +230,47 @@ def rutas_pruebas(carpeta_campaña: Path, pruebas: Path) -> dict[str, str]:
     pruebas = Path(pruebas).resolve()
     datos = {}
     try:
-        datos["pruebas_yaml"] = Path(os.path.relpath(pruebas, Path(carpeta_campaña).resolve())).as_posix()
+        datos["pruebas_yaml"] = Path(os.path.relpath(pruebas, Path(carpeta_ejecucion).resolve())).as_posix()
     except ValueError:            # en Windows, otra unidad: no hay ruta relativa
         pass
     datos["pruebas_yaml_absoluta"] = str(pruebas)
     return datos
 
 
-def carpeta_pruebas(campaña: dict[str, Any]) -> Path | None:
+def carpeta_pruebas(ejecucion: dict[str, Any]) -> Path | None:
     """Carpeta de los YAML de pruebas, o None si no se encuentra en ninguna de las rutas guardadas."""
     for clave in ("pruebas_yaml", "pruebas_yaml_absoluta"):
-        valor = campaña["datos"].get(clave)
+        valor = ejecucion["datos"].get(clave)
         if not valor:
             continue
         ruta = Path(str(valor)).expanduser()
-        ruta = ruta if ruta.is_absolute() else (campaña["carpeta"] / ruta).resolve()
+        ruta = ruta if ruta.is_absolute() else (ejecucion["carpeta"] / ruta).resolve()
         if _tiene_pruebas(ruta):
             return ruta
     return None
 
 
-def carpeta_congelada(campaña: dict[str, Any]) -> Path | None:
-    ruta = campaña["carpeta"] / CARPETA_CONGELADA
+def carpeta_congelada(ejecucion: dict[str, Any]) -> Path | None:
+    ruta = ejecucion["carpeta"] / CARPETA_CONGELADA
     return ruta if _tiene_pruebas(ruta) else None
 
 
-def reubicar_pruebas(campaña: dict[str, Any], nueva: str | Path) -> Path:
+def reubicar_pruebas(ejecucion: dict[str, Any], nueva: str | Path) -> Path:
     """Indica dónde están ahora las pruebas de la ejecución (si se movieron)."""
     nueva = tests_dir(Path(nueva).expanduser().resolve())
     if not _tiene_pruebas(nueva):
         raise ValueError("Esa carpeta no contiene YAML de pruebas.")
-    if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(campaña)):
+    if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(ejecucion)):
         raise ValueError("Esa carpeta no contiene ninguna prueba de esta ejecución.")
-    campaña["datos"].pop("pruebas_yaml", None)
-    campaña["datos"].update(rutas_pruebas(campaña["carpeta"], nueva))
-    guardar(campaña)
+    ejecucion["datos"].pop("pruebas_yaml", None)
+    ejecucion["datos"].update(rutas_pruebas(ejecucion["carpeta"], nueva))
+    guardar(ejecucion)
     return nueva
 
 
 def cargar(carpeta: str | Path) -> dict[str, Any]:
     carpeta = Path(carpeta)
-    if not es_campaña(carpeta):
+    if not es_ejecucion(carpeta):
         raise ValueError(f"La carpeta no contiene una ejecución ({ARCHIVO_EJECUCION}).")
     archivo = archivo_datos(carpeta)
     datos = _leer_yaml(archivo) or {}
@@ -279,11 +281,11 @@ def cargar(carpeta: str | Path) -> dict[str, Any]:
     return {"carpeta": carpeta, "datos": datos, "resultados": resultados or {}}
 
 
-def guardar(campaña: dict[str, Any]) -> None:
-    formato.comprobar_datos(campaña["datos"], f"La ejecución «{campaña['datos'].get('nombre', '')}»")
-    formato.marcar_datos(campaña["datos"])
-    _escribir_yaml(archivo_datos(campaña["carpeta"]), campaña["datos"])
-    _escribir_yaml(campaña["carpeta"] / ARCHIVO_RESULTADOS, campaña["resultados"])
+def guardar(ejecucion: dict[str, Any]) -> None:
+    formato.comprobar_datos(ejecucion["datos"], f"La ejecución «{ejecucion['datos'].get('nombre', '')}»")
+    formato.marcar_datos(ejecucion["datos"])
+    _escribir_yaml(archivo_datos(ejecucion["carpeta"]), ejecucion["datos"])
+    _escribir_yaml(ejecucion["carpeta"] / ARCHIVO_RESULTADOS, ejecucion["resultados"])
     from app import lectura
     lectura.vaciar()
 
@@ -320,15 +322,15 @@ def _limpiar_datos(datos: dict[str, Any]) -> dict[str, str]:
     return limpios
 
 
-def editar_datos(campaña: dict[str, Any], cambios: dict[str, Any]) -> None:
+def editar_datos(ejecucion: dict[str, Any], cambios: dict[str, Any]) -> None:
     """Cambia los datos de una ejecución abierta (qué se prueba, entorno, responsable)."""
-    _exigir_abierta(campaña)
+    _exigir_abierta(ejecucion)
     for clave, valor in _limpiar_datos(cambios).items():
         if valor:
-            campaña["datos"][clave] = valor
+            ejecucion["datos"][clave] = valor
         else:
-            campaña["datos"].pop(clave, None)
-    guardar(campaña)
+            ejecucion["datos"].pop(clave, None)
+    guardar(ejecucion)
 
 
 def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
@@ -336,7 +338,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
           ids_robot: set[str] | None = None) -> dict[str, Any]:
     """Crea una ejecución nueva con las pruebas que cumplen el filtro (lista congelada)."""
     carpeta = Path(carpeta)
-    if es_campaña(carpeta):
+    if es_ejecucion(carpeta):
         raise ValueError("Esa carpeta ya contiene una ejecución.")
     if carpeta.exists() and any(carpeta.iterdir()):
         raise ValueError("Elige una carpeta vacía (o nueva) para la ejecución.")
@@ -350,7 +352,7 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
         raise ValueError("Ninguna prueba cumple el criterio de selección.")
     _comprobar_ids(seleccion)
     extra = {k: v for k, v in _limpiar_datos(datos or {}).items() if v}
-    campaña = {
+    ejecucion = {
         "carpeta": carpeta,
         "datos": {
             "nombre": nombre,
@@ -364,28 +366,28 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
         "resultados": {},
     }
     (carpeta / CARPETA_EVIDENCIAS).mkdir(parents=True, exist_ok=True)
-    guardar(campaña)
-    return campaña
+    guardar(ejecucion)
+    return ejecucion
 
 
 # ----------------------------------------------------------------------
 # Resultados
 # ----------------------------------------------------------------------
-def _exigir_abierta(campaña: dict[str, Any]) -> None:
-    if campaña["datos"].get("estado") == "cerrada":
+def _exigir_abierta(ejecucion: dict[str, Any]) -> None:
+    if ejecucion["datos"].get("estado") == "cerrada":
         raise ValueError("La ejecución está cerrada; no se pueden cambiar sus resultados.")
 
 
-def ids_de(campaña: dict[str, Any]) -> list[str]:
-    return [str(p["id"]) for p in campaña["datos"]["pruebas"]]
+def ids_de(ejecucion: dict[str, Any]) -> list[str]:
+    return [str(p["id"]) for p in ejecucion["datos"]["pruebas"]]
 
 
-def estado_de(campaña: dict[str, Any], test_id: str) -> str:
-    resultado = campaña["resultados"].get(test_id)
+def estado_de(ejecucion: dict[str, Any], test_id: str) -> str:
+    resultado = ejecucion["resultados"].get(test_id)
     return str(resultado.get("estado")) if resultado else "pendiente"
 
 
-def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
+def registrar(ejecucion: dict[str, Any], test_id: str, estado: str, *,
               observaciones: str = "", incidencia: str = "", evidencias: list[str] | None = None,
               ejecutor: str = "", huella_actual: str = "", fecha: str | None = None,
               origen: str = "", guardar_ahora: bool = True) -> dict[str, Any]:
@@ -395,12 +397,12 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
     de dónde viene el resultado si no es manual (por ejemplo, «robot»). Con
     `guardar_ahora=False` no se escribe el archivo (para apuntar muchos y guardar una vez).
     """
-    _exigir_abierta(campaña)
-    if test_id not in ids_de(campaña):
+    _exigir_abierta(ejecucion)
+    if test_id not in ids_de(ejecucion):
         raise ValueError(f"La prueba {test_id} no forma parte de esta ejecución.")
     if estado not in ESTADOS:
         raise ValueError(f"Estado no válido: {estado}.")
-    resultados = campaña["resultados"]
+    resultados = ejecucion["resultados"]
     anterior = resultados.get(test_id)
     if estado == "pendiente":
         # Volver a pendiente deshace el último resultado (si había historial, se recupera).
@@ -413,7 +415,7 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
                 resultados[test_id] = recuperado
             else:
                 del resultados[test_id]
-        guardar(campaña)
+        guardar(ejecucion)
         return resultados.get(test_id) or {"estado": "pendiente"}
     nuevo: dict[str, Any] = {"estado": estado, "fecha": fecha or ahora()}
     for clave, valor in (("ejecutor", ejecutor), ("origen", origen), ("huella", huella_actual),
@@ -437,15 +439,15 @@ def registrar(campaña: dict[str, Any], test_id: str, estado: str, *,
             nuevo["intentos"] = intentos
     resultados[test_id] = nuevo
     if guardar_ahora:
-        guardar(campaña)
+        guardar(ejecucion)
     return nuevo
 
 
-def editar_notas(campaña: dict[str, Any], test_id: str, *, observaciones: str | None = None,
+def editar_notas(ejecucion: dict[str, Any], test_id: str, *, observaciones: str | None = None,
                  incidencia: str | None = None, evidencias: list[str] | None = None) -> dict[str, Any]:
     """Corrige observaciones, incidencia o evidencias del resultado vigente sin crear otro intento."""
-    _exigir_abierta(campaña)
-    resultado = campaña["resultados"].get(test_id)
+    _exigir_abierta(ejecucion)
+    resultado = ejecucion["resultados"].get(test_id)
     if not resultado:
         raise ValueError("Apunta primero un resultado para esta prueba.")
     for clave, valor in (("observaciones", observaciones), ("incidencia", incidencia)):
@@ -460,22 +462,22 @@ def editar_notas(campaña: dict[str, Any], test_id: str, *, observaciones: str |
             resultado["evidencias"] = [str(e) for e in evidencias]
         else:
             resultado.pop("evidencias", None)
-    guardar(campaña)
+    guardar(ejecucion)
     return resultado
 
 
 MAX_EVIDENCIA_BYTES = 25 * 1024 * 1024
 
 
-def guardar_evidencia(campaña: dict[str, Any], test_id: str, nombre: str, contenido: bytes) -> str:
+def guardar_evidencia(ejecucion: dict[str, Any], test_id: str, nombre: str, contenido: bytes) -> str:
     """Copia un archivo a `evidencias/` como «<ID>_<n>.<ext>» y devuelve su ruta relativa.
 
     No lo asocia al resultado: eso se hace al registrar (o con `editar_notas`).
     """
-    _exigir_abierta(campaña)
+    _exigir_abierta(ejecucion)
     if len(contenido) > MAX_EVIDENCIA_BYTES:
         raise ValueError(f"{nombre or 'El archivo'} supera los 25 MB.")
-    carpeta = campaña["carpeta"] / CARPETA_EVIDENCIAS
+    carpeta = ejecucion["carpeta"] / CARPETA_EVIDENCIAS
     carpeta.mkdir(parents=True, exist_ok=True)
     base = "".join(c if c.isalnum() or c in "-_." else "_" for c in test_id) or "evidencia"
     extension = Path(nombre or "").suffix.lower() or ".png"
@@ -487,31 +489,31 @@ def guardar_evidencia(campaña: dict[str, Any], test_id: str, nombre: str, conte
     return f"{CARPETA_EVIDENCIAS}/{destino.name}"
 
 
-def ruta_evidencia(campaña: dict[str, Any], relativa: str) -> Path:
+def ruta_evidencia(ejecucion: dict[str, Any], relativa: str) -> Path:
     """Ruta absoluta de una evidencia, sin permitir salir de la carpeta de la ejecución."""
-    base = campaña["carpeta"].resolve()
+    base = ejecucion["carpeta"].resolve()
     ruta = (base / str(relativa)).resolve()
     if base not in ruta.parents:
         raise ValueError("La evidencia debe estar dentro de la carpeta de la ejecución.")
     return ruta
 
 
-def resincronizar(campaña: dict[str, Any], capitulos: list[dict[str, Any]],
+def resincronizar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]],
                   ids_robot: set[str] | None = None) -> dict[str, list[str]]:
     """Vuelve a aplicar el criterio: añade las pruebas nuevas que lo cumplen.
 
     Las que ya no lo cumplen no se quitan (pueden tener resultados); se informa de ellas.
     """
-    _exigir_abierta(campaña)
-    seleccion = seleccionar(capitulos, dict(campaña["datos"].get("seleccion") or {}), ids_robot)
+    _exigir_abierta(ejecucion)
+    seleccion = seleccionar(capitulos, dict(ejecucion["datos"].get("seleccion") or {}), ids_robot)
     _comprobar_ids(seleccion)
-    actuales = set(ids_de(campaña))
+    actuales = set(ids_de(ejecucion))
     nuevas = [item for item in seleccion if item["id"] not in actuales]
     for item in nuevas:
-        campaña["datos"]["pruebas"].append({"id": item["id"], "huella": huella(item["prueba"])})
+        ejecucion["datos"]["pruebas"].append({"id": item["id"], "huella": huella(item["prueba"])})
     seleccionados = {item["id"] for item in seleccion}
     if nuevas:
-        guardar(campaña)
+        guardar(ejecucion)
     return {"añadidas": [i["id"] for i in nuevas], "ya_no_cumplen": sorted(actuales - seleccionados)}
 
 
@@ -548,17 +550,17 @@ def _rutas_imagen(valor: Any) -> set[str]:
     return rutas
 
 
-def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
+def congelar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
     """Copia a `pruebas_congeladas/` las pruebas de la ejecución (con sus secciones e imágenes).
 
     Tiene el mismo formato que una carpeta de pruebas, así que el informe y la
     revisión de una ejecución cerrada no dependen de cómo evolucionen los YAML.
     """
-    destino = campaña["carpeta"] / CARPETA_CONGELADA
+    destino = ejecucion["carpeta"] / CARPETA_CONGELADA
     if destino.exists():
         shutil.rmtree(destino)
     destino.mkdir(parents=True)
-    ids = set(ids_de(campaña))
+    ids = set(ids_de(ejecucion))
     indice, imagenes, base = [], set(), None
     for capitulo in capitulos:
         contenido = filtrar_contenido(capitulo["data"]["contenido"], ids)
@@ -571,6 +573,9 @@ def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
         imagenes |= _rutas_imagen(contenido)
     _escribir_yaml(destino / "indice.yaml", indice)
     if base is not None:
+        configuracion = esquema.archivo_configuracion(base)
+        if configuracion is not None:               # las opciones de maniobra y entorno de entonces
+            shutil.copy2(configuracion, destino / esquema.ARCHIVO_CONFIGURACION)
         base = base.resolve()
         for relativa in sorted(imagenes):
             origen = (base / relativa).resolve()
@@ -580,28 +585,28 @@ def congelar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
     return destino
 
 
-def cerrar(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
+def cerrar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
     """Cierra la ejecución: congela sus pruebas y no admite más cambios. No puede quedar nada pendiente."""
-    _exigir_abierta(campaña)
-    pendientes = [i for i in ids_de(campaña) if estado_de(campaña, i) == "pendiente"]
+    _exigir_abierta(ejecucion)
+    pendientes = [i for i in ids_de(ejecucion) if estado_de(ejecucion, i) == "pendiente"]
     if pendientes:
         raise ValueError(
             f"Quedan {len(pendientes)} pruebas pendientes ({', '.join(pendientes[:5])}"
             f"{'…' if len(pendientes) > 5 else ''}). Ejecútalas o márcalas como «No aplica»."
         )
-    congelar(campaña, capitulos)
-    campaña["datos"]["estado"] = "cerrada"
-    campaña["datos"]["fin"] = ahora()
-    guardar(campaña)
+    congelar(ejecucion, capitulos)
+    ejecucion["datos"]["estado"] = "cerrada"
+    ejecucion["datos"]["fin"] = ahora()
+    guardar(ejecucion)
 
 
-def capitulos_de(campaña: dict[str, Any]) -> list[dict[str, Any]]:
+def capitulos_de(ejecucion: dict[str, Any]) -> list[dict[str, Any]]:
     """Capítulos con los que trabajar: los congelados si está cerrada, si no los vigentes."""
-    if campaña["datos"].get("estado") == "cerrada":
-        congelada = carpeta_congelada(campaña)
+    if ejecucion["datos"].get("estado") == "cerrada":
+        congelada = carpeta_congelada(ejecucion)
         if congelada is not None:
             return read_chapters(congelada)
-    vigente = carpeta_pruebas(campaña)
+    vigente = carpeta_pruebas(ejecucion)
     if vigente is None:
         raise ValueError("No se encuentran las pruebas de la ejecución.")
     return read_chapters(vigente)
@@ -610,7 +615,7 @@ def capitulos_de(campaña: dict[str, Any]) -> list[dict[str, Any]]:
 # ----------------------------------------------------------------------
 # Resumen y validación
 # ----------------------------------------------------------------------
-def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, Any]:
+def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, Any]:
     """Totales por estado, desglose por capítulo y problemas a revisar."""
     por_id = indice_por_id(capitulos)
     nombres = {c["path"].name: str(c["data"].get("capitulo") or c["path"].name) for c in capitulos}
@@ -618,10 +623,10 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
     por_capitulo: dict[str, dict[str, int]] = {}
     problemas: list[dict[str, str]] = []
     pruebas = []
-    for entrada in campaña["datos"]["pruebas"]:
+    for entrada in ejecucion["datos"]["pruebas"]:
         test_id = str(entrada["id"])
-        estado = estado_de(campaña, test_id)
-        resultado = campaña["resultados"].get(test_id) or {}
+        estado = estado_de(ejecucion, test_id)
+        resultado = ejecucion["resultados"].get(test_id) or {}
         totales[estado] += 1
         encontrada = por_id.get(test_id)
         cambiada = False
@@ -650,7 +655,7 @@ def resumen(campaña: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[s
             "intentos": len(resultado.get("intentos") or []) + (1 if resultado else 0),
             "cambiada": cambiada,
         })
-    total = len(campaña["datos"]["pruebas"])
+    total = len(ejecucion["datos"]["pruebas"])
     ejecutadas = total - totales["pendiente"]
     aplicables = total - totales["no_aplica"]
     return {

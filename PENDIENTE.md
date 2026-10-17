@@ -104,7 +104,8 @@ Sin issue todavía:
 Hecho (integrado en `main`):
 
 - «Campaña» pasa a llamarse **ejecución** (`ejecucion.yaml`; las carpetas con
-  `campaña.yaml` se siguen leyendo) y el modo del editor, **Validación**.
+  `campaña.yaml` se siguen leyendo) y el modo del editor, **Validación**. En
+  el código, variables, funciones y la API también se llaman `ejecucion`.
 - Cada ejecución indica su **entorno de pruebas** (Automático, Maqueta o
   Torre); el texto libre queda como «Banco / instalación».
 - Una **validación** (`validacion.yaml`) tiene nombre, versión, su criterio de
@@ -142,8 +143,6 @@ Por comprobar al usarla con datos reales:
   (repartirse sus pruebas) o basta con una ejecución por persona.
 - Requisitos en la validación: un requisito verificado cuando todas sus
   pruebas están validadas (aplazado).
-- En el código siguen las variables y funciones `campaña` / `campana_*`:
-  renombrarlas es mecánico pero toca mucho; decidir si se hace.
 
 ### Pasos ejecutables (aplazada)
 

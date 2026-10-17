@@ -233,7 +233,7 @@ class ApiTests(unittest.TestCase):
         e = ok(self, self.api.validacion_nueva_ejecucion("En Torre", {"etiquetas": ["regresion"], "entorno": ["Torre"]},
                                                           {"entorno_pruebas": "Torre"}))
         self.assertTrue(e["carpeta"].startswith(str(self.tmp / "val")))
-        ok(self, self.api.campana_registrar("DEMO-PUER-001", "ok"))
+        ok(self, self.api.ejecucion_registrar("DEMO-PUER-001", "ok"))
         v = ok(self, self.api.validacion_estado())
         puer = next(p for p in v["pruebas"] if p["id"] == "DEMO-PUER-001")
         self.assertEqual(puer["estado"], "validada")
@@ -242,10 +242,10 @@ class ApiTests(unittest.TestCase):
     def test_abrir_quitar_y_volver_desde_una_ejecucion_cerrada(self):
         ok(self, self.api.validacion_crear("V", "", {"incluir_ids": ["DEMO-PUER-001"], "capitulos": ["__x__"]}, str(self.tmp / "val")))
         ok(self, self.api.validacion_nueva_ejecucion("T", {"incluir_ids": ["DEMO-PUER-001"], "capitulos": ["__x__"]}, {"entorno_pruebas": "Torre"}))
-        ok(self, self.api.campana_registrar("DEMO-PUER-001", "ok"))
-        ok(self, self.api.campana_cerrar())
+        ok(self, self.api.ejecucion_registrar("DEMO-PUER-001", "ok"))
+        ok(self, self.api.ejecucion_cerrar())
         self.assertTrue(ok(self, self.api.iniciar())["solo_lectura"])       # pruebas congeladas
-        r = ok(self, self.api.campana_soltar())
+        r = ok(self, self.api.ejecucion_soltar())
         self.assertFalse(r["carpeta_pruebas"]["solo_lectura"])              # vuelve a las de la validación
         self.assertFalse(ok(self, self.api.validacion_estado())["borrador"])
         otra = EditorValidacionApi(self.tmp / "yaml")
@@ -257,14 +257,14 @@ class ApiTests(unittest.TestCase):
     def test_ejecucion_abierta_por_su_cuenta_se_marca_y_se_puede_anadir(self):
         """Con una validación abierta, una ejecución creada o abierta aparte no cuenta hasta añadirla."""
         ok(self, self.api.validacion_crear("V", "", {}, str(self.tmp / "val")))
-        e = ok(self, self.api.campana_crear("Suelta", {"etiquetas": ["regresion"]}, {"entorno_pruebas": "Torre"}, str(self.tmp / "suelta")))
+        e = ok(self, self.api.ejecucion_crear("Suelta", {"etiquetas": ["regresion"]}, {"entorno_pruebas": "Torre"}, str(self.tmp / "suelta")))
         self.assertIs(e["en_validacion"], False)
         r = ok(self, self.api.validacion_anadir_ejecucion(str(self.tmp / "suelta")))
         self.assertEqual(r["anadidas"], ["suelta"])
-        self.assertIs(r["campana"]["en_validacion"], True)
-        self.assertIs(ok(self, self.api.campana_estado())["en_validacion"], True)
+        self.assertIs(r["ejecucion"]["en_validacion"], True)
+        self.assertIs(ok(self, self.api.ejecucion_estado())["en_validacion"], True)
         ok(self, self.api.validacion_soltar())
-        self.assertIsNone(ok(self, self.api.campana_estado())["en_validacion"])
+        self.assertIsNone(ok(self, self.api.ejecucion_estado())["en_validacion"])
 
 
 if __name__ == "__main__":

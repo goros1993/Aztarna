@@ -17,8 +17,8 @@ Uso:
 3. Con `--aplicar` cambia esos IDs en los YAML (conserva los comentarios) y
    comprueba antes que los nuevos no se repiten.
 
-Si ya hay campañas con resultados de estas pruebas, cambiar el ID hace que
-allí aparezcan como «ya no existe» (las campañas reconocen las pruebas por su ID).
+Si ya hay ejecuciones con resultados de estas pruebas, cambiar el ID hace que
+allí aparezcan como «ya no existe» (las ejecuciones reconocen las pruebas por su ID).
 """
 from __future__ import annotations
 

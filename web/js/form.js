@@ -31,7 +31,7 @@ function mostrarSinCarpeta() {
 
 function mostrarVacio() {
   F = null;
-  if (S.modo === "ejecucion") { mostrarPanelCampana(); return; }
+  if (S.modo === "ejecucion") { mostrarPanelEjecucion(); return; }
   if (enRequisitos()) { mostrarPanelTrazabilidad(); return; }
   mostrar(h("div", { class: "centro" },
     h("h2", { text: "Elige qué editar" }),
@@ -319,6 +319,7 @@ function campoOpciones(clave, etiqueta) {
   const todas = [...opciones, ...valores.filter((v) => !opciones.includes(v))];
   return h("fieldset", { class: "campo opciones" },
     h("legend", { text: etiqueta }),
+    opciones.length ? null : h("p", { class: "muted", text: "Sin opciones en este proyecto: se definen en su aztarna.yaml." }),
     h("div", { class: "casillas" }, todas.map((o) => h("label", { class: "casilla" + (opciones.includes(o) ? "" : " no-valida"), title: opciones.includes(o) ? "" : "No es una opción del esquema" },
       h("input", {
         type: "checkbox", checked: valores.includes(o),

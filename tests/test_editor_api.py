@@ -93,6 +93,9 @@ class ApiTests(ApiBase):
         self.assertNotIn("version", (self.dir / "01_demo.yaml").read_text(encoding="utf-8"))
 
     def test_campos_del_esquema(self):
+        self.assertFalse(self.api.guardar_prueba(0, 1, {"maniobra": ["Dúplex"]})["ok"])   # sin aztarna.yaml no hay opciones
+        (self.dir / "aztarna.yaml").write_text("opciones:\n  maniobra: [Simplex, Dúplex]\n", encoding="utf-8")
+        ok(self, self.api.recargar())
         ok(self, self.api.guardar_prueba(0, 1, {
             "entorno": ["Torre", "Automático"], "maniobra": ["Dúplex"], "requisitos": [" REQ-1 ", "REQ-2", "REQ-1"],
             "automatizable": "Largo", "parametrizacion": ["Velocidad 1 m/s"],
@@ -106,6 +109,8 @@ class ApiTests(ApiBase):
         self.assertFalse(self.api.guardar_prueba(0, 1, {"criticidad": "alta"})["ok"])     # ya no existe
         esq = ok(self, self.api.esquema())
         self.assertEqual(esq["opciones"]["maniobra"], ["Simplex", "Dúplex"])
+        self.assertEqual(esq["configuracion"], str(self.dir / "aztarna.yaml"))
+        self.assertEqual(ok(self, self.api.recargar())["esquema"]["opciones"]["maniobra"], ["Simplex", "Dúplex"])
         self.assertEqual(esq["etiquetas"]["pasos"], "Ensayo")
 
     def test_validacion_del_esquema(self):

@@ -132,12 +132,12 @@ class CsvYTendencia(unittest.TestCase):
             self.assertEqual(filas[0][:4], ["Capítulo", "ID", "Título", "Resultado de la versión"])
             self.assertIn("Torre: resultado", filas[0])
             self.assertEqual(len(filas), 1 + consolidado["total"])
-            campaña = ej.cargar(RAIZ / "ejemplos" / "ejecuciones" / "2026-11-05_Torre_Luis")
-            ruta = er.csv_ejecucion(campaña, ej.capitulos_de(campaña), Path(tmp) / "ej.csv")
+            ejecucion = ej.cargar(RAIZ / "ejemplos" / "ejecuciones" / "2026-11-05_Torre_Luis")
+            ruta = er.csv_ejecucion(ejecucion, ej.capitulos_de(ejecucion), Path(tmp) / "ej.csv")
             with open(ruta, encoding="utf-8-sig", newline="") as f:
                 filas = list(csv.reader(f, delimiter=";"))
             self.assertEqual(filas[0][3], "Resultado")
-            self.assertEqual(len(filas), 1 + len(campaña["datos"]["pruebas"]))
+            self.assertEqual(len(filas), 1 + len(ejecucion["datos"]["pruebas"]))
 
     def test_tendencia(self):
         t = vc.consolidar(vc.cargar(RAIZ / "ejemplos" / "validaciones" / "validacion_v2.3"))["tendencia"]

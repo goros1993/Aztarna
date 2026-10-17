@@ -53,7 +53,7 @@ class EditorValidacionApi(EditorEjecucionApi):
                              f"({validacion['datos'].get('pruebas_yaml')}).")
         cambia = self._yaml_dir is None or pruebas.resolve() != self._yaml_dir or self._solo_lectura
         if cambia:
-            self._campaña = None           # la ejecución abierta era de otra carpeta de pruebas
+            self._ejecucion = None           # la ejecución abierta era de otra carpeta de pruebas
             self._load(pruebas)
         self._validacion = validacion
         return {**self._estado_validacion(), "carpeta_pruebas": self._summary() if cambia else None}
@@ -89,7 +89,7 @@ class EditorValidacionApi(EditorEjecucionApi):
         else:
             destino = Path(carpeta)
         self._validacion = vc.crear(destino, pruebas, nombre, version, filtro or {})
-        self._campaña = None
+        self._ejecucion = None
         return self._estado_validacion()
 
     @respuesta
@@ -104,10 +104,10 @@ class EditorValidacionApi(EditorEjecucionApi):
         return self._estado_validacion()
 
     @respuesta
-    def campana_soltar(self) -> dict[str, Any]:
+    def ejecucion_soltar(self) -> dict[str, Any]:
         """Deja la ejecución abierta. Con una validación abierta vuelve a su carpeta de pruebas
         (una ejecución cerrada muestra sus pruebas congeladas, en solo lectura)."""
-        self._campaña = None
+        self._ejecucion = None
         if self._validacion is None:
             return {}
         pruebas = vc.carpeta_pruebas(self._validacion)
@@ -128,14 +128,14 @@ class EditorValidacionApi(EditorEjecucionApi):
         return {"archivo": str(exportar_resultados.csv_validacion(self._estado_validacion(), salida))}
 
     @respuesta
-    def campana_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
+    def ejecucion_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
         from app import exportar_resultados
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if salida is None:
-            salida = self._guardar_como(campaña["carpeta"], f"resultados_{Path(campaña['carpeta']).name}.csv", "CSV para Excel (*.csv)")
+            salida = self._guardar_como(ejecucion["carpeta"], f"resultados_{Path(ejecucion['carpeta']).name}.csv", "CSV para Excel (*.csv)")
             if salida is None:
                 return {"cancelado": True}
-        return {"archivo": str(exportar_resultados.csv_ejecucion(campaña, ej.capitulos_de(campaña), salida))}
+        return {"archivo": str(exportar_resultados.csv_ejecucion(ejecucion, ej.capitulos_de(ejecucion), salida))}
 
     # --- informe ---------------------------------------------------------------
     @respuesta
@@ -185,19 +185,19 @@ class EditorValidacionApi(EditorEjecucionApi):
         return self._estado_validacion()
 
     @respuesta
-    def campana_comparar(self, carpeta: str | None = None) -> dict[str, Any]:
+    def ejecucion_comparar(self, carpeta: str | None = None) -> dict[str, Any]:
         """Compara la ejecución abierta con otra (la elegida es la anterior)."""
         from app import comparar
-        campaña = self._requiere_campaña()
+        ejecucion = self._requiere_ejecucion()
         if carpeta is None:
             elegida = self._dialogo_carpeta()
             if elegida is None:
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
-        if not ej.es_campaña(elegida):
+        if not ej.es_ejecucion(elegida):
             raise ValueError("Esa carpeta no contiene una ejecución.")
-        return to_plain(comparar.comparar_carpetas(elegida, campaña["carpeta"]))
+        return to_plain(comparar.comparar_carpetas(elegida, ejecucion["carpeta"]))
 
     # --- sus ejecuciones -----------------------------------------------------
     @respuesta
@@ -212,7 +212,7 @@ class EditorValidacionApi(EditorEjecucionApi):
             elegida = Path(carpeta)
         cambios = vc.anadir_ejecuciones(validacion, elegida)
         return {**self._estado_validacion(), **cambios,
-                "campana": self._estado() if self._campaña is not None else None}
+                "ejecucion": self._estado() if self._ejecucion is not None else None}
 
     @respuesta
     def validacion_quitar_ejecucion(self, indice: int) -> dict[str, Any]:
@@ -220,9 +220,9 @@ class EditorValidacionApi(EditorEjecucionApi):
         validacion = self._requiere_validacion()
         quitada = dict(vc.rutas_ejecuciones(validacion)[indice][0]) if 0 <= indice < len(validacion["datos"]["ejecuciones"]) else None
         vc.quitar_ejecucion(validacion, indice)
-        if quitada and self._campaña is not None and \
-                str(Path(str(quitada.get("ruta_absoluta") or "")).resolve()) == str(Path(self._campaña["carpeta"]).resolve()):
-            self._campaña = None
+        if quitada and self._ejecucion is not None and \
+                str(Path(str(quitada.get("ruta_absoluta") or "")).resolve()) == str(Path(self._ejecucion["carpeta"]).resolve()):
+            self._ejecucion = None
         return self._estado_validacion()
 
     @respuesta
@@ -232,6 +232,6 @@ class EditorValidacionApi(EditorEjecucionApi):
         destino = validacion["carpeta"] / _nombre_carpeta(str(nombre or ""))
         if destino.exists():
             raise ValueError(f"Ya existe {destino.name} en la validación. Cambia el nombre.")
-        self._campaña = ej.crear(destino, self._require_dir(), nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
+        self._ejecucion = ej.crear(destino, self._require_dir(), nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
         vc.anadir_ejecucion(validacion, destino)
         return self._estado()

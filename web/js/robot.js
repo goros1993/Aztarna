@@ -262,7 +262,7 @@ function resumenCobertura(c, kws) {
 
 /* ---- ejecutar Robot desde una ejecución ---- */
 async function ejecutarRobot() {
-  if (!S.campana || S.campana.cerrada) return;
+  if (!S.ejecucion || S.ejecucion.cerrada) return;
   if (!(await guardia())) return;
   setDirty(false);
   await cargarCobertura();
@@ -271,7 +271,7 @@ async function ejecutarRobot() {
     await configurarRobot();
     return;
   }
-  const pruebas = S.campana.resumen.pruebas.filter((p) => tieneRobot(p.id));
+  const pruebas = S.ejecucion.resumen.pruebas.filter((p) => tieneRobot(p.id));
   if (!pruebas.length) {
     await dialogo({ titulo: "Ejecutar Robot", cuerpo: "Ninguna prueba de esta ejecución tiene test de Robot (etiqueta id:<ID>).", botones: [{ texto: "Entendido", valor: "", tipo: "primary" }] });
     return;
@@ -293,7 +293,7 @@ async function ejecutarRobot() {
   const alcance = cuerpo.querySelector("input[name=rb-alcance]:checked").value;
   const ids = (alcance === "pendientes" ? pendientes : pruebas).map((p) => p.id);
   try {
-    await api.campana_robot_lanzar(ids);
+    await api.ejecucion_robot_lanzar(ids);
   } catch (e) { fallo(e); return; }
   await seguirRobot(ids.length);
 }
@@ -313,7 +313,7 @@ async function seguirRobot(numeroPruebas) {
   const cerrarDialogo = (valor) => { const dlg = cuerpo.closest("dialog"); if (dlg && dlg.open) dlg.close(valor); };
   const temporizador = setInterval(async () => {
     try {
-      const p = await api.campana_robot_progreso();
+      const p = await api.ejecucion_robot_progreso();
       if (!p) return;
       ultimo = p;
       const hechos = p.terminados.length;
@@ -342,7 +342,7 @@ async function seguirRobot(numeroPruebas) {
   }, 700);
   const r = await promesa;
   if (r === "cancelar" && ultimo && ultimo.en_marcha) {
-    await api.campana_robot_cancelar().catch(fallo);
+    await api.ejecucion_robot_cancelar().catch(fallo);
     aviso("Ejecución de Robot cancelada");
   }
   clearInterval(temporizador);

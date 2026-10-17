@@ -90,13 +90,13 @@ const api = new Proxy({}, {
 /* ---- ruleta automática: cualquier llamada que tarde se ve ---- */
 const RULETA_RETRASO_MS = 400;
 // Las que van en segundo plano (no deben tapar nada) y las que abren un diálogo de archivos.
-const SIN_RULETA = new Set(["bloqueo", "bloquear", "soltar_bloqueos", "comprobar_version", "campana_robot_progreso", "marcar_cambios",
+const SIN_RULETA = new Set(["bloqueo", "bloquear", "soltar_bloqueos", "comprobar_version", "ejecucion_robot_progreso", "marcar_cambios",
   "preferencias", "guardar_preferencias", "validar_yaml", "zoom"]);
 const MENSAJE_RULETA = {
   validacion_abrir: "Abriendo la validación…", validacion_estado: "Actualizando la validación…", validacion_crear: "Creando la validación…",
   validacion_anadir_ejecucion: "Añadiendo las ejecuciones…", validacion_quitar_ejecucion: "Actualizando la validación…",
   validacion_comparar_con: "Comparando con la otra validación…", validacion_nueva_ejecucion: "Creando la ejecución…",
-  campana_abrir: "Abriendo la ejecución…", campana_comparar: "Comparando las ejecuciones…",
+  ejecucion_abrir: "Abriendo la ejecución…", ejecucion_comparar: "Comparando las ejecuciones…",
   iniciar: "Abriendo la carpeta…", recargar: "Recargando…", navegacion: "Cargando…", trazabilidad: "Calculando la trazabilidad…",
 };
 let ruletaVisible = null;

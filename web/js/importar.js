@@ -333,7 +333,7 @@ async function ejecutarImportacionResultados() {
     guardarLocal("modo", "ejecucion");
     aplicarResumen(await api.coleccion("pruebas"));
   }
-  await usarCampana(r.campana);
+  await usarEjecucion(r.ejecucion);
   if (S.validacion) await refrescarValidacion();
   aviso(`Ejecución creada: ${plural(r.pruebas, "prueba", "pruebas")}, ${r.con_resultado} con resultado`, "ok");
 }

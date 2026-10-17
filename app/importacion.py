@@ -990,6 +990,7 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
         escribir([{"capitulo": "Pruebas", "contenido": []}], p["carpetas"]["prueba"], {})
     if modo == "nuevo":
         cv.escribir_avisos(conversion["avisos"], destino)
+        esquema.copiar_configuracion(destino)     # el proyecto nuevo conserva las opciones del abierto
     resultado["avisos"] = len(conversion["avisos"])
     return resultado
 
@@ -1005,7 +1006,10 @@ def main(argv=None, prog=None) -> None:
     ap.add_argument("--mapeo", help="mapeo en JSON (el que guarda el editor o --guardar-mapeo)")
     ap.add_argument("--guardar-mapeo", help="escribe el mapeo propuesto en este JSON para revisarlo")
     ap.add_argument("--renombrar", action="store_true", help="da el ID propuesto a los repetidos o vacíos")
+    ap.add_argument("--configuracion", help="aztarna.yaml con las opciones de maniobra y entorno (se copia al proyecto)")
     args = ap.parse_args(argv)
+    if args.configuracion:
+        esquema.configurar(args.configuracion)
     analisis = analizar(args.docx, args.tipo)
     mapeo = mapeo_propuesto(analisis, json.loads(Path(args.mapeo).read_text(encoding="utf-8")) if args.mapeo else None)
     print(f"{analisis['tablas']} tablas en {len(analisis['familias'])} familias:")

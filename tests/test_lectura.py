@@ -36,9 +36,9 @@ class Cache(unittest.TestCase):
         val = self.base / "validaciones" / "validacion_v2.3"
         antes = vc.consolidar(vc.cargar(val))
         self.assertIs(lectura.ejecucion(carpeta), lectura.ejecucion(carpeta))
-        campaña = ej.cargar(carpeta)
-        pendiente = next(i for i in ej.ids_de(campaña) if ej.estado_de(campaña, i) == "pendiente")
-        ej.registrar(campaña, pendiente, "no_ok", observaciones="Falla")
+        ejecucion = ej.cargar(carpeta)
+        pendiente = next(i for i in ej.ids_de(ejecucion) if ej.estado_de(ejecucion, i) == "pendiente")
+        ej.registrar(ejecucion, pendiente, "no_ok", observaciones="Falla")
         self.assertEqual(lectura.ejecucion(carpeta)["resultados"][pendiente]["estado"], "no_ok")
         despues = vc.consolidar(vc.cargar(val))
         self.assertEqual(despues["totales"]["no_ok"], antes["totales"]["no_ok"] + 1)

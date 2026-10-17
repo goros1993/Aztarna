@@ -34,12 +34,12 @@ def _fecha(valor: Any) -> str:
     return str(valor or "").replace("T", " ")
 
 
-def csv_ejecucion(campaña: dict[str, Any], capitulos: list[dict[str, Any]], salida: str | Path) -> Path:
+def csv_ejecucion(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]], salida: str | Path) -> Path:
     """Una fila por prueba: resultado, fecha, ejecutor, observaciones, incidencia, evidencias e intentos."""
-    resumen = ej.resumen(campaña, capitulos)
+    resumen = ej.resumen(ejecucion, capitulos)
     filas = []
     for p in resumen["pruebas"]:
-        r = campaña["resultados"].get(p["id"]) or {}
+        r = ejecucion["resultados"].get(p["id"]) or {}
         filas.append([p["capitulo"], p["id"], p["titulo"], ej.ESTADOS_VISIBLES[p["estado"]], _fecha(r.get("fecha")),
                       r.get("ejecutor"), r.get("observaciones"), r.get("incidencia"), len(r.get("evidencias") or []),
                       len(r.get("intentos") or []), "sí" if p["cambiada"] else ""])
@@ -87,9 +87,9 @@ def main(argv=None, prog=None) -> None:
     try:
         if vc.es_validacion(carpeta):
             ruta = csv_validacion(vc.consolidar(vc.cargar(carpeta)), salida)
-        elif ej.es_campaña(carpeta):
-            campaña = ej.cargar(carpeta)
-            ruta = csv_ejecucion(campaña, ej.capitulos_de(campaña), salida)
+        elif ej.es_ejecucion(carpeta):
+            ejecucion = ej.cargar(carpeta)
+            ruta = csv_ejecucion(ejecucion, ej.capitulos_de(ejecucion), salida)
         else:
             raise ValueError(f"{carpeta} no es una ejecución ni una validación.")
     except ValueError as error:

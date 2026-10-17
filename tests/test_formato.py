@@ -65,11 +65,11 @@ class Formato(unittest.TestCase):
         self.assertIn("requisitos", ok(self, api.recargar())["aviso_formato"])
 
     def test_ejecucion_y_validacion(self):
-        campaña = ej.crear(self.tmp / "ej", self.pruebas, "E", {}, {"entorno_pruebas": "Torre"})
+        ejecucion = ej.crear(self.tmp / "ej", self.pruebas, "E", {}, {"entorno_pruebas": "Torre"})
         self.assertEqual(ej.cargar(self.tmp / "ej")["datos"]["formato"], formato.FORMATO)
-        campaña["datos"]["formato"] = formato.FORMATO + 1
+        ejecucion["datos"]["formato"] = formato.FORMATO + 1
         with self.assertRaises(formato.FormatoNuevo):
-            ej.registrar(campaña, campaña["datos"]["pruebas"][0]["id"], "ok")
+            ej.registrar(ejecucion, ejecucion["datos"]["pruebas"][0]["id"], "ok")
         validacion = vc.crear(self.tmp / "val", self.pruebas, "V")
         self.assertEqual(vc.cargar(self.tmp / "val")["datos"]["formato"], formato.FORMATO)
         validacion["datos"]["formato"] = formato.FORMATO + 1

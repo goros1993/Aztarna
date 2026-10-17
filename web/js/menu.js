@@ -124,7 +124,7 @@ async function acercaDe() {
     cuerpo: h("div", { class: "acerca-de" },
       h("div", { class: "acerca-cab" }, h("img", { src: "img/icono.png", alt: "", width: "56", height: "56" }),
         h("p", { text: "Pruebas, requisitos, trazabilidad, ejecuciones y validación de versiones, con los datos en YAML." })),
-      h("dl", { class: "datos-campana" },
+      h("dl", { class: "datos-ejecucion" },
         fila("Versión", d.version), fila("Ajustes de este PC", d.ajustes), fila("Python", d.python), fila("Sistema", d.sistema)),
       h("p", {}, h("button", { class: "enlace", type: "button", text: "Novedades y código en GitHub", onclick: () => api.abrir_enlace(REPOSITORIO).catch(fallo) }))),
     botones: [{ texto: "Manual de usuario", valor: "manual", tipo: "" }, { texto: "Cerrar", valor: "", tipo: "primary" }],

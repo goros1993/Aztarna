@@ -30,6 +30,7 @@ from ruamel.yaml import YAML
 
 from app import firma
 from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS, REQ_ETIQUETAS
+from app.editor_core import NOT_CHAPTERS
 
 # ----------------------------------------------------------------------
 # CONFIGURACIÓN (todo el aspecto visual se cambia aquí, en un solo sitio)
@@ -486,7 +487,7 @@ def cargar(entrada):
             with open(indice, encoding="utf-8") as f:
                 archivos = [ruta / e["archivo"] for e in yaml.load(f)]
         else:
-            archivos = sorted(a for a in ruta.glob("*.yaml") if a.name not in ("indice.yaml", "revisiones.yaml", "formato.yaml"))
+            archivos = sorted(a for a in ruta.glob("*.yaml") if a.name not in NOT_CHAPTERS)
     capitulos = []
     for a in archivos:
         with open(a, encoding="utf-8") as f:

@@ -2,32 +2,32 @@ DEMO-NIV-001:
   estado: ok
   fecha: 2026-11-05T09:10
   ejecutor: Luis Gómez
-  huella: c40a46daee20
+  huella: 1fd1919327cf
 DEMO-CAN-002:
   estado: ok
   fecha: 2026-11-05T10:00
   ejecutor: Luis Gómez
-  huella: 21eb111e8587
+  huella: 494ada91c6ff
 DEMO-PUER-001:
   estado: ok
   fecha: 2026-11-05T11:20
   ejecutor: Luis Gómez
-  huella: 1207021f4712
+  huella: 49b3221c8651
 DEMO-PUER-002:
   estado: no_ok
   fecha: 2026-11-05T11:45
   ejecutor: Luis Gómez
-  huella: ea335b52eef8
+  huella: d12be6348db8
   observaciones: Con la barrera tapada al 50 % la puerta no reabre.
   incidencia: BUG-141
 DEMO-SEG-001:
   estado: ok
   fecha: 2026-11-05T12:30
   ejecutor: Luis Gómez
-  huella: 682f61d88f57
+  huella: 270b99b80cec
 DEMO-MANT-001:
   estado: no_aplica
   fecha: 2026-11-05T12:40
   ejecutor: Luis Gómez
-  huella: 482b7731202c
+  huella: 3078b94841ec
   observaciones: La torre no tiene llave de inspección en esta versión del cuadro.

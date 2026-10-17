@@ -13,6 +13,18 @@ euskera):
 - Los ajustes de cada PC van en `%APPDATA%\Aztarna\ajustes.json` (variable de
   entorno `AZTARNA_AJUSTES`).
 - El repositorio pasa a llamarse `Aztarna` en GitHub.
+- Las opciones de **Maniobra** y **Entorno de pruebas** son de cada proyecto:
+  se leen de su `aztarna.yaml` (con equivalencias para importar desde Word).
+  Sin ese archivo, Maniobra no tiene opciones y Entorno usa Automático,
+  Maqueta y Torre. Al cerrar una ejecución se guarda una copia con sus pruebas
+  congeladas. Los ejemplos usan Simplex y Dúplex.
+- En el código, «campaña» pasa a llamarse «ejecución» en todas partes
+  (variables, funciones y la API de la interfaz).
+- README más corto; el uso del editor está en el manual.
+
+**Al actualizar:** si tus pruebas usan Maniobra, crea un `aztarna.yaml` en
+la carpeta del proyecto con sus opciones (ver el manual, apartado 9); sin
+él, el editor marca esos valores como «no es una opción».
 
 Sin cambios en el formato de los datos (sigue el 1).
 

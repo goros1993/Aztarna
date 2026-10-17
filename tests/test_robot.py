@@ -62,15 +62,15 @@ class ImportarTests(unittest.TestCase):
         self.tmp = Path(self._tmp.name)
         shutil.copytree(RAIZ / "ejemplos" / "yaml", self.tmp / "yaml")
         self.pruebas = self.tmp / "yaml" / "pruebas"
-        self.campaña = ej.crear(self.tmp / "camp", self.pruebas, "Robot", {"etiquetas": ["regresion"]})
+        self.ejecucion = ej.crear(self.tmp / "camp", self.pruebas, "Robot", {"etiquetas": ["regresion"]})
 
     def capitulos(self):
         return read_chapters(self.pruebas)
 
     def test_plan_sin_cambiar_nada(self):
-        ej.registrar(self.campaña, "DEMO-LLAM-002", "no_ok", observaciones="manual")
+        ej.registrar(self.ejecucion, "DEMO-LLAM-002", "no_ok", observaciones="manual")
         antes = (self.tmp / "camp" / ej.ARCHIVO_RESULTADOS).read_text()
-        plan = rc.plan(self.campaña, rc.leer_output(SALIDA_RF7), self.capitulos())
+        plan = rc.plan(self.ejecucion, rc.leer_output(SALIDA_RF7), self.capitulos())
         self.assertEqual(plan["totales"], {"ok": 4, "no_ok": 1, "no_aplica": 1})
         self.assertEqual(plan["sustituyen_manual"], ["DEMO-LLAM-002"])
         self.assertEqual(plan["sin_id"], ["Diagnóstico del bus sin enlazar"])
@@ -79,10 +79,10 @@ class ImportarTests(unittest.TestCase):
         self.assertEqual(antes, (self.tmp / "camp" / ej.ARCHIVO_RESULTADOS).read_text())
 
     def test_importar_registra_resultados_y_copia_evidencias(self):
-        ej.registrar(self.campaña, "DEMO-NIV-001", "no_ok", observaciones="Manual", incidencia="BUG-130")
-        datos = rc.importar(self.campaña, SALIDA_RF7, self.capitulos())
-        campaña = ej.cargar(self.tmp / "camp")
-        niv = campaña["resultados"]["DEMO-NIV-001"]
+        ej.registrar(self.ejecucion, "DEMO-NIV-001", "no_ok", observaciones="Manual", incidencia="BUG-130")
+        datos = rc.importar(self.ejecucion, SALIDA_RF7, self.capitulos())
+        ejecucion = ej.cargar(self.tmp / "camp")
+        niv = ejecucion["resultados"]["DEMO-NIV-001"]
         self.assertEqual((niv["estado"], niv["origen"], niv["ejecutor"]), ("no_ok", "robot", "Robot Framework"))
         self.assertIn("Desnivel de 7 mm", niv["observaciones"])
         self.assertEqual(niv["intentos"][0]["incidencia"], "BUG-130")      # el manual queda en el historial
@@ -90,19 +90,19 @@ class ImportarTests(unittest.TestCase):
         for nombre in ("output.xml", "log.html", "report.html", "captura-registro_eventos.png"):
             self.assertTrue((carpeta / nombre).is_file(), nombre)
         self.assertEqual(len(niv["evidencias"]), 2)
-        self.assertEqual(campaña["resultados"]["DEMO-CAN-001"]["estado"], "no_aplica")
-        self.assertEqual(ej.estado_de(campaña, "DEMO-SEG-001"), "pendiente")
-        self.assertEqual(ej.resumen(campaña, self.capitulos())["problemas"], [])
+        self.assertEqual(ejecucion["resultados"]["DEMO-CAN-001"]["estado"], "no_aplica")
+        self.assertEqual(ej.estado_de(ejecucion, "DEMO-SEG-001"), "pendiente")
+        self.assertEqual(ej.resumen(ejecucion, self.capitulos())["problemas"], [])
 
     def test_importar_dos_veces_no_duplica_el_historial(self):
-        rc.importar(self.campaña, SALIDA_RF7, self.capitulos())
+        rc.importar(self.ejecucion, SALIDA_RF7, self.capitulos())
         rc.importar(ej.cargar(self.tmp / "camp"), SALIDA_RF7, self.capitulos())
         self.assertNotIn("intentos", ej.cargar(self.tmp / "camp")["resultados"]["DEMO-LLAM-001"])
 
-    def test_campaña_cerrada_no_admite_importar(self):
-        campaña = ej.crear(self.tmp / "manual", self.pruebas, "Manual", {"etiquetas": ["manual"]})
-        ej.registrar(campaña, "DEMO-VAR-002", "ok")
-        ej.cerrar(campaña, self.capitulos())
+    def test_ejecucion_cerrada_no_admite_importar(self):
+        ejecucion = ej.crear(self.tmp / "manual", self.pruebas, "Manual", {"etiquetas": ["manual"]})
+        ej.registrar(ejecucion, "DEMO-VAR-002", "ok")
+        ej.cerrar(ejecucion, self.capitulos())
         with self.assertRaisesRegex(ValueError, "cerrada"):
             rc.importar(ej.cargar(self.tmp / "manual"), SALIDA_RF7, self.capitulos())
 
@@ -118,10 +118,10 @@ class ImportarTests(unittest.TestCase):
 
     def test_api(self):
         api = EditorEjecucionApi()
-        self.assertTrue(api.campana_abrir(str(self.tmp / "camp"))["ok"])
-        plan = api.campana_robot_previsualizar(str(SALIDA_RF7))
+        self.assertTrue(api.ejecucion_abrir(str(self.tmp / "camp"))["ok"])
+        plan = api.ejecucion_robot_previsualizar(str(SALIDA_RF7))
         self.assertTrue(plan["ok"], plan.get("error"))
-        estado = api.campana_robot_importar(str(SALIDA_RF7))
+        estado = api.ejecucion_robot_importar(str(SALIDA_RF7))
         self.assertTrue(estado["ok"], estado.get("error"))
         self.assertEqual(estado["datos"]["resumen"]["totales"]["ok"], 4)
 
@@ -258,7 +258,7 @@ class LanzarTests(unittest.TestCase):
         self.comando = f'"{sys.executable}" "{falso}"'
         ej.crear(self.tmp / "camp", self.tmp / "yaml", "Robot", {"etiquetas": ["regresion"]})
         self.api = EditorEjecucionApi()
-        self.assertTrue(self.api.campana_abrir(str(self.tmp / "camp"))["ok"])
+        self.assertTrue(self.api.ejecucion_abrir(str(self.tmp / "camp"))["ok"])
 
     def restaurar(self):
         if self.anterior is None:
@@ -296,18 +296,18 @@ class LanzarTests(unittest.TestCase):
 
     def test_filtro_con_y_sin_robot(self):
         self.configurar()
-        con = self.api.campana_previsualizar({"robot": ["con"]})["datos"]
-        sin = self.api.campana_previsualizar({"robot": ["sin"]})["datos"]
+        con = self.api.ejecucion_previsualizar({"robot": ["con"]})["datos"]
+        sin = self.api.ejecucion_previsualizar({"robot": ["sin"]})["datos"]
         self.assertEqual(len(con), 6)
         self.assertEqual(len(con) + len(sin), 14)
-        self.assertEqual(self.api.campana_opciones()["datos"]["robot"], ["con", "sin"])
+        self.assertEqual(self.api.ejecucion_opciones()["datos"]["robot"], ["con", "sin"])
 
     def test_lanzar_seguir_e_importar(self):
         self.configurar()
-        datos = self.api.campana_robot_lanzar(["DEMO-LLAM-001"])
+        datos = self.api.ejecucion_robot_lanzar(["DEMO-LLAM-001"])
         self.assertTrue(datos["ok"], datos.get("error"))
         for _ in range(100):
-            progreso = self.api.campana_robot_progreso()["datos"]
+            progreso = self.api.ejecucion_robot_progreso()["datos"]
             if not progreso["en_marcha"]:
                 break
             time.sleep(0.1)
@@ -315,13 +315,13 @@ class LanzarTests(unittest.TestCase):
         self.assertEqual(progreso["total"], 1)
         self.assertEqual(progreso["terminados"][0]["estado"], "PASS")
         self.assertTrue(progreso["output"])
-        importado = self.api.campana_robot_importar(progreso["output"])["datos"]["importacion"]
-        # Los resultados ya estaban dentro de la campaña: no se copian a otra carpeta.
+        importado = self.api.ejecucion_robot_importar(progreso["output"])["datos"]["importacion"]
+        # Los resultados ya estaban dentro de la ejecución: no se copian a otra carpeta.
         self.assertEqual(Path(datos["datos"]["carpeta"]).name, Path(importado["carpeta_evidencias"]).name)
         self.assertFalse((Path(datos["datos"]["carpeta"]) / "__pycache__").exists())
 
     def test_lanzar_sin_configurar(self):
-        r = self.api.campana_robot_lanzar(["DEMO-LLAM-001"])
+        r = self.api.ejecucion_robot_lanzar(["DEMO-LLAM-001"])
         self.assertFalse(r["ok"])
         self.assertIn("Configura", r["error"])
 

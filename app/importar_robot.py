@@ -20,18 +20,18 @@ VISIBLE = {"ok": "OK", "no_ok": "NO OK", "no_aplica": "No aplica"}
 
 def main(argv=None, prog=None) -> None:
     ap = argparse.ArgumentParser(prog=prog, description="Importa resultados de Robot Framework en una ejecución")
-    ap.add_argument("campaña", help="carpeta de la ejecución (con ejecucion.yaml)")
+    ap.add_argument("ejecucion", help="carpeta de la ejecución (con ejecucion.yaml)")
     ap.add_argument("output", help="output.xml generado por Robot Framework")
     ap.add_argument("--simular", action="store_true", help="no cambia nada; solo muestra qué se importaría")
     ap.add_argument("--ejecutor", default=robot_core.EJECUTOR, help="nombre del ejecutor (por defecto: Robot Framework)")
     args = ap.parse_args(argv)
     try:
-        campaña = ej.cargar(args.campaña)
-        capitulos = ej.capitulos_de(campaña)
+        ejecucion = ej.cargar(args.ejecucion)
+        capitulos = ej.capitulos_de(ejecucion)
         if args.simular:
-            datos = robot_core.plan(campaña, robot_core.leer_output(args.output), capitulos)
+            datos = robot_core.plan(ejecucion, robot_core.leer_output(args.output), capitulos)
         else:
-            datos = robot_core.importar(campaña, args.output, capitulos, ejecutor=args.ejecutor)
+            datos = robot_core.importar(ejecucion, args.output, capitulos, ejecutor=args.ejecutor)
     except (ValueError, OSError) as error:
         raise SystemExit(f"Error: {error}")
 
@@ -45,7 +45,7 @@ def main(argv=None, prog=None) -> None:
         ("Sustituyen un resultado manual (queda en el historial)", datos["sustituyen_manual"]),
         ("Tests de Robot sin etiqueta id:", datos["sin_id"]),
         ("IDs que no existen en las pruebas", datos["inexistentes"]),
-        ("IDs que no están en esta ejecución", datos["fuera_de_campaña"]),
+        ("IDs que no están en esta ejecución", datos["fuera_de_ejecucion"]),
         ("Pruebas de la ejecución sin resultado en este archivo", datos["sin_robot"]),
     ]
     for titulo, lista in avisos:

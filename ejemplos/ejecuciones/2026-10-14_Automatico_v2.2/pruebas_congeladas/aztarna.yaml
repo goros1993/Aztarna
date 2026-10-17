@@ -1,0 +1,12 @@
+# Opciones de los campos de las pruebas de este proyecto (ver app/esquema.py).
+# Las lee el editor al abrir el proyecto; sin este archivo, Maniobra no tiene
+# opciones y Entorno usa Automático, Maqueta y Torre.
+opciones:
+  maniobra: [Simplex, Dúplex]
+  entorno: [Automático, Maqueta, Torre]
+# Otras formas de escribirlas que se reconocen al importar un Word (no
+# distinguen mayúsculas, tildes ni espacios). Entorno ya reconoce A, M y T.
+equivalencias:
+  maniobra:
+    S: Simplex
+    D: Dúplex

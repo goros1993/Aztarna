@@ -196,9 +196,10 @@ El formulario sigue el orden de la tabla de la prueba en el documento:
 - Las listas de **Contexto** (texto y tablas que van antes de la tabla),
   **Parametrización**, **Situación inicial** y **Ensayo** (numerado), ver
   4.3.
-- **Maniobra** (Simplex, Dúplex) y **Entorno de pruebas** (Automático,
-  Maqueta, Torre): marca todas las que correspondan. **Automatizable**: una
-  opción de la lista.
+- **Maniobra** y **Entorno de pruebas** (por ejemplo, Automático, Maqueta,
+  Torre): marca todas las que correspondan. Sus opciones son las del proyecto
+  (ver «¿De dónde salen las opciones de Maniobra y Entorno?», en 9).
+  **Automatizable**: una opción de la lista.
 - **Requisitos:** los IDs de los requisitos que cubre la prueba. Al escribir
   el ID o parte del título se proponen los del catálogo; **Intro** añade el
   elegido y la **×** lo quita. Un requisito que no existe sale en **rojo** y
@@ -547,7 +548,7 @@ El porcentaje de OK se calcula sobre las pruebas que aplican.
 Pasa a **Validación** y pulsa **Nueva ejecución** (o el botón de la ejecución,
 ✓, en la barra superior).
 
-![Nueva ejecución](docs/manual/09_nueva_campana.png)
+![Nueva ejecución](docs/manual/09_nueva_ejecucion.png)
 
 1. Escribe el **nombre**, elige el **entorno de pruebas** (Automático, Maqueta
    o Torre; es obligatorio) y, si quieres, qué se prueba (la versión), el banco
@@ -577,7 +578,7 @@ próxima vez.
 
 ### 6.4 El resumen
 
-![Resumen de la ejecución](docs/manual/10_resumen_campana.png)
+![Resumen de la ejecución](docs/manual/10_resumen_ejecucion.png)
 
 Se ve al abrir la ejecución, al pulsar **Resumen** o cuando no hay ninguna
 prueba seleccionada:
@@ -693,7 +694,7 @@ terminar aparece la misma vista previa de la importación.
 
 ### 6.8 Cerrar la ejecución
 
-![Cerrar la ejecución](docs/manual/13_cerrar_campana.png)
+![Cerrar la ejecución](docs/manual/13_cerrar_ejecucion.png)
 
 Cuando no quede ninguna pendiente (ejecútalas o márcalas como *No aplica*),
 pulsa **Cerrar ejecución…**. Al cerrarla:
@@ -703,7 +704,7 @@ pulsa **Cerrar ejecución…**. Al cerrarla:
   las pruebas cambien después;
 - los resultados ya **no se pueden cambiar**.
 
-![Ejecución cerrada](docs/manual/15_campana_cerrada.png)
+![Ejecución cerrada](docs/manual/15_ejecucion_cerrada.png)
 
 Una ejecución cerrada se sigue pudiendo abrir para consultarla. La barra
 superior indica *Pruebas congeladas (solo lectura)*: para volver a editar las
@@ -1005,6 +1006,23 @@ a la de pruebas. Las ejecuciones, en la carpeta que elegiste al crearlas
 (`ejecucion.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
 `pruebas_congeladas/`). Las validaciones, en la suya (`validacion.yaml`, que
 solo apunta a sus ejecuciones). El editor no guarda nada en otro sitio.
+
+**¿De dónde salen las opciones de Maniobra y Entorno?**
+Del archivo `aztarna.yaml` de la carpeta del proyecto (junto a `pruebas` y
+`requisitos`; en una carpeta de pruebas suelta, dentro de ella). Lo prepara
+quien mantiene el proyecto y vale para todos los que lo abren:
+
+```yaml
+opciones:
+  maniobra: [Simplex, Dúplex]
+  entorno: [Automático, Maqueta, Torre]
+equivalencias:            # otras formas de escribirlas en un Word que se importa
+  maniobra: {S: Simplex, D: Dúplex}
+```
+
+Sin ese archivo, Maniobra no tiene opciones y Entorno usa Automático, Maqueta
+y Torre. Después de cambiarlo, pulsa **Recargar**. Al cerrar una ejecución se
+guarda una copia con sus pruebas congeladas.
 
 **«… está editando … : no se ha guardado».**
 Otra persona tenía el capítulo reservado cuando guardaste (ver «Varias

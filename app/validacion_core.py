@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import esquema
 from app import formato
 from app import lectura
 from app.editor_core import read_chapters, tests_dir
@@ -148,7 +149,7 @@ def rutas_ejecuciones(validacion: dict[str, Any]) -> list[tuple[dict[str, Any], 
 
 def anadir_ejecucion(validacion: dict[str, Any], carpeta_ejecucion: str | Path) -> None:
     carpeta_ejecucion = Path(carpeta_ejecucion).resolve()
-    if not ej.es_campaña(carpeta_ejecucion):
+    if not ej.es_ejecucion(carpeta_ejecucion):
         raise ValueError("Esa carpeta no contiene una ejecución.")
     if any(ruta and ruta.resolve() == carpeta_ejecucion for _e, ruta in rutas_ejecuciones(validacion)):
         raise ValueError("Esa ejecución ya está en la validación.")
@@ -163,14 +164,14 @@ def buscar_ejecuciones(carpeta: str | Path) -> list[Path]:
     personas en una carpeta compartida.
     """
     carpeta = Path(carpeta)
-    if ej.es_campaña(carpeta):
+    if ej.es_ejecucion(carpeta):
         return [carpeta]
     encontradas = []
     for hija in sorted(p for p in carpeta.iterdir() if p.is_dir()) if carpeta.is_dir() else []:
-        if ej.es_campaña(hija):
+        if ej.es_ejecucion(hija):
             encontradas.append(hija)
         else:
-            encontradas.extend(n for n in sorted(p for p in hija.iterdir() if p.is_dir()) if ej.es_campaña(n))
+            encontradas.extend(n for n in sorted(p for p in hija.iterdir() if p.is_dir()) if ej.es_ejecucion(n))
     return encontradas
 
 
@@ -203,14 +204,14 @@ def quitar_ejecucion(validacion: dict[str, Any], indice: int) -> None:
 # ----------------------------------------------------------------------
 # Consolidación
 # ----------------------------------------------------------------------
-def _resultados_de(campaña: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def _resultados_de(ejecucion: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Resultado actual de cada prueba de la ejecución (pendiente si no tiene)."""
     salida = {}
-    for entrada in campaña["datos"]["pruebas"]:
+    for entrada in ejecucion["datos"]["pruebas"]:
         test_id = str(entrada["id"])
-        r = campaña["resultados"].get(test_id) or {}
+        r = ejecucion["resultados"].get(test_id) or {}
         salida[test_id] = {
-            "estado": ej.estado_de(campaña, test_id), "fecha": str(r.get("fecha") or ""),
+            "estado": ej.estado_de(ejecucion, test_id), "fecha": str(r.get("fecha") or ""),
             "ejecutor": str(r.get("ejecutor") or ""), "huella": str(r.get("huella") or ""),
             "observaciones": str(r.get("observaciones") or ""), "incidencia": str(r.get("incidencia") or ""),
         }
@@ -363,6 +364,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
     if capitulos is None:
         if pruebas_dir is None:
             raise ValueError("No se encuentra la carpeta de pruebas de la validación.")
+        esquema.configurar(pruebas_dir)         # sus entornos (fuera del editor, que ya los tiene)
         capitulos = lectura.capitulos(pruebas_dir)
     entornos = list(ej.entornos_pruebas())
     avisos: list[dict[str, str]] = []
@@ -371,14 +373,14 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
     ejecuciones, resultados_por_id = [], {}
     for i, (entrada, ruta) in enumerate(rutas_ejecuciones(validacion)):
         info = {"indice": i, "ruta": str(entrada.get("ruta") or ""), "carpeta": str(ruta) if ruta else None}
-        if ruta is None or not ej.es_campaña(ruta):
+        if ruta is None or not ej.es_ejecucion(ruta):
             avisos.append({"tipo": "error", "id": "", "mensaje": f"No se encuentra la ejecución {info['ruta']}."})
             ejecuciones.append({**info, "encontrada": False})
             continue
-        campaña = lectura.ejecucion(ruta)
-        d = campaña["datos"]
+        ejecucion = lectura.ejecucion(ruta)
+        d = ejecucion["datos"]
         entorno = str(d.get("entorno_pruebas") or "")
-        resumen = ej.resumen(campaña, capitulos)
+        resumen = ej.resumen(ejecucion, capitulos)
         ejecuciones.append({
             **info, "encontrada": True, "nombre": str(d.get("nombre") or ruta.name), "entorno_pruebas": entorno,
             "objeto": str(d.get("objeto") or ""), "responsable": str(d.get("responsable") or ""),
@@ -388,7 +390,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         if not entorno:
             avisos.append({"tipo": "aviso", "id": "", "mensaje": f"La ejecución «{ejecuciones[-1]['nombre']}» no indica su entorno de pruebas: sus resultados no cuentan."})
             continue
-        for test_id, r in _resultados_de(campaña).items():
+        for test_id, r in _resultados_de(ejecucion).items():
             resultados_por_id.setdefault(test_id, []).append({**r, "entorno": entorno, "ejecucion": ejecuciones[-1]["nombre"], "ejecucion_indice": i})
 
     # Pruebas que hay que pasar.

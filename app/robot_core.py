@@ -162,9 +162,9 @@ def _observaciones(tests: list[dict[str, Any]], estado: str) -> str:
     return "\n".join([cabecera, *(linea(t) for t in importantes)])
 
 
-def plan(campaña: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, Any]:
+def plan(ejecucion: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[str, Any]:
     """Qué haría la importación, sin cambiar nada (para la vista previa)."""
-    en_campaña = set(ej.ids_de(campaña))
+    en_ejecucion = set(ej.ids_de(ejecucion))
     en_yaml = set(ej.indice_por_id(capitulos))
     por_id: dict[str, list[dict[str, Any]]] = {}
     for test in robot["tests"]:
@@ -172,13 +172,13 @@ def plan(campaña: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[s
             por_id.setdefault(test_id, []).append(test)
 
     resultados = []
-    for test_id in ej.ids_de(campaña):            # en el orden de la ejecución
+    for test_id in ej.ids_de(ejecucion):            # en el orden de la ejecución
         tests = [t for t in por_id.get(test_id, []) if t["estado"] in ESTADO_ROBOT]
         estado = estado_consolidado([t["estado"] for t in tests])
         if estado is None:
             continue
         finales = [t["fin"] for t in tests if t["fin"]]
-        anterior = campaña["resultados"].get(test_id) or {}
+        anterior = ejecucion["resultados"].get(test_id) or {}
         resultados.append({
             "id": test_id,
             "estado": estado,
@@ -190,7 +190,7 @@ def plan(campaña: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[s
             "anterior_robot": anterior.get("origen") == "robot" if anterior else False,
         })
     sin_id = [t["nombre"] for t in robot["tests"] if not t["ids"]]
-    fuera = sorted(i for i in por_id if i not in en_campaña and i in en_yaml)
+    fuera = sorted(i for i in por_id if i not in en_ejecucion and i in en_yaml)
     inexistentes = sorted(i for i in por_id if i not in en_yaml)
     cubiertos = {r["id"] for r in resultados}
     return {
@@ -200,25 +200,25 @@ def plan(campaña: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[s
         "totales": {e: sum(r["estado"] == e for r in resultados) for e in ("ok", "no_ok", "no_aplica")},
         "sustituyen_manual": [r["id"] for r in resultados if r["anterior"] and r["anterior"] != "pendiente" and not r["anterior_robot"]],
         "sin_id": sin_id,
-        "fuera_de_campaña": fuera,
+        "fuera_de_ejecucion": fuera,
         "inexistentes": inexistentes,
-        "sin_robot": [i for i in ej.ids_de(campaña) if i not in cubiertos],
+        "sin_robot": [i for i in ej.ids_de(ejecucion) if i not in cubiertos],
     }
 
 
 # ----------------------------------------------------------------------
 # Importación
 # ----------------------------------------------------------------------
-def _copiar_resultados(campaña: dict[str, Any], robot: dict[str, Any], imagenes: set[str]) -> str:
+def _copiar_resultados(ejecucion: dict[str, Any], robot: dict[str, Any], imagenes: set[str]) -> str:
     """Copia output.xml, log.html, report.html y las capturas a evidencias/robot/<fecha>/."""
-    evidencias = (campaña["carpeta"] / ej.CARPETA_EVIDENCIAS).resolve()
+    evidencias = (ejecucion["carpeta"] / ej.CARPETA_EVIDENCIAS).resolve()
     origen = robot["carpeta"].resolve()
     if evidencias in origen.parents:
         # Robot se lanzó desde el editor y ya dejó sus resultados dentro de la ejecución.
-        return origen.relative_to(campaña["carpeta"].resolve()).as_posix()
+        return origen.relative_to(ejecucion["carpeta"].resolve()).as_posix()
     marca = (robot["generado"] or datetime.now()).strftime("%Y-%m-%d_%H%M%S")
     relativa = f"{ej.CARPETA_EVIDENCIAS}/robot/{marca}"
-    destino = campaña["carpeta"] / relativa
+    destino = ejecucion["carpeta"] / relativa
     destino.mkdir(parents=True, exist_ok=True)
     origen = robot["carpeta"]
     copiar = [robot["archivo"].name, "log.html", "report.html", *sorted(imagenes)]
@@ -230,27 +230,27 @@ def _copiar_resultados(campaña: dict[str, Any], robot: dict[str, Any], imagenes
     return relativa
 
 
-def importar(campaña: dict[str, Any], ruta_output: str | Path, capitulos: list[dict[str, Any]],
+def importar(ejecucion: dict[str, Any], ruta_output: str | Path, capitulos: list[dict[str, Any]],
              ejecutor: str = EJECUTOR) -> dict[str, Any]:
     """Apunta en la ejecución los resultados de un output.xml. El resultado anterior queda en el historial."""
-    if campaña["datos"].get("estado") == "cerrada":
+    if ejecucion["datos"].get("estado") == "cerrada":
         raise ValueError("La ejecución está cerrada; no se pueden importar resultados.")
     robot = leer_output(ruta_output)
-    propuesta = plan(campaña, robot, capitulos)
+    propuesta = plan(ejecucion, robot, capitulos)
     if not propuesta["resultados"]:
         return propuesta
     imagenes = {img for r in propuesta["resultados"] for img in r["imagenes"]}
-    carpeta = _copiar_resultados(campaña, robot, imagenes)
+    carpeta = _copiar_resultados(ejecucion, robot, imagenes)
     log = f"{carpeta}/log.html"
-    hay_log = (campaña["carpeta"] / log).is_file()
+    hay_log = (ejecucion["carpeta"] / log).is_file()
     por_id = ej.indice_por_id(capitulos)
     for r in propuesta["resultados"]:
-        evidencias = [f"{carpeta}/{img}" for img in r["imagenes"] if (campaña["carpeta"] / carpeta / img).is_file()]
+        evidencias = [f"{carpeta}/{img}" for img in r["imagenes"] if (ejecucion["carpeta"] / carpeta / img).is_file()]
         if hay_log:
             evidencias.append(log)
         prueba = por_id.get(r["id"])
         ej.registrar(
-            campaña, r["id"], r["estado"], observaciones=r["observaciones"], evidencias=evidencias,
+            ejecucion, r["id"], r["estado"], observaciones=r["observaciones"], evidencias=evidencias,
             ejecutor=ejecutor, huella_actual=ej.huella(prueba["prueba"]) if prueba else "",
             fecha=r["fecha"], origen="robot",
         )

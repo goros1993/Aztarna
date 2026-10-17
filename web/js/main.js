@@ -17,7 +17,7 @@ const S = {
   capituloPorModo: {},  // último capítulo abierto en pruebas y en requisitos
   hayRequisitos: false, // si la carpeta tiene requisitos (subcarpeta requisitos/)
   filtroCobertura: "",  // en requisitos: mostrar solo los de este estado de cobertura
-  campana: null,        // estado de la ejecución abierta (ver ejecucion_api.py)
+  ejecucion: null,        // estado de la ejecución abierta (ver ejecucion_api.py)
   validacion: null,     // validación de versión abierta: resultado consolidado (ver validacion_core.py)
   cobertura: null,      // qué pruebas tienen test de Robot (ver web/js/robot.js)
   keywords: null,       // keywords de Robot que se proponen al escribir los pasos
@@ -77,6 +77,7 @@ function aplicarResumen(resumen) {
   S.capitulos = resumen.capitulos;
   S.hayRequisitos = Boolean(resumen.hay_requisitos);
   S.errorRequisitos = resumen.error_requisitos || null;
+  if (resumen.esquema) S.esquema = resumen.esquema;   // las opciones son del proyecto abierto
   const boton = $("#carpeta-ruta");
   S.soloLectura = Boolean(resumen.solo_lectura);
   S.avisoFormato = resumen.aviso_formato || null;
@@ -414,7 +415,7 @@ async function arrancar() {
     const resumen = await api.iniciar();
     aplicarResumen(enRequisitos() && resumen.carpeta ? await api.coleccion("requisitos") : resumen);
     if (resumen.aviso) aviso(resumen.aviso, "error");
-    if (S.modo === "ejecucion") { await recuperarValidacion(); if (!S.validacion) await recuperarCampana(); }
+    if (S.modo === "ejecucion") { await recuperarValidacion(); if (!S.validacion) await recuperarEjecucion(); }
     if (S.capitulos.length) {
       await cargarCobertura();
       await cargarNavegacion();

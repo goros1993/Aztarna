@@ -775,12 +775,15 @@ def main(argv=None, prog=None):
     ap = argparse.ArgumentParser(prog=prog, description="Word -> YAML por capítulos")
     ap.add_argument("docx")
     ap.add_argument("-o", "--salida", default="salida")
+    ap.add_argument("--configuracion", help="aztarna.yaml con las opciones de maniobra y entorno (se copia a la salida)")
     args = ap.parse_args(argv)
 
     doc = Document(args.docx)
     avisos = []
     out = Path(args.salida) / "yaml"
     out.mkdir(parents=True, exist_ok=True)
+    esquema.configurar(args.configuracion or out)
+    esquema.copiar_configuracion(out)
     guardar_imagen = crear_guardador_imagenes(out / "imagenes")
     capitulos = extraer_capitulos(doc, avisos, guardar_imagen)
 

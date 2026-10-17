@@ -13,12 +13,12 @@ seleccion:
   - DEMO-CAN-001
 pruebas:
 - id: DEMO-LLAM-001
-  huella: b54b9a273040
+  huella: c7690d494884
 - id: DEMO-CAN-001
-  huella: cbb57a8f4bec
+  huella: 98c8cb6391d3
 - id: DEMO-CAN-002
-  huella: 21eb111e8587
+  huella: 494ada91c6ff
 - id: DEMO-SEG-001
-  huella: 682f61d88f57
+  huella: 270b99b80cec
 formato: 1
 fin: 2026-10-15T17:00

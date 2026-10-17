@@ -96,24 +96,24 @@ def generar_proyecto(azar: random.Random) -> None:
 def ejecucion(validacion: dict, nombre: str, entorno: str, dia: str, azar: random.Random,
               fallos: float, completa: bool, responsable: str) -> None:
     carpeta = validacion["carpeta"] / f"{dia}_{entorno}"
-    campaña = ej.crear(carpeta, AQUI / "pruebas", nombre, {"entorno": [entorno]},
-                       {"entorno_pruebas": entorno, "responsable": responsable})
-    campaña["datos"]["inicio"] = f"{dia}T08:00"
-    for i, test_id in enumerate(ej.ids_de(campaña)):
+    nueva = ej.crear(carpeta, AQUI / "pruebas", nombre, {"entorno": [entorno]},
+                     {"entorno_pruebas": entorno, "responsable": responsable})
+    nueva["datos"]["inicio"] = f"{dia}T08:00"
+    for i, test_id in enumerate(ej.ids_de(nueva)):
         x = azar.random()
         if not completa and x > 0.75:
             continue                                   # sin ejecutar todavía
         estado = "no_ok" if x < fallos else "bloqueada" if x < fallos + 0.02 else "no_aplica" if x < fallos + 0.03 else "ok"
-        ej.registrar(campaña, test_id, estado, ejecutor=responsable, fecha=f"{dia}T{9 + i % 9:02d}:{i % 60:02d}",
+        ej.registrar(nueva, test_id, estado, ejecutor=responsable, fecha=f"{dia}T{9 + i % 9:02d}:{i % 60:02d}",
                      observaciones="No cumple el resultado esperado." if estado == "no_ok" else
                      "Falta el equipo de pruebas." if estado == "bloqueada" else "",
                      guardar_ahora=False)
-    ej.guardar(campaña)
+    ej.guardar(nueva)
     if completa:
-        ej.cerrar(campaña, read_chapters(AQUI / "pruebas"))
-        campaña = ej.cargar(carpeta)
-        campaña["datos"]["fin"] = f"{dia}T18:00"
-        ej.guardar(campaña)
+        ej.cerrar(nueva, read_chapters(AQUI / "pruebas"))
+        nueva = ej.cargar(carpeta)
+        nueva["datos"]["fin"] = f"{dia}T18:00"
+        ej.guardar(nueva)
     vc.anadir_ejecucion(validacion, carpeta)
 
 

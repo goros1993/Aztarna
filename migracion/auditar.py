@@ -290,7 +290,7 @@ def auditar_prueba(tabla: Table, final: dict[str, Any] | None) -> dict[str, Any]
     if final is None:
         resultado["avisos"].append("No está en los YAML (¿se borró o cambió el ID después de importar?).")
         return resultado
-    # Lo que el esquema convierte (A -> Automático, S -> Simplex, Sí -> si) no cuenta como eliminado.
+    # Lo que el esquema convierte (A -> Automático, Sí -> si) no cuenta como eliminado.
     reconocidas: Counter = Counter()
     descartadas: Counter = Counter()
     for campo, normalizar in (("entorno", esquema.normalizar_entorno), ("maniobra", esquema.normalizar_maniobra)):
@@ -524,8 +524,10 @@ def main(argv=None, prog=None) -> None:
     ap.add_argument("docx", help="documento Word original")
     ap.add_argument("yaml", help="carpeta con los YAML importados (con indice.yaml)")
     ap.add_argument("-o", "--salida", default="auditoria.html", help="informe HTML (por defecto: auditoria.html)")
+    ap.add_argument("--configuracion", help="aztarna.yaml con las opciones (por defecto, el de la carpeta de los YAML)")
     args = ap.parse_args(argv)
     try:
+        esquema.configurar(args.configuracion or args.yaml)
         datos = auditar(args.docx, args.yaml)
     except (ValueError, OSError) as error:
         raise SystemExit(f"Error: {error}")

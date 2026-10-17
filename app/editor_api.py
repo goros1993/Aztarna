@@ -419,6 +419,7 @@ class EditorApi:
         chapters = read_chapters(yaml_dir)
         if not chapters:
             raise ValueError("No se encontraron capítulos YAML en la carpeta.")
+        esquema.configurar(yaml_dir)            # opciones de maniobra y entorno del proyecto
         self._solo_lectura = False
         self._yaml_dir = yaml_dir.resolve()
         self._chapters = chapters
@@ -515,6 +516,7 @@ class EditorApi:
             "coleccion": self._coleccion,
             "hay_requisitos": bool(self._req_chapters),
             "error_requisitos": self._req_error,
+            "esquema": self._esquema(),
             "capitulos": [
                 {
                     "indice": i,
@@ -871,6 +873,10 @@ class EditorApi:
     @respuesta
     def esquema(self) -> dict[str, Any]:
         """Campos de las pruebas y sus opciones, para el formulario (ver esquema.py)."""
+        return self._esquema()
+
+    @staticmethod
+    def _esquema() -> dict[str, Any]:
         return {
             "etiquetas": esquema.ETIQUETAS,
             "opciones": {k: list(v) for k, v in esquema.OPCIONES_MULTIPLES.items()},
@@ -881,6 +887,7 @@ class EditorApi:
                 "opciones": {k: list(v) for k, v in esquema.REQ_OPCIONES_MULTIPLES.items()},
                 "tipos": list(esquema.REQ_TIPOS),
             },
+            "configuracion": str(esquema.CONFIGURACION) if esquema.CONFIGURACION else None,
         }
 
     @respuesta
