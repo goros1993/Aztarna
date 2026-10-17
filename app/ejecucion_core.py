@@ -32,6 +32,8 @@ ARCHIVO_EJECUCION = "ejecucion.yaml"
 ARCHIVO_CAMPAÑA = "campaña.yaml"        # nombre antiguo: se sigue leyendo y guardando en esas carpetas
 ARCHIVO_RESULTADOS = "resultados.yaml"
 CARPETA_EVIDENCIAS = "evidencias"
+# Clave (solo en memoria, no se guarda) con la carpeta de pruebas que usa la ejecución en este PC.
+EN_ESTE_PC = "pruebas_en_este_pc"
 # Al cerrar, copia de las pruebas de la ejecución tal como estaban (mismo formato que la carpeta de pruebas).
 CARPETA_CONGELADA = "pruebas_congeladas"
 
@@ -238,7 +240,11 @@ def rutas_pruebas(carpeta_ejecucion: Path, pruebas: Path) -> dict[str, str]:
 
 
 def carpeta_pruebas(ejecucion: dict[str, Any]) -> Path | None:
-    """Carpeta de los YAML de pruebas, o None si no se encuentra en ninguna de las rutas guardadas."""
+    """Carpeta de los YAML de pruebas, o None si no se encuentra.
+
+    Primero las rutas guardadas en la ejecución; después, la que se indicó en
+    este PC (`EN_ESTE_PC`, ver `reubicar_pruebas`), que no se guarda en ella.
+    """
     for clave in ("pruebas_yaml", "pruebas_yaml_absoluta"):
         valor = ejecucion["datos"].get(clave)
         if not valor:
@@ -247,7 +253,16 @@ def carpeta_pruebas(ejecucion: dict[str, Any]) -> Path | None:
         ruta = ruta if ruta.is_absolute() else (ejecucion["carpeta"] / ruta).resolve()
         if _tiene_pruebas(ruta):
             return ruta
-    return None
+    aqui = ejecucion.get(EN_ESTE_PC)
+    return aqui if aqui is not None and _tiene_pruebas(aqui) else None
+
+
+def tiene_sus_pruebas(ejecucion: dict[str, Any], carpeta: str | Path) -> bool:
+    """Si la carpeta tiene todas las pruebas de la ejecución (por su ID): es la suya, en otra ruta."""
+    carpeta = Path(carpeta)
+    if not _tiene_pruebas(carpeta):
+        return False
+    return set(ids_de(ejecucion)) <= set(indice_por_id(read_chapters(carpeta)))
 
 
 def carpeta_congelada(ejecucion: dict[str, Any]) -> Path | None:
@@ -256,15 +271,18 @@ def carpeta_congelada(ejecucion: dict[str, Any]) -> Path | None:
 
 
 def reubicar_pruebas(ejecucion: dict[str, Any], nueva: str | Path) -> Path:
-    """Indica dónde están ahora las pruebas de la ejecución (si se movieron)."""
+    """Usa en este PC otra carpeta de pruebas para la ejecución (las rutas guardadas no valen aquí).
+
+    No cambia `ejecucion.yaml`: cada PC puede tener las pruebas en una ruta
+    distinta (un clon del repositorio en cada uno) y no se pisan. Quien la
+    llama recuerda la carpeta en los ajustes del PC.
+    """
     nueva = tests_dir(Path(nueva).expanduser().resolve())
     if not _tiene_pruebas(nueva):
         raise ValueError("Esa carpeta no contiene YAML de pruebas.")
     if not set(indice_por_id(read_chapters(nueva))) & set(ids_de(ejecucion)):
         raise ValueError("Esa carpeta no contiene ninguna prueba de esta ejecución.")
-    ejecucion["datos"].pop("pruebas_yaml", None)
-    ejecucion["datos"].update(rutas_pruebas(ejecucion["carpeta"], nueva))
-    guardar(ejecucion)
+    ejecucion[EN_ESTE_PC] = nueva
     return nueva
 
 

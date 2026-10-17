@@ -25,6 +25,10 @@ from app import robot_core
 from app.editor_api import EditorApi, respuesta, to_plain
 
 
+# Ajuste del PC: carpeta de pruebas de cada ejecución cuyas rutas guardadas no valen aquí.
+AJUSTE_PRUEBAS = "pruebas_de_ejecuciones"
+
+
 def _nombre_carpeta(nombre: str) -> str:
     """«Regresión v2.3» -> «2026-11-03_Regresión_v2.3» (válido en Windows y Linux)."""
     limpio = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", nombre).strip().replace(" ", "_")
@@ -117,7 +121,7 @@ class EditorEjecucionApi(EditorApi):
         """Abre la ejecución y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
         ejecucion = ej.cargar(carpeta)
         congelada = ej.carpeta_congelada(ejecucion) if ejecucion["datos"].get("estado") == "cerrada" else None
-        pruebas = congelada or ej.carpeta_pruebas(ejecucion)
+        pruebas = congelada or ej.carpeta_pruebas(ejecucion) or self._pruebas_en_este_pc(ejecucion)
         if pruebas is None:
             # Se movió la carpeta de pruebas (o la ejecución viene de otro PC): la interfaz pregunta dónde está.
             return {"faltan_pruebas": True, "carpeta": str(ejecucion["carpeta"]),
@@ -162,8 +166,28 @@ class EditorEjecucionApi(EditorApi):
                 return {"cancelado": True}
         else:
             elegida = Path(pruebas)
-        ej.reubicar_pruebas(ejecucion, elegida)
+        nueva = ej.reubicar_pruebas(ejecucion, elegida)
+        todas = dict(ajustes.leer().get(AJUSTE_PRUEBAS) or {})
+        todas[str(Path(carpeta).resolve())] = str(nueva)
+        ajustes.guardar({AJUSTE_PRUEBAS: todas})
         return self._abrir(Path(carpeta))
+
+    def _pruebas_en_este_pc(self, ejecucion: dict[str, Any]) -> Path | None:
+        """Las pruebas de una ejecución cuyas rutas guardadas no valen en este PC (viene de otro, o se movieron).
+
+        Primero la carpeta que se indicó aquí otra vez (ajustes del PC); si no, la
+        de pruebas abierta, si tiene todas las pruebas de la ejecución.
+        """
+        recordada = (ajustes.leer().get(AJUSTE_PRUEBAS) or {}).get(str(ejecucion["carpeta"].resolve()))
+        if isinstance(recordada, str):
+            try:
+                return ej.reubicar_pruebas(ejecucion, recordada)
+            except (OSError, ValueError):
+                pass                                # ya no está ahí: se busca o se pregunta otra vez
+        abierta = self._yaml_dir if not self._solo_lectura else None
+        if abierta is not None and ej.tiene_sus_pruebas(ejecucion, abierta):
+            return ej.reubicar_pruebas(ejecucion, abierta)
+        return None
 
     @respuesta
     def ejecucion_estado(self) -> dict[str, Any] | None:

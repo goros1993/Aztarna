@@ -1,4 +1,5 @@
 """Pruebas de las ejecuciones (ejecucion_core.py)."""
+import os
 import shutil
 import unittest
 from pathlib import Path
@@ -266,8 +267,23 @@ class UbicacionTests(EjecucionBase):
         vacia.mkdir()
         with self.assertRaisesRegex(ValueError, "no contiene YAML"):
             ej.reubicar_pruebas(ejecucion, vacia)
+        antes = (self.carpeta / ej.ARCHIVO_EJECUCION).read_bytes()
         ej.reubicar_pruebas(ejecucion, nueva)
-        self.assertEqual(ej.carpeta_pruebas(ej.cargar(self.carpeta)), nueva.resolve())
+        self.assertEqual(ej.carpeta_pruebas(ejecucion), nueva.resolve())
+        ej.guardar(ejecucion)
+        # La carpeta de este PC no se guarda en la ejecución: la de otra persona no se pisa.
+        self.assertEqual((self.carpeta / ej.ARCHIVO_EJECUCION).read_bytes(), antes)
+        self.assertIsNone(ej.carpeta_pruebas(ej.cargar(self.carpeta)))
+
+    def test_reconoce_sus_pruebas_en_otra_carpeta(self):
+        ejecucion = self.crear()
+        copia = self.tmp / "clon" / "pruebas"
+        shutil.copytree(self.pruebas, copia)
+        self.assertTrue(ej.tiene_sus_pruebas(ejecucion, copia))
+        capitulo = read_chapters(copia)[0]
+        capitulo["data"]["contenido"] = []           # le faltan pruebas: no es la suya
+        save_chapter(capitulo)
+        self.assertFalse(ej.tiene_sus_pruebas(ejecucion, copia))
 
 
 class CongelarTests(EjecucionBase):
@@ -343,6 +359,9 @@ def ok(testcase, respuesta):
 class ApiTests(EjecucionBase):
     def setUp(self):
         super().setUp()
+        anterior = os.environ.get("AZTARNA_AJUSTES")          # los ajustes del PC, en la carpeta temporal
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(lambda: os.environ.__setitem__("AZTARNA_AJUSTES", anterior) if anterior else os.environ.pop("AZTARNA_AJUSTES", None))
         self.api = EditorEjecucionApi(self.pruebas)
         ok(self, self.api.iniciar())
 
@@ -431,6 +450,24 @@ class ApiTests(EjecucionBase):
         self.assertTrue(datos["faltan_pruebas"])
         estado = ok(self, otra.ejecucion_reubicar(str(self.carpeta), str(nueva)))
         self.assertEqual(estado["carpeta_pruebas"]["carpeta"], str(nueva.resolve()))
+        # Este PC lo recuerda: la próxima vez se abre sin preguntar.
+        datos = ok(self, EditorEjecucionApi().ejecucion_abrir(str(self.carpeta)))
+        self.assertNotIn("faltan_pruebas", datos)
+        self.assertEqual(datos["carpeta_pruebas"]["carpeta"], str(nueva.resolve()))
+
+    def test_abrir_la_de_otro_pc_con_las_pruebas_abiertas(self):
+        """Cada uno con su clon de las pruebas: la ejecución de otro se abre con las tuyas."""
+        self.crear_por_api()
+        mias = self.tmp / "mi_clon" / "pruebas"
+        shutil.copytree(self.pruebas, mias)
+        shutil.rmtree(self.pruebas)                 # la ruta guardada (la del otro PC) no existe aquí
+        api = EditorEjecucionApi(mias)
+        ok(self, api.iniciar())
+        datos = ok(self, api.ejecucion_abrir(str(self.carpeta)))
+        self.assertNotIn("faltan_pruebas", datos)
+        ok(self, api.ejecucion_registrar("DEMO-LLAM-001", "ok"))
+        self.assertEqual(ej.estado_de(ej.cargar(self.carpeta), "DEMO-LLAM-001"), "ok")
+        self.assertNotIn("mi_clon", (self.carpeta / ej.ARCHIVO_EJECUCION).read_text(encoding="utf-8"))
 
     def test_sin_ejecucion_abierta(self):
         self.assertIsNone(ok(self, self.api.ejecucion_estado()))

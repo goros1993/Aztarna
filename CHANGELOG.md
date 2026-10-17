@@ -20,6 +20,10 @@ euskera):
   congeladas. Los ejemplos usan Simplex y Dúplex.
 - En el código, «campaña» pasa a llamarse «ejecución» en todas partes
   (variables, funciones y la API de la interfaz).
+- **Ejecuciones de otra persona** con las pruebas en otra ruta (cada uno con
+  su copia del repositorio): se abren con tu carpeta de pruebas si tiene todas
+  sus pruebas; si no, se pide la carpeta una vez y la recuerda tu PC, sin
+  cambiar la ejecución para los demás.
 - README más corto; el uso del editor está en el manual.
 
 **Al actualizar:** si tus pruebas usan Maniobra, crea un `aztarna.yaml` en

@@ -572,9 +572,12 @@ entrar en el modo Validación se abre la última que usaste (o la última
 validación). Al abrir una
 ejecución se abre también su carpeta de pruebas.
 
-Si la carpeta de pruebas se ha movido (o la ejecución viene de otro PC), el
-editor lo avisa y te pide que indiques dónde está; lo recuerda para la
-próxima vez.
+Si la ejecución es de otra persona y cada una tiene las pruebas en su PC (por
+ejemplo, cada una con su copia del repositorio), el editor usa la carpeta de
+pruebas que tienes abierta, si están todas las pruebas de la ejecución. Si no
+las encuentra (o se han movido), te pide que indiques dónde están. Tu PC lo
+recuerda para la próxima vez, sin cambiar la ejecución: a la otra persona le
+sigue funcionando con su carpeta.
 
 ### 6.4 El resumen
 

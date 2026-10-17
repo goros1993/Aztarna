@@ -134,9 +134,10 @@ Por comprobar al usarla con datos reales:
   un sitio estable. Valorar una opción para **copiarlas a la carpeta de la
   validación** al añadirlas, para que el entregable quede completo y se pueda
   archivar.
-- Ejecuciones de otro PC con la carpeta de pruebas en otra ruta: la
-  validación usa sus propias pruebas para consolidar, pero abrir esa ejecución
-  en el editor pide reubicar sus pruebas.
+- Ejecuciones de otro PC con la carpeta de pruebas en otra ruta: se abren con
+  la carpeta de pruebas abierta si tiene todas sus pruebas; si no, se pide
+  una vez y se recuerda en los ajustes del PC (sin tocar `ejecucion.yaml`).
+  Falta probarlo con dos PCs y un repositorio clonado en cada uno.
 - Si las reglas de consolidación encajan en la práctica (sobre todo «vale el
   más reciente» y los entornos que no cuentan).
 - Si hace falta que varias personas trabajen sobre la **misma** ejecución

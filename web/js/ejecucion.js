@@ -172,9 +172,9 @@ async function usarEjecucion(r, { silencio = false } = {}) {
     const respuesta = await dialogo({
       titulo: "No se encuentran las pruebas de la ejecución",
       cuerpo: h("div", {},
-        h("p", {}, "La ejecución ", h("strong", { text: r.nombre }), " no encuentra su carpeta de pruebas. Puede que se haya movido o que la ejecución venga de otro PC."),
+        h("p", {}, "La ejecución ", h("strong", { text: r.nombre }), " no encuentra su carpeta de pruebas. Puede que se haya movido o que la ejecución sea de otra persona, con las pruebas en otra ruta."),
         h("p", { class: "muted", text: "Se buscó en: " + r.rutas.join("  ·  ") }),
-        h("p", { text: "Indica dónde está ahora la carpeta de pruebas (la que contiene indice.yaml). La ejecución lo recordará." })),
+        h("p", { text: "Indica dónde está la carpeta de pruebas en este PC (la que contiene indice.yaml). Este PC lo recordará; la ejecución no cambia para los demás." })),
       botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Buscar la carpeta…", valor: "si", tipo: "primary" }],
     });
     if (respuesta !== "si") return;
