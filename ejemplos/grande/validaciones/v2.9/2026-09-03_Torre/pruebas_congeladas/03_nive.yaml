@@ -1,0 +1,756 @@
+capitulo: Nivelación
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-001
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en nivelación, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-002
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-005
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-004
+    titulo: 'Funcionamiento normal: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-013
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-005
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en nivelación, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-011
+    - REQ-NIVE-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-006
+    titulo: 'Funcionamiento normal: el controlador se mantiene estable'
+    descripcion: Comprobar que, en nivelación, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-021
+    - REQ-NIVE-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-007
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-010
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-019
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-011
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-014
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en nivelación, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-015
+    titulo: 'Límites: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-018
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-017
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-018
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-003
+    - REQ-NIVE-010
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-019
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-017
+    - REQ-NIVE-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-020
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-001
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-021
+    titulo: 'Fallos: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-006
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-022
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-023
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-024
+    titulo: 'Fallos: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-016
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-025
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-026
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en nivelación, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-027
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-007
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-028
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-013
+    - REQ-NIVE-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-029
+    titulo: 'Fallos: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-002
+    - REQ-NIVE-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-030
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en nivelación, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-020
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-031
+    titulo: 'Recuperación: el controlador se mantiene estable'
+    descripcion: Comprobar que, en nivelación, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-032
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-033
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-017
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-034
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-004
+    - REQ-NIVE-020
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-036
+    titulo: 'Recuperación: el controlador registra el evento'
+    descripcion: Comprobar que, en nivelación, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-005
+    - REQ-NIVE-017
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-037
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-038
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en nivelación, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-011
+    - REQ-NIVE-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-039
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en nivelación, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-020
+    - REQ-NIVE-024
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-040
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-020
+    tags:
+    - regresion
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-041
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-005
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-043
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en nivelación, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-044
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en nivelación, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-015
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-045
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en nivelación, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-002
+    - REQ-NIVE-025
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-046
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en nivelación, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-047
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en nivelación, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-001
+    - REQ-NIVE-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-048
+    titulo: 'Configuración: el controlador registra el evento'
+    descripcion: Comprobar que, en nivelación, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-NIVE-003
+    - REQ-NIVE-015
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-NIVE-049
+    titulo: 'Configuración: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en nivelación, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-NIVE-005
+    tags:
+    - regresion

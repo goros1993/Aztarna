@@ -26,8 +26,13 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
     --collect-submodules markdown ^
     editor_web.py || goto :error
 
+REM version.txt junto al .exe: si se publica en una carpeta compartida, el editor de cada
+REM persona avisa cuando hay una version nueva (Ajustes, «Carpeta con la ultima version»).
+python -c "import app; print(app.__version__)" > dist\version.txt || goto :error
+
 echo.
-echo Listo: dist\EditorPruebas.exe
+echo Listo: dist\EditorPruebas.exe y dist\version.txt
+echo Para publicarlo, copia los dos a la carpeta compartida del programa.
 echo Necesita WebView2 (viene con Windows 11 y con Windows 10 actualizado).
 goto :eof
 

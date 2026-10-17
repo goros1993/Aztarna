@@ -116,6 +116,27 @@ class EditorValidacionApi(EditorEjecucionApi):
             return {"carpeta_pruebas": self._summary()}
         return {}
 
+    # --- resultados en CSV para Excel -------------------------------------------
+    @respuesta
+    def validacion_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
+        from app import exportar_resultados
+        validacion = self._requiere_validacion()
+        if salida is None:
+            salida = self._guardar_como(validacion["carpeta"], f"resultados_{validacion['carpeta'].name}.csv", "CSV para Excel (*.csv)")
+            if salida is None:
+                return {"cancelado": True}
+        return {"archivo": str(exportar_resultados.csv_validacion(self._estado_validacion(), salida))}
+
+    @respuesta
+    def campana_exportar_csv(self, salida: str | None = None) -> dict[str, Any]:
+        from app import exportar_resultados
+        campaña = self._requiere_campaña()
+        if salida is None:
+            salida = self._guardar_como(campaña["carpeta"], f"resultados_{Path(campaña['carpeta']).name}.csv", "CSV para Excel (*.csv)")
+            if salida is None:
+                return {"cancelado": True}
+        return {"archivo": str(exportar_resultados.csv_ejecucion(campaña, ej.capitulos_de(campaña), salida))}
+
     # --- informe ---------------------------------------------------------------
     @respuesta
     def validacion_elegir_destino_informe(self) -> dict[str, Any]:
@@ -124,8 +145,10 @@ class EditorValidacionApi(EditorEjecucionApi):
         return {"archivo": archivo} if archivo else {"cancelado": True}
 
     @respuesta
-    def validacion_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
-        """Informe DOCX de la validación (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
+    def validacion_informe(self, salida: str | None = None, pdf: bool = False, detalle: bool = True) -> dict[str, Any]:
+        """Informe DOCX de la validación (y el PDF si se pide). Sin `salida`, abre «Guardar como».
+
+        Sin `detalle`, solo el resumen (con la tabla por capítulos)."""
         from app import informe_docx, informe_validacion
 
         validacion = self._requiere_validacion()
@@ -133,7 +156,7 @@ class EditorValidacionApi(EditorEjecucionApi):
             salida = self._guardar_como(validacion["carpeta"], f"Informe_{validacion['carpeta'].name}.docx")
             if salida is None:
                 return {"cancelado": True}
-        datos = informe_validacion.generar_informe(validacion, salida)
+        datos = informe_validacion.generar_informe(validacion, salida, detalle=detalle)
         resultado = {"archivo": datos["archivo"], "pruebas": datos["pruebas"], "pdf": None, "aviso_pdf": None}
         if pdf:
             try:
@@ -141,6 +164,40 @@ class EditorValidacionApi(EditorEjecucionApi):
             except (ValueError, OSError, subprocess.SubprocessError) as error:
                 resultado["aviso_pdf"] = f"No se pudo generar el PDF: {error}"
         return resultado
+
+    # --- comparar con la anterior ----------------------------------------------
+    @respuesta
+    def validacion_comparar_con(self, carpeta: str | None = None) -> dict[str, Any]:
+        """Elige la validación con la que se compara esta (normalmente, la de la versión anterior)."""
+        validacion = self._requiere_validacion()
+        if carpeta is None:
+            elegida = self._dialogo_carpeta()
+            if elegida is None:
+                return {"cancelado": True}
+        else:
+            elegida = Path(carpeta)
+        vc.comparar_con(validacion, elegida)
+        return self._estado_validacion()
+
+    @respuesta
+    def validacion_quitar_comparacion(self) -> dict[str, Any]:
+        vc.comparar_con(self._requiere_validacion(), None)
+        return self._estado_validacion()
+
+    @respuesta
+    def campana_comparar(self, carpeta: str | None = None) -> dict[str, Any]:
+        """Compara la ejecución abierta con otra (la elegida es la anterior)."""
+        from app import comparar
+        campaña = self._requiere_campaña()
+        if carpeta is None:
+            elegida = self._dialogo_carpeta()
+            if elegida is None:
+                return {"cancelado": True}
+        else:
+            elegida = Path(carpeta)
+        if not ej.es_campaña(elegida):
+            raise ValueError("Esa carpeta no contiene una ejecución.")
+        return to_plain(comparar.comparar_carpetas(elegida, campaña["carpeta"]))
 
     # --- sus ejecuciones -----------------------------------------------------
     @respuesta

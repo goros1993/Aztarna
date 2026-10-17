@@ -471,6 +471,7 @@ function mostrarPanelCampana() {
       c.cerrada || !S.cobertura ? null : h("button", { class: "btn", type: "button", onclick: ejecutarRobot, title: "Lanzar Robot Framework con las pruebas de la ejecución que tienen test automático" }, icon("play"), "Ejecutar Robot…"),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: () => importarRobot(), text: "Importar Robot…", title: "Apuntar los resultados de un output.xml de Robot Framework" }),
       h("button", { class: "btn", type: "button", onclick: generarInforme, text: "Generar informe…", title: c.cerrada ? "Informe con las pruebas congeladas al cerrar" : "Borrador: la ejecución sigue abierta" }),
+      h("button", { class: "btn", type: "button", onclick: compararEjecucion, text: "Comparar con…", title: "Comparar con otra ejecución (la anterior): nuevos fallos y arreglos" }),
       c.cerrada ? null : h("button", { class: "btn", type: "button", onclick: cerrarCampana, text: "Cerrar ejecución…" }),
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },
@@ -599,8 +600,10 @@ async function generarInforme() {
       S.campana.cerrada ? null : h("p", { class: "aviso-panel", text: "La ejecución sigue abierta: el informe saldrá marcado como BORRADOR." }),
       h("p", {}, h("label", { class: "casilla" }, casilla, " Generar también el PDF"),
         conPdf ? h("span", { class: "muted", text: ` (con ${conPdf})` }) : h("span", { class: "muted", text: " (necesita LibreOffice o Microsoft Word)" }))),
-    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Resultados en Excel (CSV)…", valor: "csv", tipo: "" },
+      { texto: "Elegir destino…", valor: "si", tipo: "primary" }],
   });
+  if (r === "csv") { await exportarResultadosCsv("ejecucion"); return; }
   if (r !== "si") return;
   guardarLocal("informe-pdf", casilla.checked ? "si" : "no");
   try {
@@ -663,10 +666,11 @@ function fichaPrueba(el) {
   ].filter(([, v]) => v !== undefined && v !== null && String(v).trim());
   const extras = Object.entries(el.campos_adicionales || {});
   const bloque = (titulo, contenido) => h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: titulo })), contenido);
-  return h("div", { class: "ficha-prueba" },
-    meta.length ? h("div", { class: "meta" }, meta.map(([k, v]) => h("div", { class: "meta-item" },
-      h("span", { class: "k", text: k }), h("span", { class: "v", text: String(v) })))) : null,
-    aLista(el.etiquetas).length ? h("div", { class: "fichas solo-lectura", "aria-label": "Etiquetas" }, aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
+  // Compacta: los datos en una línea y los bloques juntos, para ver de una un ensayo de 20-30 pasos.
+  return h("div", { class: "ficha-prueba compacta" },
+    meta.length || aLista(el.etiquetas).length ? h("div", { class: "meta-linea" },
+      meta.map(([k, v]) => h("span", { class: "meta-item" }, h("span", { class: "k", text: k }), h("span", { class: "v", text: String(v) }))),
+      aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
     el.descripcion ? bloque("Descripción", h("p", {}, textoConFormato(String(el.descripcion)))) : null,
     aLista(el.contexto).length ? bloque("Contexto", listaLectura(el.contexto, false)) : null,
     aLista(el.parametrizacion).length ? bloque("Parametrización", listaLectura(el.parametrizacion, false)) : null,
@@ -759,7 +763,7 @@ function panelResultado() {
           }) : null),
         h("div", { class: "estados", role: "group", "aria-label": "Resultado" }, botones),
         h("p", { class: "ayuda-estado", text: R.estado === "pendiente" ? "Todavía sin ejecutar. Elige un resultado (teclas 1 a 4)." : ESTADO_AYUDA[R.estado] })),
-      h("div", { class: "seccion-panel" },
+      h("div", { class: "seccion-panel seccion-observaciones" },
       h("label", { for: "r-observaciones", text: "Observaciones" }),
       h("textarea", {
         id: "r-observaciones", rows: 4, value: R.observaciones, disabled: bloqueada,
@@ -767,7 +771,7 @@ function panelResultado() {
         oninput: (e) => { R.observaciones = e.target.value; tocarResultado(); },
       }),
       h("div", { class: "rejilla-2" },
-        h("div", { class: "campo" }, h("label", { for: "r-incidencia", text: "Incidencia" }),
+        h("div", { class: "campo" }, h("label", { for: "r-incidencia" }, "Incidencia ", enlacesIncidencia(R.incidencia)),
           h("input", { id: "r-incidencia", type: "text", value: R.incidencia, disabled: bloqueada, placeholder: "p. ej. BUG-123", oninput: (e) => { R.incidencia = e.target.value; tocarResultado(); } })),
         h("div", { class: "campo" }, h("label", { for: "r-ejecutor", text: "Ejecutor" }),
           h("input", { id: "r-ejecutor", type: "text", value: R.ejecutor, disabled: bloqueada, oninput: (e) => { R.ejecutor = e.target.value; tocarResultado(); } })))),
@@ -780,6 +784,7 @@ function panelResultado() {
         h("ol", {}, [...R.intentos].reverse().map((i) => h("li", {},
           h("span", { class: "chip-estado e-" + i.estado, text: ESTADO_TXT[i.estado] || i.estado }), " ",
           h("span", { class: "muted", text: [String(i.fecha || "").replace("T", " "), i.ejecutor, i.incidencia].filter(Boolean).join(" · ") }),
+          i.incidencia ? enlacesIncidencia(i.incidencia) : null,
           i.observaciones ? h("div", { text: i.observaciones }) : null)))) : null,
       bloqueada ? null : h("div", { class: "acciones-resultado" },
         h("span", { class: "pie-resultado", text: R.fecha ? `Guardado ${fechaCorta(R.fecha)}` : "", title: R.fecha ? String(R.fecha).replace("T", " ") : "" }),

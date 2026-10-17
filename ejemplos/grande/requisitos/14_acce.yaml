@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de accesos
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-001
+    titulo: 'Accesos: el controlador bloquea la maniobra (1)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-002
+    titulo: 'Accesos: el controlador bloquea la maniobra (2)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-003
+    titulo: 'Accesos: el controlador se mantiene estable (3)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-004
+    titulo: 'Accesos: el controlador respeta el tiempo máximo (4)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-005
+    titulo: 'Accesos: el controlador responde a la orden (5)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-006
+    titulo: 'Accesos: el controlador respeta el tiempo máximo (6)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-007
+    titulo: 'Accesos: el controlador avisa al operador (7)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-008
+    titulo: 'Accesos: el controlador se mantiene estable (8)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-009
+    titulo: 'Accesos: el controlador se mantiene estable (9)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-010
+    titulo: 'Accesos: el controlador informa por el bus (10)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-011
+    titulo: 'Accesos: el controlador avisa al operador (11)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-012
+    titulo: 'Accesos: el controlador respeta el tiempo máximo (12)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-013
+    titulo: 'Accesos: el controlador responde a la orden (13)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-014
+    titulo: 'Accesos: el controlador respeta el tiempo máximo (14)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-015
+    titulo: 'Accesos: el controlador se recupera tras el corte (15)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-016
+    titulo: 'Accesos: el controlador se mantiene estable (16)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-017
+    titulo: 'Accesos: el controlador se mantiene estable (17)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-018
+    titulo: 'Accesos: el controlador avisa al operador (18)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-019
+    titulo: 'Accesos: el controlador se mantiene estable (19)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-020
+    titulo: 'Accesos: el controlador informa por el bus (20)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-021
+    titulo: 'Accesos: el controlador vuelve al estado inicial (21)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-022
+    titulo: 'Accesos: el controlador respeta el tiempo máximo (22)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-023
+    titulo: 'Accesos: el controlador vuelve al estado inicial (23)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-024
+    titulo: 'Accesos: el controlador bloquea la maniobra (24)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ACCE-025
+    titulo: 'Accesos: el controlador se recupera tras el corte (25)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de accesos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

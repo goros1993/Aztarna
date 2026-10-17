@@ -1,0 +1,6 @@
+- capitulo: Ejemplo básico
+  archivo: 01_ejemplo_basico.yaml
+- capitulo: Ejemplo con campos adicionales
+  archivo: 02_ejemplo_adicionales.yaml
+- capitulo: Ejemplo de secciones e imágenes
+  archivo: 03_ejemplo_secciones_imagenes.yaml

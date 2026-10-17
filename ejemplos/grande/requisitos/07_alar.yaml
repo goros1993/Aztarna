@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de alarmas
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-001
+    titulo: 'Alarmas: el controlador ignora la orden repetida (1)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-002
+    titulo: 'Alarmas: el controlador respeta el tiempo máximo (2)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-003
+    titulo: 'Alarmas: el controlador registra el evento (3)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-004
+    titulo: 'Alarmas: el controlador vuelve al estado inicial (4)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-005
+    titulo: 'Alarmas: el controlador informa por el bus (5)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-006
+    titulo: 'Alarmas: el controlador ignora la orden repetida (6)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-007
+    titulo: 'Alarmas: el controlador se mantiene estable (7)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-008
+    titulo: 'Alarmas: el controlador ignora la orden repetida (8)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-009
+    titulo: 'Alarmas: el controlador responde a la orden (9)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-010
+    titulo: 'Alarmas: el controlador responde a la orden (10)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-011
+    titulo: 'Alarmas: el controlador avisa al operador (11)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-012
+    titulo: 'Alarmas: el controlador ignora la orden repetida (12)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-013
+    titulo: 'Alarmas: el controlador respeta el tiempo máximo (13)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-014
+    titulo: 'Alarmas: el controlador vuelve al estado inicial (14)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-015
+    titulo: 'Alarmas: el controlador registra el evento (15)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-016
+    titulo: 'Alarmas: el controlador registra el evento (16)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-017
+    titulo: 'Alarmas: el controlador vuelve al estado inicial (17)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-018
+    titulo: 'Alarmas: el controlador se recupera tras el corte (18)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-019
+    titulo: 'Alarmas: el controlador se mantiene estable (19)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-020
+    titulo: 'Alarmas: el controlador informa por el bus (20)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-021
+    titulo: 'Alarmas: el controlador respeta el tiempo máximo (21)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-022
+    titulo: 'Alarmas: el controlador ignora la orden repetida (22)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-023
+    titulo: 'Alarmas: el controlador registra el evento (23)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-024
+    titulo: 'Alarmas: el controlador vuelve al estado inicial (24)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ALAR-025
+    titulo: 'Alarmas: el controlador vuelve al estado inicial (25)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de alarmas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

@@ -1,0 +1,777 @@
+capitulo: Diagnóstico
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-001
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en diagnóstico, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-004
+    - REQ-DIAG-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-002
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en diagnóstico, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-005
+    titulo: 'Funcionamiento normal: el controlador avisa al operador'
+    descripcion: Comprobar que, en diagnóstico, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-006
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en diagnóstico, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-025
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-007
+    titulo: 'Funcionamiento normal: el controlador se mantiene estable'
+    descripcion: Comprobar que, en diagnóstico, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-020
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-009
+    titulo: 'Funcionamiento normal: el controlador registra el evento'
+    descripcion: Comprobar que, en diagnóstico, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-007
+    - REQ-DIAG-011
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-010
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-010
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-011
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en diagnóstico, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-004
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-012
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en diagnóstico, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-016
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-013
+    titulo: 'Límites: el controlador se mantiene estable'
+    descripcion: Comprobar que, en diagnóstico, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-016
+    - REQ-DIAG-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-014
+    titulo: 'Límites: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-005
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-016
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en diagnóstico, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-017
+    - REQ-DIAG-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-017
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en diagnóstico, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-001
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-018
+    titulo: 'Límites: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-005
+    - REQ-DIAG-008
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-019
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en diagnóstico, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-018
+    - REQ-DIAG-020
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-020
+    titulo: 'Límites: el controlador registra el evento'
+    descripcion: Comprobar que, en diagnóstico, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-019
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-021
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en diagnóstico, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-022
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en diagnóstico, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-023
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en diagnóstico, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-024
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en diagnóstico, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-003
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-025
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-013
+    - REQ-DIAG-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-026
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-030
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en diagnóstico, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-003
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-031
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en diagnóstico, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-022
+    - REQ-DIAG-023
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-032
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-013
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-033
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-012
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-034
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-035
+    titulo: 'Recuperación: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en diagnóstico, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-036
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en diagnóstico, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-015
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-037
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-005
+    - REQ-DIAG-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-038
+    titulo: 'Recuperación: el controlador responde a la orden'
+    descripcion: Comprobar que, en diagnóstico, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-006
+    - REQ-DIAG-008
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-039
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en diagnóstico, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-004
+    - REQ-DIAG-011
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-040
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en diagnóstico, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-018
+    tags:
+    - regresion
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-041
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en diagnóstico, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-042
+    titulo: 'Configuración: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en diagnóstico, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-024
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-043
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-044
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-008
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-045
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en diagnóstico, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-014
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-047
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en diagnóstico, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-048
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en diagnóstico, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-003
+    - REQ-DIAG-011
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-049
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DIAG-002
+    - REQ-DIAG-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DIAG-050
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en diagnóstico, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DIAG-001
+    tags:
+    - regresion

@@ -1,0 +1,15 @@
+# Requisitos cambiados cuyas pruebas faltan por revisar (lo escribe el editor).
+# Guarda el texto que tenían cuando se revisaron sus pruebas por última vez;
+# al marcar «Pruebas revisadas» se quita su entrada.
+REQ-BOTO-011:
+  huella: 3b117108590521d2
+  titulo: 'Botoneras: el controlador bloquea la maniobra (11)'
+  descripcion: El equipo DEMO-A1 avisa al operador en el ámbito de botoneras.
+REQ-LLAM-003:
+  huella: 09638085a6ca7af9
+  titulo: 'Llamadas: el controlador se mantiene estable (3)'
+  descripcion: El equipo DEMO-A1 registra el evento en el ámbito de llamadas.
+REQ-SEGU-007:
+  huella: 3779ecb6af768087
+  titulo: 'Seguridad: el controlador respeta el tiempo máximo (7)'
+  descripcion: El equipo DEMO-A1 informa por el bus en el ámbito de seguridad.

@@ -1,0 +1,21 @@
+DEMO-LLAM-001:
+  estado: ok
+  fecha: 2026-10-15T09:00
+  ejecutor: Ana Pérez
+  huella: b54b9a273040
+DEMO-CAN-002:
+  estado: ok
+  fecha: 2026-10-15T10:00
+  ejecutor: Ana Pérez
+  huella: 21eb111e8587
+DEMO-SEG-001:
+  estado: ok
+  fecha: 2026-10-15T11:00
+  ejecutor: Ana Pérez
+  huella: 682f61d88f57
+DEMO-CAN-001:
+  estado: no_ok
+  fecha: 2026-10-15T12:00
+  ejecutor: Ana Pérez
+  huella: cbb57a8f4bec
+  observaciones: La trama de estado llega cada 250 ms en lugar de cada 100 ms.

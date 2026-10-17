@@ -78,6 +78,7 @@ def main() -> None:
         height=880,
         min_size=(980, 640),
         text_select=True,    # sin esto pywebview impide seleccionar y copiar texto (IDs, mensajes)
+        zoomable=True,       # si el zoom propio (app/zoom.py) no funciona, queda el del navegador (Ctrl+rueda)
     )
     api._window = ventana
     ventana.events.closing += api._al_cerrar_ventana   # pregunta si hay cambios sin guardar

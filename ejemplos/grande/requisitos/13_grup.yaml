@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de grupos
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-001
+    titulo: 'Grupos: el controlador avisa al operador (1)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-002
+    titulo: 'Grupos: el controlador avisa al operador (2)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-003
+    titulo: 'Grupos: el controlador bloquea la maniobra (3)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-004
+    titulo: 'Grupos: el controlador responde a la orden (4)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-005
+    titulo: 'Grupos: el controlador ignora la orden repetida (5)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-006
+    titulo: 'Grupos: el controlador informa por el bus (6)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-007
+    titulo: 'Grupos: el controlador respeta el tiempo máximo (7)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-008
+    titulo: 'Grupos: el controlador respeta el tiempo máximo (8)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-009
+    titulo: 'Grupos: el controlador bloquea la maniobra (9)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-010
+    titulo: 'Grupos: el controlador vuelve al estado inicial (10)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-011
+    titulo: 'Grupos: el controlador responde a la orden (11)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-012
+    titulo: 'Grupos: el controlador se recupera tras el corte (12)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-013
+    titulo: 'Grupos: el controlador se mantiene estable (13)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-014
+    titulo: 'Grupos: el controlador se recupera tras el corte (14)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-015
+    titulo: 'Grupos: el controlador responde a la orden (15)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-016
+    titulo: 'Grupos: el controlador bloquea la maniobra (16)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-017
+    titulo: 'Grupos: el controlador se recupera tras el corte (17)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-018
+    titulo: 'Grupos: el controlador se mantiene estable (18)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-019
+    titulo: 'Grupos: el controlador avisa al operador (19)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-020
+    titulo: 'Grupos: el controlador ignora la orden repetida (20)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-021
+    titulo: 'Grupos: el controlador vuelve al estado inicial (21)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-022
+    titulo: 'Grupos: el controlador avisa al operador (22)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-023
+    titulo: 'Grupos: el controlador se recupera tras el corte (23)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-024
+    titulo: 'Grupos: el controlador se recupera tras el corte (24)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-GRUP-025
+    titulo: 'Grupos: el controlador informa por el bus (25)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de grupos.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

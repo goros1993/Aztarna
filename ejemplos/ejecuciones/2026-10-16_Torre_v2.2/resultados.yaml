@@ -1,0 +1,32 @@
+DEMO-NIV-001:
+  estado: ok
+  fecha: 2026-10-16T09:00
+  ejecutor: Luis Gómez
+  huella: c40a46daee20
+DEMO-CAN-002:
+  estado: ok
+  fecha: 2026-10-16T10:00
+  ejecutor: Luis Gómez
+  huella: 21eb111e8587
+DEMO-PUER-001:
+  estado: no_ok
+  fecha: 2026-10-16T11:00
+  ejecutor: Luis Gómez
+  huella: 1207021f4712
+  observaciones: Las puertas tardan 4 s en abrir.
+DEMO-PUER-002:
+  estado: ok
+  fecha: 2026-10-16T12:00
+  ejecutor: Luis Gómez
+  huella: ea335b52eef8
+DEMO-SEG-001:
+  estado: ok
+  fecha: 2026-10-16T13:00
+  ejecutor: Luis Gómez
+  huella: 682f61d88f57
+DEMO-MANT-001:
+  estado: no_aplica
+  fecha: 2026-10-16T14:00
+  ejecutor: Luis Gómez
+  huella: 482b7731202c
+  observaciones: La torre no tiene modo inspección en esta versión.

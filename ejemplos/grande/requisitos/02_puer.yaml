@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de puertas
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-001
+    titulo: 'Puertas: el controlador respeta el tiempo máximo (1)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-002
+    titulo: 'Puertas: el controlador informa por el bus (2)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-003
+    titulo: 'Puertas: el controlador responde a la orden (3)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-004
+    titulo: 'Puertas: el controlador avisa al operador (4)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-005
+    titulo: 'Puertas: el controlador informa por el bus (5)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-006
+    titulo: 'Puertas: el controlador informa por el bus (6)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-007
+    titulo: 'Puertas: el controlador se mantiene estable (7)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-008
+    titulo: 'Puertas: el controlador vuelve al estado inicial (8)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-009
+    titulo: 'Puertas: el controlador bloquea la maniobra (9)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-010
+    titulo: 'Puertas: el controlador bloquea la maniobra (10)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-011
+    titulo: 'Puertas: el controlador bloquea la maniobra (11)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-012
+    titulo: 'Puertas: el controlador informa por el bus (12)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-013
+    titulo: 'Puertas: el controlador se mantiene estable (13)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-014
+    titulo: 'Puertas: el controlador se mantiene estable (14)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-015
+    titulo: 'Puertas: el controlador avisa al operador (15)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-016
+    titulo: 'Puertas: el controlador responde a la orden (16)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-017
+    titulo: 'Puertas: el controlador avisa al operador (17)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-018
+    titulo: 'Puertas: el controlador informa por el bus (18)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-019
+    titulo: 'Puertas: el controlador vuelve al estado inicial (19)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-020
+    titulo: 'Puertas: el controlador se mantiene estable (20)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-021
+    titulo: 'Puertas: el controlador respeta el tiempo máximo (21)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-022
+    titulo: 'Puertas: el controlador vuelve al estado inicial (22)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-023
+    titulo: 'Puertas: el controlador se mantiene estable (23)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-024
+    titulo: 'Puertas: el controlador ignora la orden repetida (24)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PUER-025
+    titulo: 'Puertas: el controlador ignora la orden repetida (25)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de puertas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

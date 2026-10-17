@@ -19,6 +19,7 @@ import base64
 import contextlib
 import functools
 import io
+import re
 import subprocess
 import sys
 import threading
@@ -32,6 +33,7 @@ from app import ajustes, bloqueos, esquema, formato, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
+    block_range,
     change_levels,
     delete_section,
     delete_test,
@@ -564,8 +566,10 @@ class EditorApi:
                 "python": platform.python_version(), "sistema": f"{platform.system()} {platform.release()}"}
 
     @respuesta
-    def abrir_manual(self) -> dict[str, Any]:
-        """Abre el manual de usuario (MANUAL.md convertido a HTML) en una ventana aparte."""
+    def abrir_manual(self, ancla: str = "") -> dict[str, Any]:
+        """Abre el manual de usuario (MANUAL.md convertido a HTML) en una ventana aparte, en el apartado `ancla` si se indica."""
+        from urllib.parse import quote
+
         from app import firma, manual
 
         ruta = manual.generar()
@@ -573,8 +577,23 @@ class EditorApi:
             return {"archivo": str(ruta)}
         import webview
 
-        webview.create_window(f"Manual · {firma()}", url=ruta.as_uri(), width=1040, height=820, text_select=True)
+        url = ruta.as_uri() + (f"#{quote(str(ancla))}" if ancla else "")
+        webview.create_window(f"Manual · {firma()}", url=url, width=1040, height=820, text_select=True)
         return {"archivo": str(ruta)}
+
+    def zoom(self, nivel: float = 1.0) -> dict[str, Any]:
+        """Zoom de la ventana (1 = normal). `aplicado` es False (con el `motivo`) si no se ha podido.
+
+        Sin el cerrojo de la API (no lleva @respuesta): no toca datos y no debe esperar a nada.
+        """
+        from app import zoom
+
+        try:
+            nivel = zoom.limitar(nivel)
+            hecho, motivo = zoom.aplicar(self._window, nivel)
+        except Exception as error:  # noqa: BLE001 - el zoom es accesorio
+            return {"ok": True, "datos": {"nivel": 1.0, "aplicado": False, "motivo": str(error)}}
+        return {"ok": True, "datos": {"nivel": nivel, "aplicado": hecho, "motivo": motivo}}
 
     @respuesta
     def abrir_enlace(self, url: str) -> dict[str, Any]:
@@ -585,6 +604,58 @@ class EditorApi:
             raise ValueError("Solo se abren direcciones web.")
         webbrowser.open(str(url))
         return {}
+
+    # --- ajustes de este PC (⋯ → Ajustes…) ----------------------------------------
+    AJUSTES_GENERALES = ("carpeta_versiones", "url_incidencias")
+
+    @respuesta
+    def ajustes_generales(self) -> dict[str, Any]:
+        """Tu nombre (el ejecutor), la carpeta donde se publica el programa y la dirección de las incidencias."""
+        datos = ajustes.leer()
+        interfaz = datos.get("interfaz") if isinstance(datos.get("interfaz"), dict) else {}
+        return {"persona": str(interfaz.get("ejecutor") or ""), "persona_sistema": bloqueos.persona_del_sistema(),
+                **{k: str(datos.get(k) or "") for k in self.AJUSTES_GENERALES}}
+
+    @respuesta
+    def guardar_ajustes_generales(self, cambios: dict[str, Any]) -> dict[str, Any]:
+        url = str((cambios or {}).get("url_incidencias") or "").strip()
+        if url and (not url.startswith(("https://", "http://")) or "{id}" not in url):
+            raise ValueError("La dirección de las incidencias tiene que empezar por https:// (o http://) y llevar {id} "
+                             "donde va el número, por ejemplo https://jira.empresa.com/browse/{id}.")
+        guardar = {k: str(cambios[k] or "").strip() for k in self.AJUSTES_GENERALES if k in (cambios or {})}
+        ajustes.guardar(guardar)
+        if "persona" in (cambios or {}):
+            interfaz = ajustes.leer().get("interfaz")
+            interfaz = dict(interfaz) if isinstance(interfaz, dict) else {}
+            persona = str(cambios["persona"] or "").strip()
+            if persona:
+                interfaz["ejecutor"] = persona
+            else:
+                interfaz.pop("ejecutor", None)
+            ajustes.guardar({"interfaz": interfaz})
+        return self.ajustes_generales()["datos"]
+
+    @respuesta
+    def elegir_carpeta_versiones(self) -> dict[str, Any]:
+        import webview
+
+        if self._window is None:
+            raise ValueError("El selector de carpetas solo está disponible en la aplicación.")
+        kind = getattr(getattr(webview, "FileDialog", None), "FOLDER", None) or webview.FOLDER_DIALOG
+        elegida = self._window.create_file_dialog(kind)
+        return {"carpeta": str(elegida[0])} if elegida else {"cancelado": True}
+
+    def comprobar_version(self) -> dict[str, Any]:
+        """Si en la carpeta donde se publica el programa hay una versión más nueva que esta.
+
+        Sin el cerrojo de la API (no lleva @respuesta): leer una unidad de red lenta no debe parar el editor.
+        """
+        from app import __version__, actualizaciones
+        try:
+            datos = actualizaciones.comprobar(ajustes.leer().get("carpeta_versiones"), __version__)
+        except Exception as error:  # noqa: BLE001 - un aviso accesorio no debe dar errores
+            return {"ok": False, "error": str(error)}
+        return {"ok": True, "datos": {**datos, "actual": __version__}}
 
     # --- preferencias de la interfaz ------------------------------------------
     @respuesta
@@ -1112,6 +1183,188 @@ class EditorApi:
         cambiados = change_levels(chapter, [int(i) for i in indices or []], int(delta))
         self._persist(chapter)
         return {"cambiados": cambiados}
+
+    # --- buscar y reemplazar en todo el proyecto --------------------------------------
+    @staticmethod
+    def _textos(valor: Any, campo: str = "") -> list[tuple[str, str]]:
+        """(campo, texto) de todos los textos de un elemento, sin rutas de imágenes ni niveles."""
+        if isinstance(valor, dict):
+            fuera = ("nivel", "imagenes", "imagen", "columnas")
+            return [x for k, v in valor.items() if k not in fuera for x in EditorApi._textos(v, campo or str(k))]
+        if isinstance(valor, list):
+            return [x for v in valor for x in EditorApi._textos(v, campo)]
+        return [(campo, str(valor))] if isinstance(valor, str) and valor.strip() else []
+
+    @respuesta
+    def buscar_global(self, consulta: str, limite: int = 500) -> dict[str, Any]:
+        """Pruebas (o requisitos), secciones y tablas de todos los capítulos que contienen el texto (sin mayúsculas).
+
+        `resultados` trae el detalle de los `limite` primeros (para mostrarlos); `elementos`, todos los que
+        coinciden ({capitulo, indice}), para poder reemplazar en todos aunque no se muestren."""
+        consulta = str(consulta or "").strip()
+        if len(consulta) < 2:
+            return {"resultados": [], "total": 0}
+        patron = re.compile(re.escape(consulta), re.IGNORECASE)
+        clave = self._clave()
+        nombres = {**(esquema.REQ_ETIQUETAS if clave == "requisito" else esquema.ETIQUETAS), "seccion": "Sección", "tabla": "Tabla",
+                   "contexto": "Contexto"}
+        resultados: list[dict[str, Any]] = []
+        elementos: list[dict[str, int]] = []
+        total = 0
+        for ci, chapter in enumerate(self._activos()):
+            for index, element in enumerate(chapter["data"]["contenido"]):
+                if not isinstance(element, dict):
+                    continue
+                if item_key(element) == clave:
+                    item, tipo = element[clave], clave
+                    ident, titulo = str(item.get("id") or ""), str(item.get("titulo") or "")
+                elif isinstance(element.get("seccion"), str):
+                    item, tipo, ident, titulo = element, "seccion", "", element["seccion"]
+                elif "tabla" in element:
+                    item, tipo, ident, titulo = element, "tabla", "", table_title(element["tabla"])
+                else:
+                    continue
+                coincidencias = [(c, x) for c, x in self._textos(item) if patron.search(x)]
+                if not coincidencias:
+                    continue
+                total += 1
+                elementos.append({"capitulo": ci, "indice": index})
+                if len(resultados) < limite:
+                    campo, texto = coincidencias[0]
+                    m = patron.search(texto)
+                    inicio = max(m.start() - 40, 0)
+                    resultados.append({
+                        "capitulo": ci, "nombre_capitulo": self._nombre_capitulo(chapter), "indice": index, "tipo": tipo,
+                        "id": ident, "titulo": titulo, "campo": nombres.get(campo, campo),
+                        "antes": ("…" if inicio else "") + texto[inicio:m.start()], "coincide": texto[m.start():m.end()],
+                        "despues": texto[m.end():m.end() + 60] + ("…" if m.end() + 60 < len(texto) else ""),
+                        "veces": sum(len(patron.findall(x)) for _c, x in coincidencias),
+                    })
+        return {"resultados": resultados, "total": total, "elementos": elementos}
+
+    @respuesta
+    def reemplazar_global(self, buscar: str, reemplazo: str, elementos: list[dict[str, int]]) -> dict[str, Any]:
+        """Cambia el texto en los elementos indicados ({capitulo, indice}); no toca los ID.
+
+        Un capítulo que edita otra persona se salta (y se dice cuál). Un requisito con pruebas
+        cuyo texto cambia queda con sus pruebas por revisar, como al editarlo a mano.
+        """
+        self._exigir_escritura()
+        buscar = str(buscar or "")
+        if len(buscar.strip()) < 2:
+            raise ValueError("Escribe al menos dos caracteres para buscar.")
+        patron = re.compile(re.escape(buscar), re.IGNORECASE)
+        clave = self._clave()
+
+        def cambiar(valor: Any, campo: str = "") -> tuple[Any, int]:
+            if isinstance(valor, dict):
+                total = 0
+                for k in list(valor.keys()):
+                    if k in ("id", "nivel", "imagenes", "imagen", "columnas"):
+                        continue
+                    nuevo, n = cambiar(valor[k], k)
+                    if n:
+                        valor[k] = nuevo
+                        total += n
+                return valor, total
+            if isinstance(valor, list):
+                total = 0
+                for i, v in enumerate(valor):
+                    nuevo, n = cambiar(v, campo)
+                    if n:
+                        valor[i] = nuevo
+                        total += n
+                return valor, total
+            if isinstance(valor, str):
+                return patron.subn(lambda _m: str(reemplazo), valor)
+            return valor, 0
+
+        por_capitulo: dict[int, list[int]] = {}
+        for e in elementos or []:
+            por_capitulo.setdefault(int(e["capitulo"]), []).append(int(e["indice"]))
+        cambiados, veces, saltados = 0, 0, []
+        for ci, indices in por_capitulo.items():
+            chapter = self._require_chapter(ci)
+            otro = self._bloqueos.de_otro(chapter["path"])
+            if otro:
+                saltados.append(bloqueos.texto(otro, self._nombre_capitulo(chapter)))
+                continue
+            anteriores = []
+            antes = cambiados
+            contents = chapter["data"]["contenido"]
+            for index in sorted(set(indices)):
+                if not 0 <= index < len(contents) or not isinstance(contents[index], dict):
+                    continue
+                element = contents[index]
+                objetivo = element[clave] if item_key(element) == clave else element
+                anterior = to_plain(objetivo) if item_key(element) == "requisito" else None
+                _nuevo, n = cambiar(objetivo)
+                if n:
+                    cambiados += 1
+                    veces += n
+                    if anterior is not None:
+                        anteriores.append((anterior, objetivo))
+            if cambiados == antes:
+                continue
+            self._persist(chapter)
+            for anterior, actual in anteriores:
+                self._anotar_cambio(anterior, actual)
+        return {"cambiados": cambiados, "veces": veces, "saltados": saltados}
+
+    # --- cambiar campos de varios a la vez ------------------------------------------
+    # Campo -> clase: «lista» (se añade, se quita o se pone), «opcion» (se pone una) o «texto» (se pone).
+    CAMPOS_VARIOS = {
+        "prueba": {"etiquetas": "lista", "requisitos": "lista", "entorno": "lista", "maniobra": "lista",
+                   "automatizable": "opcion", "fecha": "texto", "version": "texto"},
+        "requisito": {"criterio_validacion": "lista", "tipo": "opcion", "fuente": "texto", "fase": "texto",
+                      "fecha": "texto", "version": "texto"},
+    }
+
+    @respuesta
+    def editar_varios(self, capitulo: int, indices: list[int], campo: str, modo: str, valor: Any) -> dict[str, Any]:
+        """Cambia un campo en varias pruebas (o requisitos) del capítulo; una sección elegida cuenta con todo lo suyo.
+
+        `modo`: «anadir» o «quitar» (en las listas: tags, requisitos, entorno, maniobra, criterio) o «poner».
+        """
+        self._exigir_escritura()
+        chapter = self._require_chapter(capitulo)
+        clave = self._clave()
+        clase = self.CAMPOS_VARIOS[clave].get(campo)
+        if clase is None:
+            raise ValueError(f"No se puede cambiar «{campo}» en varios a la vez.")
+        if modo not in ("anadir", "quitar", "poner") or (clase != "lista" and modo != "poner"):
+            raise ValueError("Modo desconocido para ese campo.")
+        contents = chapter["data"]["contenido"]
+        elegidos: list[int] = []
+        for index in indices or []:
+            start, end = block_range(contents, int(index))
+            elegidos.extend(i for i in range(start, end) if item_key(contents[i]) == clave and i not in elegidos)
+        if not elegidos:
+            raise ValueError(f"Elige {'requisitos' if clave == 'requisito' else 'pruebas'} (o secciones que los tengan).")
+        limpiar = clean_requirement_changes if clave == "requisito" else clean_test_changes
+        valores = esquema.lista_de_textos(valor, r"[\n,;]") if clase == "lista" else str(valor or "").strip()
+        nuevos: dict[int, Any] = {}
+        for i in elegidos:
+            item = contents[i][clave]
+            if clase == "lista":
+                actual = [str(v).strip() for v in (item.get(campo) or [])] if isinstance(item.get(campo), list) else \
+                    esquema.lista_de_textos(item.get(campo))
+                if modo == "anadir":
+                    nuevo = actual + [v for v in valores if v not in actual]
+                elif modo == "quitar":
+                    nuevo = [v for v in actual if v not in valores]
+                else:
+                    nuevo = list(valores)
+            else:
+                nuevo = valores
+            limpio = limpiar({campo: nuevo})[campo]           # mismas comprobaciones que el formulario
+            if to_plain(item.get(campo)) != limpio and not (item.get(campo) in (None, "", []) and limpio in ("", [])):
+                nuevos[i] = limpio
+        for i, limpio in nuevos.items():
+            apply_changes(contents[i][clave], {campo: limpio})
+        if nuevos:
+            self._persist(chapter)
+        return {"cambiados": len(nuevos), "elegidos": len(elegidos)}
 
     # --- YAML en bruto ---------------------------------------------------------
     @respuesta

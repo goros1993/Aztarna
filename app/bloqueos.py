@@ -55,6 +55,42 @@ def caducado(datos: dict[str, Any], ahora: float | None = None) -> bool:
     return (ahora or time.time()) - renovado > CADUCIDAD_S
 
 
+PATRON_GIT = ".*.yaml.lock"
+_revisadas: set[Path] = set()
+
+
+def asegurar_gitignore(carpeta: Path) -> bool:
+    """Si la carpeta está en un repositorio Git que no ignora los bloqueos, añade la regla a su `.gitignore`.
+
+    Así un archivo de bloqueo no acaba nunca en un commit. Devuelve True si ha escrito algo.
+    """
+    carpeta = Path(carpeta).resolve()
+    if carpeta in _revisadas:
+        return False
+    _revisadas.add(carpeta)
+    raiz = next((c for c in (carpeta, *carpeta.parents) if (c / ".git").exists()), None)
+    if raiz is None:
+        return False
+    reglas = {".*.yaml.lock", ".*.lock", "*.lock", "*.yaml.lock"}
+    for c in (carpeta, *carpeta.parents):
+        try:
+            lineas = {x.strip() for x in (c / ".gitignore").read_text(encoding="utf-8").splitlines()}
+        except OSError:
+            lineas = set()
+        if lineas & reglas:
+            return False
+        if c == raiz:
+            break
+    try:
+        ruta = carpeta / ".gitignore"
+        previo = ruta.read_text(encoding="utf-8") if ruta.is_file() else ""
+        separador = "" if not previo or previo.endswith("\n") else "\n"
+        ruta.write_text(f"{previo}{separador}# Bloqueos del editor de pruebas: no se suben a Git\n{PATRON_GIT}\n", encoding="utf-8")
+    except OSError:
+        return False
+    return True
+
+
 def persona_del_sistema() -> str:
     try:
         return getpass.getuser()
@@ -115,6 +151,7 @@ class Bloqueos:
                 return None                               # sin permiso para crear el archivo: no se bloquea
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(self._datos(), f, ensure_ascii=False)
+            asegurar_gitignore(archivo.parent)
             self._mios[archivo] = time.time()
             self._arrancar()
             return None

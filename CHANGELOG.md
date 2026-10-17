@@ -3,6 +3,46 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 0.12.0
+
+Validación de una versión:
+
+- **Pestañas** Resumen, Pruebas, Requisitos y Comparación. Las tablas van
+  **por capítulos** que se despliegan, con buscador y plegar/desplegar todo,
+  para trabajar con cientos o miles de pruebas; el resumen tiene una tabla por
+  capítulo.
+- **Requisitos en la validación**: verificado, fallido, bloqueado, pendiente
+  o sin pruebas según el resultado de sus pruebas, y **ejecución de impacto**
+  con las pruebas de los requisitos que han cambiado.
+- **Comparar con la versión anterior** (y una ejecución con otra): nuevos
+  fallos, arregladas, siguen fallando y demás cambios, y la **evolución** por
+  versión. También `herramientas.py comparar`.
+- **Informe** con resumen por capítulos y detalle por capítulo (opcional:
+  *Incluir el detalle*, `--solo-resumen`), comparación y requisitos.
+- **Resultados en Excel (CSV)** de una ejecución o una validación; también
+  `herramientas.py resultados`.
+- Más rápida: lo leído se guarda y solo se vuelve a leer lo que cambia; la
+  validación anterior se consolida una sola vez.
+
+Uso diario:
+
+- **Pasar una prueba**: ficha compacta (se ven de una ensayos de 20-30 pasos),
+  los cuatro resultados en una fila y más sitio para las observaciones.
+- **Tamaño (zoom)**: Ctrl + rueda, Ctrl + / − / 0 y *⋯ → Tamaño*; se recuerda.
+- **Ajustes** (*⋯ → Ajustes…*): tu nombre, la carpeta donde se publica el
+  programa (aviso de **versión nueva** al abrir) y la dirección de las
+  **incidencias** (se abren con un clic).
+- **Cambiar un campo en varias pruebas** a la vez (*Campos…* con varios
+  elegidos en el árbol).
+- **Buscar y reemplazar en todos los capítulos** (Ctrl+Mayús+F), sin límite de
+  elementos.
+- **Ruleta** en todo lo que tarda, que se puede ocultar si pasa de 8 s.
+- Los archivos de bloqueo no se suben a Git (se añaden al `.gitignore`).
+- La guía de Robot Framework pasa al manual (apartado 10), para que vaya
+  dentro del programa.
+- Ejemplo grande en `ejemplos/grande`: 1000 pruebas, 500 requisitos y dos
+  validaciones.
+
 ## 0.11.0
 
 - **Versión del formato de los datos**, para poder migrarlos algún día:

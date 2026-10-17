@@ -1,0 +1,920 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Bus CAN
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-001
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en bus can, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-001
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-002
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-003
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-005
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-004
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-015
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-005
+    titulo: 'Funcionamiento normal: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en bus can, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-018
+    - REQ-BUSC-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-006
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en bus can, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-003
+    - REQ-BUSC-015
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-007
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-008
+    titulo: 'Funcionamiento normal: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-009
+    titulo: 'Funcionamiento normal: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-017
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-010
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-021
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-011
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en bus can, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-016
+    - REQ-BUSC-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-012
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-005
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-013
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-014
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en bus can, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-015
+    titulo: 'Límites: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-011
+    - REQ-BUSC-023
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-016
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en bus can, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-008
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-017
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en bus can, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-008
+    - REQ-BUSC-013
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-018
+    titulo: 'Límites: el controlador registra el evento'
+    descripcion: Comprobar que, en bus can, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-002
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-019
+    titulo: 'Límites: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-006
+    - REQ-BUSC-015
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-020
+    titulo: 'Límites: el controlador registra el evento'
+    descripcion: Comprobar que, en bus can, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-016
+    - REQ-BUSC-019
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-021
+    titulo: 'Fallos: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en bus can, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-001
+    - REQ-BUSC-016
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-022
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en bus can, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-002
+    - REQ-BUSC-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-023
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-008
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-024
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-025
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-025
+    titulo: 'Fallos: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en bus can, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-020
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-026
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-004
+    - REQ-BUSC-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-027
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en bus can, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-003
+    - REQ-BUSC-018
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-028
+    titulo: 'Fallos: el controlador avisa al operador'
+    descripcion: Comprobar que, en bus can, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-004
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-029
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-001
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-030
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en bus can, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-009
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-031
+    titulo: 'Recuperación: el controlador avisa al operador'
+    descripcion: Comprobar que, en bus can, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-032
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en bus can, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-033
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-018
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-034
+    titulo: 'Recuperación: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-015
+    - REQ-BUSC-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-035
+    titulo: 'Recuperación: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-016
+    - REQ-BUSC-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-036
+    titulo: 'Recuperación: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-006
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-037
+    titulo: 'Recuperación: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-001
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-038
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en bus can, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-039
+    titulo: 'Recuperación: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-017
+    - REQ-BUSC-021
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-040
+    titulo: 'Recuperación: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en bus can, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-002
+    tags:
+    - regresion
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-041
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-042
+    titulo: 'Configuración: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en bus can, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-008
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-043
+    titulo: 'Configuración: el controlador responde a la orden'
+    descripcion: Comprobar que, en bus can, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-013
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-044
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en bus can, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-045
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en bus can, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-008
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-046
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en bus can, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-011
+    - REQ-BUSC-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-047
+    titulo: 'Configuración: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en bus can, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-006
+    - REQ-BUSC-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-048
+    titulo: 'Configuración: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en bus can, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-BUSC-012
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-049
+    titulo: 'Configuración: el controlador se mantiene estable'
+    descripcion: Comprobar que, en bus can, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-BUSC-017
+    - REQ-BUSC-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-BUSC-050
+    titulo: 'Configuración: el controlador registra el evento'
+    descripcion: Comprobar que, en bus can, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-BUSC-005
+    - REQ-BUSC-022
+    tags:
+    - regresion

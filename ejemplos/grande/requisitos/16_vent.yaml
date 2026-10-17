@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de ventilación
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-001
+    titulo: 'Ventilación: el controlador se mantiene estable (1)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-002
+    titulo: 'Ventilación: el controlador ignora la orden repetida (2)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-003
+    titulo: 'Ventilación: el controlador ignora la orden repetida (3)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-004
+    titulo: 'Ventilación: el controlador informa por el bus (4)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-005
+    titulo: 'Ventilación: el controlador se mantiene estable (5)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-006
+    titulo: 'Ventilación: el controlador vuelve al estado inicial (6)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-007
+    titulo: 'Ventilación: el controlador registra el evento (7)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-008
+    titulo: 'Ventilación: el controlador vuelve al estado inicial (8)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-009
+    titulo: 'Ventilación: el controlador registra el evento (9)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-010
+    titulo: 'Ventilación: el controlador avisa al operador (10)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-011
+    titulo: 'Ventilación: el controlador vuelve al estado inicial (11)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-012
+    titulo: 'Ventilación: el controlador se mantiene estable (12)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-013
+    titulo: 'Ventilación: el controlador se mantiene estable (13)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-014
+    titulo: 'Ventilación: el controlador se recupera tras el corte (14)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-015
+    titulo: 'Ventilación: el controlador responde a la orden (15)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-016
+    titulo: 'Ventilación: el controlador respeta el tiempo máximo (16)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-017
+    titulo: 'Ventilación: el controlador respeta el tiempo máximo (17)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-018
+    titulo: 'Ventilación: el controlador bloquea la maniobra (18)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-019
+    titulo: 'Ventilación: el controlador responde a la orden (19)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-020
+    titulo: 'Ventilación: el controlador avisa al operador (20)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-021
+    titulo: 'Ventilación: el controlador vuelve al estado inicial (21)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-022
+    titulo: 'Ventilación: el controlador informa por el bus (22)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-023
+    titulo: 'Ventilación: el controlador bloquea la maniobra (23)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-024
+    titulo: 'Ventilación: el controlador se mantiene estable (24)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-VENT-025
+    titulo: 'Ventilación: el controlador avisa al operador (25)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de ventilación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

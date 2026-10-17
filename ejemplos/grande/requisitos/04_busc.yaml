@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de bus can
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-001
+    titulo: 'Bus CAN: el controlador responde a la orden (1)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-002
+    titulo: 'Bus CAN: el controlador respeta el tiempo máximo (2)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-003
+    titulo: 'Bus CAN: el controlador vuelve al estado inicial (3)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-004
+    titulo: 'Bus CAN: el controlador responde a la orden (4)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-005
+    titulo: 'Bus CAN: el controlador informa por el bus (5)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-006
+    titulo: 'Bus CAN: el controlador se mantiene estable (6)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-007
+    titulo: 'Bus CAN: el controlador ignora la orden repetida (7)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-008
+    titulo: 'Bus CAN: el controlador avisa al operador (8)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-009
+    titulo: 'Bus CAN: el controlador registra el evento (9)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-010
+    titulo: 'Bus CAN: el controlador registra el evento (10)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-011
+    titulo: 'Bus CAN: el controlador avisa al operador (11)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-012
+    titulo: 'Bus CAN: el controlador ignora la orden repetida (12)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-013
+    titulo: 'Bus CAN: el controlador se recupera tras el corte (13)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-014
+    titulo: 'Bus CAN: el controlador registra el evento (14)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-015
+    titulo: 'Bus CAN: el controlador se recupera tras el corte (15)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-016
+    titulo: 'Bus CAN: el controlador bloquea la maniobra (16)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-017
+    titulo: 'Bus CAN: el controlador se mantiene estable (17)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-018
+    titulo: 'Bus CAN: el controlador registra el evento (18)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-019
+    titulo: 'Bus CAN: el controlador se mantiene estable (19)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-020
+    titulo: 'Bus CAN: el controlador bloquea la maniobra (20)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-021
+    titulo: 'Bus CAN: el controlador se mantiene estable (21)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-022
+    titulo: 'Bus CAN: el controlador registra el evento (22)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-023
+    titulo: 'Bus CAN: el controlador registra el evento (23)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-024
+    titulo: 'Bus CAN: el controlador responde a la orden (24)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BUSC-025
+    titulo: 'Bus CAN: el controlador avisa al operador (25)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de bus can.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

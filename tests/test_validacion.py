@@ -192,12 +192,30 @@ class InformeTests(ValidacionBase):
         doc = Document(str(salida))
         textos = "\n".join(p.text for p in doc.paragraphs)
         self.assertIn("BORRADOR", textos)
-        matriz = doc.tables[-1]
-        self.assertEqual([c.text for c in matriz.rows[0].cells][-1], "Versión")
-        fila = next(r for r in matriz.rows if r.cells[0].text == "DEMO-PUER-002")
+        matrices = [t for t in doc.tables if t.rows[0].cells[-1].text == "Versión"]
+        self.assertTrue(matrices)
+        fila = next(r for t in matrices for r in t.rows if r.cells[0].text == "DEMO-PUER-002")
         self.assertEqual(fila.cells[-1].text, "NO OK")
         detalle = "\n".join(c.text for tabla in doc.tables for fila in tabla.rows for c in fila.cells)
         self.assertIn("No reabre", detalle)
+        self.assertIn("Detalle por capítulo", textos)
+
+    def test_resumen_por_capitulo_y_solo_resumen(self):
+        from docx import Document
+        from app import informe_validacion
+        torre = self.ejecucion("torre", "Torre", ["DEMO-PUER-002", "DEMO-NIV-001"])
+        ej.registrar(torre, "DEMO-PUER-002", "no_ok", observaciones="No reabre", fecha="2026-11-01T10:00")
+        capitulos = {p["capitulo"] for p in vc.consolidar(self.val)["pruebas"]}
+        salida = self.tmp / "resumen.docx"
+        informe_validacion.generar_informe(self.val, salida, detalle=False)
+        doc = Document(str(salida))
+        textos = "\n".join(p.text for p in doc.paragraphs)
+        self.assertNotIn("Detalle por capítulo", textos)
+        self.assertFalse([t for t in doc.tables if t.rows[0].cells[-1].text == "Versión"])
+        if len(capitulos) > 1:
+            tabla = next(t for t in doc.tables if t.rows[0].cells[0].text == "Capítulo")
+            self.assertEqual({r.cells[0].text for r in tabla.rows[1:]}, capitulos)
+            self.assertEqual(sum(int(r.cells[1].text) for r in tabla.rows[1:]), 4)
 
 
 class ApiTests(unittest.TestCase):

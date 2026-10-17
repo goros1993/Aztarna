@@ -1,0 +1,10 @@
+nombre: Validación v3.0 (ejemplo grande)
+version: Controlador DEMO-A1, firmware 3.0.0
+creada: 2026-10-05T07:30
+pruebas_yaml: ../../pruebas
+seleccion: {}
+ejecuciones:
+- ruta: 2026-10-05_Maqueta
+- ruta: 2026-10-07_Torre
+formato: 1
+comparar_con: ../v2.9

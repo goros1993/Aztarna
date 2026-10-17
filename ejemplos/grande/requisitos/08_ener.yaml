@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de energía
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-001
+    titulo: 'Energía: el controlador bloquea la maniobra (1)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-002
+    titulo: 'Energía: el controlador se mantiene estable (2)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-003
+    titulo: 'Energía: el controlador se recupera tras el corte (3)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-004
+    titulo: 'Energía: el controlador ignora la orden repetida (4)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-005
+    titulo: 'Energía: el controlador respeta el tiempo máximo (5)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-006
+    titulo: 'Energía: el controlador vuelve al estado inicial (6)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-007
+    titulo: 'Energía: el controlador respeta el tiempo máximo (7)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-008
+    titulo: 'Energía: el controlador ignora la orden repetida (8)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-009
+    titulo: 'Energía: el controlador registra el evento (9)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-010
+    titulo: 'Energía: el controlador se mantiene estable (10)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-011
+    titulo: 'Energía: el controlador se recupera tras el corte (11)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-012
+    titulo: 'Energía: el controlador informa por el bus (12)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-013
+    titulo: 'Energía: el controlador respeta el tiempo máximo (13)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-014
+    titulo: 'Energía: el controlador se recupera tras el corte (14)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-015
+    titulo: 'Energía: el controlador vuelve al estado inicial (15)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-016
+    titulo: 'Energía: el controlador se mantiene estable (16)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-017
+    titulo: 'Energía: el controlador vuelve al estado inicial (17)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-018
+    titulo: 'Energía: el controlador se recupera tras el corte (18)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-019
+    titulo: 'Energía: el controlador ignora la orden repetida (19)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-020
+    titulo: 'Energía: el controlador registra el evento (20)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-021
+    titulo: 'Energía: el controlador ignora la orden repetida (21)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-022
+    titulo: 'Energía: el controlador informa por el bus (22)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-023
+    titulo: 'Energía: el controlador bloquea la maniobra (23)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-024
+    titulo: 'Energía: el controlador bloquea la maniobra (24)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-ENER-025
+    titulo: 'Energía: el controlador responde a la orden (25)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de energía.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

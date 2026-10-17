@@ -15,7 +15,9 @@ Importación del Word:
 Documentos y ejecuciones (carpeta app/):
     word        genera el Word a partir de los YAML (de pruebas o de requisitos)
     informe     informe DOCX (y PDF) de una ejecución
+    resultados  resultados de una ejecución o de una validación en CSV para Excel
     validacion  informe DOCX (y PDF) de la validación de una versión
+    comparar    compara dos validaciones (o dos ejecuciones): nuevos fallos y arreglos
     robot       importa en una ejecución los resultados de Robot Framework (output.xml)
 
 Requisitos (carpeta app/):
@@ -38,7 +40,9 @@ ORDENES = {
     "ids": ("migracion.ids_duplicados", "Propone y aplica IDs nuevos para pruebas con ID repetido"),
     "word": ("app.yaml_a_docx", "Genera el Word a partir de los YAML"),
     "informe": ("app.informe_docx", "Informe DOCX (y PDF) de una ejecución"),
+    "resultados": ("app.exportar_resultados", "Resultados de una ejecución o de una validación en CSV para Excel"),
     "validacion": ("app.informe_validacion", "Informe DOCX (y PDF) de la validación de una versión"),
+    "comparar": ("app.comparar", "Compara dos validaciones (o dos ejecuciones): nuevos fallos y arreglos"),
     "robot": ("app.importar_robot", "Importa resultados de Robot Framework en una ejecución"),
     "trazabilidad": ("app.trazabilidad", "Matriz requisitos -> pruebas: cobertura y referencias que no existen"),
 }

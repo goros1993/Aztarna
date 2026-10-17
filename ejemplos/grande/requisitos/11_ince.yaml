@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de incendio
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-001
+    titulo: 'Incendio: el controlador se recupera tras el corte (1)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-002
+    titulo: 'Incendio: el controlador respeta el tiempo máximo (2)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-003
+    titulo: 'Incendio: el controlador respeta el tiempo máximo (3)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-004
+    titulo: 'Incendio: el controlador bloquea la maniobra (4)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-005
+    titulo: 'Incendio: el controlador responde a la orden (5)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-006
+    titulo: 'Incendio: el controlador ignora la orden repetida (6)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-007
+    titulo: 'Incendio: el controlador bloquea la maniobra (7)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-008
+    titulo: 'Incendio: el controlador bloquea la maniobra (8)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-009
+    titulo: 'Incendio: el controlador informa por el bus (9)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-010
+    titulo: 'Incendio: el controlador avisa al operador (10)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-011
+    titulo: 'Incendio: el controlador se mantiene estable (11)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-012
+    titulo: 'Incendio: el controlador vuelve al estado inicial (12)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-013
+    titulo: 'Incendio: el controlador se mantiene estable (13)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-014
+    titulo: 'Incendio: el controlador registra el evento (14)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-015
+    titulo: 'Incendio: el controlador se mantiene estable (15)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-016
+    titulo: 'Incendio: el controlador respeta el tiempo máximo (16)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-017
+    titulo: 'Incendio: el controlador registra el evento (17)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-018
+    titulo: 'Incendio: el controlador informa por el bus (18)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-019
+    titulo: 'Incendio: el controlador registra el evento (19)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-020
+    titulo: 'Incendio: el controlador ignora la orden repetida (20)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-021
+    titulo: 'Incendio: el controlador vuelve al estado inicial (21)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-022
+    titulo: 'Incendio: el controlador se mantiene estable (22)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-023
+    titulo: 'Incendio: el controlador se recupera tras el corte (23)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-024
+    titulo: 'Incendio: el controlador avisa al operador (24)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-INCE-025
+    titulo: 'Incendio: el controlador se mantiene estable (25)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de incendio.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

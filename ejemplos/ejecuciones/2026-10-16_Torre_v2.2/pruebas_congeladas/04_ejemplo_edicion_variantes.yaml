@@ -1,0 +1,40 @@
+capitulo: Ejemplo de edición y variantes
+contenido:
+- seccion: Modo inspección
+  nivel: 2
+  contexto:
+  - El modo inspección permite mover la cabina a velocidad reducida desde la botonera de techo.
+- prueba:
+    nombre: Entrada en modo inspección
+    nivel: 3
+    id: DEMO-MANT-001
+    titulo: El controlador entra en modo inspección y limita la velocidad
+    descripcion: Activar el modo inspección y comprobar que la velocidad máxima baja a 0,25 m/s y se ignoran las llamadas.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina está parada en P1 sin llamadas.
+    - El técnico simulado está identificado en la HMI.
+    pasos:
+    - Activar el interruptor de inspección del techo de cabina.
+    - texto: Comprobar el modo en la HMI.
+      imagen: imagenes/pantalla_hmi.png
+    - Mover la cabina hacia arriba con el pulsador de subida.
+    - Registrar una llamada de piso en P3.
+    - La HMI indica **INSPECCIÓN** y la velocidad no supera 0,25 m/s.
+    - La llamada de P3 [[rojo|no]] se atiende mientras dure el modo.
+    maniobra:
+    - Simplex
+    automatizable: corto
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-001
+    fecha: '2026-10-02'
+    version: '1.0'
+    etiquetas:
+    - regresion
+    - mantenimiento
+    contexto:
+    - El paso 2 usa la clave antigua «imagen» en lugar de «imagenes»; el editor la muestra igual.
+    campos_adicionales:
+      Personal: Técnico de mantenimiento (perfil simulado)

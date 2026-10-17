@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de botoneras
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-001
+    titulo: 'Botoneras: el controlador bloquea la maniobra (1)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-002
+    titulo: 'Botoneras: el controlador se mantiene estable (2)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-003
+    titulo: 'Botoneras: el controlador se mantiene estable (3)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-004
+    titulo: 'Botoneras: el controlador se mantiene estable (4)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-005
+    titulo: 'Botoneras: el controlador respeta el tiempo máximo (5)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-006
+    titulo: 'Botoneras: el controlador vuelve al estado inicial (6)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-007
+    titulo: 'Botoneras: el controlador ignora la orden repetida (7)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-008
+    titulo: 'Botoneras: el controlador respeta el tiempo máximo (8)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-009
+    titulo: 'Botoneras: el controlador respeta el tiempo máximo (9)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-010
+    titulo: 'Botoneras: el controlador respeta el tiempo máximo (10)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-011
+    titulo: 'Botoneras: el controlador bloquea la maniobra (11)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-012
+    titulo: 'Botoneras: el controlador se mantiene estable (12)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-013
+    titulo: 'Botoneras: el controlador avisa al operador (13)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-014
+    titulo: 'Botoneras: el controlador vuelve al estado inicial (14)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-015
+    titulo: 'Botoneras: el controlador responde a la orden (15)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-016
+    titulo: 'Botoneras: el controlador avisa al operador (16)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-017
+    titulo: 'Botoneras: el controlador informa por el bus (17)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-018
+    titulo: 'Botoneras: el controlador bloquea la maniobra (18)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-019
+    titulo: 'Botoneras: el controlador vuelve al estado inicial (19)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-020
+    titulo: 'Botoneras: el controlador bloquea la maniobra (20)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-021
+    titulo: 'Botoneras: el controlador registra el evento (21)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-022
+    titulo: 'Botoneras: el controlador vuelve al estado inicial (22)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-023
+    titulo: 'Botoneras: el controlador registra el evento (23)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-024
+    titulo: 'Botoneras: el controlador registra el evento (24)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-BOTO-025
+    titulo: 'Botoneras: el controlador ignora la orden repetida (25)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de botoneras.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

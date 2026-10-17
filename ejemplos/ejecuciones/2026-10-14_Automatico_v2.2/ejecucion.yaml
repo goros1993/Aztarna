@@ -1,0 +1,21 @@
+nombre: Regresión v2.2 automática
+objeto: Firmware 2.2.0
+entorno_pruebas: Automático
+responsable: Robot (CI nocturno)
+inicio: 2026-10-14T08:30
+estado: cerrada
+pruebas_yaml: ../../yaml/pruebas
+seleccion:
+  solo_ids:
+  - DEMO-LLAM-001
+  - DEMO-LLAM-002
+  - DEMO-NIV-001
+pruebas:
+- id: DEMO-LLAM-001
+  huella: b54b9a273040
+- id: DEMO-LLAM-002
+  huella: 95604739cbec
+- id: DEMO-NIV-001
+  huella: c40a46daee20
+formato: 1
+fin: 2026-10-14T17:00

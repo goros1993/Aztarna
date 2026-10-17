@@ -1,0 +1,39 @@
+capitulo: Ejemplo de secciones e imágenes
+contenido:
+- seccion: Serie de seguridad
+  nivel: 2
+  contexto:
+  - texto: Esquema vectorial (EMF) de los contactos de la serie; el rojo es el contacto que se abre en la prueba.
+    imagenes:
+    - imagenes/esquema_seguridad.emf
+- prueba:
+    nombre: Apertura de la serie de seguridad
+    nivel: 3
+    id: DEMO-SEG-001
+    titulo: Abrir un contacto de la serie para la cabina de inmediato
+    descripcion: Simular la apertura del tercer contacto de la serie de seguridad con la cabina en marcha.
+    parametrizacion: []
+    situacion_inicial:
+    - La cabina viaja de P3 a PB a velocidad nominal.
+    pasos:
+    - Abrir el contacto 3 de la serie desde el panel del banco.
+    - texto: La cabina para de inmediato y la HMI muestra [[rojo|E-301]].
+      imagenes:
+      - imagenes/pantalla_hmi.png
+    - El controlador no admite llamadas hasta rearmar la serie.
+    maniobra:
+    - Dúplex
+    automatizable: no
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-SEG-001
+    fecha: '2026-10-01'
+    version: '1.0'
+    etiquetas:
+    - smoke
+    - regresion
+    - seguridad
+    imagenes:
+    - imagenes/esquema_seguridad.emf

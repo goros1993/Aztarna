@@ -15,6 +15,7 @@ programar ni conocer el formato de los archivos.
 7. [Importar desde Word](#7-importar-desde-word)
 8. [Atajos de teclado](#8-atajos-de-teclado)
 9. [Preguntas frecuentes y problemas](#9-preguntas-frecuentes-y-problemas)
+10. [Robot Framework: guía para quien escribe los tests](#10-robot-framework-guía-para-quien-escribe-los-tests)
 
 ---
 
@@ -139,11 +140,41 @@ El menú **⋯**, a la derecha de la barra superior, reúne:
   ejecución (ver 7). En el modo Validación, solo resultados.
 - **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
   ver 4.8. No aparece en el modo Validación.
+- **Tamaño**: **−** y **+** agrandan o reducen todo (texto, botones,
+  imágenes); el porcentaje vuelve al 100 %. Ver abajo.
+- **Ajustes…**: tu nombre, dónde se publica el programa y la dirección de las
+  incidencias (ver abajo).
 - **Manual de usuario**: abre este manual en una ventana aparte.
 - **Acerca de…**: versión, dónde guarda este PC sus ajustes, enlace al
   proyecto en GitHub y botón del manual.
 
 ![Acerca de](docs/manual/36_acerca.png)
+
+**Tamaño (zoom).** Para leerlo todo más grande: **Ctrl + rueda del ratón**,
+**Ctrl +** / **Ctrl −** o *⋯ → Tamaño*; **Ctrl 0** vuelve al 100 %. Va del 67 %
+al 300 % y se recuerda en este PC. Con la ventana estrecha o mucho zoom, la
+barra superior deja solo el icono en *Robot* y *Recargar*, y al pasar una
+prueba el panel del resultado se pone encima de la prueba.
+
+![Ajustes de este PC](docs/manual/50_ajustes.png)
+
+**Ajustes de este PC** (*⋯ → Ajustes…*):
+
+- **Tu nombre**: sale como ejecutor en los resultados y en el aviso cuando
+  editas un capítulo (vacío: tu usuario de Windows).
+- **Carpeta con la última versión del programa**: la carpeta compartida
+  donde se publica `EditorPruebas.exe` con su `version.txt`. Al abrir el
+  editor, si allí hay una versión más nueva que la tuya, un aviso lo dice y
+  ofrece abrir la carpeta.
+- **Dirección de las incidencias**: la de tu gestor de incidencias (Jira,
+  Redmine…) con `{id}` donde va el número, por ejemplo
+  `https://jira.empresa.com/browse/{id}`. Así las incidencias de los
+  resultados (`BUG-123`) se abren con un clic.
+
+**Esperas.** Lo que tarda (abrir una validación grande, generar un informe,
+importar) muestra una ruleta con el tiempo que lleva. Si una espera pasa de
+8 segundos aparece **Ocultar y seguir trabajando**: la operación sigue y su
+resultado se verá al terminar.
 
 Cuando avises de un problema, indica la versión que aparece aquí; también
 figura en el pie de los informes y en las propiedades de los documentos de
@@ -296,6 +327,14 @@ sección se mueve con todo lo que cuelga de ella. Los niveles van del 2 al 6
 (el 1 es el capítulo): si alguno se saldría, no se cambia nada y el editor
 dice cuál.
 
+![Cambiar un campo en varias pruebas](docs/manual/51_campos_varios.png)
+
+Con varios elegidos, **Campos…** cambia un mismo campo en todos: *Tags* y
+*Requisitos* (añadir, quitar o dejar solo esos), *Maniobra*, *Entorno de
+pruebas*, *Automatizable*, *Versión* o *Fecha*. Si eliges una sección, se
+cambia en todas sus pruebas. Se guarda al aceptar; los capítulos que edita
+otra persona se saltan.
+
 ### 4.6 Vista YAML
 
 ![Vista YAML](docs/manual/05_vista_yaml.png)
@@ -368,6 +407,21 @@ con un icono de tabla y se editan igual.
 
 En modo Validación, las tablas del contexto se ven (sin editar) en la ficha
 de la prueba o de la sección.
+
+### 4.10 Buscar y reemplazar en todos los capítulos
+
+![Buscar en todo](docs/manual/52_buscar_todo.png)
+
+El buscador del panel izquierdo busca en el capítulo abierto. Para buscar en
+**todos los capítulos**, pulsa la lupa junto al buscador o **Ctrl+Mayús+F**:
+sale cada prueba, sección o tabla con el texto, en qué campo está y un trozo
+alrededor. Pulsa una para ir a ella (Intro va a la primera).
+
+**Reemplazar** cambia el texto en **todos** los resultados (sin distinguir
+mayúsculas), aunque la lista solo muestre los 500 primeros. No toca los ID y
+se salta los capítulos que está editando otra persona. Si cambia el texto de
+un requisito con pruebas, queda con sus pruebas por revisar, como al editarlo
+a mano. Con Git se puede deshacer; sin Git, no.
 
 ## 5. Requisitos y trazabilidad (modo Requisitos)
 
@@ -537,7 +591,11 @@ prueba seleccionada:
 - botones **Ejecutar Robot…** e **Importar Robot…** (ver 6.7), **Generar
   informe…**, **Cerrar ejecución…** y **Siguiente pendiente**;
 - en el apartado **Ejecución**, su entorno de pruebas y sus datos; **Cambiar
-  datos…** los corrige mientras está abierta.
+  datos…** los corrige mientras está abierta;
+- **Comparar con…**: elige otra ejecución (normalmente la anterior del mismo
+  entorno) y verás los **nuevos fallos** (NO OK ahora y no antes), las
+  **arregladas** (NO OK antes y bien ahora), las que siguen fallando y los
+  demás cambios.
 
 Si la ejecución forma parte de una validación abierta, arriba aparece un
 botón para **volver a la validación**.
@@ -556,7 +614,10 @@ ejecutarse (al pasar el ratón se ve en qué entorno o ejecución). La opción
 *Cambiadas tras ejecutarse* del desplegable deja solo esas pruebas, para
 decidir cuáles repetir.
 
-A la izquierda está la prueba en solo lectura; a la derecha, su resultado:
+A la izquierda está la prueba en solo lectura, compacta para ver de una un
+ensayo de 20 o 30 pasos (sus datos en una línea arriba); a la derecha, su
+resultado. Los cuatro resultados van en una fila y las **observaciones**
+ocupan el resto del panel (también se pueden estirar por la esquina):
 
 1. Elige el resultado con los botones o con las teclas **1 a 4**.
 2. Escribe las **observaciones** (necesarias en NO OK y Bloqueada), la
@@ -601,8 +662,8 @@ pueden apuntar de golpe:
 
 Para que una prueba reciba el resultado, su test de Robot tiene que llevar la
 etiqueta `id:` con el ID de la prueba (por ejemplo `id:DEMO-LLAM-001`). Quien
-escribe los tests de Robot tiene los detalles en
-[docs/robot.md](docs/robot.md).
+escribe los tests de Robot tiene los detalles en el
+[apartado 10](#10-robot-framework-guía-para-quien-escribe-los-tests).
 
 **Configurar Robot.** El botón **Robot** de la barra superior indica dónde
 están los tests de Robot de este PC y cómo se ejecuta Robot (el comando que
@@ -702,12 +763,29 @@ pruebas* dónde hay que pasarla, y cada ejecución en qué entorno se hizo:
 - una prueba sin entorno indicado vale en cualquiera, con un aviso para
   completarla.
 
-El panel muestra el resultado de la versión, las ejecuciones (pulsa una para
-abrirla), una tabla **por entorno** (*Sin planificar*: ninguna ejecución de
-ese entorno incluye la prueba), la tabla **prueba × entorno** y los avisos.
-Las cifras y el desplegable filtran la tabla y el árbol.
+El panel tiene cuatro pestañas:
+
+- **Resumen**: el resultado de la versión, una línea con los requisitos y otra
+  con la comparación con la anterior (llevan a su pestaña), una tabla **por
+  capítulo** (pulsa uno para ver sus pruebas), las ejecuciones (pulsa una para
+  abrirla), la tabla **por entorno** (*Sin planificar*: ninguna ejecución de
+  ese entorno incluye la prueba) y los avisos. Las cifras de arriba llevan a
+  la pestaña *Pruebas* con ese filtro (también en el árbol).
+- **Pruebas**: la tabla **prueba × entorno** agrupada por capítulos, cada uno
+  con su barra y su porcentaje de validadas. Pulsa un capítulo para
+  desplegarlo; *Desplegar todo* / *Plegar todo*; buscador por ID o título y
+  filtro por resultado. Con pocas filas (o mientras buscas) sale todo
+  desplegado.
+- **Requisitos** y **Comparación**: ver abajo.
+
+La pestaña elegida se recuerda.
 
 ![Tabla prueba × entorno](docs/manual/33_validacion_matriz.png)
+
+Con muchas pruebas, los capítulos salen plegados y se ve de un vistazo cuáles
+van peor:
+
+![Validación con 1000 pruebas](docs/manual/49_validacion_grande.png)
 
 Al pulsar una prueba se ve su ficha con el resultado en cada entorno y su
 historial; el nombre de cada ejecución lleva a esa prueba dentro de ella para
@@ -715,19 +793,75 @@ apuntar o corregir el resultado.
 
 ![Una prueba en la validación](docs/manual/34_validacion_prueba.png)
 
+**Requisitos de la versión.** Si el proyecto tiene requisitos, la pestaña
+**Requisitos** dice cuáles quedan verificados con esta validación:
+
+- **verificado**: todas las pruebas de la validación que lo citan están
+  validadas; **fallido** si alguna es NO OK; **bloqueado** o **pendiente** si
+  alguna lo está;
+- **sin pruebas aquí**: necesita pruebas, pero ninguna de esta validación lo
+  cita; **no aplica**: no se valida con pruebas (por ejemplo, por
+  inspección).
+
+Va agrupada por capítulos de requisitos, como la de pruebas; las tarjetas
+filtran y cada prueba se puede pulsar. Si algún requisito **ha cambiado**
+desde la última revisión de sus pruebas, lo avisa y **Ejecución de
+impacto…** crea una ejecución dentro de la validación con solo esas pruebas.
+
+![Requisitos en la validación](docs/manual/47_validacion_requisitos.png)
+
+**Comparar con la versión anterior.** En la pestaña **Comparación**, *Comparar
+con otra validación…* elige la validación de la versión anterior (se
+recuerda). Verás:
+
+- la **evolución**: una fila por versión con su resultado, siguiendo la
+  cadena de «comparar con» (la v2.3 con la v2.2, la v2.2 con la v2.1…);
+- los **cambios** por capítulo: **nuevos fallos** (NO OK ahora y no antes),
+  **arregladas** (NO OK antes y bien ahora), **siguen fallando**, otros
+  cambios, pruebas nuevas y las que ya no están. Las tarjetas filtran.
+
+La pestaña indica en rojo cuántos nuevos fallos hay. *Quitar* deja de
+comparar.
+
+![Comparación con la versión anterior](docs/manual/48_validacion_comparacion.png)
+
 **Informe de la validación.** **Generar informe…** crea un Word apaisado (y,
-si quieres, el PDF) con los datos de la versión, el resultado, las
-ejecuciones, el resultado por entorno, las pruebas no validadas con sus
-observaciones y la tabla prueba × entorno en color. Mientras quede alguna
-ejecución abierta sale como **BORRADOR**. El detalle de cada prueba está en el
-informe de cada ejecución.
+si quieres, el PDF) en dos partes:
+
+- **resumen**: datos de la versión, ejecuciones, resultado por entorno y
+  **por capítulo**, la comparación con la anterior (con la evolución) y los
+  requisitos, también por capítulo;
+- **detalle por capítulo**: las pruebas no validadas con sus observaciones,
+  la tabla prueba × entorno en color y cada requisito con sus pruebas, con un
+  título por capítulo.
+
+Quita *Incluir el detalle por capítulos* para sacar solo el resumen (útil con
+muchas pruebas). Mientras quede alguna ejecución abierta sale como
+**BORRADOR**. Los pasos de cada prueba están en el informe de cada ejecución.
+
+![Generar el informe de la validación](docs/manual/53_informe_validacion.png)
+
+**Resultados en Excel.** En el mismo diálogo, **Resultados en Excel (CSV)…**
+guarda una fila por prueba con su resultado en cada entorno, la ejecución,
+la fecha, el ejecutor, las observaciones y la incidencia. Se abre con Excel
+(en una ejecución sale el mismo botón en su informe).
 
 **Trabajar sin validación.** Botón de la validación → **Trabajar sin
 validación**: el modo vuelve a funcionar solo con ejecuciones sueltas.
 
 En los ejemplos hay una validación completa:
 `ejemplos/validaciones/validacion_v2.3`, que une cuatro ejecuciones de
-`ejemplos/ejecuciones/` (Robot, torre, una repetición en torre y maqueta).
+`ejemplos/ejecuciones/` (Robot, torre, una repetición en torre y maqueta) y se
+compara con `validacion_v2.2`. Para ver cómo se comporta con un proyecto de
+tamaño real, `ejemplos/grande` tiene 1000 pruebas, 500 requisitos y dos
+validaciones (abre la carpeta `ejemplos/grande` y la validación
+`validaciones/v3.0`).
+
+**¿Los resultados van en Git?** Las pruebas y los requisitos, sí (es lo que
+se edita y se revisa). Las ejecuciones y las validaciones, mejor no: son
+registros de lo que pasó (con capturas y logs que pesan) y cada persona hace
+las suyas. Déjalas en una carpeta compartida de la red y, al cerrar una
+versión, archiva su validación con el informe.
 
 ---
 
@@ -842,6 +976,9 @@ y quién la ejecutó): revísala, completa las pendientes y ciérrala.
 |---|---|---|
 | Ctrl+S | Siempre | Guardar |
 | Ctrl+F | Siempre | Ir al buscador |
+| Ctrl+Mayús+F | Siempre | Buscar (y reemplazar) en todos los capítulos |
+| Ctrl + rueda, Ctrl+ / Ctrl− | Siempre | Más grande / más pequeño |
+| Ctrl+0 | Siempre | Tamaño normal |
 | ↑ / ↓ | Árbol | Prueba anterior / siguiente |
 | ← / → | Árbol | Plegar / desplegar sección |
 | Ctrl+clic / Mayús+clic | Árbol | Elegir varios (uno a uno / un rango) |
@@ -942,3 +1079,200 @@ cuando el editor ya ha terminado. No se pierde nada.
 - Escribe observaciones en todo NO OK y Bloqueada: es lo que leerá quien
   reciba el informe.
 - Haz copia de seguridad de la carpeta de pruebas antes de cambios grandes.
+
+---
+
+## 10. Robot Framework: guía para quien escribe los tests
+
+Detalles para quien escribe y mantiene los tests de Robot Framework. Para
+importar o lanzar Robot desde una ejecución basta con el apartado
+[6.7](#67-pruebas-automáticas-robot-framework).
+
+Cómo enlazar los tests automáticos de Robot Framework con las pruebas del
+editor para que sus resultados entren en las ejecuciones.
+
+### 10.1 La convención: la etiqueta `id:`
+
+Cada test de Robot lleva la etiqueta `id:` seguida del **ID de la prueba
+YAML** que automatiza:
+
+```robotframework
+*** Test Cases ***
+Llamada de cabina lleva a la planta pedida
+    [Tags]    id:DEMO-LLAM-001    regresion
+    ${planta}=    Simular Viaje    origen=0    destino=2
+    Should Be Equal As Integers    ${planta}    2
+```
+
+- **Es el único enlace.** El nombre del test de Robot, su suite o su archivo
+  pueden cambiar sin romper nada; el ID no (igual que en el editor).
+- **Un test puede cubrir varias pruebas:** pon varias etiquetas
+  (`[Tags]  id:DEMO-PUER-001  id:DEMO-PUER-002`).
+- **Varios tests pueden cubrir la misma prueba** (variantes, datos
+  distintos): todos llevan la misma etiqueta `id:`.
+- Las demás etiquetas (`regresion`, `smoke`…) se pueden seguir usando como
+  siempre; el importador solo mira las que empiezan por `id:`.
+- Las mayúsculas del prefijo dan igual (`ID:` también vale); el ID se copia
+  tal cual, así que debe coincidir exactamente con el de la prueba YAML.
+
+Para etiquetar muchos tests de una suite a la vez puede usarse `Test Tags`
+en *Settings* (`Force Tags` en versiones antiguas de Robot), pero lo normal
+es una etiqueta por test.
+
+### 10.2 Cómo se convierte cada resultado
+
+| Robot | Ejecución |
+|---|---|
+| PASS | OK |
+| FAIL | NO OK (el mensaje de error va a *Observaciones*) |
+| SKIP | No aplica (el motivo va a *Observaciones*) |
+| NOT RUN | No se importa (la prueba sigue como estaba) |
+
+Si varios tests de Robot cubren la misma prueba: si **alguno falla**, NO OK;
+si no, si **alguno pasa**, OK; si **todos se saltan**, No aplica. Las
+observaciones indican qué tests se ejecutaron y por qué falló cada uno.
+
+### 10.3 Importar los resultados
+
+1. Ejecuta Robot como siempre; deja un `output.xml` (por defecto, junto a
+   `log.html` y `report.html`):
+
+   ```bash
+   robot --outputdir resultados pruebas_robot/
+   ```
+
+2. En el editor, modo **Validación**, abre la ejecución y pulsa **Importar
+   Robot…** en el resumen. Elige el `output.xml`. Antes de cambiar nada verás
+   qué resultado tendrá cada prueba y los avisos:
+   - pruebas que ya tenían un resultado manual (el manual no se pierde: queda
+     en el historial),
+   - tests de Robot sin etiqueta `id:`,
+   - IDs que no existen en las pruebas (erratas o pruebas borradas),
+   - IDs que existen pero no están en esta ejecución,
+   - pruebas de la ejecución sin resultado en ese archivo (se quedan como
+     están, para pasarlas a mano o en otra ejecución).
+3. Pulsa **Importar**. Se copian `output.xml`, `log.html`, `report.html` y
+   las capturas enlazadas en el log a `evidencias/robot/<fecha>/` dentro de la
+   ejecución, y cada prueba queda con su resultado, el ejecutor «Robot
+   Framework», la captura y el `log.html` como evidencias.
+
+También desde la línea de comandos (útil en un PC sin el editor abierto o,
+más adelante, en integración continua):
+
+```bash
+python herramientas.py robot ruta/a/la/ejecución resultados/output.xml --simular   # solo mira
+python herramientas.py robot ruta/a/la/ejecución resultados/output.xml             # importa
+```
+
+Volver a importar el mismo `output.xml` no duplica nada. Si se repiten los
+tests fallidos (`robot --rerunfailed resultados/output.xml …`) y se importa
+el nuevo resultado, el anterior queda en el historial de cada prueba.
+
+### 10.4 Configurar Robot en el editor
+
+Botón **Robot** de la barra superior. La configuración es de cada PC y de
+cada carpeta de pruebas:
+
+- **Carpeta con los tests de Robot:** la carpeta de las suites (o un archivo
+  `.robot`).
+- **Comando para ejecutar Robot:** el que usarías en la consola, por ejemplo
+  `robot`, `python -m robot` o la ruta completa
+  (`C:\venv\Scripts\robot.exe`). *Comprobar* ejecuta `--version`.
+- **Argumentos adicionales:** los que necesite el banco, por ejemplo
+  `--variable BANCO:2 --pythonpath lib`.
+
+Robot se ejecuta en la carpeta de los tests, con el Python donde esté
+instalado; el editor no necesita tenerlo instalado.
+
+### 10.5 Cobertura: qué pruebas tienen test de Robot
+
+Con la carpeta configurada, el editor lee las etiquetas `id:` de los `.robot`
+(sin ejecutarlos; tiene en cuenta `Test Tags`/`Force Tags` del archivo y de
+`__init__.robot`) y:
+
+- marca con un robot en el árbol las pruebas que tienen test automático, y
+  en cada prueba lista sus tests de Robot (archivo y línea);
+- avisa en la validación de las pruebas con `automatizable: hecho` sin test
+  de Robot;
+- en la configuración muestra los tests sin `id:` y los `id:` que no existen;
+- al crear una ejecución permite filtrar por **Automatización: con / sin test
+  de Robot**.
+
+### 10.6 Escribir los pasos con las keywords
+
+Para que las pruebas nuevas se escriban igual que los tests de Robot, el
+editor propone las keywords existentes al escribir *Situación inicial*,
+*Pasos* y *Situación final*, y marca con un robot los pasos que ya son una
+keyword.
+
+De dónde salen (sin ejecutar nada, leyendo los archivos):
+
+- la sección *Keywords* de los `.robot` y `.resource` de la carpeta de tests
+  (con `[Arguments]` y la primera línea de `[Documentation]`);
+- las librerías de Python: las funciones decoradas con `@keyword` y, si algún
+  `.robot` o `.resource` importa el archivo con `Library`, sus funciones
+  públicas (o los métodos de la clase que se llama como el archivo). Se
+  respetan `ROBOT_AUTO_KEYWORDS = False`, `@library` y `@not_keyword`;
+- **Otras carpetas con keywords** (en la configuración de Robot): librerías o
+  `.resource` que no están dentro de la carpeta de tests. Varias, separadas
+  por `;`.
+
+Las más usadas en los tests aparecen primero. Al elegir una, el paso se
+escribe con la sintaxis de Robot:
+
+| Keyword | Paso escrito |
+|---|---|
+| `Registrar una llamada de piso en ${planta}` (argumento incrustado) | `Registrar una llamada de piso en ${planta}` con `${planta}` seleccionado para escribir el valor |
+| `Comprobar la alarma` con `[Arguments]  ${codigo}  ${timeout}=5 s` | `Comprobar la alarma    codigo=` (solo los obligatorios, con nombre) |
+
+Un paso se considera keyword si su primera celda (hasta dos espacios
+seguidos) coincide con el nombre como lo compara Robot (sin mayúsculas,
+espacios ni guiones bajos), ignorando un punto final y los prefijos
+*Given/When/Then/And/But*; las keywords con argumentos incrustados se
+reconocen con cualquier valor (`Esperar al menos 1 s.` es `Esperar al
+menos ${tiempo}`).
+
+Las keywords con **argumentos incrustados** son las que mejor sirven a la
+vez de paso manual y de paso de Robot: se leen como una frase
+(`Llevar la cabina a P2 y esperar a que cierre puertas`). Ver
+`ejemplos/robot/banco.resource` y `ejemplos/robot/banco_hil.py` en el
+repositorio de la herramienta.
+
+### 10.7 Ejecutar Robot desde una ejecución
+
+**Ejecutar Robot…** (en el resumen de la ejecución) lanza Robot solo con los
+tests de las pruebas elegidas: las pendientes o todas las de la ejecución que
+tienen test de Robot. El editor:
+
+1. crea `evidencias/robot/<fecha>/` dentro de la ejecución y lanza Robot con
+   `--include id:<id>` por cada prueba (en un archivo de argumentos), las
+   suites y los argumentos configurados;
+2. muestra el avance test a test (con un *listener* que escribe en
+   `progreso.jsonl`) y permite cancelar;
+3. al terminar abre la vista previa de la importación; los resultados ya
+   están en la ejecución (`output.xml`, `log.html`, `report.html`, la salida de
+   la consola en `consola.txt`), así que no se copian otra vez.
+
+Si Robot termina sin `output.xml` (comando mal configurado, argumentos
+inválidos…), se muestra la salida de la consola.
+
+### 10.8 Capturas
+
+Las capturas que Robot enlaza en el log (por ejemplo, las de SeleniumLibrary o
+un `Log` en HTML con una etiqueta `img`) se adjuntan a la prueba si están en
+la carpeta de resultados. Las rutas absolutas o URLs no se copian.
+
+### 10.9 Compatibilidad
+
+El `output.xml` se lee directamente, sin necesidad de tener Robot Framework
+instalado en el PC del editor. Se admiten los formatos de Robot Framework 6
+y 7 (y anteriores desde la 4).
+
+### 10.10 Ejemplo
+
+En el repositorio de la herramienta, `ejemplos/robot/regresion_demo.robot` es una suite ficticia que muestra todos
+los casos (OK, NO OK, SKIP, un test para dos pruebas, dos tests para la misma
+prueba, un test sin `id:` y un ID que no existe). `banco.resource` y
+`banco_hil.py` son keywords de ejemplo (Robot y Python) que coinciden con
+pasos de las pruebas de ejemplo. Sus resultados ya generados están en
+`ejemplos/robot/resultados/output.xml`; se pueden importar en la ejecución de ejemplo `ejemplos/ejecuciones/regresion_v2.3`.
