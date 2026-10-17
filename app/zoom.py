@@ -6,10 +6,13 @@ agranda texto, botones e imágenes y la página se recoloca sola. Un zoom por CS
 no vale: rompe las medidas que dependen del alto de la ventana (paneles y
 listas que ocupan toda la altura).
 
-- Windows (WebView2): `ZoomFactor` del control, desde el hilo de la ventana.
+- Windows (WebView2): `ZoomFactor` del control, pedido al hilo de la ventana
+  sin esperar (BeginInvoke): esperar a ese hilo desde la llamada de la página
+  puede bloquearse.
 - Linux (WebKitGTK): `set_zoom_level` de la vista, desde el bucle de GTK.
 
-En otras plataformas no se hace nada (devuelve False).
+Si no se puede, devuelve el motivo; la página deja entonces que el navegador
+haga su propio zoom con Ctrl+rueda (en Windows, WebView2 lo trae).
 """
 from __future__ import annotations
 
@@ -26,39 +29,53 @@ def limitar(nivel: Any) -> float:
     return round(min(max(valor, MINIMO), MAXIMO), 2)
 
 
-def aplicar(ventana: Any, nivel: float) -> bool:
-    """Pone el zoom de la ventana de pywebview. True si se ha podido."""
+def _formulario(ventana: Any, guilib: Any) -> Any:
+    """La ventana nativa: `window.native` (pywebview ≥ 5) o la de la lista del módulo de la plataforma."""
+    nativa = getattr(ventana, "native", None)
+    if nativa is not None:
+        return nativa
+    vista = getattr(guilib, "BrowserView", None)
+    return vista.instances.get(ventana.uid) if vista is not None else None
+
+
+def aplicar(ventana: Any, nivel: float) -> tuple[bool, str]:
+    """Pone el zoom de la ventana de pywebview. Devuelve (hecho, motivo si no se ha podido)."""
     import webview
 
     guilib = getattr(webview, "guilib", None)
     if ventana is None or guilib is None:
-        return False
+        return False, "sin ventana"
     nombre = getattr(guilib, "__name__", "")
-    vista = getattr(guilib, "BrowserView", None)
-    instancia = vista.instances.get(ventana.uid) if vista is not None else None
-    if instancia is None:
-        return False
     try:
         if nombre.endswith(".gtk"):
             from gi.repository import GLib
+            vista = getattr(guilib, "BrowserView", None)
+            instancia = vista.instances.get(ventana.uid) if vista is not None else None
+            if instancia is None:
+                return False, "no se encuentra la vista de GTK"
 
             def _gtk() -> bool:
                 instancia.webview.set_zoom_level(nivel)
                 return False                      # una sola vez
 
             GLib.idle_add(_gtk)
-            return True
+            return True, ""
         if nombre.endswith(".winforms"):
-            navegador = getattr(instancia, "browser", None)
+            formulario = _formulario(ventana, guilib)
+            navegador = getattr(formulario, "browser", None)
             control = getattr(navegador, "webview", None)
-            if control is None or not hasattr(control, "ZoomFactor"):
-                return False                      # no es WebView2 (p. ej. el antiguo de Internet Explorer)
+            if control is None:
+                return False, f"no se encuentra el control del navegador ({type(navegador).__name__})"
 
             def _windows() -> None:
                 control.ZoomFactor = float(nivel)
 
-            instancia.Invoke(guilib.Func[guilib.Type](_windows))
-            return True
-    except Exception:  # noqa: BLE001 - sin zoom no se rompe nada
-        return False
-    return False
+            from System import Action
+            if getattr(formulario, "InvokeRequired", False):
+                formulario.BeginInvoke(Action(_windows))
+            else:
+                _windows()
+            return True, ""
+        return False, f"plataforma sin zoom ({nombre or 'desconocida'})"
+    except Exception as error:  # noqa: BLE001 - sin zoom no se rompe nada
+        return False, f"{type(error).__name__}: {error}"

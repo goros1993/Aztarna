@@ -91,7 +91,7 @@ const api = new Proxy({}, {
 const RULETA_RETRASO_MS = 400;
 // Las que van en segundo plano (no deben tapar nada) y las que abren un diálogo de archivos.
 const SIN_RULETA = new Set(["bloqueo", "bloquear", "soltar_bloqueos", "comprobar_version", "campana_robot_progreso", "marcar_cambios",
-  "preferencias", "guardar_preferencias", "validar_yaml"]);
+  "preferencias", "guardar_preferencias", "validar_yaml", "zoom"]);
 const MENSAJE_RULETA = {
   validacion_abrir: "Abriendo la validación…", validacion_estado: "Actualizando la validación…", validacion_crear: "Creando la validación…",
   validacion_anadir_ejecucion: "Añadiendo las ejecuciones…", validacion_quitar_ejecucion: "Actualizando la validación…",
@@ -110,7 +110,7 @@ function ruletaAutomatica(nombre) {
     lenta = true;
     ruletaPendientes += 1;
     if (!ruletaVisible && !document.querySelector(".espera")) {       // con conEspera ya hay una
-      ruletaVisible = capaEspera(MENSAJE_RULETA[nombre] || "Un momento…", "", { foco: false });
+      ruletaVisible = capaEspera(MENSAJE_RULETA[nombre] || "Un momento…", "", { foco: false, ocultable: true });
     }
   }, RULETA_RETRASO_MS);
   return () => {
@@ -152,11 +152,14 @@ async function conEspera(mensaje, tarea, detalle = "") {
 }
 
 /** Capa gris con la ruleta, el mensaje y el tiempo que lleva. Devuelve la función que la quita. */
-function capaEspera(mensaje, detalle = "", { foco = true } = {}) {
+function capaEspera(mensaje, detalle = "", { foco = true, ocultable = false } = {}) {
   const tiempo = h("p", { class: "espera-tiempo", "aria-live": "off" });
+  // La ruleta automática se puede ocultar si tarda mucho (la operación sigue; lo que llegue se verá al terminar).
+  const ocultar = ocultable ? h("button", { class: "btn ghost peq", type: "button", hidden: true, text: "Ocultar y seguir trabajando",
+    onclick: () => capa.remove() }) : null;
   const capa = h("div", { class: "espera", role: "alert", "aria-busy": "true", "aria-live": "assertive" },
     h("div", { class: "espera-caja" }, h("div", { class: "ruleta", "aria-hidden": "true" }), h("p", { text: mensaje }),
-      detalle ? h("p", { class: "espera-detalle", text: detalle }) : null, tiempo));
+      detalle ? h("p", { class: "espera-detalle", text: detalle }) : null, tiempo, ocultar));
   const anterior = document.activeElement;
   // Dentro del diálogo abierto, si lo hay: un diálogo modal tapa todo lo que está fuera de él.
   const abiertos = document.querySelectorAll("dialog[open]");
@@ -169,6 +172,7 @@ function capaEspera(mensaje, detalle = "", { foco = true } = {}) {
   const reloj = setInterval(() => {
     const s = Math.round((Date.now() - inicio) / 1000);
     tiempo.textContent = s < 3 ? "" : `Lleva ${s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`}`;
+    if (ocultar && s >= 8) ocultar.hidden = false;
   }, 1000);
   return () => {
     clearInterval(reloj);

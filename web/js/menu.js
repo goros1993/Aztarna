@@ -57,11 +57,16 @@ function abrirMenu() {
 const PASOS_ZOOM = [0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
 let ZOOM = 1;
 let avisoZoom = null;
+let zoomPropio = true;      // false: el zoom propio no funciona aquí; Ctrl+rueda lo hace el navegador
 
 async function ponerZoom(nivel, { avisar = true } = {}) {
   let r;
   try { r = await api.zoom(nivel); } catch (e) { fallo(e); return; }
-  if (!r.aplicado) { if (avisar) aviso("En este sistema no se puede cambiar el tamaño", "error"); return; }
+  if (!r.aplicado) {
+    zoomPropio = false;
+    if (avisar) aviso(`No se ha podido cambiar el tamaño (${r.motivo || "sin motivo"}). Prueba con Ctrl + rueda del ratón.`, "error");
+    return;
+  }
   ZOOM = r.nivel;
   guardarLocal("zoom", ZOOM === 1 ? null : ZOOM);
   const texto = $("#zoom-valor");
@@ -92,7 +97,7 @@ function iniciarZoom() {
   if (guardado && guardado !== 1) ponerZoom(guardado, { avisar: false });
   let ultimo = 0;
   window.addEventListener("wheel", (e) => {
-    if (!e.ctrlKey || !e.deltaY) return;
+    if (!e.ctrlKey || !e.deltaY || !zoomPropio) return;     // sin zoom propio, lo hace el navegador
     e.preventDefault();
     const ahora = Date.now();
     if (ahora - ultimo < 120) return;           // un paso por «golpe» de rueda
@@ -100,7 +105,7 @@ function iniciarZoom() {
     pasoZoom(e.deltaY < 0 ? 1 : -1);
   }, { passive: false });
   document.addEventListener("keydown", (e) => {
-    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || !zoomPropio) return;
     if (["+", "=", "Add"].includes(e.key) || e.code === "NumpadAdd") { e.preventDefault(); pasoZoom(1); }
     else if (["-", "Subtract"].includes(e.key) || e.code === "NumpadSubtract") { e.preventDefault(); pasoZoom(-1); }
     else if (e.key === "0" || e.code === "Numpad0") { e.preventDefault(); ponerZoom(1); }

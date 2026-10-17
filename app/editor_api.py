@@ -581,13 +581,19 @@ class EditorApi:
         webview.create_window(f"Manual · {firma()}", url=url, width=1040, height=820, text_select=True)
         return {"archivo": str(ruta)}
 
-    @respuesta
     def zoom(self, nivel: float = 1.0) -> dict[str, Any]:
-        """Zoom de la ventana (1 = normal). `aplicado` es False si esta plataforma no lo permite."""
+        """Zoom de la ventana (1 = normal). `aplicado` es False (con el `motivo`) si no se ha podido.
+
+        Sin el cerrojo de la API (no lleva @respuesta): no toca datos y no debe esperar a nada.
+        """
         from app import zoom
 
-        nivel = zoom.limitar(nivel)
-        return {"nivel": nivel, "aplicado": zoom.aplicar(self._window, nivel)}
+        try:
+            nivel = zoom.limitar(nivel)
+            hecho, motivo = zoom.aplicar(self._window, nivel)
+        except Exception as error:  # noqa: BLE001 - el zoom es accesorio
+            return {"ok": True, "datos": {"nivel": 1.0, "aplicado": False, "motivo": str(error)}}
+        return {"ok": True, "datos": {"nivel": nivel, "aplicado": hecho, "motivo": motivo}}
 
     @respuesta
     def abrir_enlace(self, url: str) -> dict[str, Any]:

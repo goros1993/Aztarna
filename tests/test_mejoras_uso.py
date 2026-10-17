@@ -176,4 +176,6 @@ class Zoom(unittest.TestCase):
         self.assertEqual(zoom.limitar(10), zoom.MAXIMO)
         self.assertEqual(zoom.limitar(0.1), zoom.MINIMO)
         self.assertEqual(zoom.limitar("x"), 1.0)
-        self.assertFalse(zoom.aplicar(None, 1.5))          # sin interfaz no hace nada
+        hecho, motivo = zoom.aplicar(None, 1.5)            # sin interfaz no hace nada
+        self.assertFalse(hecho)
+        self.assertTrue(motivo)
