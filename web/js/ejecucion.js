@@ -297,7 +297,10 @@ async function nuevaEjecucion({ enValidacion = false } = {}) {
     h("p", { class: "muted", text: (enValidacion ? "Parte del criterio de la validación; al elegir el entorno se marcan las pruebas que lo piden. " : "")
       + "Sin marcar nada entran todas. Dentro de cada grupo basta con cumplir una opción; entre grupos, todas." }),
     grupos,
-    vista);
+    vista,
+    !opciones.git ? null : opciones.git.cambios
+      ? h("p", { class: "aviso-panel", text: `Tu copia de las pruebas tiene cambios sin commit (${opciones.git.texto}). La ejecución lo apuntará, pero en otras copias esas pruebas pueden ser distintas: haz commit (o descártalos) antes de ejecutar.` })
+      : h("p", { class: "muted", text: `Versión de las pruebas: ${opciones.git.texto}. La ejecución la apuntará.` }));
   const responsable = cuerpo.querySelector("#c-responsable");
   responsable.value = leerLocal("ejecutor") || "";
   const r = await dialogo({
@@ -455,8 +458,8 @@ function mostrarPanelEjecucion() {
   const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => (k === "solo_ids" ? `${[].concat(v).length} pruebas elegidas una a una`
     : k === "importado_de" ? `resultados importados de ${v}` : `${k}: ${[].concat(v).join(", ")}`)).join(" · ") || "todas las pruebas";
   const problemas = r.problemas.length
-    ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: "Ir a la prueba", onclick: () => irAPruebaEjecucion(p.id) },
-      h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id }), h("span", { text: p.mensaje }))))
+    ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: p.id ? "Ir a la prueba" : "", onclick: () => { if (p.id) irAPruebaEjecucion(p.id); } },
+      h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id || "ejecución" }), h("span", { text: p.mensaje }))))
     : h("p", { class: "muted", text: "Sin avisos." });
   mostrar(h("div", { class: "formulario panel-ejecucion" },
     S.validacion ? h("button", { class: "btn ghost peq volver", type: "button", onclick: volverAValidacion },
@@ -496,7 +499,8 @@ function mostrarPanelEjecucion() {
         d.entorno ? [h("dt", { text: "Banco / instalación" }), h("dd", { text: d.entorno })] : null,
         h("dt", { text: "Criterio" }), h("dd", { text: criterio }),
         h("dt", { text: "Carpeta" }), h("dd", {}, h("button", { class: "enlace", type: "button", text: c.carpeta, onclick: () => api.mostrar_en_carpeta(c.archivo).catch(fallo) })),
-        h("dt", { text: "Pruebas" }), h("dd", { text: String(d.pruebas_yaml || "") })))));
+        h("dt", { text: "Pruebas" }), h("dd", { text: String(d.pruebas_yaml || d.pruebas_yaml_absoluta || "") }),
+        c.version_pruebas ? [h("dt", { text: "Versión de las pruebas" }), h("dd", { text: c.version_pruebas })] : null))));
 }
 
 /* ---- resultados de Robot Framework ---- */

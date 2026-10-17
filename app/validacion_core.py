@@ -36,6 +36,7 @@ from typing import Any
 from app import ejecucion_core as ej
 from app import esquema
 from app import formato
+from app import git_pruebas
 from app import lectura
 from app.editor_core import read_chapters, tests_dir
 
@@ -371,6 +372,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
 
     # Ejecuciones y sus resultados.
     ejecuciones, resultados_por_id = [], {}
+    commits: dict[str | None, list[str]] = {}         # versión de las pruebas (Git) con la que se hizo cada una
     for i, (entrada, ruta) in enumerate(rutas_ejecuciones(validacion)):
         info = {"indice": i, "ruta": str(entrada.get("ruta") or ""), "carpeta": str(ruta) if ruta else None}
         if ruta is None or not ej.es_ejecucion(ruta):
@@ -386,12 +388,22 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
             "objeto": str(d.get("objeto") or ""), "responsable": str(d.get("responsable") or ""),
             "cerrada": d.get("estado") == "cerrada", "inicio": str(d.get("inicio") or ""), "fin": str(d.get("fin") or ""),
             "total": resumen["total"], "ejecutadas": resumen["ejecutadas"], "totales": resumen["totales"],
+            "version_pruebas": git_pruebas.texto_ejecucion(d),
         })
+        versiones = [v for v in (d.get("git"), d.get("git_cierre")) if v]
+        if any(v.get("cambios") for v in versiones):
+            avisos.append({"tipo": "aviso", "id": "", "mensaje": f"La ejecución «{ejecuciones[-1]['nombre']}» se hizo con cambios sin commit en su copia de las pruebas."})
+        commits.setdefault((versiones[-1].get("commit") if versiones else None), []).append(ejecuciones[-1]["nombre"])
         if not entorno:
             avisos.append({"tipo": "aviso", "id": "", "mensaje": f"La ejecución «{ejecuciones[-1]['nombre']}» no indica su entorno de pruebas: sus resultados no cuentan."})
             continue
         for test_id, r in _resultados_de(ejecucion).items():
             resultados_por_id.setdefault(test_id, []).append({**r, "entorno": entorno, "ejecucion": ejecuciones[-1]["nombre"], "ejecucion_indice": i})
+
+    distintos = {c: n for c, n in commits.items() if c}
+    if len(distintos) > 1:
+        detalle = "; ".join(f"{c[:7]}: {', '.join(n)}" for c, n in distintos.items())
+        avisos.append({"tipo": "aviso", "id": "", "mensaje": f"Las ejecuciones se hicieron con versiones distintas de las pruebas ({detalle})."})
 
     # Pruebas que hay que pasar.
     nombres = {c["path"].name: str(c["data"].get("capitulo") or c["path"].name) for c in capitulos}

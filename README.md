@@ -86,6 +86,11 @@ Validación v2.3/
 - Las ejecuciones reconocen cada prueba por su **ID**, así que debe ser único
   y estable. La *huella* del contenido avisa de las pruebas que cambian
   después de ejecutarse.
+- Lo previsto es tener `proyecto/` en un repositorio de Git (cada persona con
+  su clon) y las ejecuciones y validaciones en una carpeta compartida. Si las
+  pruebas están en Git, cada ejecución guarda el commit y la etiqueta al
+  crearla y al cerrarla (`git` y `git_cierre`, `app/git_pruebas.py`). La
+  validación avisa si sus ejecuciones usan versiones distintas.
 - Cada carpeta indica la versión del formato de sus datos (`formato.yaml`, o la
   clave `formato` en `ejecucion.yaml` y `validacion.yaml`; `app/formato.py`).
   Una copia antigua del programa abre unos datos más nuevos, pero no los guarda.

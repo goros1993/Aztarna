@@ -23,6 +23,7 @@ from docx.shared import Pt, RGBColor
 
 from app import ejecucion_core as ej
 from app import firma
+from app import git_pruebas
 from app import yaml_a_docx as yd
 
 COLOR_ESTADO = {"ok": "2B7A4B", "no_ok": "B3261E", "bloqueada": "9A5B00", "no_aplica": "6B7B85", "pendiente": "72838D"}
@@ -104,6 +105,7 @@ def escribir_resumen(doc, ejecucion: dict[str, Any], resumen: dict[str, Any]) ->
         ["Inicio", _fecha(datos.get("inicio"))],
         ["Fin", _fecha(datos.get("fin")) if cerrada else "(abierta)"],
         ["Criterio de selección", criterio],
+        ["Versión de las pruebas", git_pruebas.texto_ejecucion(datos)],
         ["Pruebas", str(resumen["total"])],
         ["Informe generado", datetime.now().strftime("%d/%m/%Y %H:%M")],
     ]
@@ -148,7 +150,8 @@ def escribir_resumen(doc, ejecucion: dict[str, Any], resumen: dict[str, Any]) ->
         _apartado(doc, "Avisos")
         for aviso in resumen["problemas"]:
             p = doc.add_paragraph(style="List Bullet")
-            p.add_run(f"{aviso['id']}: ").bold = True
+            if aviso["id"]:
+                p.add_run(f"{aviso['id']}: ").bold = True
             p.add_run(aviso["mensaje"])
 
 

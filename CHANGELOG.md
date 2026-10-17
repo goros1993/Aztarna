@@ -24,6 +24,11 @@ euskera):
   su copia del repositorio): se abren con tu carpeta de pruebas si tiene todas
   sus pruebas; si no, se pide la carpeta una vez y la recuerda tu PC, sin
   cambiar la ejecución para los demás.
+- **Versión de las pruebas en Git**: si las pruebas están en un repositorio,
+  cada ejecución apunta el commit y la etiqueta al crearla y al cerrarla (en
+  su resumen y en su informe). Al crearla avisa si tu copia tiene cambios sin
+  commit, y la validación avisa si sus ejecuciones se hicieron con versiones
+  distintas. El manual explica cómo se organiza el equipo (apartado 1).
 - README más corto; el uso del editor está en el manual.
 
 **Al actualizar:** si tus pruebas usan Maniobra, crea un `aztarna.yaml` en

@@ -36,8 +36,8 @@ El editor trabaja con cuatro cosas distintas:
 - **Las ejecuciones.** Una ejecución es una tanda de pruebas que una persona
   pasa sobre una versión concreta y en un **entorno de pruebas** (Automático,
   Maqueta o Torre), por ejemplo «Regresión v2.3 en torre». Guarda qué pruebas
-  entran y el resultado de cada una. Cada persona guarda sus ejecuciones donde
-  quiera en su PC.
+  entran y el resultado de cada una. Se guardan en una carpeta compartida (ver
+  «Cómo se organiza el equipo», más abajo).
 - **Las validaciones.** Una validación une las ejecuciones de una versión,
   normalmente de varias personas y entornos, y da el resultado de cada prueba
   en cada entorno: una prueba queda **validada** cuando ha salido OK en todos
@@ -45,6 +45,7 @@ El editor trabaja con cuatro cosas distintas:
 
 ```text
 proyecto/
+├── aztarna.yaml   opciones de maniobra y entorno del proyecto
 ├── pruebas/       indice.yaml, un archivo por capítulo e imagenes/
 └── requisitos/    indice.yaml y un archivo por capítulo
 ```
@@ -65,6 +66,41 @@ de la ejecución.
 > ejecuciones reconocen cada prueba por su ID: si se cambia, para ellas pasa a
 > ser otra prueba. El editor no deja repetir un ID y pide confirmación antes
 > de cambiarlo.
+
+### Cómo se organiza el equipo
+
+| Qué | Dónde |
+|---|---|
+| El programa (`Aztarna.exe`) | En la carpeta de red donde se publica; avisa cuando hay una versión nueva. |
+| Pruebas, requisitos y `aztarna.yaml` | En un **repositorio de Git** del equipo. Cada persona trabaja con su copia (clon) en su PC. |
+| Ejecuciones y validaciones | En una **carpeta compartida**, por ejemplo `\\servidor\pruebas\validaciones\v2.3\`, sin Git. |
+
+Las pruebas van en Git porque cambian poco a poco y conviene ver quién cambió
+qué. Las ejecuciones no: son registros que se rellenan una vez, con evidencias
+que pesan, y varias personas trabajan en ellas a la vez.
+
+Los pasos de una versión:
+
+1. **Preparar las pruebas.** Cada uno edita en su copia, hace commit y sube los
+   cambios. Cuando el alcance está cerrado, se pone una etiqueta en el
+   repositorio (`v2.3`).
+2. **Actualizar tu copia antes de ejecutar.** `git pull` (o `git checkout
+   v2.3`), sin cambios a medias. Al crear una ejecución, el editor muestra con
+   qué versión de las pruebas se hará y avisa si tu copia tiene cambios sin
+   commit.
+3. **Crear la validación y las ejecuciones** en la carpeta compartida. Cada
+   persona crea la suya con su copia de las pruebas.
+4. **Pasar las pruebas y cerrar** cada ejecución. Al cerrarla se guarda una
+   copia de sus pruebas, así que su informe ya no depende de ninguna copia.
+5. **Informe de la validación.**
+
+Cada ejecución apunta la **versión de las pruebas** (commit y etiqueta) al
+crearla y al cerrarla; se ve en su resumen y en su informe. La validación
+avisa si sus ejecuciones se hicieron con versiones distintas o con cambios
+sin commit.
+
+Puedes abrir la ejecución de otra persona aunque tenga sus pruebas en otra
+ruta: el editor usa tu copia de las pruebas (ver 6.3).
 
 ---
 

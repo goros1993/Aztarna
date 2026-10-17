@@ -701,7 +701,7 @@ function pestanaResumen(v) {
   const ejecuciones = v.ejecuciones.length
     ? h("table", { class: "tabla-estados tabla-ejecuciones" },
       h("thead", {}, h("tr", {}, ["Ejecución", "Entorno", "Estado", "Avance", "Responsable", ""].map((x) => h("th", { text: x })))),
-      h("tbody", {}, v.ejecuciones.map((e) => h("tr", { class: e.encontrada ? "pulsable" : "", title: e.encontrada ? "Abrir la ejecución" : e.ruta,
+      h("tbody", {}, v.ejecuciones.map((e) => h("tr", { class: e.encontrada ? "pulsable" : "", title: e.encontrada ? "Abrir la ejecución" + (e.version_pruebas ? `\nVersión de las pruebas: ${e.version_pruebas}` : "") : e.ruta,
         onclick: (ev) => { if (e.encontrada && !ev.target.closest(".quitar")) abrirEjecucionDeValidacion(e.carpeta); } },
         h("td", { text: e.encontrada ? e.nombre : `${e.ruta} (no se encuentra)` }),
         h("td", { text: e.encontrada ? e.entorno_pruebas || "(sin indicar)" : "" }),

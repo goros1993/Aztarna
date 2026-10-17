@@ -21,6 +21,7 @@ from typing import Any
 from app import ajustes
 from app import ejecucion_core as ej
 from app import esquema
+from app import git_pruebas
 from app import robot_core
 from app.editor_api import EditorApi, respuesta, to_plain
 
@@ -58,6 +59,7 @@ class EditorEjecucionApi(EditorApi):
             "resumen": ej.resumen(ejecucion, self._chapters),
             "estados": ej.ESTADOS_VISIBLES,
             "entornos": list(ej.entornos_pruebas()),
+            "version_pruebas": git_pruebas.texto_ejecucion(datos),
         }
 
     def _dialogo_carpeta(self) -> Path | None:
@@ -88,6 +90,8 @@ class EditorEjecucionApi(EditorApi):
         opciones = ej.opciones_filtro(self._chapters)
         if self._robot_config().get("suites"):
             opciones["robot"] = ["con", "sin"]
+        version = git_pruebas.estado(self._yaml_dir)     # la ejecución guardará qué versión de las pruebas usa
+        opciones["git"] = {"texto": git_pruebas.texto(version, con_cambios=False), "cambios": bool(version and version["cambios"])} if version else None
         return opciones
 
     @respuesta

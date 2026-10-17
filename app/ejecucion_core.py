@@ -25,7 +25,7 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app import esquema, formato
+from app import esquema, formato, git_pruebas
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_EJECUCION = "ejecucion.yaml"
@@ -383,6 +383,9 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
         },
         "resultados": {},
     }
+    version = git_pruebas.estado(pruebas_yaml)      # qué versión de las pruebas (si están en Git)
+    if version:
+        ejecucion["datos"]["git"] = version
     (carpeta / CARPETA_EVIDENCIAS).mkdir(parents=True, exist_ok=True)
     guardar(ejecucion)
     return ejecucion
@@ -613,6 +616,10 @@ def cerrar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
             f"{'…' if len(pendientes) > 5 else ''}). Ejecútalas o márcalas como «No aplica»."
         )
     congelar(ejecucion, capitulos)
+    if capitulos:
+        version = git_pruebas.estado(capitulos[0]["path"].parent)
+        if version:
+            ejecucion["datos"]["git_cierre"] = version
     ejecucion["datos"]["estado"] = "cerrada"
     ejecucion["datos"]["fin"] = ahora()
     guardar(ejecucion)
@@ -673,6 +680,12 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
             "intentos": len(resultado.get("intentos") or []) + (1 if resultado else 0),
             "cambiada": cambiada,
         })
+    for clave, cuando in (("git", "se creó"), ("git_cierre", "se cerró")):
+        version = ejecucion["datos"].get(clave) or {}
+        if version.get("cambios"):
+            problemas.insert(0, {"id": "", "tipo": "aviso", "mensaje":
+                                 f"La ejecución {cuando} con cambios sin commit en la copia de las pruebas "
+                                 f"({git_pruebas.texto(version, con_cambios=False)}): en otras copias esas pruebas pueden ser distintas."})
     total = len(ejecucion["datos"]["pruebas"])
     ejecutadas = total - totales["pendiente"]
     aplicables = total - totales["no_aplica"]
