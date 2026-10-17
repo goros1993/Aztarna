@@ -130,6 +130,7 @@ function aviso(mensaje, tipo = "info", accion = null) {
   caja.appendChild(el);
   while (caja.children.length > 3) caja.firstElementChild.remove();
   setTimeout(() => el.remove(), tipo === "error" ? 9000 : 4500);
+  return el;
 }
 
 function fallo(error) {

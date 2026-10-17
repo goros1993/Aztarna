@@ -393,7 +393,7 @@ function barraTabla(clave, grupos, ...extra) {
     clearTimeout(espera);
     espera = setTimeout(() => { buscarValidacion[clave] = entrada.value.trim(); mostrarPanelValidacion(); enfocarBuscador(clave); }, 250);
   });
-  return h("div", { class: "barra-tabla", dataset: { clave } }, entrada, ...extra,
+  return h("div", { class: "barra-tabla-val", dataset: { clave } }, entrada, ...extra,
     h("span", { class: "hueco-flex" }),
     grupos.length > 1 ? h("button", { class: "btn ghost peq", type: "button", text: "Desplegar todo",
       onclick: () => { grupos.forEach((g) => abiertosValidacion[clave].add(g.nombre)); mostrarPanelValidacion(); } }) : null,
@@ -402,7 +402,7 @@ function barraTabla(clave, grupos, ...extra) {
 }
 
 function enfocarBuscador(clave) {
-  const e = document.querySelector(`.barra-tabla[data-clave="${clave}"] input`);
+  const e = document.querySelector(`.barra-tabla-val[data-clave="${clave}"] input`);
   if (e) { e.focus(); e.setSelectionRange(e.value.length, e.value.length); }
 }
 

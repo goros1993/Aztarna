@@ -666,10 +666,11 @@ function fichaPrueba(el) {
   ].filter(([, v]) => v !== undefined && v !== null && String(v).trim());
   const extras = Object.entries(el.campos_adicionales || {});
   const bloque = (titulo, contenido) => h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: titulo })), contenido);
-  return h("div", { class: "ficha-prueba" },
-    meta.length ? h("div", { class: "meta" }, meta.map(([k, v]) => h("div", { class: "meta-item" },
-      h("span", { class: "k", text: k }), h("span", { class: "v", text: String(v) })))) : null,
-    aLista(el.etiquetas).length ? h("div", { class: "fichas solo-lectura", "aria-label": "Etiquetas" }, aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
+  // Compacta: los datos en una línea y los bloques juntos, para ver de una un ensayo de 20-30 pasos.
+  return h("div", { class: "ficha-prueba compacta" },
+    meta.length || aLista(el.etiquetas).length ? h("div", { class: "meta-linea" },
+      meta.map(([k, v]) => h("span", { class: "meta-item" }, h("span", { class: "k", text: k }), h("span", { class: "v", text: String(v) }))),
+      aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
     el.descripcion ? bloque("Descripción", h("p", {}, textoConFormato(String(el.descripcion)))) : null,
     aLista(el.contexto).length ? bloque("Contexto", listaLectura(el.contexto, false)) : null,
     aLista(el.parametrizacion).length ? bloque("Parametrización", listaLectura(el.parametrizacion, false)) : null,
@@ -762,7 +763,7 @@ function panelResultado() {
           }) : null),
         h("div", { class: "estados", role: "group", "aria-label": "Resultado" }, botones),
         h("p", { class: "ayuda-estado", text: R.estado === "pendiente" ? "Todavía sin ejecutar. Elige un resultado (teclas 1 a 4)." : ESTADO_AYUDA[R.estado] })),
-      h("div", { class: "seccion-panel" },
+      h("div", { class: "seccion-panel seccion-observaciones" },
       h("label", { for: "r-observaciones", text: "Observaciones" }),
       h("textarea", {
         id: "r-observaciones", rows: 4, value: R.observaciones, disabled: bloqueada,

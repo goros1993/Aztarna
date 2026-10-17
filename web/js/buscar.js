@@ -55,10 +55,9 @@ async function buscarEnTodo() {
   async function reemplazar() {
     const de = entrada.value.trim();
     const a = reemplazo.value;
-    if (datos.total > datos.resultados.length) { aviso("Hay demasiados resultados: afina la búsqueda para verlos todos antes de reemplazar", "error"); return; }
     if (!(await confirmar("Reemplazar en todo el proyecto",
       `Se cambiará «${de}» por «${a}» en ${plural(datos.total, "elemento", "elementos")} (no en los ID) y se guardará. Con Git puedes deshacerlo; sin Git, no.`, "Reemplazar"))) return;
-    const r = await api.reemplazar_global(de, a, datos.resultados.map((x) => ({ capitulo: x.capitulo, indice: x.indice })));
+    const r = await api.reemplazar_global(de, a, datos.elementos || datos.resultados.map((x) => ({ capitulo: x.capitulo, indice: x.indice })));
     aviso(`Cambiado en ${plural(r.cambiados, "elemento", "elementos")} (${plural(r.veces, "vez", "veces")})`, "ok");
     if (r.saltados.length) aviso(`No se ha cambiado: ${r.saltados.join("; ")}`, "error");
     await refrescarTodo(S.seleccion ? { seleccionar: S.seleccion } : {});

@@ -582,6 +582,14 @@ class EditorApi:
         return {"archivo": str(ruta)}
 
     @respuesta
+    def zoom(self, nivel: float = 1.0) -> dict[str, Any]:
+        """Zoom de la ventana (1 = normal). `aplicado` es False si esta plataforma no lo permite."""
+        from app import zoom
+
+        nivel = zoom.limitar(nivel)
+        return {"nivel": nivel, "aplicado": zoom.aplicar(self._window, nivel)}
+
+    @respuesta
     def abrir_enlace(self, url: str) -> dict[str, Any]:
         """Abre una dirección web en el navegador del sistema."""
         import webbrowser
@@ -1183,7 +1191,10 @@ class EditorApi:
 
     @respuesta
     def buscar_global(self, consulta: str, limite: int = 500) -> dict[str, Any]:
-        """Pruebas (o requisitos), secciones y tablas de todos los capítulos que contienen el texto (sin mayúsculas)."""
+        """Pruebas (o requisitos), secciones y tablas de todos los capítulos que contienen el texto (sin mayúsculas).
+
+        `resultados` trae el detalle de los `limite` primeros (para mostrarlos); `elementos`, todos los que
+        coinciden ({capitulo, indice}), para poder reemplazar en todos aunque no se muestren."""
         consulta = str(consulta or "").strip()
         if len(consulta) < 2:
             return {"resultados": [], "total": 0}
@@ -1192,6 +1203,7 @@ class EditorApi:
         nombres = {**(esquema.REQ_ETIQUETAS if clave == "requisito" else esquema.ETIQUETAS), "seccion": "Sección", "tabla": "Tabla",
                    "contexto": "Contexto"}
         resultados: list[dict[str, Any]] = []
+        elementos: list[dict[str, int]] = []
         total = 0
         for ci, chapter in enumerate(self._activos()):
             for index, element in enumerate(chapter["data"]["contenido"]):
@@ -1210,6 +1222,7 @@ class EditorApi:
                 if not coincidencias:
                     continue
                 total += 1
+                elementos.append({"capitulo": ci, "indice": index})
                 if len(resultados) < limite:
                     campo, texto = coincidencias[0]
                     m = patron.search(texto)
@@ -1221,7 +1234,7 @@ class EditorApi:
                         "despues": texto[m.end():m.end() + 60] + ("…" if m.end() + 60 < len(texto) else ""),
                         "veces": sum(len(patron.findall(x)) for _c, x in coincidencias),
                     })
-        return {"resultados": resultados, "total": total}
+        return {"resultados": resultados, "total": total, "elementos": elementos}
 
     @respuesta
     def reemplazar_global(self, buscar: str, reemplazo: str, elementos: list[dict[str, int]]) -> dict[str, Any]:

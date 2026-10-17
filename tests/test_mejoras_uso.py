@@ -100,6 +100,13 @@ class BuscarEnTodo(ConCarpeta):
         self.assertEqual(hecho["cambiados"], r["total"])
         self.assertEqual(ok(self, self.api.buscar_global("panel del banco HIL"))["total"], r["total"])
 
+    def test_reemplaza_en_todos_aunque_no_se_muestren(self):
+        r = ok(self, self.api.buscar_global("panel del banco", limite=1))
+        self.assertEqual(len(r["resultados"]), 1)
+        self.assertEqual(len(r["elementos"]), r["total"])
+        hecho = ok(self, self.api.reemplazar_global("panel del banco", "panel del banco HIL", r["elementos"]))
+        self.assertEqual(hecho["cambiados"], r["total"])
+
     def test_no_toca_los_id_ni_capitulos_de_otros(self):
         r = ok(self, self.api.buscar_global("DEMO-LLAM-001"))
         hecho = ok(self, self.api.reemplazar_global("DEMO-LLAM-001", "OTRO-001", [{"capitulo": x["capitulo"], "indice": x["indice"]} for x in r["resultados"]]))
@@ -160,3 +167,13 @@ class GitIgnore(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Zoom(unittest.TestCase):
+    def test_limites_y_sin_ventana(self):
+        from app import zoom
+        self.assertEqual(zoom.limitar("1.25"), 1.25)
+        self.assertEqual(zoom.limitar(10), zoom.MAXIMO)
+        self.assertEqual(zoom.limitar(0.1), zoom.MINIMO)
+        self.assertEqual(zoom.limitar("x"), 1.0)
+        self.assertFalse(zoom.aplicar(None, 1.5))          # sin interfaz no hace nada

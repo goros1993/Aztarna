@@ -17,6 +17,7 @@ function opcionesMenu() {
       desactivada: !conCapitulos, ayuda: "Generar el documento de Word con todos los capítulos",
     },
     "-",
+    "zoom",
     { texto: "Ajustes…", icono: "engranaje", accion: abrirAjustes, ayuda: "Tu nombre, dónde se publica el programa y la dirección de las incidencias" },
     { texto: "Manual de usuario", icono: "libro", accion: abrirManual, ayuda: "Abrir el manual en una ventana aparte" },
     { texto: "Acerca de…", icono: "info", accion: acercaDe },
@@ -37,6 +38,7 @@ function abrirMenu() {
   const boton = $("#btn-menu");
   const items = opcionesMenu().map((o) => o === "-"
     ? h("div", { class: "menu-separador", role: "separator" })
+    : o === "zoom" ? filaZoom()
     : h("button", {
       type: "button", class: "menu-opcion", role: "menuitem", disabled: Boolean(o.desactivada), title: o.ayuda || null,
       onclick: async () => { cerrarMenu(); try { await o.accion(); } catch (e) { fallo(e); } },
@@ -49,6 +51,60 @@ function abrirMenu() {
   boton.setAttribute("aria-expanded", "true");
   const primera = menuAbierto.querySelector(".menu-opcion:not([disabled])");
   if (primera) primera.focus();
+}
+
+/* ---- zoom: todo más grande o más pequeño (Ctrl + rueda, Ctrl +, Ctrl −, Ctrl 0) ---- */
+const PASOS_ZOOM = [0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+let ZOOM = 1;
+let avisoZoom = null;
+
+async function ponerZoom(nivel, { avisar = true } = {}) {
+  let r;
+  try { r = await api.zoom(nivel); } catch (e) { fallo(e); return; }
+  if (!r.aplicado) { if (avisar) aviso("En este sistema no se puede cambiar el tamaño", "error"); return; }
+  ZOOM = r.nivel;
+  guardarLocal("zoom", ZOOM === 1 ? null : ZOOM);
+  const texto = $("#zoom-valor");
+  if (texto) texto.textContent = `${Math.round(ZOOM * 100)} %`;
+  if (avisar) {
+    if (avisoZoom) avisoZoom.remove();
+    avisoZoom = aviso(`Tamaño ${Math.round(ZOOM * 100)} % (Ctrl+0 para volver al normal)`);
+  }
+}
+
+/** Un paso más grande (+1) o más pequeño (−1). */
+function pasoZoom(sentido) {
+  const i = PASOS_ZOOM.reduce((mejor, p, k) => (Math.abs(p - ZOOM) < Math.abs(PASOS_ZOOM[mejor] - ZOOM) ? k : mejor), 0);
+  const destino = PASOS_ZOOM[Math.min(Math.max(i + sentido, 0), PASOS_ZOOM.length - 1)];
+  if (destino !== ZOOM) ponerZoom(destino);
+}
+
+function filaZoom() {
+  return h("div", { class: "menu-zoom", role: "group", "aria-label": "Tamaño" },
+    h("span", { class: "menu-zoom-tit" }, icon("search"), "Tamaño"),
+    h("button", { type: "button", class: "btn peq", title: "Más pequeño (Ctrl −)", "aria-label": "Más pequeño", text: "−", onclick: () => pasoZoom(-1) }),
+    h("button", { type: "button", class: "btn ghost peq", id: "zoom-valor", title: "Tamaño normal (Ctrl 0)", text: `${Math.round(ZOOM * 100)} %`, onclick: () => ponerZoom(1) }),
+    h("button", { type: "button", class: "btn peq", title: "Más grande (Ctrl +)", "aria-label": "Más grande", text: "+", onclick: () => pasoZoom(1) }));
+}
+
+function iniciarZoom() {
+  const guardado = Number(leerLocal("zoom"));
+  if (guardado && guardado !== 1) ponerZoom(guardado, { avisar: false });
+  let ultimo = 0;
+  window.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey || !e.deltaY) return;
+    e.preventDefault();
+    const ahora = Date.now();
+    if (ahora - ultimo < 120) return;           // un paso por «golpe» de rueda
+    ultimo = ahora;
+    pasoZoom(e.deltaY < 0 ? 1 : -1);
+  }, { passive: false });
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+    if (["+", "=", "Add"].includes(e.key) || e.code === "NumpadAdd") { e.preventDefault(); pasoZoom(1); }
+    else if (["-", "Subtract"].includes(e.key) || e.code === "NumpadSubtract") { e.preventDefault(); pasoZoom(-1); }
+    else if (e.key === "0" || e.code === "Numpad0") { e.preventDefault(); ponerZoom(1); }
+  });
 }
 
 async function abrirManual() {
