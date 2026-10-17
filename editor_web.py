@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Editor de pruebas YAML con interfaz web local (pywebview).
+"""Aztarna: editor de pruebas y requisitos YAML con interfaz web local (pywebview).
 
 Uso:
     python editor_web.py                 # la última carpeta usada, o ejemplos/yaml
@@ -47,7 +47,7 @@ def recordar_carpeta(carpeta: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Editor de pruebas YAML")
+    parser = argparse.ArgumentParser(description="Aztarna: pruebas, requisitos y validación")
     parser.add_argument("carpeta", nargs="?", help="carpeta del proyecto (pruebas/ y requisitos/) o la de pruebas")
     parser.add_argument("--depurar", action="store_true", help="activa las herramientas de desarrollo")
     parser.add_argument("-V", "--version", action="version", version=firma())
@@ -71,7 +71,7 @@ def main() -> None:
     api = EditorApi(carpeta)
     api._al_cargar = recordar_carpeta
     ventana = webview.create_window(
-        "Editor de pruebas YAML",
+        "Aztarna",
         url=pagina.as_uri(),
         js_api=api,
         width=1360,

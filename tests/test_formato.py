@@ -28,7 +28,7 @@ class Formato(unittest.TestCase):
         (self.pruebas / formato.ARCHIVO).unlink(missing_ok=True)
 
     def subir(self, carpeta, numero=formato.FORMATO + 1):
-        (carpeta / formato.ARCHIVO).write_text(f"formato: {numero}\nescrito_con: Pruebas YAML 9.0.0\n", encoding="utf-8")
+        (carpeta / formato.ARCHIVO).write_text(f"formato: {numero}\nescrito_con: Aztarna 9.0.0\n", encoding="utf-8")
 
     def test_carpeta_sin_marca_es_formato_1_y_se_marca_al_guardar(self):
         self.assertEqual(formato.de_carpeta(self.pruebas), 1)
@@ -39,7 +39,7 @@ class Formato(unittest.TestCase):
         ok(self, api.guardar_prueba(0, indice, {"descripcion": "cambio"}))
         texto = (self.pruebas / formato.ARCHIVO).read_text(encoding="utf-8")
         self.assertIn(f"formato: {formato.FORMATO}", texto)
-        self.assertIn("escrito_con: Pruebas YAML", texto)
+        self.assertIn("escrito_con: Aztarna", texto)
         # No es un capítulo.
         self.assertNotIn(formato.ARCHIVO, [c["path"].name for c in read_chapters(self.pruebas)])
         (self.pruebas / "indice.yaml").unlink()

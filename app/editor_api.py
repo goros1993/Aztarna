@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""API del editor web de pruebas YAML.
+"""API del editor web de Aztarna (pruebas YAML).
 
 La interfaz HTML/JS llama a los métodos públicos de `EditorApi` (a través de
 pywebview: `window.pywebview.api.<método>(...)`). Esta clase no importa

@@ -2,7 +2,7 @@
 /* Menú «…» de la barra superior: lo que no se usa a diario (importar, exportar,
    manual, acerca de) y la versión de la barra inferior. */
 
-const REPOSITORIO = "https://github.com/goros1993/Validacion";
+const REPOSITORIO = "https://github.com/goros1993/Aztarna";
 
 /** Opciones del menú según el modo y lo que haya abierto. */
 function opcionesMenu() {
@@ -173,7 +173,7 @@ async function abrirAjustes() {
     campo("aj-persona", "Tu nombre", AJUSTES.persona, { ejemplo: AJUSTES.persona_sistema,
       texto: "Sale como ejecutor en los resultados y en el aviso cuando editas un capítulo. Vacío: tu usuario de Windows." }),
     campo("aj-versiones", "Carpeta con la última versión del programa", AJUSTES.carpeta_versiones, { ejemplo: "\\\\servidor\\pruebas\\programa",
-      texto: "Donde se publican EditorPruebas.exe y version.txt. Al abrir el editor, avisa si allí hay una versión más nueva que la tuya." }, elegir),
+      texto: "Donde se publican Aztarna.exe y version.txt. Al abrir el editor, avisa si allí hay una versión más nueva que la tuya." }, elegir),
     campo("aj-incidencias", "Dirección de las incidencias", AJUSTES.url_incidencias, { ejemplo: "https://jira.empresa.com/browse/{id}",
       texto: "Con {id} donde va el número. Las incidencias (BUG-123…) de los resultados se abren con un clic." }));
   const r = await dialogo({ titulo: "Ajustes de este PC", cuerpo, ancho: true,
@@ -210,7 +210,7 @@ async function avisoNuevaVersion() {
     titulo: `Versión nueva: ${r.version}`,
     cuerpo: h("div", {},
       h("p", {}, "Tienes la ", h("strong", { text: r.actual }), " y en la carpeta del programa está la ", h("strong", { text: r.version }), "."),
-      h("p", { text: "Para actualizar: cierra el editor, copia EditorPruebas.exe de esa carpeta encima del tuyo y vuelve a abrirlo. Tus ajustes y tus datos no cambian." }),
+      h("p", { text: "Para actualizar: cierra el editor, copia Aztarna.exe de esa carpeta encima del tuyo y vuelve a abrirlo. Tus ajustes y tus datos no cambian." }),
       h("p", { class: "muted", text: r.carpeta })),
     botones: [{ texto: "Más tarde", valor: "", tipo: "ghost" }, { texto: "Abrir la carpeta", valor: "abrir", tipo: "primary" }],
   });

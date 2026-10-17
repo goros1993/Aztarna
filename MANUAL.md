@@ -1,8 +1,8 @@
-# Manual de usuario: Editor de pruebas
+# Manual de usuario de Aztarna
 
-Este manual explica cómo usar el **Editor de pruebas** para mantener las
-pruebas y para apuntar sus resultados cuando se ejecutan. No hace falta saber
-programar ni conocer el formato de los archivos.
+Este manual explica cómo usar **Aztarna** (en euskera, «huella, rastro») para
+mantener las pruebas y los requisitos y para apuntar sus resultados cuando se
+ejecutan. No hace falta saber programar ni conocer el formato de los archivos.
 
 ## Contenido
 
@@ -70,7 +70,7 @@ de la ejecución.
 
 ## 2. Abrir el editor
 
-- **Windows:** abre `EditorPruebas.exe`. La primera vez pide una carpeta:
+- **Windows:** abre `Aztarna.exe`. La primera vez pide una carpeta:
   la del proyecto (la que contiene `pruebas` y `requisitos`) o directamente
   la de pruebas (la que contiene el archivo `indice.yaml`); después la
   recuerda.
@@ -163,7 +163,7 @@ prueba el panel del resultado se pone encima de la prueba.
 - **Tu nombre**: sale como ejecutor en los resultados y en el aviso cuando
   editas un capítulo (vacío: tu usuario de Windows).
 - **Carpeta con la última versión del programa**: la carpeta compartida
-  donde se publica `EditorPruebas.exe` con su `version.txt`. Al abrir el
+  donde se publica `Aztarna.exe` con su `version.txt`. Al abrir el
   editor, si allí hay una versión más nueva que la tuya, un aviso lo dice y
   ofrece abrir la carpeta.
 - **Dirección de las incidencias**: la de tu gestor de incidencias (Jira,

@@ -51,7 +51,7 @@ def generar() -> Path:
     origen = raiz() / "MANUAL.md"
     if not origen.is_file():
         raise ValueError(f"No se encuentra el manual ({origen}).")
-    destino = Path(tempfile.gettempdir()) / "pruebas_yaml_manual.html"
+    destino = Path(tempfile.gettempdir()) / "aztarna_manual.html"
     destino.write_text(a_html(origen.read_text(encoding="utf-8"), origen.parent), encoding="utf-8")
     return destino
 

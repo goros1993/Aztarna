@@ -111,9 +111,9 @@ class Importar(unittest.TestCase):
 
     def test_api_dentro_de_la_validacion(self):
         from app.importacion_api import EditorImportacionApi
-        anterior = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.tmp / "ajustes.json")
-        self.addCleanup(lambda: os.environ.__setitem__("EDITOR_PRUEBAS_AJUSTES", anterior) if anterior else os.environ.pop("EDITOR_PRUEBAS_AJUSTES", None))
+        anterior = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(lambda: os.environ.__setitem__("AZTARNA_AJUSTES", anterior) if anterior else os.environ.pop("AZTARNA_AJUSTES", None))
         api = EditorImportacionApi(self.tmp / "yaml")
         self.assertTrue(api.iniciar()["ok"])
         self.assertTrue(api.validacion_crear("V", "", {}, str(self.tmp / "val"))["ok"])

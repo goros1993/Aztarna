@@ -248,8 +248,8 @@ class LanzarTests(unittest.TestCase):
         self._tmp = TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
         self.tmp = Path(self._tmp.name)
-        self.anterior = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.anterior = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
         self.addCleanup(self.restaurar)
         for carpeta in ("yaml", "robot"):
             shutil.copytree(RAIZ / "ejemplos" / carpeta, self.tmp / carpeta)
@@ -262,9 +262,9 @@ class LanzarTests(unittest.TestCase):
 
     def restaurar(self):
         if self.anterior is None:
-            os.environ.pop("EDITOR_PRUEBAS_AJUSTES", None)
+            os.environ.pop("AZTARNA_AJUSTES", None)
         else:
-            os.environ["EDITOR_PRUEBAS_AJUSTES"] = self.anterior
+            os.environ["AZTARNA_AJUSTES"] = self.anterior
 
     def configurar(self):
         r = self.api.robot_guardar_config({"suites": str(self.tmp / "robot"), "comando": self.comando})

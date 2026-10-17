@@ -1,15 +1,14 @@
-# Validación: Word y YAML
+# Aztarna
 
-> **Nombre futuro: Aztarna** (en euskera, «huella, rastro»): la herramienta
-> gestiona ya pruebas, requisitos y su trazabilidad. El cambio de nombre
-> (ventana, ejecutable, repositorio y documentación) está en `PENDIENTE.md`.
+**Aztarna** (en euskera, «huella, rastro») sigue el rastro de cada requisito
+hasta sus pruebas y sus resultados.
 
 Herramientas para importar la información de un documento Word a YAML, editar
 las pruebas y los requisitos en un editor local, ver qué requisitos cubre cada
 prueba (trazabilidad) y generar un DOCX de lectura a partir de los YAML.
 
 ```text
-editor_web.py      el editor de pruebas (python editor_web.py)
+editor_web.py      Aztarna, el editor (python editor_web.py)
 herramientas.py    las utilidades de línea de órdenes (python herramientas.py <orden>)
 app/               lógica del editor, de la trazabilidad y de las ejecuciones
 migracion/         importación del Word original (hasta que los YAML son la fuente oficial)
@@ -271,7 +270,7 @@ carpetas de importación/exportación están ignoradas por Git; los YAML que se
 quieran versionar deben guardarse en una carpeta de datos aprobada y excluir
 los documentos o contenidos confidenciales.
 
-## Editor de pruebas
+## El editor
 
 ```bash
 python editor_web.py                 # última carpeta usada, o ejemplos/yaml
@@ -353,14 +352,14 @@ WebKitGTK al apagarse, cuando el editor ya ha terminado: no se pierde nada.
 
 En un Windows con Python 3.10 o posterior, ejecuta `construir_exe.bat`. Crea un
 entorno limpio, instala `requirements.txt` y PyInstaller, y deja
-`dist\EditorPruebas.exe` (un solo archivo, sin consola), con el manual y sus
+`dist\Aztarna.exe` (un solo archivo, sin consola), con el manual y sus
 capturas dentro. PyInstaller no compila
 de forma cruzada, así que hay que hacerlo en Windows. Los ejemplos no se
 incluyen en el .exe: en el primer arranque pide una carpeta y después la
 recuerda.
 
 Cada persona usa su copia del `.exe`; los ajustes de cada una están en su PC
-(`%APPDATA%\EditorPruebasYaml\ajustes.json`) y los datos, en la carpeta que
+(`%APPDATA%\Aztarna\ajustes.json`) y los datos, en la carpeta que
 abre. Al publicar una versión, reparte el `.exe` nuevo: las copias antiguas no
 guardan en datos de un formato más nuevo (ver «Versión del formato de los
 datos»), y el bloqueo de capítulos solo lo respetan las versiones que lo
@@ -700,7 +699,7 @@ están (`app/formato.py`). No es la versión del programa: es un número que sol
 sube cuando cambia la forma de guardar los datos.
 
 - `pruebas/` y `requisitos/` tienen un `formato.yaml` (`formato: 1` y
-  `escrito_con: Pruebas YAML …`); no es un capítulo.
+  `escrito_con: Aztarna …`); no es un capítulo.
 - `ejecucion.yaml` y `validacion.yaml` llevan la clave `formato`.
 - Lo que no lo indica es del formato 1. Se marca al guardar.
 

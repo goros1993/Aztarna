@@ -26,10 +26,10 @@ class PreferenciasTests(unittest.TestCase):
         self._tmp = TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
         self.tmp = Path(self._tmp.name)
-        anterior = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.tmp / "ajustes.json")
-        self.addCleanup(lambda: os.environ.pop("EDITOR_PRUEBAS_AJUSTES") if anterior is None
-                        else os.environ.__setitem__("EDITOR_PRUEBAS_AJUSTES", anterior))
+        anterior = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(lambda: os.environ.pop("AZTARNA_AJUSTES") if anterior is None
+                        else os.environ.__setitem__("AZTARNA_AJUSTES", anterior))
         self.api = EditorValidacionApi()
 
     def test_se_guardan_y_se_fusionan(self):

@@ -57,11 +57,13 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   compacta al pasar pruebas, zoom, ajustes (nombre, versión nueva,
   incidencias), cambiar un campo en varias pruebas, buscar y reemplazar en
   todo, ruleta y caché de lectura (`app/lectura.py`).
+- **Nombre: Aztarna** (versión 1.0.0): ventana, barra, ejecutable
+  (`Aztarna.exe`), carpeta de ajustes, documentación y repositorio.
 
 ## Siguientes pasos
 
 Cada tarea grande o independiente tiene su issue en GitHub
-(<https://github.com/goros1993/Validacion/issues>); el detalle, las dudas y la
+(<https://github.com/goros1993/Aztarna/issues>); el detalle, las dudas y la
 discusión van allí. Aquí queda el resumen.
 
 Ahora mismo no hay ninguno abierto.
@@ -77,39 +79,14 @@ Sin issue todavía:
 | Importar: mover una tabla suelta a otra familia (hoy el tipo se elige por familia) | pequeño | — |
 | Importar resultados desde la línea de órdenes (hoy, solo en el editor) | pequeño | — |
 | Decidir si se retiran `convertir`, `inventario` y `auditar` (la importación por familias hace lo mismo; se conservan por ahora) | — | usarla con los Word reales |
-| Renombrar la herramienta a **Aztarna** (ver abajo) y probar el `.exe` en Windows | pequeño | un PC con Windows |
 | Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
 | Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
 | Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
-| Manual: rehacer la captura 22 (Robot en marcha) | pequeño | ejecutar Robot |
+| Manual: rehacer la captura 22 (Robot en marcha; es antigua y aún lleva el nombre anterior) | pequeño | ejecutar Robot |
 | Probar con datos reales: el enlace de incidencias con el Jira de la empresa y Robot Framework en el PC de uso | pequeño | el PC de uso |
 | Repartir una ejecución entre varias personas (asignar pruebas y filtro «Mis pendientes») | medio | decidir si hace falta |
 | Primera apertura de una validación grande en red (unos 4 s en local con 1000 pruebas): leer los YAML más rápido si se nota | pequeño | medirlo en la red |
 | Validación de una versión: integrada en `main`; quedan los puntos «por comprobar» de más abajo al usarla con datos reales | — | usarla |
-
-### Cambio de nombre a Aztarna
-
-Sitios con el nombre actual, para cambiarlos todos a la vez:
-
-- **Nombre en el código**: `NOMBRE` en `app/__init__.py` (lo usan la versión,
-  «Acerca de», el manual, los pies de los informes y `--version`) y el
-  archivo temporal del manual (`pruebas_yaml_manual.html` en `app/manual.py`).
-
-- **Título de la ventana**: «Editor de pruebas YAML» en `editor_web.py` (también
-  su docstring y la descripción de `--help`).
-- **Interfaz**: `<title>Editor de pruebas</title>` y la marca «Pruebas YAML» de la
-  barra superior en `web/index.html`.
-- **Ejecutable**: `EditorPruebas` en `construir_exe.bat` (→ `Aztarna.exe`) y sus
-  menciones en README y MANUAL.
-- **Carpeta de ajustes**: `EditorPruebasYaml` en `app/ajustes.py` y la
-  variable de entorno `EDITOR_PRUEBAS_AJUSTES`. Mientras nadie use la
-  herramienta no hace falta migrar nada.
-- **Documentación**: títulos de README («Validación: Word y YAML») y MANUAL
-  («Editor de pruebas»), la nota de nombre futuro del README y las capturas.
-- **Repositorio** en GitHub (Settings → Rename); el remoto local sigue
-  funcionando por la redirección.
-- El icono (`recursos/generar_icono.py`: rastro de huellas que acaba en una
-  marca de validación) ya está pensado para el nombre nuevo.
 
 ### Decisiones abiertas
 

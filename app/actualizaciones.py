@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Aviso de versión nueva del programa (cada persona tiene su copia del .exe).
 
-En la carpeta compartida donde se publica el programa están `EditorPruebas.exe`
+En la carpeta compartida donde se publica el programa están `Aztarna.exe`
 y `version.txt` (lo escribe `construir_exe.bat`) con su número de versión.
 Cada persona indica esa carpeta en ⋯ → Ajustes…; al arrancar, el editor mira
 si allí hay una versión más nueva que la suya y lo avisa. No actualiza nada

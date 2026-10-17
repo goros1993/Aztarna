@@ -268,8 +268,8 @@ class TestApi(unittest.TestCase):
         import os
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
-        self._entorno = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.dir / "ajustes.json")
+        self._entorno = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.dir / "ajustes.json")
         doc = Document()
         doc.add_heading("Requisitos", 1)
         _requisito(doc, "SR-001", "Arranque", ["Descripción: rápido.", "Prioridad: alta"],
@@ -280,9 +280,9 @@ class TestApi(unittest.TestCase):
     def tearDown(self):
         import os
         if self._entorno is None:
-            os.environ.pop("EDITOR_PRUEBAS_AJUSTES", None)
+            os.environ.pop("AZTARNA_AJUSTES", None)
         else:
-            os.environ["EDITOR_PRUEBAS_AJUSTES"] = self._entorno
+            os.environ["AZTARNA_AJUSTES"] = self._entorno
         self.tmp.cleanup()
 
     def test_flujo_completo(self):

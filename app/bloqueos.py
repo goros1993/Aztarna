@@ -85,7 +85,7 @@ def asegurar_gitignore(carpeta: Path) -> bool:
         ruta = carpeta / ".gitignore"
         previo = ruta.read_text(encoding="utf-8") if ruta.is_file() else ""
         separador = "" if not previo or previo.endswith("\n") else "\n"
-        ruta.write_text(f"{previo}{separador}# Bloqueos del editor de pruebas: no se suben a Git\n{PATRON_GIT}\n", encoding="utf-8")
+        ruta.write_text(f"{previo}{separador}# Bloqueos de Aztarna: no se suben a Git\n{PATRON_GIT}\n", encoding="utf-8")
     except OSError:
         return False
     return True

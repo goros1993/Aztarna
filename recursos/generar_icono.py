@@ -3,7 +3,7 @@
 (ejecutable de Windows) y web/img/icono.png (barra superior del editor).
 
 Un rastro de huellas que acaba en una marca de validación: la trazabilidad
-(requisito → prueba → resultado) y el nombre futuro, Aztarna («huella»).
+(requisito → prueba → resultado) y el nombre, Aztarna («huella, rastro» en euskera).
 Colores del editor: petróleo (acento) y ámbar (placa del ID).
 
 Uso: python recursos/generar_icono.py

@@ -3,6 +3,19 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.0.0
+
+Primera versión con el nombre definitivo, **Aztarna** («huella, rastro» en
+euskera):
+
+- Ventana, barra superior, «Acerca de», pies de los informes y `--version`.
+- El ejecutable es `Aztarna.exe` (`construir_exe.bat`).
+- Los ajustes de cada PC van en `%APPDATA%\Aztarna\ajustes.json` (variable de
+  entorno `AZTARNA_AJUSTES`).
+- El repositorio pasa a llamarse `Aztarna` en GitHub.
+
+Sin cambios en el formato de los datos (sigue el 1).
+
 ## 0.12.0
 
 Validación de una versión:

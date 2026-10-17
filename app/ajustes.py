@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Ajustes del usuario en este PC (última carpeta, configuración de Robot…).
 
-Se guardan en un JSON (por defecto, %APPDATA%/EditorPruebasYaml/ajustes.json o
-~/.config/EditorPruebasYaml/ajustes.json; se puede cambiar con la variable de
-entorno EDITOR_PRUEBAS_AJUSTES). Cada cambio se fusiona con lo que ya había.
+Se guardan en un JSON (por defecto, %APPDATA%/Aztarna/ajustes.json o
+~/.config/Aztarna/ajustes.json; se puede cambiar con la variable de entorno
+AZTARNA_AJUSTES). Cada cambio se fusiona con lo que ya había.
 """
 from __future__ import annotations
 
@@ -14,11 +14,11 @@ from typing import Any
 
 
 def archivo() -> Path:
-    personalizado = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
+    personalizado = os.environ.get("AZTARNA_AJUSTES")
     if personalizado:
         return Path(personalizado)
     raiz = Path(os.environ.get("APPDATA") or Path.home() / ".config")
-    return raiz / "EditorPruebasYaml" / "ajustes.json"
+    return raiz / "Aztarna" / "ajustes.json"
 
 
 def leer() -> dict[str, Any]:

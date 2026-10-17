@@ -641,7 +641,7 @@ def escanear_keywords(carpetas: list[str | Path]) -> dict[str, Any]:
 # escribe junto a los resultados al lanzar Robot, así funciona aunque el
 # editor sea un .exe y Robot esté instalado en otro Python.
 LISTENER = '''\
-"""Escribe el avance de Robot Framework para el Editor de pruebas (generado)."""
+"""Escribe el avance de Robot Framework para Aztarna (generado)."""
 import json
 
 

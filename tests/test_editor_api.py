@@ -447,10 +447,10 @@ class AjustesTests(ApiBase):
         import editor_web
         self.web = editor_web
         self.ajustes = Path(self._tmp.name) / "ajustes" / "ajustes.json"
-        previo = os.environ.get("EDITOR_PRUEBAS_AJUSTES")
-        os.environ["EDITOR_PRUEBAS_AJUSTES"] = str(self.ajustes)
-        self.addCleanup(lambda: os.environ.__setitem__("EDITOR_PRUEBAS_AJUSTES", previo)
-                        if previo is not None else os.environ.pop("EDITOR_PRUEBAS_AJUSTES", None))
+        previo = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.ajustes)
+        self.addCleanup(lambda: os.environ.__setitem__("AZTARNA_AJUSTES", previo)
+                        if previo is not None else os.environ.pop("AZTARNA_AJUSTES", None))
 
     def test_sin_ajustes_no_hay_ultima_carpeta(self):
         self.assertIsNone(self.web.ultima_carpeta())
