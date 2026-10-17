@@ -304,10 +304,21 @@ aparte) y conserva sus comentarios y su formato.
 - Panel de validación (IDs duplicados o vacíos, pruebas sin título, imágenes
   que faltan, valores que no son opciones del esquema, campos que ya no
   existen, saltos de nivel).
-- Menú **⋯** en la barra superior: Exportar DOCX, manual de usuario (en una
-  ventana aparte, generado desde `MANUAL.md` con la librería `markdown`, sin
-  internet) y *Acerca de* (versión y ruta de los ajustes). *Importar* está
-  reservado para el issue #2.
+- Menú **⋯** en la barra superior: Importar desde Word, Exportar DOCX,
+  Tamaño, Ajustes, manual de usuario (en una ventana aparte, generado desde
+  `MANUAL.md` con la librería `markdown`, sin internet) y *Acerca de* (versión
+  y ruta de los ajustes).
+- **Tamaño (zoom)**: Ctrl + rueda, Ctrl + / − / 0 o *⋯ → Tamaño*, con el zoom
+  nativo de WebView2 o WebKitGTK (`app/zoom.py`); se recuerda.
+- **Ajustes** del PC: nombre (ejecutor y bloqueos), carpeta donde se publica
+  el programa (al abrir avisa si allí hay un `version.txt` más nuevo,
+  `app/actualizaciones.py`) y dirección de las incidencias con `{id}` (las
+  incidencias se abren con un clic).
+- **Varios a la vez**: con varios elegidos en el árbol, *Campos…* cambia tags,
+  requisitos, maniobra, entorno, automatizable, versión o fecha en todos.
+- **Buscar en todo** (Ctrl+Mayús+F): busca en todos los capítulos y reemplaza
+  en todos los resultados, salvo en los ID.
+- Lo que tarda muestra una ruleta (que se puede ocultar pasados 8 s).
 - Recuerda la última carpeta abierta, el modo, la última validación y
   ejecución, el ejecutor, el ancho del panel y la última carpeta de los
   diálogos. Se guarda en los ajustes del PC (sección `interfaz`), no en el
@@ -545,13 +556,36 @@ en `entorno_pruebas` dónde se hizo. `app/validacion_core.py` consolida:
 
 En el editor: botón de la validación (barra superior) → nueva o abrir;
 *Añadir ejecuciones…* (una, o todas las de una carpeta), *Nueva ejecución*
-dentro de la validación, panel con el resultado, las ejecuciones, la tabla por
-entorno y la tabla prueba × entorno, ficha de cada prueba con su historial por
-entorno e informe DOCX/PDF (borrador mientras quede alguna ejecución abierta):
+dentro de la validación y un panel con cuatro pestañas:
+
+- **Resumen**: resultado, tabla por capítulo, ejecuciones, tabla por entorno y
+  avisos;
+- **Pruebas**: tabla prueba × entorno agrupada por capítulos desplegables, con
+  buscador y filtro (pensada para miles de pruebas);
+- **Requisitos**: verificado / fallido / bloqueado / pendiente / sin pruebas
+  según sus pruebas en la validación, y *ejecución de impacto* con las pruebas
+  de los requisitos cambiados;
+- **Comparación**: con la validación de la versión anterior (`comparar_con` en
+  `validacion.yaml`): nuevos fallos, arregladas, siguen fallando, otros
+  cambios, y la evolución por versión siguiendo la cadena.
+
+Cada prueba tiene su ficha con el historial por entorno. El informe DOCX/PDF
+lleva el resumen por capítulos y, si se pide, el detalle por capítulo
+(borrador mientras quede alguna ejecución abierta):
 
 ```bash
-python herramientas.py validacion ejemplos/validaciones/validacion_v2.3 -o informe.docx --pdf
+python herramientas.py validacion ejemplos/validaciones/validacion_v2.3 -o informe.docx --pdf [--solo-resumen]
+python herramientas.py comparar ejemplos/validaciones/validacion_v2.2 ejemplos/validaciones/validacion_v2.3
+python herramientas.py resultados ejemplos/validaciones/validacion_v2.3 -o resultados.csv   # CSV para Excel
 ```
+
+La consolidación lee los YAML con una caché (`app/lectura.py`): solo vuelve a
+leer los archivos que han cambiado. Con 1000 pruebas, abrir la validación por
+primera vez tarda unos segundos; después, menos de medio segundo.
+
+Las ejecuciones y las validaciones son registros (con evidencias que pesan) y
+cada persona hace las suyas: mejor en una carpeta compartida que en el
+repositorio Git de las pruebas.
 
 Las carpetas con `campaña.yaml` (el nombre anterior de las ejecuciones) se
 siguen leyendo.
@@ -723,7 +757,12 @@ harían varias personas:
   `ejecuciones/2026-11-05_Torre_Luis` (Torre, cerrada, con un NO OK) y
   `ejecuciones/2026-11-10_Torre_Luis_repeticion` (repite en torre la que falló).
 - `validaciones/validacion_v2.3`: une las cuatro (4 validadas, 1 NO OK, 1
-  bloqueada, 3 pendientes y 1 no aplica).
+  bloqueada, 3 pendientes y 1 no aplica) y se compara con
+  `validaciones/validacion_v2.2`, la de la versión anterior (con sus
+  ejecuciones `ejecuciones/2026-10-1*_v2.2`).
+- `grande/`: un proyecto de tamaño real generado por `grande/generar.py` (1000
+  pruebas en 20 capítulos, 500 requisitos y las validaciones `v2.9` y `v3.0`),
+  para ver el editor y los informes con muchas pruebas.
 - `robot/`: una suite de Robot ficticia y sus resultados (`output.xml`).
 
 Los ejemplos validan sin errores; el único aviso es esa referencia a un

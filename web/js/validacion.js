@@ -681,7 +681,7 @@ function pestanaResumen(v) {
     r ? h("button", { type: "button", class: "resumen-enlace", onclick: () => irAPestanaValidacion("requisitos") },
       h("strong", { text: "Requisitos: " }),
       `${r.totales.verificado} verificados (${r.porcentaje_verificados} %)`,
-      r.totales.fallido ? h("span", { class: "e-txt-no_ok", text: ` · ${r.totales.fallido} fallidos` }) : null,
+      r.totales.fallido ? h("span", { class: "e-txt-no_ok", text: ` · ${plural(r.totales.fallido, "fallido", "fallidos")}` }) : null,
       r.totales.sin_pruebas ? ` · ${r.totales.sin_pruebas} sin pruebas aquí` : null,
       r.modificados ? h("span", { class: "e-txt-bloqueada", text: ` · ${plural(r.modificados, "cambiado", "cambiados")}` }) : null, " →") : null,
     c && c.encontrada ? h("button", { type: "button", class: "resumen-enlace", onclick: () => irAPestanaValidacion("comparacion") },

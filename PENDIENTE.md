@@ -50,6 +50,13 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
 - **Versión del formato de los datos** (versión 0.11.0): `formato.yaml` por
   carpeta y `formato` en ejecuciones y validaciones; una copia antigua del
   programa no guarda en datos de un formato más nuevo (`app/formato.py`).
+- **Validación para proyectos grandes y uso diario** (versión 0.12.0):
+  pestañas y tablas por capítulos, requisitos verificados por la validación y
+  ejecución de impacto, comparación con la versión anterior y evolución,
+  informe con resumen y detalle por capítulo, CSV de resultados, ficha
+  compacta al pasar pruebas, zoom, ajustes (nombre, versión nueva,
+  incidencias), cambiar un campo en varias pruebas, buscar y reemplazar en
+  todo, ruleta y caché de lectura (`app/lectura.py`).
 
 ## Siguientes pasos
 
@@ -71,12 +78,13 @@ Sin issue todavía:
 | Importar resultados desde la línea de órdenes (hoy, solo en el editor) | pequeño | — |
 | Decidir si se retiran `convertir`, `inventario` y `auditar` (la importación por familias hace lo mismo; se conservan por ahora) | — | usarla con los Word reales |
 | Renombrar la herramienta a **Aztarna** (ver abajo) y probar el `.exe` en Windows | pequeño | un PC con Windows |
-| Requisitos en la validación: verificado / fallido por requisito según sus pruebas, sección en el informe y ejecución «de impacto» con las pruebas de los requisitos cambiados | medio | — |
-| Comparar validaciones o ejecuciones: nuevos fallos y arreglos respecto a la versión anterior | pequeño | — |
 | Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
 | Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
 | Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
 | Manual: rehacer la captura 22 (Robot en marcha) | pequeño | ejecutar Robot |
+| Probar con datos reales: el enlace de incidencias con el Jira de la empresa y Robot Framework en el PC de uso | pequeño | el PC de uso |
+| Repartir una ejecución entre varias personas (asignar pruebas y filtro «Mis pendientes») | medio | decidir si hace falta |
+| Primera apertura de una validación grande en red (unos 4 s en local con 1000 pruebas): leer los YAML más rápido si se nota | pequeño | medirlo en la red |
 | Validación de una versión: integrada en `main`; quedan los puntos «por comprobar» de más abajo al usarla con datos reales | — | usarla |
 
 ### Cambio de nombre a Aztarna

@@ -140,11 +140,41 @@ El menú **⋯**, a la derecha de la barra superior, reúne:
   ejecución (ver 7). En el modo Validación, solo resultados.
 - **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
   ver 4.8. No aparece en el modo Validación.
+- **Tamaño**: **−** y **+** agrandan o reducen todo (texto, botones,
+  imágenes); el porcentaje vuelve al 100 %. Ver abajo.
+- **Ajustes…**: tu nombre, dónde se publica el programa y la dirección de las
+  incidencias (ver abajo).
 - **Manual de usuario**: abre este manual en una ventana aparte.
 - **Acerca de…**: versión, dónde guarda este PC sus ajustes, enlace al
   proyecto en GitHub y botón del manual.
 
 ![Acerca de](docs/manual/36_acerca.png)
+
+**Tamaño (zoom).** Para leerlo todo más grande: **Ctrl + rueda del ratón**,
+**Ctrl +** / **Ctrl −** o *⋯ → Tamaño*; **Ctrl 0** vuelve al 100 %. Va del 67 %
+al 300 % y se recuerda en este PC. Con la ventana estrecha o mucho zoom, la
+barra superior deja solo el icono en *Robot* y *Recargar*, y al pasar una
+prueba el panel del resultado se pone encima de la prueba.
+
+![Ajustes de este PC](docs/manual/50_ajustes.png)
+
+**Ajustes de este PC** (*⋯ → Ajustes…*):
+
+- **Tu nombre**: sale como ejecutor en los resultados y en el aviso cuando
+  editas un capítulo (vacío: tu usuario de Windows).
+- **Carpeta con la última versión del programa**: la carpeta compartida
+  donde se publica `EditorPruebas.exe` con su `version.txt`. Al abrir el
+  editor, si allí hay una versión más nueva que la tuya, un aviso lo dice y
+  ofrece abrir la carpeta.
+- **Dirección de las incidencias**: la de tu gestor de incidencias (Jira,
+  Redmine…) con `{id}` donde va el número, por ejemplo
+  `https://jira.empresa.com/browse/{id}`. Así las incidencias de los
+  resultados (`BUG-123`) se abren con un clic.
+
+**Esperas.** Lo que tarda (abrir una validación grande, generar un informe,
+importar) muestra una ruleta con el tiempo que lleva. Si una espera pasa de
+8 segundos aparece **Ocultar y seguir trabajando**: la operación sigue y su
+resultado se verá al terminar.
 
 Cuando avises de un problema, indica la versión que aparece aquí; también
 figura en el pie de los informes y en las propiedades de los documentos de
@@ -297,6 +327,14 @@ sección se mueve con todo lo que cuelga de ella. Los niveles van del 2 al 6
 (el 1 es el capítulo): si alguno se saldría, no se cambia nada y el editor
 dice cuál.
 
+![Cambiar un campo en varias pruebas](docs/manual/51_campos_varios.png)
+
+Con varios elegidos, **Campos…** cambia un mismo campo en todos: *Tags* y
+*Requisitos* (añadir, quitar o dejar solo esos), *Maniobra*, *Entorno de
+pruebas*, *Automatizable*, *Versión* o *Fecha*. Si eliges una sección, se
+cambia en todas sus pruebas. Se guarda al aceptar; los capítulos que edita
+otra persona se saltan.
+
 ### 4.6 Vista YAML
 
 ![Vista YAML](docs/manual/05_vista_yaml.png)
@@ -369,6 +407,21 @@ con un icono de tabla y se editan igual.
 
 En modo Validación, las tablas del contexto se ven (sin editar) en la ficha
 de la prueba o de la sección.
+
+### 4.10 Buscar y reemplazar en todos los capítulos
+
+![Buscar en todo](docs/manual/52_buscar_todo.png)
+
+El buscador del panel izquierdo busca en el capítulo abierto. Para buscar en
+**todos los capítulos**, pulsa la lupa junto al buscador o **Ctrl+Mayús+F**:
+sale cada prueba, sección o tabla con el texto, en qué campo está y un trozo
+alrededor. Pulsa una para ir a ella (Intro va a la primera).
+
+**Reemplazar** cambia el texto en **todos** los resultados (sin distinguir
+mayúsculas), aunque la lista solo muestre los 500 primeros. No toca los ID y
+se salta los capítulos que está editando otra persona. Si cambia el texto de
+un requisito con pruebas, queda con sus pruebas por revisar, como al editarlo
+a mano. Con Git se puede deshacer; sin Git, no.
 
 ## 5. Requisitos y trazabilidad (modo Requisitos)
 
@@ -538,7 +591,11 @@ prueba seleccionada:
 - botones **Ejecutar Robot…** e **Importar Robot…** (ver 6.7), **Generar
   informe…**, **Cerrar ejecución…** y **Siguiente pendiente**;
 - en el apartado **Ejecución**, su entorno de pruebas y sus datos; **Cambiar
-  datos…** los corrige mientras está abierta.
+  datos…** los corrige mientras está abierta;
+- **Comparar con…**: elige otra ejecución (normalmente la anterior del mismo
+  entorno) y verás los **nuevos fallos** (NO OK ahora y no antes), las
+  **arregladas** (NO OK antes y bien ahora), las que siguen fallando y los
+  demás cambios.
 
 Si la ejecución forma parte de una validación abierta, arriba aparece un
 botón para **volver a la validación**.
@@ -557,7 +614,10 @@ ejecutarse (al pasar el ratón se ve en qué entorno o ejecución). La opción
 *Cambiadas tras ejecutarse* del desplegable deja solo esas pruebas, para
 decidir cuáles repetir.
 
-A la izquierda está la prueba en solo lectura; a la derecha, su resultado:
+A la izquierda está la prueba en solo lectura, compacta para ver de una un
+ensayo de 20 o 30 pasos (sus datos en una línea arriba); a la derecha, su
+resultado. Los cuatro resultados van en una fila y las **observaciones**
+ocupan el resto del panel (también se pueden estirar por la esquina):
 
 1. Elige el resultado con los botones o con las teclas **1 a 4**.
 2. Escribe las **observaciones** (necesarias en NO OK y Bloqueada), la
@@ -703,12 +763,29 @@ pruebas* dónde hay que pasarla, y cada ejecución en qué entorno se hizo:
 - una prueba sin entorno indicado vale en cualquiera, con un aviso para
   completarla.
 
-El panel muestra el resultado de la versión, las ejecuciones (pulsa una para
-abrirla), una tabla **por entorno** (*Sin planificar*: ninguna ejecución de
-ese entorno incluye la prueba), la tabla **prueba × entorno** y los avisos.
-Las cifras y el desplegable filtran la tabla y el árbol.
+El panel tiene cuatro pestañas:
+
+- **Resumen**: el resultado de la versión, una línea con los requisitos y otra
+  con la comparación con la anterior (llevan a su pestaña), una tabla **por
+  capítulo** (pulsa uno para ver sus pruebas), las ejecuciones (pulsa una para
+  abrirla), la tabla **por entorno** (*Sin planificar*: ninguna ejecución de
+  ese entorno incluye la prueba) y los avisos. Las cifras de arriba llevan a
+  la pestaña *Pruebas* con ese filtro (también en el árbol).
+- **Pruebas**: la tabla **prueba × entorno** agrupada por capítulos, cada uno
+  con su barra y su porcentaje de validadas. Pulsa un capítulo para
+  desplegarlo; *Desplegar todo* / *Plegar todo*; buscador por ID o título y
+  filtro por resultado. Con pocas filas (o mientras buscas) sale todo
+  desplegado.
+- **Requisitos** y **Comparación**: ver abajo.
+
+La pestaña elegida se recuerda.
 
 ![Tabla prueba × entorno](docs/manual/33_validacion_matriz.png)
+
+Con muchas pruebas, los capítulos salen plegados y se ve de un vistazo cuáles
+van peor:
+
+![Validación con 1000 pruebas](docs/manual/49_validacion_grande.png)
 
 Al pulsar una prueba se ve su ficha con el resultado en cada entorno y su
 historial; el nombre de cada ejecución lleva a esa prueba dentro de ella para
@@ -716,19 +793,75 @@ apuntar o corregir el resultado.
 
 ![Una prueba en la validación](docs/manual/34_validacion_prueba.png)
 
+**Requisitos de la versión.** Si el proyecto tiene requisitos, la pestaña
+**Requisitos** dice cuáles quedan verificados con esta validación:
+
+- **verificado**: todas las pruebas de la validación que lo citan están
+  validadas; **fallido** si alguna es NO OK; **bloqueado** o **pendiente** si
+  alguna lo está;
+- **sin pruebas aquí**: necesita pruebas, pero ninguna de esta validación lo
+  cita; **no aplica**: no se valida con pruebas (por ejemplo, por
+  inspección).
+
+Va agrupada por capítulos de requisitos, como la de pruebas; las tarjetas
+filtran y cada prueba se puede pulsar. Si algún requisito **ha cambiado**
+desde la última revisión de sus pruebas, lo avisa y **Ejecución de
+impacto…** crea una ejecución dentro de la validación con solo esas pruebas.
+
+![Requisitos en la validación](docs/manual/47_validacion_requisitos.png)
+
+**Comparar con la versión anterior.** En la pestaña **Comparación**, *Comparar
+con otra validación…* elige la validación de la versión anterior (se
+recuerda). Verás:
+
+- la **evolución**: una fila por versión con su resultado, siguiendo la
+  cadena de «comparar con» (la v2.3 con la v2.2, la v2.2 con la v2.1…);
+- los **cambios** por capítulo: **nuevos fallos** (NO OK ahora y no antes),
+  **arregladas** (NO OK antes y bien ahora), **siguen fallando**, otros
+  cambios, pruebas nuevas y las que ya no están. Las tarjetas filtran.
+
+La pestaña indica en rojo cuántos nuevos fallos hay. *Quitar* deja de
+comparar.
+
+![Comparación con la versión anterior](docs/manual/48_validacion_comparacion.png)
+
 **Informe de la validación.** **Generar informe…** crea un Word apaisado (y,
-si quieres, el PDF) con los datos de la versión, el resultado, las
-ejecuciones, el resultado por entorno, las pruebas no validadas con sus
-observaciones y la tabla prueba × entorno en color. Mientras quede alguna
-ejecución abierta sale como **BORRADOR**. El detalle de cada prueba está en el
-informe de cada ejecución.
+si quieres, el PDF) en dos partes:
+
+- **resumen**: datos de la versión, ejecuciones, resultado por entorno y
+  **por capítulo**, la comparación con la anterior (con la evolución) y los
+  requisitos, también por capítulo;
+- **detalle por capítulo**: las pruebas no validadas con sus observaciones,
+  la tabla prueba × entorno en color y cada requisito con sus pruebas, con un
+  título por capítulo.
+
+Quita *Incluir el detalle por capítulos* para sacar solo el resumen (útil con
+muchas pruebas). Mientras quede alguna ejecución abierta sale como
+**BORRADOR**. Los pasos de cada prueba están en el informe de cada ejecución.
+
+![Generar el informe de la validación](docs/manual/53_informe_validacion.png)
+
+**Resultados en Excel.** En el mismo diálogo, **Resultados en Excel (CSV)…**
+guarda una fila por prueba con su resultado en cada entorno, la ejecución,
+la fecha, el ejecutor, las observaciones y la incidencia. Se abre con Excel
+(en una ejecución sale el mismo botón en su informe).
 
 **Trabajar sin validación.** Botón de la validación → **Trabajar sin
 validación**: el modo vuelve a funcionar solo con ejecuciones sueltas.
 
 En los ejemplos hay una validación completa:
 `ejemplos/validaciones/validacion_v2.3`, que une cuatro ejecuciones de
-`ejemplos/ejecuciones/` (Robot, torre, una repetición en torre y maqueta).
+`ejemplos/ejecuciones/` (Robot, torre, una repetición en torre y maqueta) y se
+compara con `validacion_v2.2`. Para ver cómo se comporta con un proyecto de
+tamaño real, `ejemplos/grande` tiene 1000 pruebas, 500 requisitos y dos
+validaciones (abre la carpeta `ejemplos/grande` y la validación
+`validaciones/v3.0`).
+
+**¿Los resultados van en Git?** Las pruebas y los requisitos, sí (es lo que
+se edita y se revisa). Las ejecuciones y las validaciones, mejor no: son
+registros de lo que pasó (con capturas y logs que pesan) y cada persona hace
+las suyas. Déjalas en una carpeta compartida de la red y, al cerrar una
+versión, archiva su validación con el informe.
 
 ---
 
@@ -843,6 +976,9 @@ y quién la ejecutó): revísala, completa las pendientes y ciérrala.
 |---|---|---|
 | Ctrl+S | Siempre | Guardar |
 | Ctrl+F | Siempre | Ir al buscador |
+| Ctrl+Mayús+F | Siempre | Buscar (y reemplazar) en todos los capítulos |
+| Ctrl + rueda, Ctrl+ / Ctrl− | Siempre | Más grande / más pequeño |
+| Ctrl+0 | Siempre | Tamaño normal |
 | ↑ / ↓ | Árbol | Prueba anterior / siguiente |
 | ← / → | Árbol | Plegar / desplegar sección |
 | Ctrl+clic / Mayús+clic | Árbol | Elegir varios (uno a uno / un rango) |
