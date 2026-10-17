@@ -145,8 +145,10 @@ class EditorValidacionApi(EditorEjecucionApi):
         return {"archivo": archivo} if archivo else {"cancelado": True}
 
     @respuesta
-    def validacion_informe(self, salida: str | None = None, pdf: bool = False) -> dict[str, Any]:
-        """Informe DOCX de la validación (y el PDF si se pide). Sin `salida`, abre «Guardar como»."""
+    def validacion_informe(self, salida: str | None = None, pdf: bool = False, detalle: bool = True) -> dict[str, Any]:
+        """Informe DOCX de la validación (y el PDF si se pide). Sin `salida`, abre «Guardar como».
+
+        Sin `detalle`, solo el resumen (con la tabla por capítulos)."""
         from app import informe_docx, informe_validacion
 
         validacion = self._requiere_validacion()
@@ -154,7 +156,7 @@ class EditorValidacionApi(EditorEjecucionApi):
             salida = self._guardar_como(validacion["carpeta"], f"Informe_{validacion['carpeta'].name}.docx")
             if salida is None:
                 return {"cancelado": True}
-        datos = informe_validacion.generar_informe(validacion, salida)
+        datos = informe_validacion.generar_informe(validacion, salida, detalle=detalle)
         resultado = {"archivo": datos["archivo"], "pruebas": datos["pruebas"], "pdf": None, "aviso_pdf": None}
         if pdf:
             try:

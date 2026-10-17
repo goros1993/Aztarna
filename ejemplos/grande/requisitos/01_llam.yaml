@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de llamadas
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-001
+    titulo: 'Llamadas: el controlador se mantiene estable (1)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-002
+    titulo: 'Llamadas: el controlador informa por el bus (2)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-003
+    titulo: 'Llamadas: el controlador se mantiene estable (3)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-004
+    titulo: 'Llamadas: el controlador bloquea la maniobra (4)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-005
+    titulo: 'Llamadas: el controlador informa por el bus (5)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-006
+    titulo: 'Llamadas: el controlador bloquea la maniobra (6)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-007
+    titulo: 'Llamadas: el controlador se recupera tras el corte (7)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-008
+    titulo: 'Llamadas: el controlador se recupera tras el corte (8)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-009
+    titulo: 'Llamadas: el controlador responde a la orden (9)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-010
+    titulo: 'Llamadas: el controlador se mantiene estable (10)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-011
+    titulo: 'Llamadas: el controlador vuelve al estado inicial (11)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-012
+    titulo: 'Llamadas: el controlador se recupera tras el corte (12)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-013
+    titulo: 'Llamadas: el controlador se recupera tras el corte (13)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-014
+    titulo: 'Llamadas: el controlador registra el evento (14)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-015
+    titulo: 'Llamadas: el controlador vuelve al estado inicial (15)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-016
+    titulo: 'Llamadas: el controlador respeta el tiempo máximo (16)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-017
+    titulo: 'Llamadas: el controlador informa por el bus (17)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-018
+    titulo: 'Llamadas: el controlador respeta el tiempo máximo (18)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-019
+    titulo: 'Llamadas: el controlador informa por el bus (19)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-020
+    titulo: 'Llamadas: el controlador vuelve al estado inicial (20)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-021
+    titulo: 'Llamadas: el controlador se recupera tras el corte (21)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-022
+    titulo: 'Llamadas: el controlador bloquea la maniobra (22)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-023
+    titulo: 'Llamadas: el controlador responde a la orden (23)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-024
+    titulo: 'Llamadas: el controlador respeta el tiempo máximo (24)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-LLAM-025
+    titulo: 'Llamadas: el controlador ignora la orden repetida (25)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de llamadas.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

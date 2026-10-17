@@ -1,0 +1,582 @@
+capitulo: Mantenimiento
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-001
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-001
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-002
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-009
+    - REQ-MANT-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-006
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-013
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-007
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en mantenimiento, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-010
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en mantenimiento, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-022
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-012
+    titulo: 'Límites: el controlador se mantiene estable'
+    descripcion: Comprobar que, en mantenimiento, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-004
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-016
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-017
+    titulo: 'Límites: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en mantenimiento, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-018
+    titulo: 'Límites: el controlador informa por el bus'
+    descripcion: Comprobar que, en mantenimiento, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-013
+    - REQ-MANT-023
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-020
+    titulo: 'Límites: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en mantenimiento, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-021
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-022
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en mantenimiento, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-023
+    titulo: 'Fallos: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en mantenimiento, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-005
+    - REQ-MANT-020
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-024
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en mantenimiento, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-025
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-026
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en mantenimiento, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-029
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en mantenimiento, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-030
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en mantenimiento, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-004
+    - REQ-MANT-018
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-032
+    titulo: 'Recuperación: el controlador informa por el bus'
+    descripcion: Comprobar que, en mantenimiento, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-006
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-033
+    titulo: 'Recuperación: el controlador avisa al operador'
+    descripcion: Comprobar que, en mantenimiento, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-009
+    - REQ-MANT-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-034
+    titulo: 'Recuperación: el controlador se mantiene estable'
+    descripcion: Comprobar que, en mantenimiento, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-035
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en mantenimiento, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-036
+    titulo: 'Recuperación: el controlador avisa al operador'
+    descripcion: Comprobar que, en mantenimiento, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-003
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-037
+    titulo: 'Recuperación: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en mantenimiento, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-010
+    - REQ-MANT-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-038
+    titulo: 'Recuperación: el controlador responde a la orden'
+    descripcion: Comprobar que, en mantenimiento, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-039
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en mantenimiento, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-002
+    - REQ-MANT-010
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-040
+    titulo: 'Recuperación: el controlador avisa al operador'
+    descripcion: Comprobar que, en mantenimiento, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-013
+    tags:
+    - regresion
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-041
+    titulo: 'Configuración: el controlador se mantiene estable'
+    descripcion: Comprobar que, en mantenimiento, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-004
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-042
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en mantenimiento, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-016
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-043
+    titulo: 'Configuración: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-005
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-048
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en mantenimiento, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-014
+    - REQ-MANT-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-049
+    titulo: 'Configuración: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en mantenimiento, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-MANT-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-MANT-050
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en mantenimiento, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-MANT-016
+    - REQ-MANT-023
+    tags:
+    - regresion

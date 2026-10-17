@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de mantenimiento
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-001
+    titulo: 'Mantenimiento: el controlador bloquea la maniobra (1)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-002
+    titulo: 'Mantenimiento: el controlador vuelve al estado inicial (2)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-003
+    titulo: 'Mantenimiento: el controlador bloquea la maniobra (3)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-004
+    titulo: 'Mantenimiento: el controlador avisa al operador (4)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-005
+    titulo: 'Mantenimiento: el controlador ignora la orden repetida (5)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-006
+    titulo: 'Mantenimiento: el controlador responde a la orden (6)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-007
+    titulo: 'Mantenimiento: el controlador bloquea la maniobra (7)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-008
+    titulo: 'Mantenimiento: el controlador informa por el bus (8)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-009
+    titulo: 'Mantenimiento: el controlador vuelve al estado inicial (9)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-010
+    titulo: 'Mantenimiento: el controlador vuelve al estado inicial (10)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-011
+    titulo: 'Mantenimiento: el controlador bloquea la maniobra (11)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-012
+    titulo: 'Mantenimiento: el controlador avisa al operador (12)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-013
+    titulo: 'Mantenimiento: el controlador informa por el bus (13)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-014
+    titulo: 'Mantenimiento: el controlador vuelve al estado inicial (14)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-015
+    titulo: 'Mantenimiento: el controlador se mantiene estable (15)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-016
+    titulo: 'Mantenimiento: el controlador registra el evento (16)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-017
+    titulo: 'Mantenimiento: el controlador registra el evento (17)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-018
+    titulo: 'Mantenimiento: el controlador bloquea la maniobra (18)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-019
+    titulo: 'Mantenimiento: el controlador respeta el tiempo máximo (19)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-020
+    titulo: 'Mantenimiento: el controlador respeta el tiempo máximo (20)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-021
+    titulo: 'Mantenimiento: el controlador ignora la orden repetida (21)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-022
+    titulo: 'Mantenimiento: el controlador se recupera tras el corte (22)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-023
+    titulo: 'Mantenimiento: el controlador ignora la orden repetida (23)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-024
+    titulo: 'Mantenimiento: el controlador respeta el tiempo máximo (24)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-MANT-025
+    titulo: 'Mantenimiento: el controlador se recupera tras el corte (25)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de mantenimiento.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

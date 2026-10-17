@@ -1,0 +1,745 @@
+capitulo: Pesaje
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-001
+    titulo: 'Funcionamiento normal: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en pesaje, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-002
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en pesaje, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-003
+    titulo: 'Funcionamiento normal: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-014
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-004
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en pesaje, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-007
+    - REQ-PESA-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-005
+    titulo: 'Funcionamiento normal: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en pesaje, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-006
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-025
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-007
+    titulo: 'Funcionamiento normal: el controlador registra el evento'
+    descripcion: Comprobar que, en pesaje, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-014
+    - REQ-PESA-023
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-008
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en pesaje, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-009
+    titulo: 'Funcionamiento normal: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-003
+    - REQ-PESA-008
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-010
+    titulo: 'Funcionamiento normal: el controlador se mantiene estable'
+    descripcion: Comprobar que, en pesaje, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-011
+    - REQ-PESA-021
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-012
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-004
+    - REQ-PESA-018
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-013
+    titulo: 'Límites: el controlador informa por el bus'
+    descripcion: Comprobar que, en pesaje, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-014
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-006
+    - REQ-PESA-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-015
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-020
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-016
+    titulo: 'Límites: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-005
+    - REQ-PESA-006
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-017
+    titulo: 'Límites: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en pesaje, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-018
+    titulo: 'Límites: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en pesaje, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-019
+    titulo: 'Límites: el controlador se mantiene estable'
+    descripcion: Comprobar que, en pesaje, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-001
+    - REQ-PESA-023
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-020
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-012
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-022
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en pesaje, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-024
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en pesaje, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-013
+    - REQ-PESA-019
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-025
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-005
+    - REQ-PESA-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-026
+    titulo: 'Fallos: el controlador responde a la orden'
+    descripcion: Comprobar que, en pesaje, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-027
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en pesaje, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-009
+    - REQ-PESA-014
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-028
+    titulo: 'Fallos: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-029
+    titulo: 'Fallos: el controlador informa por el bus'
+    descripcion: Comprobar que, en pesaje, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-030
+    titulo: 'Fallos: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-013
+    - REQ-PESA-019
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-031
+    titulo: 'Recuperación: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en pesaje, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-019
+    - REQ-PESA-023
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-033
+    titulo: 'Recuperación: el controlador se mantiene estable'
+    descripcion: Comprobar que, en pesaje, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-008
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-034
+    titulo: 'Recuperación: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en pesaje, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-035
+    titulo: 'Recuperación: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en pesaje, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-038
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-039
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-023
+    tags:
+    - regresion
+    - humo
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-041
+    titulo: 'Configuración: el controlador se mantiene estable'
+    descripcion: Comprobar que, en pesaje, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-014
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-044
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-001
+    - REQ-PESA-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-045
+    titulo: 'Configuración: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en pesaje, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-009
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-046
+    titulo: 'Configuración: el controlador avisa al operador'
+    descripcion: Comprobar que, en pesaje, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-021
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-047
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en pesaje, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-PESA-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-049
+    titulo: 'Configuración: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en pesaje, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-PESA-050
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en pesaje, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-PESA-016
+    tags:
+    - regresion

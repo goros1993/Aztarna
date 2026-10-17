@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de pesaje
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-001
+    titulo: 'Pesaje: el controlador vuelve al estado inicial (1)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-002
+    titulo: 'Pesaje: el controlador se recupera tras el corte (2)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-003
+    titulo: 'Pesaje: el controlador se mantiene estable (3)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-004
+    titulo: 'Pesaje: el controlador avisa al operador (4)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-005
+    titulo: 'Pesaje: el controlador responde a la orden (5)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-006
+    titulo: 'Pesaje: el controlador respeta el tiempo máximo (6)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-007
+    titulo: 'Pesaje: el controlador bloquea la maniobra (7)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-008
+    titulo: 'Pesaje: el controlador registra el evento (8)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-009
+    titulo: 'Pesaje: el controlador registra el evento (9)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-010
+    titulo: 'Pesaje: el controlador respeta el tiempo máximo (10)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-011
+    titulo: 'Pesaje: el controlador ignora la orden repetida (11)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-012
+    titulo: 'Pesaje: el controlador ignora la orden repetida (12)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-013
+    titulo: 'Pesaje: el controlador respeta el tiempo máximo (13)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-014
+    titulo: 'Pesaje: el controlador avisa al operador (14)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-015
+    titulo: 'Pesaje: el controlador registra el evento (15)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-016
+    titulo: 'Pesaje: el controlador respeta el tiempo máximo (16)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-017
+    titulo: 'Pesaje: el controlador ignora la orden repetida (17)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-018
+    titulo: 'Pesaje: el controlador ignora la orden repetida (18)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-019
+    titulo: 'Pesaje: el controlador ignora la orden repetida (19)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-020
+    titulo: 'Pesaje: el controlador responde a la orden (20)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-021
+    titulo: 'Pesaje: el controlador avisa al operador (21)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-022
+    titulo: 'Pesaje: el controlador respeta el tiempo máximo (22)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-023
+    titulo: 'Pesaje: el controlador se recupera tras el corte (23)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-024
+    titulo: 'Pesaje: el controlador registra el evento (24)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-PESA-025
+    titulo: 'Pesaje: el controlador ignora la orden repetida (25)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de pesaje.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

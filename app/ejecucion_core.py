@@ -284,6 +284,8 @@ def guardar(campaña: dict[str, Any]) -> None:
     formato.marcar_datos(campaña["datos"])
     _escribir_yaml(archivo_datos(campaña["carpeta"]), campaña["datos"])
     _escribir_yaml(campaña["carpeta"] / ARCHIVO_RESULTADOS, campaña["resultados"])
+    from app import lectura
+    lectura.vaciar()
 
 
 def _comprobar_ids(seleccion: list[dict[str, Any]]) -> None:

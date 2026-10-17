@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de display
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-001
+    titulo: 'Display: el controlador registra el evento (1)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-002
+    titulo: 'Display: el controlador responde a la orden (2)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-003
+    titulo: 'Display: el controlador respeta el tiempo máximo (3)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-004
+    titulo: 'Display: el controlador vuelve al estado inicial (4)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-005
+    titulo: 'Display: el controlador ignora la orden repetida (5)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-006
+    titulo: 'Display: el controlador se recupera tras el corte (6)'
+    descripcion: El controlador DEMO-A1 responde a la orden en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-007
+    titulo: 'Display: el controlador bloquea la maniobra (7)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-008
+    titulo: 'Display: el controlador responde a la orden (8)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-009
+    titulo: 'Display: el controlador ignora la orden repetida (9)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-010
+    titulo: 'Display: el controlador registra el evento (10)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-011
+    titulo: 'Display: el controlador registra el evento (11)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-012
+    titulo: 'Display: el controlador se recupera tras el corte (12)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-013
+    titulo: 'Display: el controlador avisa al operador (13)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-014
+    titulo: 'Display: el controlador informa por el bus (14)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-015
+    titulo: 'Display: el controlador se recupera tras el corte (15)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-016
+    titulo: 'Display: el controlador responde a la orden (16)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-017
+    titulo: 'Display: el controlador bloquea la maniobra (17)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-018
+    titulo: 'Display: el controlador vuelve al estado inicial (18)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-019
+    titulo: 'Display: el controlador vuelve al estado inicial (19)'
+    descripcion: El controlador DEMO-A1 ignora la orden repetida en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-020
+    titulo: 'Display: el controlador bloquea la maniobra (20)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-021
+    titulo: 'Display: el controlador responde a la orden (21)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-022
+    titulo: 'Display: el controlador se recupera tras el corte (22)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-023
+    titulo: 'Display: el controlador responde a la orden (23)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-024
+    titulo: 'Display: el controlador ignora la orden repetida (24)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-DISP-025
+    titulo: 'Display: el controlador registra el evento (25)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de display.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

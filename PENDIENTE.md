@@ -23,7 +23,7 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   pulsables; cerrar (pruebas congeladas) e informe DOCX/PDF.
 - **Robot Framework**: enlace por la etiqueta `id:<ID>`, cobertura en el
   editor, importar `output.xml` (RF 6 y 7), lanzar Robot desde la ejecución
-  con avance en vivo. Detalles en [docs/robot.md](docs/robot.md).
+  con avance en vivo. Detalles en el [manual, apartado 10](MANUAL.md#10-robot-framework-guía-para-quien-escribe-los-tests).
 - **Requisitos y trazabilidad**: esquema con `plantillas/tabla_requisito.docx`,
   proyecto con `pruebas/` y `requisitos/`, cobertura por requisito, sección y
   capítulo, referencias a requisitos que no existen, requisitos cambiados con

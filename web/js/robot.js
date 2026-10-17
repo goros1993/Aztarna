@@ -2,7 +2,7 @@
 /* Robot Framework: configuración, cobertura (qué pruebas tienen test de Robot),
    keywords propuestas al escribir los pasos y ejecución desde el editor. Los
    tests de Robot se enlazan con las pruebas mediante la etiqueta id:<ID> (ver
-   docs/robot.md). */
+   el apartado 10 de MANUAL.md). */
 
 /* ---- cobertura ---- */
 async function cargarCobertura() {
@@ -226,7 +226,9 @@ async function configurarRobot() {
   const r = await dialogo({
     titulo: "Robot Framework", ancho: true,
     cuerpo: h("div", { class: "config-robot" },
-      h("p", { text: "Para saber qué pruebas están automatizadas y poder lanzarlas desde una ejecución. La configuración es de este PC y de esta carpeta de pruebas. Cada test de Robot se enlaza con su prueba con la etiqueta id:<ID> (ver docs/robot.md)." }),
+      h("p", { text: "Para saber qué pruebas están automatizadas y poder lanzarlas desde una ejecución. La configuración es de este PC y de esta carpeta de pruebas. Cada test de Robot se enlaza con su prueba con la etiqueta id:<ID>." },
+        " ", h("button", { class: "enlace", type: "button", text: "Guía para quien escribe los tests (manual)",
+          onclick: () => api.abrir_manual("10-robot-framework-guía-para-quien-escribe-los-tests").catch(fallo) })),
       h("div", { class: "rejilla" }, suites, comando, argumentos, keywords),
       cobertura),
     botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }],

@@ -80,7 +80,7 @@ def describir(carpeta: str | Path) -> dict[str, Any]:
         datos = validacion["datos"]
         return {"tipo": "validacion", "carpeta": str(carpeta), "nombre": str(datos.get("nombre") or carpeta.name),
                 "version": str(datos.get("version") or ""),
-                "estados": estados_validacion(vc.consolidar(validacion, con_comparacion=False))}
+                "estados": estados_validacion(vc.consolidar(validacion, con_comparacion=False, con_requisitos=False))}
     if ej.es_campaña(carpeta):
         campaña = ej.cargar(carpeta)
         datos = campaña["datos"]

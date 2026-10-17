@@ -514,6 +514,8 @@ def save_chapter(chapter: dict[str, Any]) -> None:
         if temp_path is not None and temp_path.exists():
             temp_path.unlink()
     formato.marcar_carpeta(path.parent)
+    from app import lectura
+    lectura.vaciar()            # por si la fecha del archivo no cambia (sistemas con poca resolución)
 
 
 def save_uploaded_images(uploaded_files: list[Any], image_dir: Path) -> list[str]:

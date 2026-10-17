@@ -1,0 +1,228 @@
+# Ejemplo grande (datos ficticios). Lo genera ejemplos/grande/generar.py: no lo edites a mano.
+capitulo: Requisitos de nivelación
+contenido:
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-001
+    titulo: 'Nivelación: el controlador vuelve al estado inicial (1)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-002
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (2)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-003
+    titulo: 'Nivelación: el controlador se recupera tras el corte (3)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-004
+    titulo: 'Nivelación: el controlador informa por el bus (4)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-005
+    titulo: 'Nivelación: el controlador registra el evento (5)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-006
+    titulo: 'Nivelación: el controlador se recupera tras el corte (6)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-007
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (7)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-008
+    titulo: 'Nivelación: el controlador se mantiene estable (8)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-009
+    titulo: 'Nivelación: el controlador se recupera tras el corte (9)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-010
+    titulo: 'Nivelación: el controlador vuelve al estado inicial (10)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-011
+    titulo: 'Nivelación: el controlador avisa al operador (11)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-012
+    titulo: 'Nivelación: el controlador ignora la orden repetida (12)'
+    descripcion: El controlador DEMO-A1 informa por el bus en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-013
+    titulo: 'Nivelación: el controlador informa por el bus (13)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-014
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (14)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-015
+    titulo: 'Nivelación: el controlador ignora la orden repetida (15)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-016
+    titulo: 'Nivelación: el controlador avisa al operador (16)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-017
+    titulo: 'Nivelación: el controlador se recupera tras el corte (17)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-018
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (18)'
+    descripcion: El controlador DEMO-A1 respeta el tiempo máximo en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-019
+    titulo: 'Nivelación: el controlador ignora la orden repetida (19)'
+    descripcion: El controlador DEMO-A1 bloquea la maniobra en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-020
+    titulo: 'Nivelación: el controlador ignora la orden repetida (20)'
+    descripcion: El controlador DEMO-A1 registra el evento en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-021
+    titulo: 'Nivelación: el controlador avisa al operador (21)'
+    descripcion: El controlador DEMO-A1 se recupera tras el corte en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-022
+    titulo: 'Nivelación: el controlador bloquea la maniobra (22)'
+    descripcion: El controlador DEMO-A1 avisa al operador en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-023
+    titulo: 'Nivelación: el controlador ignora la orden repetida (23)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-024
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (24)'
+    descripcion: El controlador DEMO-A1 se mantiene estable en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Inspección
+- requisito:
+    nombre: ''
+    nivel: 2
+    id: REQ-NIVE-025
+    titulo: 'Nivelación: el controlador respeta el tiempo máximo (25)'
+    descripcion: El controlador DEMO-A1 vuelve al estado inicial en el ámbito de nivelación.
+    tipo: Funcional
+    criterio_validacion:
+    - Test

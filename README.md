@@ -512,7 +512,7 @@ capturas como evidencias. Con la carpeta de tests de Robot configurada (botón
 y lanza Robot desde la ejecución (*Ejecutar Robot…*) con el avance en vivo.
 Al escribir situaciones y pasos propone las keywords de Robot (de los
 `.robot`, `.resource` y librerías de Python) y marca los pasos que ya son una
-keyword. Detalles en [docs/robot.md](docs/robot.md).
+keyword. Detalles en el [manual, apartado 10](MANUAL.md#10-robot-framework-guía-para-quien-escribe-los-tests).
 
 Para probarlo: modo Validación → *Abrir ejecución…* →
 `ejemplos/ejecuciones/regresion_v2.3`. Al abrir una ejecución se abre también

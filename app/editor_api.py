@@ -566,8 +566,10 @@ class EditorApi:
                 "python": platform.python_version(), "sistema": f"{platform.system()} {platform.release()}"}
 
     @respuesta
-    def abrir_manual(self) -> dict[str, Any]:
-        """Abre el manual de usuario (MANUAL.md convertido a HTML) en una ventana aparte."""
+    def abrir_manual(self, ancla: str = "") -> dict[str, Any]:
+        """Abre el manual de usuario (MANUAL.md convertido a HTML) en una ventana aparte, en el apartado `ancla` si se indica."""
+        from urllib.parse import quote
+
         from app import firma, manual
 
         ruta = manual.generar()
@@ -575,7 +577,8 @@ class EditorApi:
             return {"archivo": str(ruta)}
         import webview
 
-        webview.create_window(f"Manual · {firma()}", url=ruta.as_uri(), width=1040, height=820, text_select=True)
+        url = ruta.as_uri() + (f"#{quote(str(ancla))}" if ancla else "")
+        webview.create_window(f"Manual · {firma()}", url=url, width=1040, height=820, text_select=True)
         return {"archivo": str(ruta)}
 
     @respuesta

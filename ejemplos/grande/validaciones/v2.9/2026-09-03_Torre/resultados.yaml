@@ -1,0 +1,3056 @@
+G-LLAM-001:
+  estado: ok
+  fecha: 2026-09-03T09:00
+  ejecutor: Luis Gómez
+G-LLAM-002:
+  estado: ok
+  fecha: 2026-09-03T10:01
+  ejecutor: Luis Gómez
+G-LLAM-003:
+  estado: ok
+  fecha: 2026-09-03T11:02
+  ejecutor: Luis Gómez
+G-LLAM-006:
+  estado: ok
+  fecha: 2026-09-03T12:03
+  ejecutor: Luis Gómez
+G-LLAM-007:
+  estado: ok
+  fecha: 2026-09-03T13:04
+  ejecutor: Luis Gómez
+G-LLAM-008:
+  estado: ok
+  fecha: 2026-09-03T14:05
+  ejecutor: Luis Gómez
+G-LLAM-009:
+  estado: ok
+  fecha: 2026-09-03T15:06
+  ejecutor: Luis Gómez
+G-LLAM-010:
+  estado: ok
+  fecha: 2026-09-03T16:07
+  ejecutor: Luis Gómez
+G-LLAM-011:
+  estado: ok
+  fecha: 2026-09-03T17:08
+  ejecutor: Luis Gómez
+G-LLAM-012:
+  estado: ok
+  fecha: 2026-09-03T09:09
+  ejecutor: Luis Gómez
+G-LLAM-013:
+  estado: no_ok
+  fecha: 2026-09-03T10:10
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-014:
+  estado: ok
+  fecha: 2026-09-03T11:11
+  ejecutor: Luis Gómez
+G-LLAM-015:
+  estado: ok
+  fecha: 2026-09-03T12:12
+  ejecutor: Luis Gómez
+G-LLAM-016:
+  estado: ok
+  fecha: 2026-09-03T13:13
+  ejecutor: Luis Gómez
+G-LLAM-017:
+  estado: ok
+  fecha: 2026-09-03T14:14
+  ejecutor: Luis Gómez
+G-LLAM-018:
+  estado: ok
+  fecha: 2026-09-03T15:15
+  ejecutor: Luis Gómez
+G-LLAM-019:
+  estado: no_ok
+  fecha: 2026-09-03T16:16
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-020:
+  estado: ok
+  fecha: 2026-09-03T17:17
+  ejecutor: Luis Gómez
+G-LLAM-024:
+  estado: ok
+  fecha: 2026-09-03T09:18
+  ejecutor: Luis Gómez
+G-LLAM-025:
+  estado: ok
+  fecha: 2026-09-03T10:19
+  ejecutor: Luis Gómez
+G-LLAM-026:
+  estado: ok
+  fecha: 2026-09-03T11:20
+  ejecutor: Luis Gómez
+G-LLAM-027:
+  estado: ok
+  fecha: 2026-09-03T12:21
+  ejecutor: Luis Gómez
+G-LLAM-028:
+  estado: ok
+  fecha: 2026-09-03T13:22
+  ejecutor: Luis Gómez
+G-LLAM-029:
+  estado: ok
+  fecha: 2026-09-03T14:23
+  ejecutor: Luis Gómez
+G-LLAM-030:
+  estado: no_ok
+  fecha: 2026-09-03T15:24
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-033:
+  estado: ok
+  fecha: 2026-09-03T16:25
+  ejecutor: Luis Gómez
+G-LLAM-035:
+  estado: no_ok
+  fecha: 2026-09-03T17:26
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-036:
+  estado: ok
+  fecha: 2026-09-03T09:27
+  ejecutor: Luis Gómez
+G-LLAM-037:
+  estado: ok
+  fecha: 2026-09-03T10:28
+  ejecutor: Luis Gómez
+G-LLAM-038:
+  estado: ok
+  fecha: 2026-09-03T11:29
+  ejecutor: Luis Gómez
+G-LLAM-040:
+  estado: ok
+  fecha: 2026-09-03T12:30
+  ejecutor: Luis Gómez
+G-LLAM-041:
+  estado: ok
+  fecha: 2026-09-03T13:31
+  ejecutor: Luis Gómez
+G-LLAM-042:
+  estado: ok
+  fecha: 2026-09-03T14:32
+  ejecutor: Luis Gómez
+G-LLAM-043:
+  estado: ok
+  fecha: 2026-09-03T15:33
+  ejecutor: Luis Gómez
+G-LLAM-044:
+  estado: ok
+  fecha: 2026-09-03T16:34
+  ejecutor: Luis Gómez
+G-LLAM-045:
+  estado: ok
+  fecha: 2026-09-03T17:35
+  ejecutor: Luis Gómez
+G-LLAM-046:
+  estado: ok
+  fecha: 2026-09-03T09:36
+  ejecutor: Luis Gómez
+G-LLAM-047:
+  estado: ok
+  fecha: 2026-09-03T10:37
+  ejecutor: Luis Gómez
+G-LLAM-048:
+  estado: no_aplica
+  fecha: 2026-09-03T11:38
+  ejecutor: Luis Gómez
+G-LLAM-049:
+  estado: ok
+  fecha: 2026-09-03T12:39
+  ejecutor: Luis Gómez
+G-PUER-003:
+  estado: ok
+  fecha: 2026-09-03T13:40
+  ejecutor: Luis Gómez
+G-PUER-005:
+  estado: ok
+  fecha: 2026-09-03T14:41
+  ejecutor: Luis Gómez
+G-PUER-006:
+  estado: bloqueada
+  fecha: 2026-09-03T15:42
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-PUER-007:
+  estado: ok
+  fecha: 2026-09-03T16:43
+  ejecutor: Luis Gómez
+G-PUER-009:
+  estado: ok
+  fecha: 2026-09-03T17:44
+  ejecutor: Luis Gómez
+G-PUER-010:
+  estado: ok
+  fecha: 2026-09-03T09:45
+  ejecutor: Luis Gómez
+G-PUER-011:
+  estado: ok
+  fecha: 2026-09-03T10:46
+  ejecutor: Luis Gómez
+G-PUER-014:
+  estado: ok
+  fecha: 2026-09-03T11:47
+  ejecutor: Luis Gómez
+G-PUER-016:
+  estado: ok
+  fecha: 2026-09-03T12:48
+  ejecutor: Luis Gómez
+G-PUER-017:
+  estado: ok
+  fecha: 2026-09-03T13:49
+  ejecutor: Luis Gómez
+G-PUER-018:
+  estado: ok
+  fecha: 2026-09-03T14:50
+  ejecutor: Luis Gómez
+G-PUER-019:
+  estado: ok
+  fecha: 2026-09-03T15:51
+  ejecutor: Luis Gómez
+G-PUER-021:
+  estado: ok
+  fecha: 2026-09-03T16:52
+  ejecutor: Luis Gómez
+G-PUER-022:
+  estado: ok
+  fecha: 2026-09-03T17:53
+  ejecutor: Luis Gómez
+G-PUER-024:
+  estado: ok
+  fecha: 2026-09-03T09:54
+  ejecutor: Luis Gómez
+G-PUER-025:
+  estado: ok
+  fecha: 2026-09-03T10:55
+  ejecutor: Luis Gómez
+G-PUER-026:
+  estado: ok
+  fecha: 2026-09-03T11:56
+  ejecutor: Luis Gómez
+G-PUER-027:
+  estado: ok
+  fecha: 2026-09-03T12:57
+  ejecutor: Luis Gómez
+G-PUER-028:
+  estado: ok
+  fecha: 2026-09-03T13:58
+  ejecutor: Luis Gómez
+G-PUER-029:
+  estado: ok
+  fecha: 2026-09-03T14:59
+  ejecutor: Luis Gómez
+G-PUER-030:
+  estado: ok
+  fecha: 2026-09-03T15:00
+  ejecutor: Luis Gómez
+G-PUER-033:
+  estado: ok
+  fecha: 2026-09-03T16:01
+  ejecutor: Luis Gómez
+G-PUER-035:
+  estado: ok
+  fecha: 2026-09-03T17:02
+  ejecutor: Luis Gómez
+G-PUER-036:
+  estado: ok
+  fecha: 2026-09-03T09:03
+  ejecutor: Luis Gómez
+G-PUER-037:
+  estado: ok
+  fecha: 2026-09-03T10:04
+  ejecutor: Luis Gómez
+G-PUER-038:
+  estado: ok
+  fecha: 2026-09-03T11:05
+  ejecutor: Luis Gómez
+G-PUER-039:
+  estado: ok
+  fecha: 2026-09-03T12:06
+  ejecutor: Luis Gómez
+G-PUER-040:
+  estado: ok
+  fecha: 2026-09-03T13:07
+  ejecutor: Luis Gómez
+G-PUER-041:
+  estado: ok
+  fecha: 2026-09-03T14:08
+  ejecutor: Luis Gómez
+G-PUER-042:
+  estado: ok
+  fecha: 2026-09-03T15:09
+  ejecutor: Luis Gómez
+G-PUER-043:
+  estado: ok
+  fecha: 2026-09-03T16:10
+  ejecutor: Luis Gómez
+G-PUER-044:
+  estado: ok
+  fecha: 2026-09-03T17:11
+  ejecutor: Luis Gómez
+G-PUER-046:
+  estado: ok
+  fecha: 2026-09-03T09:12
+  ejecutor: Luis Gómez
+G-PUER-047:
+  estado: ok
+  fecha: 2026-09-03T10:13
+  ejecutor: Luis Gómez
+G-PUER-048:
+  estado: ok
+  fecha: 2026-09-03T11:14
+  ejecutor: Luis Gómez
+G-PUER-049:
+  estado: ok
+  fecha: 2026-09-03T12:15
+  ejecutor: Luis Gómez
+G-PUER-050:
+  estado: ok
+  fecha: 2026-09-03T13:16
+  ejecutor: Luis Gómez
+G-NIVE-001:
+  estado: ok
+  fecha: 2026-09-03T14:17
+  ejecutor: Luis Gómez
+G-NIVE-002:
+  estado: ok
+  fecha: 2026-09-03T15:18
+  ejecutor: Luis Gómez
+G-NIVE-004:
+  estado: ok
+  fecha: 2026-09-03T16:19
+  ejecutor: Luis Gómez
+G-NIVE-005:
+  estado: no_ok
+  fecha: 2026-09-03T17:20
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-NIVE-006:
+  estado: ok
+  fecha: 2026-09-03T09:21
+  ejecutor: Luis Gómez
+G-NIVE-007:
+  estado: ok
+  fecha: 2026-09-03T10:22
+  ejecutor: Luis Gómez
+G-NIVE-010:
+  estado: no_aplica
+  fecha: 2026-09-03T11:23
+  ejecutor: Luis Gómez
+G-NIVE-011:
+  estado: ok
+  fecha: 2026-09-03T12:24
+  ejecutor: Luis Gómez
+G-NIVE-014:
+  estado: ok
+  fecha: 2026-09-03T13:25
+  ejecutor: Luis Gómez
+G-NIVE-015:
+  estado: ok
+  fecha: 2026-09-03T14:26
+  ejecutor: Luis Gómez
+G-NIVE-017:
+  estado: ok
+  fecha: 2026-09-03T15:27
+  ejecutor: Luis Gómez
+G-NIVE-018:
+  estado: ok
+  fecha: 2026-09-03T16:28
+  ejecutor: Luis Gómez
+G-NIVE-019:
+  estado: ok
+  fecha: 2026-09-03T17:29
+  ejecutor: Luis Gómez
+G-NIVE-020:
+  estado: ok
+  fecha: 2026-09-03T09:30
+  ejecutor: Luis Gómez
+G-NIVE-021:
+  estado: ok
+  fecha: 2026-09-03T10:31
+  ejecutor: Luis Gómez
+G-NIVE-022:
+  estado: ok
+  fecha: 2026-09-03T11:32
+  ejecutor: Luis Gómez
+G-NIVE-023:
+  estado: ok
+  fecha: 2026-09-03T12:33
+  ejecutor: Luis Gómez
+G-NIVE-024:
+  estado: ok
+  fecha: 2026-09-03T13:34
+  ejecutor: Luis Gómez
+G-NIVE-025:
+  estado: ok
+  fecha: 2026-09-03T14:35
+  ejecutor: Luis Gómez
+G-NIVE-026:
+  estado: ok
+  fecha: 2026-09-03T15:36
+  ejecutor: Luis Gómez
+G-NIVE-027:
+  estado: ok
+  fecha: 2026-09-03T16:37
+  ejecutor: Luis Gómez
+G-NIVE-028:
+  estado: ok
+  fecha: 2026-09-03T17:38
+  ejecutor: Luis Gómez
+G-NIVE-029:
+  estado: ok
+  fecha: 2026-09-03T09:39
+  ejecutor: Luis Gómez
+G-NIVE-030:
+  estado: ok
+  fecha: 2026-09-03T10:40
+  ejecutor: Luis Gómez
+G-NIVE-031:
+  estado: ok
+  fecha: 2026-09-03T11:41
+  ejecutor: Luis Gómez
+G-NIVE-032:
+  estado: ok
+  fecha: 2026-09-03T12:42
+  ejecutor: Luis Gómez
+G-NIVE-033:
+  estado: ok
+  fecha: 2026-09-03T13:43
+  ejecutor: Luis Gómez
+G-NIVE-034:
+  estado: ok
+  fecha: 2026-09-03T14:44
+  ejecutor: Luis Gómez
+G-NIVE-036:
+  estado: ok
+  fecha: 2026-09-03T15:45
+  ejecutor: Luis Gómez
+G-NIVE-037:
+  estado: ok
+  fecha: 2026-09-03T16:46
+  ejecutor: Luis Gómez
+G-NIVE-038:
+  estado: ok
+  fecha: 2026-09-03T17:47
+  ejecutor: Luis Gómez
+G-NIVE-039:
+  estado: bloqueada
+  fecha: 2026-09-03T09:48
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-NIVE-040:
+  estado: ok
+  fecha: 2026-09-03T10:49
+  ejecutor: Luis Gómez
+G-NIVE-041:
+  estado: ok
+  fecha: 2026-09-03T11:50
+  ejecutor: Luis Gómez
+G-NIVE-043:
+  estado: ok
+  fecha: 2026-09-03T12:51
+  ejecutor: Luis Gómez
+G-NIVE-044:
+  estado: ok
+  fecha: 2026-09-03T13:52
+  ejecutor: Luis Gómez
+G-NIVE-045:
+  estado: ok
+  fecha: 2026-09-03T14:53
+  ejecutor: Luis Gómez
+G-NIVE-046:
+  estado: ok
+  fecha: 2026-09-03T15:54
+  ejecutor: Luis Gómez
+G-NIVE-047:
+  estado: ok
+  fecha: 2026-09-03T16:55
+  ejecutor: Luis Gómez
+G-NIVE-048:
+  estado: ok
+  fecha: 2026-09-03T17:56
+  ejecutor: Luis Gómez
+G-NIVE-049:
+  estado: ok
+  fecha: 2026-09-03T09:57
+  ejecutor: Luis Gómez
+G-BUSC-001:
+  estado: no_ok
+  fecha: 2026-09-03T10:58
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-002:
+  estado: ok
+  fecha: 2026-09-03T11:59
+  ejecutor: Luis Gómez
+G-BUSC-003:
+  estado: ok
+  fecha: 2026-09-03T12:00
+  ejecutor: Luis Gómez
+G-BUSC-004:
+  estado: ok
+  fecha: 2026-09-03T13:01
+  ejecutor: Luis Gómez
+G-BUSC-006:
+  estado: ok
+  fecha: 2026-09-03T14:02
+  ejecutor: Luis Gómez
+G-BUSC-007:
+  estado: ok
+  fecha: 2026-09-03T15:03
+  ejecutor: Luis Gómez
+G-BUSC-008:
+  estado: ok
+  fecha: 2026-09-03T16:04
+  ejecutor: Luis Gómez
+G-BUSC-011:
+  estado: ok
+  fecha: 2026-09-03T17:05
+  ejecutor: Luis Gómez
+G-BUSC-012:
+  estado: ok
+  fecha: 2026-09-03T09:06
+  ejecutor: Luis Gómez
+G-BUSC-014:
+  estado: ok
+  fecha: 2026-09-03T10:07
+  ejecutor: Luis Gómez
+G-BUSC-016:
+  estado: ok
+  fecha: 2026-09-03T11:08
+  ejecutor: Luis Gómez
+G-BUSC-017:
+  estado: ok
+  fecha: 2026-09-03T12:09
+  ejecutor: Luis Gómez
+G-BUSC-018:
+  estado: ok
+  fecha: 2026-09-03T13:10
+  ejecutor: Luis Gómez
+G-BUSC-019:
+  estado: ok
+  fecha: 2026-09-03T14:11
+  ejecutor: Luis Gómez
+G-BUSC-021:
+  estado: ok
+  fecha: 2026-09-03T15:12
+  ejecutor: Luis Gómez
+G-BUSC-022:
+  estado: ok
+  fecha: 2026-09-03T16:13
+  ejecutor: Luis Gómez
+G-BUSC-023:
+  estado: ok
+  fecha: 2026-09-03T17:14
+  ejecutor: Luis Gómez
+G-BUSC-024:
+  estado: ok
+  fecha: 2026-09-03T09:15
+  ejecutor: Luis Gómez
+G-BUSC-026:
+  estado: no_ok
+  fecha: 2026-09-03T10:16
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-027:
+  estado: ok
+  fecha: 2026-09-03T11:17
+  ejecutor: Luis Gómez
+G-BUSC-028:
+  estado: no_ok
+  fecha: 2026-09-03T12:18
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-029:
+  estado: ok
+  fecha: 2026-09-03T13:19
+  ejecutor: Luis Gómez
+G-BUSC-030:
+  estado: ok
+  fecha: 2026-09-03T14:20
+  ejecutor: Luis Gómez
+G-BUSC-031:
+  estado: no_ok
+  fecha: 2026-09-03T15:21
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-032:
+  estado: ok
+  fecha: 2026-09-03T16:22
+  ejecutor: Luis Gómez
+G-BUSC-034:
+  estado: ok
+  fecha: 2026-09-03T17:23
+  ejecutor: Luis Gómez
+G-BUSC-035:
+  estado: ok
+  fecha: 2026-09-03T09:24
+  ejecutor: Luis Gómez
+G-BUSC-036:
+  estado: ok
+  fecha: 2026-09-03T10:25
+  ejecutor: Luis Gómez
+G-BUSC-037:
+  estado: ok
+  fecha: 2026-09-03T11:26
+  ejecutor: Luis Gómez
+G-BUSC-039:
+  estado: ok
+  fecha: 2026-09-03T12:27
+  ejecutor: Luis Gómez
+G-BUSC-040:
+  estado: ok
+  fecha: 2026-09-03T13:28
+  ejecutor: Luis Gómez
+G-BUSC-041:
+  estado: ok
+  fecha: 2026-09-03T14:29
+  ejecutor: Luis Gómez
+G-BUSC-042:
+  estado: ok
+  fecha: 2026-09-03T15:30
+  ejecutor: Luis Gómez
+G-BUSC-045:
+  estado: ok
+  fecha: 2026-09-03T16:31
+  ejecutor: Luis Gómez
+G-BUSC-046:
+  estado: ok
+  fecha: 2026-09-03T17:32
+  ejecutor: Luis Gómez
+G-BUSC-047:
+  estado: ok
+  fecha: 2026-09-03T09:33
+  ejecutor: Luis Gómez
+G-BUSC-049:
+  estado: ok
+  fecha: 2026-09-03T10:34
+  ejecutor: Luis Gómez
+G-BUSC-050:
+  estado: ok
+  fecha: 2026-09-03T11:35
+  ejecutor: Luis Gómez
+G-SEGU-001:
+  estado: no_ok
+  fecha: 2026-09-03T12:36
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-002:
+  estado: ok
+  fecha: 2026-09-03T13:37
+  ejecutor: Luis Gómez
+G-SEGU-003:
+  estado: ok
+  fecha: 2026-09-03T14:38
+  ejecutor: Luis Gómez
+G-SEGU-004:
+  estado: ok
+  fecha: 2026-09-03T15:39
+  ejecutor: Luis Gómez
+G-SEGU-005:
+  estado: ok
+  fecha: 2026-09-03T16:40
+  ejecutor: Luis Gómez
+G-SEGU-006:
+  estado: ok
+  fecha: 2026-09-03T17:41
+  ejecutor: Luis Gómez
+G-SEGU-007:
+  estado: ok
+  fecha: 2026-09-03T09:42
+  ejecutor: Luis Gómez
+G-SEGU-008:
+  estado: ok
+  fecha: 2026-09-03T10:43
+  ejecutor: Luis Gómez
+G-SEGU-010:
+  estado: ok
+  fecha: 2026-09-03T11:44
+  ejecutor: Luis Gómez
+G-SEGU-011:
+  estado: ok
+  fecha: 2026-09-03T12:45
+  ejecutor: Luis Gómez
+G-SEGU-012:
+  estado: no_ok
+  fecha: 2026-09-03T13:46
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-013:
+  estado: ok
+  fecha: 2026-09-03T14:47
+  ejecutor: Luis Gómez
+G-SEGU-014:
+  estado: ok
+  fecha: 2026-09-03T15:48
+  ejecutor: Luis Gómez
+G-SEGU-015:
+  estado: ok
+  fecha: 2026-09-03T16:49
+  ejecutor: Luis Gómez
+G-SEGU-016:
+  estado: ok
+  fecha: 2026-09-03T17:50
+  ejecutor: Luis Gómez
+G-SEGU-017:
+  estado: ok
+  fecha: 2026-09-03T09:51
+  ejecutor: Luis Gómez
+G-SEGU-018:
+  estado: ok
+  fecha: 2026-09-03T10:52
+  ejecutor: Luis Gómez
+G-SEGU-020:
+  estado: no_ok
+  fecha: 2026-09-03T11:53
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-021:
+  estado: ok
+  fecha: 2026-09-03T12:54
+  ejecutor: Luis Gómez
+G-SEGU-022:
+  estado: ok
+  fecha: 2026-09-03T13:55
+  ejecutor: Luis Gómez
+G-SEGU-024:
+  estado: ok
+  fecha: 2026-09-03T14:56
+  ejecutor: Luis Gómez
+G-SEGU-025:
+  estado: ok
+  fecha: 2026-09-03T15:57
+  ejecutor: Luis Gómez
+G-SEGU-027:
+  estado: ok
+  fecha: 2026-09-03T16:58
+  ejecutor: Luis Gómez
+G-SEGU-028:
+  estado: ok
+  fecha: 2026-09-03T17:59
+  ejecutor: Luis Gómez
+G-SEGU-030:
+  estado: ok
+  fecha: 2026-09-03T09:00
+  ejecutor: Luis Gómez
+G-SEGU-031:
+  estado: ok
+  fecha: 2026-09-03T10:01
+  ejecutor: Luis Gómez
+G-SEGU-032:
+  estado: ok
+  fecha: 2026-09-03T11:02
+  ejecutor: Luis Gómez
+G-SEGU-034:
+  estado: ok
+  fecha: 2026-09-03T12:03
+  ejecutor: Luis Gómez
+G-SEGU-036:
+  estado: ok
+  fecha: 2026-09-03T13:04
+  ejecutor: Luis Gómez
+G-SEGU-038:
+  estado: ok
+  fecha: 2026-09-03T14:05
+  ejecutor: Luis Gómez
+G-SEGU-039:
+  estado: ok
+  fecha: 2026-09-03T15:06
+  ejecutor: Luis Gómez
+G-SEGU-040:
+  estado: ok
+  fecha: 2026-09-03T16:07
+  ejecutor: Luis Gómez
+G-SEGU-041:
+  estado: ok
+  fecha: 2026-09-03T17:08
+  ejecutor: Luis Gómez
+G-SEGU-042:
+  estado: ok
+  fecha: 2026-09-03T09:09
+  ejecutor: Luis Gómez
+G-SEGU-043:
+  estado: ok
+  fecha: 2026-09-03T10:10
+  ejecutor: Luis Gómez
+G-SEGU-044:
+  estado: ok
+  fecha: 2026-09-03T11:11
+  ejecutor: Luis Gómez
+G-SEGU-045:
+  estado: no_ok
+  fecha: 2026-09-03T12:12
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-047:
+  estado: ok
+  fecha: 2026-09-03T13:13
+  ejecutor: Luis Gómez
+G-SEGU-049:
+  estado: ok
+  fecha: 2026-09-03T14:14
+  ejecutor: Luis Gómez
+G-SEGU-050:
+  estado: ok
+  fecha: 2026-09-03T15:15
+  ejecutor: Luis Gómez
+G-MANT-001:
+  estado: ok
+  fecha: 2026-09-03T16:16
+  ejecutor: Luis Gómez
+G-MANT-002:
+  estado: no_ok
+  fecha: 2026-09-03T17:17
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-MANT-006:
+  estado: ok
+  fecha: 2026-09-03T09:18
+  ejecutor: Luis Gómez
+G-MANT-007:
+  estado: ok
+  fecha: 2026-09-03T10:19
+  ejecutor: Luis Gómez
+G-MANT-010:
+  estado: ok
+  fecha: 2026-09-03T11:20
+  ejecutor: Luis Gómez
+G-MANT-012:
+  estado: ok
+  fecha: 2026-09-03T12:21
+  ejecutor: Luis Gómez
+G-MANT-016:
+  estado: ok
+  fecha: 2026-09-03T13:22
+  ejecutor: Luis Gómez
+G-MANT-017:
+  estado: no_ok
+  fecha: 2026-09-03T14:23
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-MANT-018:
+  estado: ok
+  fecha: 2026-09-03T15:24
+  ejecutor: Luis Gómez
+G-MANT-020:
+  estado: ok
+  fecha: 2026-09-03T16:25
+  ejecutor: Luis Gómez
+G-MANT-022:
+  estado: ok
+  fecha: 2026-09-03T17:26
+  ejecutor: Luis Gómez
+G-MANT-023:
+  estado: ok
+  fecha: 2026-09-03T09:27
+  ejecutor: Luis Gómez
+G-MANT-024:
+  estado: ok
+  fecha: 2026-09-03T10:28
+  ejecutor: Luis Gómez
+G-MANT-026:
+  estado: ok
+  fecha: 2026-09-03T11:29
+  ejecutor: Luis Gómez
+G-MANT-029:
+  estado: ok
+  fecha: 2026-09-03T12:30
+  ejecutor: Luis Gómez
+G-MANT-030:
+  estado: ok
+  fecha: 2026-09-03T13:31
+  ejecutor: Luis Gómez
+G-MANT-032:
+  estado: ok
+  fecha: 2026-09-03T14:32
+  ejecutor: Luis Gómez
+G-MANT-033:
+  estado: ok
+  fecha: 2026-09-03T15:33
+  ejecutor: Luis Gómez
+G-MANT-034:
+  estado: ok
+  fecha: 2026-09-03T16:34
+  ejecutor: Luis Gómez
+G-MANT-035:
+  estado: ok
+  fecha: 2026-09-03T17:35
+  ejecutor: Luis Gómez
+G-MANT-036:
+  estado: no_ok
+  fecha: 2026-09-03T09:36
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-MANT-037:
+  estado: ok
+  fecha: 2026-09-03T10:37
+  ejecutor: Luis Gómez
+G-MANT-038:
+  estado: ok
+  fecha: 2026-09-03T11:38
+  ejecutor: Luis Gómez
+G-MANT-039:
+  estado: ok
+  fecha: 2026-09-03T12:39
+  ejecutor: Luis Gómez
+G-MANT-040:
+  estado: ok
+  fecha: 2026-09-03T13:40
+  ejecutor: Luis Gómez
+G-MANT-041:
+  estado: ok
+  fecha: 2026-09-03T14:41
+  ejecutor: Luis Gómez
+G-MANT-042:
+  estado: ok
+  fecha: 2026-09-03T15:42
+  ejecutor: Luis Gómez
+G-MANT-043:
+  estado: no_ok
+  fecha: 2026-09-03T16:43
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-MANT-048:
+  estado: ok
+  fecha: 2026-09-03T17:44
+  ejecutor: Luis Gómez
+G-MANT-049:
+  estado: ok
+  fecha: 2026-09-03T09:45
+  ejecutor: Luis Gómez
+G-MANT-050:
+  estado: ok
+  fecha: 2026-09-03T10:46
+  ejecutor: Luis Gómez
+G-ALAR-001:
+  estado: ok
+  fecha: 2026-09-03T11:47
+  ejecutor: Luis Gómez
+G-ALAR-002:
+  estado: ok
+  fecha: 2026-09-03T12:48
+  ejecutor: Luis Gómez
+G-ALAR-003:
+  estado: ok
+  fecha: 2026-09-03T13:49
+  ejecutor: Luis Gómez
+G-ALAR-004:
+  estado: ok
+  fecha: 2026-09-03T14:50
+  ejecutor: Luis Gómez
+G-ALAR-005:
+  estado: ok
+  fecha: 2026-09-03T15:51
+  ejecutor: Luis Gómez
+G-ALAR-007:
+  estado: ok
+  fecha: 2026-09-03T16:52
+  ejecutor: Luis Gómez
+G-ALAR-008:
+  estado: ok
+  fecha: 2026-09-03T17:53
+  ejecutor: Luis Gómez
+G-ALAR-009:
+  estado: ok
+  fecha: 2026-09-03T09:54
+  ejecutor: Luis Gómez
+G-ALAR-010:
+  estado: no_aplica
+  fecha: 2026-09-03T10:55
+  ejecutor: Luis Gómez
+G-ALAR-012:
+  estado: ok
+  fecha: 2026-09-03T11:56
+  ejecutor: Luis Gómez
+G-ALAR-013:
+  estado: ok
+  fecha: 2026-09-03T12:57
+  ejecutor: Luis Gómez
+G-ALAR-016:
+  estado: ok
+  fecha: 2026-09-03T13:58
+  ejecutor: Luis Gómez
+G-ALAR-017:
+  estado: no_ok
+  fecha: 2026-09-03T14:59
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ALAR-018:
+  estado: ok
+  fecha: 2026-09-03T15:00
+  ejecutor: Luis Gómez
+G-ALAR-019:
+  estado: ok
+  fecha: 2026-09-03T16:01
+  ejecutor: Luis Gómez
+G-ALAR-020:
+  estado: ok
+  fecha: 2026-09-03T17:02
+  ejecutor: Luis Gómez
+G-ALAR-022:
+  estado: ok
+  fecha: 2026-09-03T09:03
+  ejecutor: Luis Gómez
+G-ALAR-025:
+  estado: ok
+  fecha: 2026-09-03T10:04
+  ejecutor: Luis Gómez
+G-ALAR-026:
+  estado: ok
+  fecha: 2026-09-03T11:05
+  ejecutor: Luis Gómez
+G-ALAR-028:
+  estado: ok
+  fecha: 2026-09-03T12:06
+  ejecutor: Luis Gómez
+G-ALAR-029:
+  estado: ok
+  fecha: 2026-09-03T13:07
+  ejecutor: Luis Gómez
+G-ALAR-031:
+  estado: ok
+  fecha: 2026-09-03T14:08
+  ejecutor: Luis Gómez
+G-ALAR-034:
+  estado: ok
+  fecha: 2026-09-03T15:09
+  ejecutor: Luis Gómez
+G-ALAR-036:
+  estado: ok
+  fecha: 2026-09-03T16:10
+  ejecutor: Luis Gómez
+G-ALAR-038:
+  estado: ok
+  fecha: 2026-09-03T17:11
+  ejecutor: Luis Gómez
+G-ALAR-039:
+  estado: ok
+  fecha: 2026-09-03T09:12
+  ejecutor: Luis Gómez
+G-ALAR-041:
+  estado: ok
+  fecha: 2026-09-03T10:13
+  ejecutor: Luis Gómez
+G-ALAR-042:
+  estado: ok
+  fecha: 2026-09-03T11:14
+  ejecutor: Luis Gómez
+G-ALAR-044:
+  estado: no_ok
+  fecha: 2026-09-03T12:15
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ALAR-045:
+  estado: ok
+  fecha: 2026-09-03T13:16
+  ejecutor: Luis Gómez
+G-ALAR-046:
+  estado: ok
+  fecha: 2026-09-03T14:17
+  ejecutor: Luis Gómez
+G-ALAR-049:
+  estado: ok
+  fecha: 2026-09-03T15:18
+  ejecutor: Luis Gómez
+G-ENER-001:
+  estado: ok
+  fecha: 2026-09-03T16:19
+  ejecutor: Luis Gómez
+G-ENER-003:
+  estado: ok
+  fecha: 2026-09-03T17:20
+  ejecutor: Luis Gómez
+G-ENER-004:
+  estado: ok
+  fecha: 2026-09-03T09:21
+  ejecutor: Luis Gómez
+G-ENER-006:
+  estado: bloqueada
+  fecha: 2026-09-03T10:22
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-ENER-007:
+  estado: ok
+  fecha: 2026-09-03T11:23
+  ejecutor: Luis Gómez
+G-ENER-009:
+  estado: ok
+  fecha: 2026-09-03T12:24
+  ejecutor: Luis Gómez
+G-ENER-010:
+  estado: ok
+  fecha: 2026-09-03T13:25
+  ejecutor: Luis Gómez
+G-ENER-011:
+  estado: ok
+  fecha: 2026-09-03T14:26
+  ejecutor: Luis Gómez
+G-ENER-013:
+  estado: ok
+  fecha: 2026-09-03T15:27
+  ejecutor: Luis Gómez
+G-ENER-014:
+  estado: ok
+  fecha: 2026-09-03T16:28
+  ejecutor: Luis Gómez
+G-ENER-015:
+  estado: ok
+  fecha: 2026-09-03T17:29
+  ejecutor: Luis Gómez
+G-ENER-016:
+  estado: ok
+  fecha: 2026-09-03T09:30
+  ejecutor: Luis Gómez
+G-ENER-017:
+  estado: ok
+  fecha: 2026-09-03T10:31
+  ejecutor: Luis Gómez
+G-ENER-018:
+  estado: ok
+  fecha: 2026-09-03T11:32
+  ejecutor: Luis Gómez
+G-ENER-019:
+  estado: ok
+  fecha: 2026-09-03T12:33
+  ejecutor: Luis Gómez
+G-ENER-022:
+  estado: ok
+  fecha: 2026-09-03T13:34
+  ejecutor: Luis Gómez
+G-ENER-025:
+  estado: no_ok
+  fecha: 2026-09-03T14:35
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ENER-027:
+  estado: ok
+  fecha: 2026-09-03T15:36
+  ejecutor: Luis Gómez
+G-ENER-028:
+  estado: ok
+  fecha: 2026-09-03T16:37
+  ejecutor: Luis Gómez
+G-ENER-029:
+  estado: ok
+  fecha: 2026-09-03T17:38
+  ejecutor: Luis Gómez
+G-ENER-030:
+  estado: ok
+  fecha: 2026-09-03T09:39
+  ejecutor: Luis Gómez
+G-ENER-033:
+  estado: ok
+  fecha: 2026-09-03T10:40
+  ejecutor: Luis Gómez
+G-ENER-035:
+  estado: ok
+  fecha: 2026-09-03T11:41
+  ejecutor: Luis Gómez
+G-ENER-036:
+  estado: ok
+  fecha: 2026-09-03T12:42
+  ejecutor: Luis Gómez
+G-ENER-037:
+  estado: ok
+  fecha: 2026-09-03T13:43
+  ejecutor: Luis Gómez
+G-ENER-040:
+  estado: ok
+  fecha: 2026-09-03T14:44
+  ejecutor: Luis Gómez
+G-ENER-041:
+  estado: ok
+  fecha: 2026-09-03T15:45
+  ejecutor: Luis Gómez
+G-ENER-042:
+  estado: ok
+  fecha: 2026-09-03T16:46
+  ejecutor: Luis Gómez
+G-ENER-044:
+  estado: bloqueada
+  fecha: 2026-09-03T17:47
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-ENER-045:
+  estado: ok
+  fecha: 2026-09-03T09:48
+  ejecutor: Luis Gómez
+G-ENER-046:
+  estado: ok
+  fecha: 2026-09-03T10:49
+  ejecutor: Luis Gómez
+G-ENER-047:
+  estado: ok
+  fecha: 2026-09-03T11:50
+  ejecutor: Luis Gómez
+G-ENER-048:
+  estado: ok
+  fecha: 2026-09-03T12:51
+  ejecutor: Luis Gómez
+G-ENER-049:
+  estado: ok
+  fecha: 2026-09-03T13:52
+  ejecutor: Luis Gómez
+G-DISP-001:
+  estado: ok
+  fecha: 2026-09-03T14:53
+  ejecutor: Luis Gómez
+G-DISP-002:
+  estado: ok
+  fecha: 2026-09-03T15:54
+  ejecutor: Luis Gómez
+G-DISP-005:
+  estado: ok
+  fecha: 2026-09-03T16:55
+  ejecutor: Luis Gómez
+G-DISP-006:
+  estado: bloqueada
+  fecha: 2026-09-03T17:56
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-DISP-007:
+  estado: ok
+  fecha: 2026-09-03T09:57
+  ejecutor: Luis Gómez
+G-DISP-008:
+  estado: ok
+  fecha: 2026-09-03T10:58
+  ejecutor: Luis Gómez
+G-DISP-010:
+  estado: ok
+  fecha: 2026-09-03T11:59
+  ejecutor: Luis Gómez
+G-DISP-012:
+  estado: ok
+  fecha: 2026-09-03T12:00
+  ejecutor: Luis Gómez
+G-DISP-014:
+  estado: ok
+  fecha: 2026-09-03T13:01
+  ejecutor: Luis Gómez
+G-DISP-015:
+  estado: ok
+  fecha: 2026-09-03T14:02
+  ejecutor: Luis Gómez
+G-DISP-017:
+  estado: no_ok
+  fecha: 2026-09-03T15:03
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DISP-018:
+  estado: ok
+  fecha: 2026-09-03T16:04
+  ejecutor: Luis Gómez
+G-DISP-019:
+  estado: ok
+  fecha: 2026-09-03T17:05
+  ejecutor: Luis Gómez
+G-DISP-020:
+  estado: ok
+  fecha: 2026-09-03T09:06
+  ejecutor: Luis Gómez
+G-DISP-021:
+  estado: ok
+  fecha: 2026-09-03T10:07
+  ejecutor: Luis Gómez
+G-DISP-023:
+  estado: ok
+  fecha: 2026-09-03T11:08
+  ejecutor: Luis Gómez
+G-DISP-024:
+  estado: ok
+  fecha: 2026-09-03T12:09
+  ejecutor: Luis Gómez
+G-DISP-025:
+  estado: ok
+  fecha: 2026-09-03T13:10
+  ejecutor: Luis Gómez
+G-DISP-028:
+  estado: ok
+  fecha: 2026-09-03T14:11
+  ejecutor: Luis Gómez
+G-DISP-029:
+  estado: ok
+  fecha: 2026-09-03T15:12
+  ejecutor: Luis Gómez
+G-DISP-030:
+  estado: ok
+  fecha: 2026-09-03T16:13
+  ejecutor: Luis Gómez
+G-DISP-031:
+  estado: ok
+  fecha: 2026-09-03T17:14
+  ejecutor: Luis Gómez
+G-DISP-033:
+  estado: ok
+  fecha: 2026-09-03T09:15
+  ejecutor: Luis Gómez
+G-DISP-035:
+  estado: ok
+  fecha: 2026-09-03T10:16
+  ejecutor: Luis Gómez
+G-DISP-036:
+  estado: ok
+  fecha: 2026-09-03T11:17
+  ejecutor: Luis Gómez
+G-DISP-037:
+  estado: ok
+  fecha: 2026-09-03T12:18
+  ejecutor: Luis Gómez
+G-DISP-038:
+  estado: ok
+  fecha: 2026-09-03T13:19
+  ejecutor: Luis Gómez
+G-DISP-039:
+  estado: ok
+  fecha: 2026-09-03T14:20
+  ejecutor: Luis Gómez
+G-DISP-041:
+  estado: ok
+  fecha: 2026-09-03T15:21
+  ejecutor: Luis Gómez
+G-DISP-042:
+  estado: no_ok
+  fecha: 2026-09-03T16:22
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DISP-043:
+  estado: no_ok
+  fecha: 2026-09-03T17:23
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DISP-045:
+  estado: ok
+  fecha: 2026-09-03T09:24
+  ejecutor: Luis Gómez
+G-DISP-047:
+  estado: ok
+  fecha: 2026-09-03T10:25
+  ejecutor: Luis Gómez
+G-DISP-049:
+  estado: ok
+  fecha: 2026-09-03T11:26
+  ejecutor: Luis Gómez
+G-DISP-050:
+  estado: ok
+  fecha: 2026-09-03T12:27
+  ejecutor: Luis Gómez
+G-BOTO-001:
+  estado: ok
+  fecha: 2026-09-03T13:28
+  ejecutor: Luis Gómez
+G-BOTO-002:
+  estado: ok
+  fecha: 2026-09-03T14:29
+  ejecutor: Luis Gómez
+G-BOTO-003:
+  estado: ok
+  fecha: 2026-09-03T15:30
+  ejecutor: Luis Gómez
+G-BOTO-006:
+  estado: ok
+  fecha: 2026-09-03T16:31
+  ejecutor: Luis Gómez
+G-BOTO-007:
+  estado: ok
+  fecha: 2026-09-03T17:32
+  ejecutor: Luis Gómez
+G-BOTO-008:
+  estado: ok
+  fecha: 2026-09-03T09:33
+  ejecutor: Luis Gómez
+G-BOTO-009:
+  estado: ok
+  fecha: 2026-09-03T10:34
+  ejecutor: Luis Gómez
+G-BOTO-010:
+  estado: ok
+  fecha: 2026-09-03T11:35
+  ejecutor: Luis Gómez
+G-BOTO-011:
+  estado: ok
+  fecha: 2026-09-03T12:36
+  ejecutor: Luis Gómez
+G-BOTO-012:
+  estado: ok
+  fecha: 2026-09-03T13:37
+  ejecutor: Luis Gómez
+G-BOTO-013:
+  estado: ok
+  fecha: 2026-09-03T14:38
+  ejecutor: Luis Gómez
+G-BOTO-015:
+  estado: ok
+  fecha: 2026-09-03T15:39
+  ejecutor: Luis Gómez
+G-BOTO-017:
+  estado: ok
+  fecha: 2026-09-03T16:40
+  ejecutor: Luis Gómez
+G-BOTO-018:
+  estado: ok
+  fecha: 2026-09-03T17:41
+  ejecutor: Luis Gómez
+G-BOTO-019:
+  estado: ok
+  fecha: 2026-09-03T09:42
+  ejecutor: Luis Gómez
+G-BOTO-022:
+  estado: ok
+  fecha: 2026-09-03T10:43
+  ejecutor: Luis Gómez
+G-BOTO-023:
+  estado: ok
+  fecha: 2026-09-03T11:44
+  ejecutor: Luis Gómez
+G-BOTO-024:
+  estado: ok
+  fecha: 2026-09-03T12:45
+  ejecutor: Luis Gómez
+G-BOTO-025:
+  estado: no_ok
+  fecha: 2026-09-03T13:46
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BOTO-027:
+  estado: ok
+  fecha: 2026-09-03T14:47
+  ejecutor: Luis Gómez
+G-BOTO-028:
+  estado: ok
+  fecha: 2026-09-03T15:48
+  ejecutor: Luis Gómez
+G-BOTO-029:
+  estado: ok
+  fecha: 2026-09-03T16:49
+  ejecutor: Luis Gómez
+G-BOTO-030:
+  estado: ok
+  fecha: 2026-09-03T17:50
+  ejecutor: Luis Gómez
+G-BOTO-031:
+  estado: ok
+  fecha: 2026-09-03T09:51
+  ejecutor: Luis Gómez
+G-BOTO-033:
+  estado: ok
+  fecha: 2026-09-03T10:52
+  ejecutor: Luis Gómez
+G-BOTO-035:
+  estado: no_ok
+  fecha: 2026-09-03T11:53
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BOTO-036:
+  estado: ok
+  fecha: 2026-09-03T12:54
+  ejecutor: Luis Gómez
+G-BOTO-037:
+  estado: ok
+  fecha: 2026-09-03T13:55
+  ejecutor: Luis Gómez
+G-BOTO-038:
+  estado: ok
+  fecha: 2026-09-03T14:56
+  ejecutor: Luis Gómez
+G-BOTO-040:
+  estado: ok
+  fecha: 2026-09-03T15:57
+  ejecutor: Luis Gómez
+G-BOTO-041:
+  estado: no_ok
+  fecha: 2026-09-03T16:58
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-BOTO-042:
+  estado: ok
+  fecha: 2026-09-03T17:59
+  ejecutor: Luis Gómez
+G-BOTO-043:
+  estado: ok
+  fecha: 2026-09-03T09:00
+  ejecutor: Luis Gómez
+G-BOTO-044:
+  estado: ok
+  fecha: 2026-09-03T10:01
+  ejecutor: Luis Gómez
+G-BOTO-045:
+  estado: ok
+  fecha: 2026-09-03T11:02
+  ejecutor: Luis Gómez
+G-BOTO-048:
+  estado: ok
+  fecha: 2026-09-03T12:03
+  ejecutor: Luis Gómez
+G-BOTO-049:
+  estado: ok
+  fecha: 2026-09-03T13:04
+  ejecutor: Luis Gómez
+G-INCE-001:
+  estado: ok
+  fecha: 2026-09-03T14:05
+  ejecutor: Luis Gómez
+G-INCE-002:
+  estado: ok
+  fecha: 2026-09-03T15:06
+  ejecutor: Luis Gómez
+G-INCE-003:
+  estado: ok
+  fecha: 2026-09-03T16:07
+  ejecutor: Luis Gómez
+G-INCE-005:
+  estado: ok
+  fecha: 2026-09-03T17:08
+  ejecutor: Luis Gómez
+G-INCE-006:
+  estado: ok
+  fecha: 2026-09-03T09:09
+  ejecutor: Luis Gómez
+G-INCE-007:
+  estado: ok
+  fecha: 2026-09-03T10:10
+  ejecutor: Luis Gómez
+G-INCE-010:
+  estado: ok
+  fecha: 2026-09-03T11:11
+  ejecutor: Luis Gómez
+G-INCE-012:
+  estado: ok
+  fecha: 2026-09-03T12:12
+  ejecutor: Luis Gómez
+G-INCE-015:
+  estado: ok
+  fecha: 2026-09-03T13:13
+  ejecutor: Luis Gómez
+G-INCE-016:
+  estado: ok
+  fecha: 2026-09-03T14:14
+  ejecutor: Luis Gómez
+G-INCE-017:
+  estado: ok
+  fecha: 2026-09-03T15:15
+  ejecutor: Luis Gómez
+G-INCE-020:
+  estado: ok
+  fecha: 2026-09-03T16:16
+  ejecutor: Luis Gómez
+G-INCE-021:
+  estado: ok
+  fecha: 2026-09-03T17:17
+  ejecutor: Luis Gómez
+G-INCE-022:
+  estado: ok
+  fecha: 2026-09-03T09:18
+  ejecutor: Luis Gómez
+G-INCE-023:
+  estado: ok
+  fecha: 2026-09-03T10:19
+  ejecutor: Luis Gómez
+G-INCE-024:
+  estado: ok
+  fecha: 2026-09-03T11:20
+  ejecutor: Luis Gómez
+G-INCE-025:
+  estado: no_ok
+  fecha: 2026-09-03T12:21
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-INCE-026:
+  estado: ok
+  fecha: 2026-09-03T13:22
+  ejecutor: Luis Gómez
+G-INCE-027:
+  estado: ok
+  fecha: 2026-09-03T14:23
+  ejecutor: Luis Gómez
+G-INCE-028:
+  estado: ok
+  fecha: 2026-09-03T15:24
+  ejecutor: Luis Gómez
+G-INCE-029:
+  estado: ok
+  fecha: 2026-09-03T16:25
+  ejecutor: Luis Gómez
+G-INCE-030:
+  estado: ok
+  fecha: 2026-09-03T17:26
+  ejecutor: Luis Gómez
+G-INCE-031:
+  estado: ok
+  fecha: 2026-09-03T09:27
+  ejecutor: Luis Gómez
+G-INCE-033:
+  estado: no_ok
+  fecha: 2026-09-03T10:28
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-INCE-034:
+  estado: ok
+  fecha: 2026-09-03T11:29
+  ejecutor: Luis Gómez
+G-INCE-035:
+  estado: ok
+  fecha: 2026-09-03T12:30
+  ejecutor: Luis Gómez
+G-INCE-036:
+  estado: ok
+  fecha: 2026-09-03T13:31
+  ejecutor: Luis Gómez
+G-INCE-038:
+  estado: ok
+  fecha: 2026-09-03T14:32
+  ejecutor: Luis Gómez
+G-INCE-040:
+  estado: ok
+  fecha: 2026-09-03T15:33
+  ejecutor: Luis Gómez
+G-INCE-041:
+  estado: ok
+  fecha: 2026-09-03T16:34
+  ejecutor: Luis Gómez
+G-INCE-042:
+  estado: ok
+  fecha: 2026-09-03T17:35
+  ejecutor: Luis Gómez
+G-INCE-044:
+  estado: ok
+  fecha: 2026-09-03T09:36
+  ejecutor: Luis Gómez
+G-INCE-045:
+  estado: ok
+  fecha: 2026-09-03T10:37
+  ejecutor: Luis Gómez
+G-INCE-047:
+  estado: ok
+  fecha: 2026-09-03T11:38
+  ejecutor: Luis Gómez
+G-INCE-048:
+  estado: ok
+  fecha: 2026-09-03T12:39
+  ejecutor: Luis Gómez
+G-INCE-049:
+  estado: ok
+  fecha: 2026-09-03T13:40
+  ejecutor: Luis Gómez
+G-RESC-001:
+  estado: ok
+  fecha: 2026-09-03T14:41
+  ejecutor: Luis Gómez
+G-RESC-004:
+  estado: ok
+  fecha: 2026-09-03T15:42
+  ejecutor: Luis Gómez
+G-RESC-006:
+  estado: ok
+  fecha: 2026-09-03T16:43
+  ejecutor: Luis Gómez
+G-RESC-007:
+  estado: ok
+  fecha: 2026-09-03T17:44
+  ejecutor: Luis Gómez
+G-RESC-008:
+  estado: ok
+  fecha: 2026-09-03T09:45
+  ejecutor: Luis Gómez
+G-RESC-010:
+  estado: ok
+  fecha: 2026-09-03T10:46
+  ejecutor: Luis Gómez
+G-RESC-011:
+  estado: ok
+  fecha: 2026-09-03T11:47
+  ejecutor: Luis Gómez
+G-RESC-012:
+  estado: ok
+  fecha: 2026-09-03T12:48
+  ejecutor: Luis Gómez
+G-RESC-013:
+  estado: no_ok
+  fecha: 2026-09-03T13:49
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-RESC-014:
+  estado: ok
+  fecha: 2026-09-03T14:50
+  ejecutor: Luis Gómez
+G-RESC-015:
+  estado: ok
+  fecha: 2026-09-03T15:51
+  ejecutor: Luis Gómez
+G-RESC-016:
+  estado: ok
+  fecha: 2026-09-03T16:52
+  ejecutor: Luis Gómez
+G-RESC-017:
+  estado: ok
+  fecha: 2026-09-03T17:53
+  ejecutor: Luis Gómez
+G-RESC-018:
+  estado: ok
+  fecha: 2026-09-03T09:54
+  ejecutor: Luis Gómez
+G-RESC-019:
+  estado: ok
+  fecha: 2026-09-03T10:55
+  ejecutor: Luis Gómez
+G-RESC-020:
+  estado: ok
+  fecha: 2026-09-03T11:56
+  ejecutor: Luis Gómez
+G-RESC-022:
+  estado: ok
+  fecha: 2026-09-03T12:57
+  ejecutor: Luis Gómez
+G-RESC-023:
+  estado: ok
+  fecha: 2026-09-03T13:58
+  ejecutor: Luis Gómez
+G-RESC-026:
+  estado: ok
+  fecha: 2026-09-03T14:59
+  ejecutor: Luis Gómez
+G-RESC-027:
+  estado: ok
+  fecha: 2026-09-03T15:00
+  ejecutor: Luis Gómez
+G-RESC-029:
+  estado: ok
+  fecha: 2026-09-03T16:01
+  ejecutor: Luis Gómez
+G-RESC-030:
+  estado: no_ok
+  fecha: 2026-09-03T17:02
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-RESC-031:
+  estado: ok
+  fecha: 2026-09-03T09:03
+  ejecutor: Luis Gómez
+G-RESC-033:
+  estado: ok
+  fecha: 2026-09-03T10:04
+  ejecutor: Luis Gómez
+G-RESC-035:
+  estado: ok
+  fecha: 2026-09-03T11:05
+  ejecutor: Luis Gómez
+G-RESC-036:
+  estado: ok
+  fecha: 2026-09-03T12:06
+  ejecutor: Luis Gómez
+G-RESC-037:
+  estado: ok
+  fecha: 2026-09-03T13:07
+  ejecutor: Luis Gómez
+G-RESC-038:
+  estado: no_ok
+  fecha: 2026-09-03T14:08
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-RESC-039:
+  estado: ok
+  fecha: 2026-09-03T15:09
+  ejecutor: Luis Gómez
+G-RESC-040:
+  estado: ok
+  fecha: 2026-09-03T16:10
+  ejecutor: Luis Gómez
+G-RESC-041:
+  estado: ok
+  fecha: 2026-09-03T17:11
+  ejecutor: Luis Gómez
+G-RESC-042:
+  estado: bloqueada
+  fecha: 2026-09-03T09:12
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-RESC-043:
+  estado: ok
+  fecha: 2026-09-03T10:13
+  ejecutor: Luis Gómez
+G-RESC-044:
+  estado: ok
+  fecha: 2026-09-03T11:14
+  ejecutor: Luis Gómez
+G-RESC-048:
+  estado: ok
+  fecha: 2026-09-03T12:15
+  ejecutor: Luis Gómez
+G-RESC-049:
+  estado: ok
+  fecha: 2026-09-03T13:16
+  ejecutor: Luis Gómez
+G-RESC-050:
+  estado: ok
+  fecha: 2026-09-03T14:17
+  ejecutor: Luis Gómez
+G-GRUP-001:
+  estado: ok
+  fecha: 2026-09-03T15:18
+  ejecutor: Luis Gómez
+G-GRUP-002:
+  estado: ok
+  fecha: 2026-09-03T16:19
+  ejecutor: Luis Gómez
+G-GRUP-003:
+  estado: ok
+  fecha: 2026-09-03T17:20
+  ejecutor: Luis Gómez
+G-GRUP-004:
+  estado: ok
+  fecha: 2026-09-03T09:21
+  ejecutor: Luis Gómez
+G-GRUP-005:
+  estado: ok
+  fecha: 2026-09-03T10:22
+  ejecutor: Luis Gómez
+G-GRUP-006:
+  estado: ok
+  fecha: 2026-09-03T11:23
+  ejecutor: Luis Gómez
+G-GRUP-008:
+  estado: ok
+  fecha: 2026-09-03T12:24
+  ejecutor: Luis Gómez
+G-GRUP-009:
+  estado: ok
+  fecha: 2026-09-03T13:25
+  ejecutor: Luis Gómez
+G-GRUP-010:
+  estado: ok
+  fecha: 2026-09-03T14:26
+  ejecutor: Luis Gómez
+G-GRUP-011:
+  estado: ok
+  fecha: 2026-09-03T15:27
+  ejecutor: Luis Gómez
+G-GRUP-012:
+  estado: ok
+  fecha: 2026-09-03T16:28
+  ejecutor: Luis Gómez
+G-GRUP-013:
+  estado: ok
+  fecha: 2026-09-03T17:29
+  ejecutor: Luis Gómez
+G-GRUP-015:
+  estado: ok
+  fecha: 2026-09-03T09:30
+  ejecutor: Luis Gómez
+G-GRUP-016:
+  estado: ok
+  fecha: 2026-09-03T10:31
+  ejecutor: Luis Gómez
+G-GRUP-017:
+  estado: ok
+  fecha: 2026-09-03T11:32
+  ejecutor: Luis Gómez
+G-GRUP-019:
+  estado: ok
+  fecha: 2026-09-03T12:33
+  ejecutor: Luis Gómez
+G-GRUP-020:
+  estado: ok
+  fecha: 2026-09-03T13:34
+  ejecutor: Luis Gómez
+G-GRUP-021:
+  estado: ok
+  fecha: 2026-09-03T14:35
+  ejecutor: Luis Gómez
+G-GRUP-022:
+  estado: no_ok
+  fecha: 2026-09-03T15:36
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-GRUP-023:
+  estado: ok
+  fecha: 2026-09-03T16:37
+  ejecutor: Luis Gómez
+G-GRUP-025:
+  estado: ok
+  fecha: 2026-09-03T17:38
+  ejecutor: Luis Gómez
+G-GRUP-027:
+  estado: ok
+  fecha: 2026-09-03T09:39
+  ejecutor: Luis Gómez
+G-GRUP-030:
+  estado: ok
+  fecha: 2026-09-03T10:40
+  ejecutor: Luis Gómez
+G-GRUP-031:
+  estado: ok
+  fecha: 2026-09-03T11:41
+  ejecutor: Luis Gómez
+G-GRUP-032:
+  estado: ok
+  fecha: 2026-09-03T12:42
+  ejecutor: Luis Gómez
+G-GRUP-033:
+  estado: ok
+  fecha: 2026-09-03T13:43
+  ejecutor: Luis Gómez
+G-GRUP-034:
+  estado: ok
+  fecha: 2026-09-03T14:44
+  ejecutor: Luis Gómez
+G-GRUP-035:
+  estado: ok
+  fecha: 2026-09-03T15:45
+  ejecutor: Luis Gómez
+G-GRUP-036:
+  estado: ok
+  fecha: 2026-09-03T16:46
+  ejecutor: Luis Gómez
+G-GRUP-037:
+  estado: ok
+  fecha: 2026-09-03T17:47
+  ejecutor: Luis Gómez
+G-GRUP-040:
+  estado: ok
+  fecha: 2026-09-03T09:48
+  ejecutor: Luis Gómez
+G-GRUP-041:
+  estado: ok
+  fecha: 2026-09-03T10:49
+  ejecutor: Luis Gómez
+G-GRUP-042:
+  estado: ok
+  fecha: 2026-09-03T11:50
+  ejecutor: Luis Gómez
+G-GRUP-043:
+  estado: ok
+  fecha: 2026-09-03T12:51
+  ejecutor: Luis Gómez
+G-GRUP-044:
+  estado: ok
+  fecha: 2026-09-03T13:52
+  ejecutor: Luis Gómez
+G-GRUP-046:
+  estado: ok
+  fecha: 2026-09-03T14:53
+  ejecutor: Luis Gómez
+G-GRUP-048:
+  estado: ok
+  fecha: 2026-09-03T15:54
+  ejecutor: Luis Gómez
+G-GRUP-049:
+  estado: ok
+  fecha: 2026-09-03T16:55
+  ejecutor: Luis Gómez
+G-GRUP-050:
+  estado: ok
+  fecha: 2026-09-03T17:56
+  ejecutor: Luis Gómez
+G-ACCE-001:
+  estado: ok
+  fecha: 2026-09-03T09:57
+  ejecutor: Luis Gómez
+G-ACCE-002:
+  estado: bloqueada
+  fecha: 2026-09-03T10:58
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-ACCE-003:
+  estado: ok
+  fecha: 2026-09-03T11:59
+  ejecutor: Luis Gómez
+G-ACCE-005:
+  estado: ok
+  fecha: 2026-09-03T12:00
+  ejecutor: Luis Gómez
+G-ACCE-006:
+  estado: ok
+  fecha: 2026-09-03T13:01
+  ejecutor: Luis Gómez
+G-ACCE-007:
+  estado: ok
+  fecha: 2026-09-03T14:02
+  ejecutor: Luis Gómez
+G-ACCE-009:
+  estado: ok
+  fecha: 2026-09-03T15:03
+  ejecutor: Luis Gómez
+G-ACCE-012:
+  estado: ok
+  fecha: 2026-09-03T16:04
+  ejecutor: Luis Gómez
+G-ACCE-013:
+  estado: ok
+  fecha: 2026-09-03T17:05
+  ejecutor: Luis Gómez
+G-ACCE-014:
+  estado: ok
+  fecha: 2026-09-03T09:06
+  ejecutor: Luis Gómez
+G-ACCE-015:
+  estado: ok
+  fecha: 2026-09-03T10:07
+  ejecutor: Luis Gómez
+G-ACCE-016:
+  estado: ok
+  fecha: 2026-09-03T11:08
+  ejecutor: Luis Gómez
+G-ACCE-017:
+  estado: ok
+  fecha: 2026-09-03T12:09
+  ejecutor: Luis Gómez
+G-ACCE-018:
+  estado: ok
+  fecha: 2026-09-03T13:10
+  ejecutor: Luis Gómez
+G-ACCE-020:
+  estado: ok
+  fecha: 2026-09-03T14:11
+  ejecutor: Luis Gómez
+G-ACCE-021:
+  estado: ok
+  fecha: 2026-09-03T15:12
+  ejecutor: Luis Gómez
+G-ACCE-023:
+  estado: ok
+  fecha: 2026-09-03T16:13
+  ejecutor: Luis Gómez
+G-ACCE-024:
+  estado: ok
+  fecha: 2026-09-03T17:14
+  ejecutor: Luis Gómez
+G-ACCE-025:
+  estado: no_ok
+  fecha: 2026-09-03T09:15
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-026:
+  estado: bloqueada
+  fecha: 2026-09-03T10:16
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-ACCE-028:
+  estado: ok
+  fecha: 2026-09-03T11:17
+  ejecutor: Luis Gómez
+G-ACCE-029:
+  estado: ok
+  fecha: 2026-09-03T12:18
+  ejecutor: Luis Gómez
+G-ACCE-030:
+  estado: ok
+  fecha: 2026-09-03T13:19
+  ejecutor: Luis Gómez
+G-ACCE-032:
+  estado: ok
+  fecha: 2026-09-03T14:20
+  ejecutor: Luis Gómez
+G-ACCE-033:
+  estado: ok
+  fecha: 2026-09-03T15:21
+  ejecutor: Luis Gómez
+G-ACCE-035:
+  estado: ok
+  fecha: 2026-09-03T16:22
+  ejecutor: Luis Gómez
+G-ACCE-036:
+  estado: ok
+  fecha: 2026-09-03T17:23
+  ejecutor: Luis Gómez
+G-ACCE-037:
+  estado: ok
+  fecha: 2026-09-03T09:24
+  ejecutor: Luis Gómez
+G-ACCE-038:
+  estado: ok
+  fecha: 2026-09-03T10:25
+  ejecutor: Luis Gómez
+G-ACCE-039:
+  estado: ok
+  fecha: 2026-09-03T11:26
+  ejecutor: Luis Gómez
+G-ACCE-040:
+  estado: ok
+  fecha: 2026-09-03T12:27
+  ejecutor: Luis Gómez
+G-ACCE-042:
+  estado: ok
+  fecha: 2026-09-03T13:28
+  ejecutor: Luis Gómez
+G-ACCE-043:
+  estado: ok
+  fecha: 2026-09-03T14:29
+  ejecutor: Luis Gómez
+G-ACCE-044:
+  estado: ok
+  fecha: 2026-09-03T15:30
+  ejecutor: Luis Gómez
+G-ACCE-045:
+  estado: ok
+  fecha: 2026-09-03T16:31
+  ejecutor: Luis Gómez
+G-ACCE-046:
+  estado: ok
+  fecha: 2026-09-03T17:32
+  ejecutor: Luis Gómez
+G-ACCE-047:
+  estado: ok
+  fecha: 2026-09-03T09:33
+  ejecutor: Luis Gómez
+G-ACCE-048:
+  estado: no_ok
+  fecha: 2026-09-03T10:34
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-049:
+  estado: ok
+  fecha: 2026-09-03T11:35
+  ejecutor: Luis Gómez
+G-PESA-001:
+  estado: ok
+  fecha: 2026-09-03T12:36
+  ejecutor: Luis Gómez
+G-PESA-002:
+  estado: ok
+  fecha: 2026-09-03T13:37
+  ejecutor: Luis Gómez
+G-PESA-003:
+  estado: no_ok
+  fecha: 2026-09-03T14:38
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-PESA-004:
+  estado: ok
+  fecha: 2026-09-03T15:39
+  ejecutor: Luis Gómez
+G-PESA-005:
+  estado: ok
+  fecha: 2026-09-03T16:40
+  ejecutor: Luis Gómez
+G-PESA-006:
+  estado: ok
+  fecha: 2026-09-03T17:41
+  ejecutor: Luis Gómez
+G-PESA-007:
+  estado: ok
+  fecha: 2026-09-03T09:42
+  ejecutor: Luis Gómez
+G-PESA-008:
+  estado: ok
+  fecha: 2026-09-03T10:43
+  ejecutor: Luis Gómez
+G-PESA-009:
+  estado: ok
+  fecha: 2026-09-03T11:44
+  ejecutor: Luis Gómez
+G-PESA-010:
+  estado: ok
+  fecha: 2026-09-03T12:45
+  ejecutor: Luis Gómez
+G-PESA-012:
+  estado: ok
+  fecha: 2026-09-03T13:46
+  ejecutor: Luis Gómez
+G-PESA-013:
+  estado: ok
+  fecha: 2026-09-03T14:47
+  ejecutor: Luis Gómez
+G-PESA-014:
+  estado: ok
+  fecha: 2026-09-03T15:48
+  ejecutor: Luis Gómez
+G-PESA-015:
+  estado: ok
+  fecha: 2026-09-03T16:49
+  ejecutor: Luis Gómez
+G-PESA-016:
+  estado: ok
+  fecha: 2026-09-03T17:50
+  ejecutor: Luis Gómez
+G-PESA-017:
+  estado: ok
+  fecha: 2026-09-03T09:51
+  ejecutor: Luis Gómez
+G-PESA-018:
+  estado: ok
+  fecha: 2026-09-03T10:52
+  ejecutor: Luis Gómez
+G-PESA-019:
+  estado: ok
+  fecha: 2026-09-03T11:53
+  ejecutor: Luis Gómez
+G-PESA-020:
+  estado: ok
+  fecha: 2026-09-03T12:54
+  ejecutor: Luis Gómez
+G-PESA-022:
+  estado: ok
+  fecha: 2026-09-03T13:55
+  ejecutor: Luis Gómez
+G-PESA-024:
+  estado: ok
+  fecha: 2026-09-03T14:56
+  ejecutor: Luis Gómez
+G-PESA-025:
+  estado: ok
+  fecha: 2026-09-03T15:57
+  ejecutor: Luis Gómez
+G-PESA-026:
+  estado: ok
+  fecha: 2026-09-03T16:58
+  ejecutor: Luis Gómez
+G-PESA-027:
+  estado: ok
+  fecha: 2026-09-03T17:59
+  ejecutor: Luis Gómez
+G-PESA-028:
+  estado: ok
+  fecha: 2026-09-03T09:00
+  ejecutor: Luis Gómez
+G-PESA-029:
+  estado: ok
+  fecha: 2026-09-03T10:01
+  ejecutor: Luis Gómez
+G-PESA-030:
+  estado: ok
+  fecha: 2026-09-03T11:02
+  ejecutor: Luis Gómez
+G-PESA-031:
+  estado: ok
+  fecha: 2026-09-03T12:03
+  ejecutor: Luis Gómez
+G-PESA-033:
+  estado: ok
+  fecha: 2026-09-03T13:04
+  ejecutor: Luis Gómez
+G-PESA-034:
+  estado: ok
+  fecha: 2026-09-03T14:05
+  ejecutor: Luis Gómez
+G-PESA-035:
+  estado: ok
+  fecha: 2026-09-03T15:06
+  ejecutor: Luis Gómez
+G-PESA-038:
+  estado: no_ok
+  fecha: 2026-09-03T16:07
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-PESA-039:
+  estado: ok
+  fecha: 2026-09-03T17:08
+  ejecutor: Luis Gómez
+G-PESA-041:
+  estado: ok
+  fecha: 2026-09-03T09:09
+  ejecutor: Luis Gómez
+G-PESA-044:
+  estado: ok
+  fecha: 2026-09-03T10:10
+  ejecutor: Luis Gómez
+G-PESA-045:
+  estado: ok
+  fecha: 2026-09-03T11:11
+  ejecutor: Luis Gómez
+G-PESA-046:
+  estado: ok
+  fecha: 2026-09-03T12:12
+  ejecutor: Luis Gómez
+G-PESA-047:
+  estado: ok
+  fecha: 2026-09-03T13:13
+  ejecutor: Luis Gómez
+G-PESA-049:
+  estado: ok
+  fecha: 2026-09-03T14:14
+  ejecutor: Luis Gómez
+G-PESA-050:
+  estado: no_ok
+  fecha: 2026-09-03T15:15
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-VENT-001:
+  estado: ok
+  fecha: 2026-09-03T16:16
+  ejecutor: Luis Gómez
+G-VENT-002:
+  estado: ok
+  fecha: 2026-09-03T17:17
+  ejecutor: Luis Gómez
+G-VENT-003:
+  estado: ok
+  fecha: 2026-09-03T09:18
+  ejecutor: Luis Gómez
+G-VENT-004:
+  estado: ok
+  fecha: 2026-09-03T10:19
+  ejecutor: Luis Gómez
+G-VENT-005:
+  estado: ok
+  fecha: 2026-09-03T11:20
+  ejecutor: Luis Gómez
+G-VENT-006:
+  estado: bloqueada
+  fecha: 2026-09-03T12:21
+  ejecutor: Luis Gómez
+  observaciones: Falta el equipo de pruebas.
+G-VENT-007:
+  estado: ok
+  fecha: 2026-09-03T13:22
+  ejecutor: Luis Gómez
+G-VENT-010:
+  estado: ok
+  fecha: 2026-09-03T14:23
+  ejecutor: Luis Gómez
+G-VENT-011:
+  estado: ok
+  fecha: 2026-09-03T15:24
+  ejecutor: Luis Gómez
+G-VENT-012:
+  estado: ok
+  fecha: 2026-09-03T16:25
+  ejecutor: Luis Gómez
+G-VENT-013:
+  estado: ok
+  fecha: 2026-09-03T17:26
+  ejecutor: Luis Gómez
+G-VENT-015:
+  estado: ok
+  fecha: 2026-09-03T09:27
+  ejecutor: Luis Gómez
+G-VENT-016:
+  estado: ok
+  fecha: 2026-09-03T10:28
+  ejecutor: Luis Gómez
+G-VENT-017:
+  estado: ok
+  fecha: 2026-09-03T11:29
+  ejecutor: Luis Gómez
+G-VENT-018:
+  estado: ok
+  fecha: 2026-09-03T12:30
+  ejecutor: Luis Gómez
+G-VENT-021:
+  estado: ok
+  fecha: 2026-09-03T13:31
+  ejecutor: Luis Gómez
+G-VENT-024:
+  estado: ok
+  fecha: 2026-09-03T14:32
+  ejecutor: Luis Gómez
+G-VENT-026:
+  estado: ok
+  fecha: 2026-09-03T15:33
+  ejecutor: Luis Gómez
+G-VENT-027:
+  estado: ok
+  fecha: 2026-09-03T16:34
+  ejecutor: Luis Gómez
+G-VENT-028:
+  estado: ok
+  fecha: 2026-09-03T17:35
+  ejecutor: Luis Gómez
+G-VENT-029:
+  estado: ok
+  fecha: 2026-09-03T09:36
+  ejecutor: Luis Gómez
+G-VENT-030:
+  estado: ok
+  fecha: 2026-09-03T10:37
+  ejecutor: Luis Gómez
+G-VENT-031:
+  estado: ok
+  fecha: 2026-09-03T11:38
+  ejecutor: Luis Gómez
+G-VENT-033:
+  estado: ok
+  fecha: 2026-09-03T12:39
+  ejecutor: Luis Gómez
+G-VENT-035:
+  estado: ok
+  fecha: 2026-09-03T13:40
+  ejecutor: Luis Gómez
+G-VENT-036:
+  estado: ok
+  fecha: 2026-09-03T14:41
+  ejecutor: Luis Gómez
+G-VENT-039:
+  estado: ok
+  fecha: 2026-09-03T15:42
+  ejecutor: Luis Gómez
+G-VENT-041:
+  estado: ok
+  fecha: 2026-09-03T16:43
+  ejecutor: Luis Gómez
+G-VENT-042:
+  estado: ok
+  fecha: 2026-09-03T17:44
+  ejecutor: Luis Gómez
+G-VENT-043:
+  estado: ok
+  fecha: 2026-09-03T09:45
+  ejecutor: Luis Gómez
+G-VENT-044:
+  estado: ok
+  fecha: 2026-09-03T10:46
+  ejecutor: Luis Gómez
+G-VENT-046:
+  estado: ok
+  fecha: 2026-09-03T11:47
+  ejecutor: Luis Gómez
+G-VENT-047:
+  estado: ok
+  fecha: 2026-09-03T12:48
+  ejecutor: Luis Gómez
+G-VENT-049:
+  estado: ok
+  fecha: 2026-09-03T13:49
+  ejecutor: Luis Gómez
+G-ILUM-002:
+  estado: ok
+  fecha: 2026-09-03T14:50
+  ejecutor: Luis Gómez
+G-ILUM-003:
+  estado: ok
+  fecha: 2026-09-03T15:51
+  ejecutor: Luis Gómez
+G-ILUM-004:
+  estado: ok
+  fecha: 2026-09-03T16:52
+  ejecutor: Luis Gómez
+G-ILUM-005:
+  estado: ok
+  fecha: 2026-09-03T17:53
+  ejecutor: Luis Gómez
+G-ILUM-006:
+  estado: ok
+  fecha: 2026-09-03T09:54
+  ejecutor: Luis Gómez
+G-ILUM-007:
+  estado: ok
+  fecha: 2026-09-03T10:55
+  ejecutor: Luis Gómez
+G-ILUM-008:
+  estado: ok
+  fecha: 2026-09-03T11:56
+  ejecutor: Luis Gómez
+G-ILUM-009:
+  estado: ok
+  fecha: 2026-09-03T12:57
+  ejecutor: Luis Gómez
+G-ILUM-010:
+  estado: ok
+  fecha: 2026-09-03T13:58
+  ejecutor: Luis Gómez
+G-ILUM-011:
+  estado: ok
+  fecha: 2026-09-03T14:59
+  ejecutor: Luis Gómez
+G-ILUM-012:
+  estado: ok
+  fecha: 2026-09-03T15:00
+  ejecutor: Luis Gómez
+G-ILUM-015:
+  estado: ok
+  fecha: 2026-09-03T16:01
+  ejecutor: Luis Gómez
+G-ILUM-016:
+  estado: ok
+  fecha: 2026-09-03T17:02
+  ejecutor: Luis Gómez
+G-ILUM-017:
+  estado: ok
+  fecha: 2026-09-03T09:03
+  ejecutor: Luis Gómez
+G-ILUM-019:
+  estado: ok
+  fecha: 2026-09-03T10:04
+  ejecutor: Luis Gómez
+G-ILUM-020:
+  estado: ok
+  fecha: 2026-09-03T11:05
+  ejecutor: Luis Gómez
+G-ILUM-021:
+  estado: ok
+  fecha: 2026-09-03T12:06
+  ejecutor: Luis Gómez
+G-ILUM-022:
+  estado: ok
+  fecha: 2026-09-03T13:07
+  ejecutor: Luis Gómez
+G-ILUM-023:
+  estado: no_ok
+  fecha: 2026-09-03T14:08
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-ILUM-024:
+  estado: ok
+  fecha: 2026-09-03T15:09
+  ejecutor: Luis Gómez
+G-ILUM-025:
+  estado: ok
+  fecha: 2026-09-03T16:10
+  ejecutor: Luis Gómez
+G-ILUM-026:
+  estado: ok
+  fecha: 2026-09-03T17:11
+  ejecutor: Luis Gómez
+G-ILUM-028:
+  estado: ok
+  fecha: 2026-09-03T09:12
+  ejecutor: Luis Gómez
+G-ILUM-029:
+  estado: ok
+  fecha: 2026-09-03T10:13
+  ejecutor: Luis Gómez
+G-ILUM-032:
+  estado: ok
+  fecha: 2026-09-03T11:14
+  ejecutor: Luis Gómez
+G-ILUM-033:
+  estado: ok
+  fecha: 2026-09-03T12:15
+  ejecutor: Luis Gómez
+G-ILUM-034:
+  estado: ok
+  fecha: 2026-09-03T13:16
+  ejecutor: Luis Gómez
+G-ILUM-035:
+  estado: ok
+  fecha: 2026-09-03T14:17
+  ejecutor: Luis Gómez
+G-ILUM-036:
+  estado: ok
+  fecha: 2026-09-03T15:18
+  ejecutor: Luis Gómez
+G-ILUM-037:
+  estado: ok
+  fecha: 2026-09-03T16:19
+  ejecutor: Luis Gómez
+G-ILUM-038:
+  estado: ok
+  fecha: 2026-09-03T17:20
+  ejecutor: Luis Gómez
+G-ILUM-039:
+  estado: no_aplica
+  fecha: 2026-09-03T09:21
+  ejecutor: Luis Gómez
+G-ILUM-040:
+  estado: ok
+  fecha: 2026-09-03T10:22
+  ejecutor: Luis Gómez
+G-ILUM-041:
+  estado: ok
+  fecha: 2026-09-03T11:23
+  ejecutor: Luis Gómez
+G-ILUM-042:
+  estado: ok
+  fecha: 2026-09-03T12:24
+  ejecutor: Luis Gómez
+G-ILUM-044:
+  estado: ok
+  fecha: 2026-09-03T13:25
+  ejecutor: Luis Gómez
+G-ILUM-046:
+  estado: ok
+  fecha: 2026-09-03T14:26
+  ejecutor: Luis Gómez
+G-ILUM-047:
+  estado: ok
+  fecha: 2026-09-03T15:27
+  ejecutor: Luis Gómez
+G-ILUM-048:
+  estado: ok
+  fecha: 2026-09-03T16:28
+  ejecutor: Luis Gómez
+G-ILUM-050:
+  estado: ok
+  fecha: 2026-09-03T17:29
+  ejecutor: Luis Gómez
+G-DIAG-001:
+  estado: no_aplica
+  fecha: 2026-09-03T09:30
+  ejecutor: Luis Gómez
+G-DIAG-002:
+  estado: ok
+  fecha: 2026-09-03T10:31
+  ejecutor: Luis Gómez
+G-DIAG-005:
+  estado: ok
+  fecha: 2026-09-03T11:32
+  ejecutor: Luis Gómez
+G-DIAG-006:
+  estado: no_ok
+  fecha: 2026-09-03T12:33
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-007:
+  estado: ok
+  fecha: 2026-09-03T13:34
+  ejecutor: Luis Gómez
+G-DIAG-009:
+  estado: ok
+  fecha: 2026-09-03T14:35
+  ejecutor: Luis Gómez
+G-DIAG-010:
+  estado: ok
+  fecha: 2026-09-03T15:36
+  ejecutor: Luis Gómez
+G-DIAG-011:
+  estado: ok
+  fecha: 2026-09-03T16:37
+  ejecutor: Luis Gómez
+G-DIAG-012:
+  estado: ok
+  fecha: 2026-09-03T17:38
+  ejecutor: Luis Gómez
+G-DIAG-013:
+  estado: ok
+  fecha: 2026-09-03T09:39
+  ejecutor: Luis Gómez
+G-DIAG-014:
+  estado: ok
+  fecha: 2026-09-03T10:40
+  ejecutor: Luis Gómez
+G-DIAG-016:
+  estado: ok
+  fecha: 2026-09-03T11:41
+  ejecutor: Luis Gómez
+G-DIAG-017:
+  estado: ok
+  fecha: 2026-09-03T12:42
+  ejecutor: Luis Gómez
+G-DIAG-018:
+  estado: no_ok
+  fecha: 2026-09-03T13:43
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-019:
+  estado: no_ok
+  fecha: 2026-09-03T14:44
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-020:
+  estado: ok
+  fecha: 2026-09-03T15:45
+  ejecutor: Luis Gómez
+G-DIAG-021:
+  estado: ok
+  fecha: 2026-09-03T16:46
+  ejecutor: Luis Gómez
+G-DIAG-022:
+  estado: ok
+  fecha: 2026-09-03T17:47
+  ejecutor: Luis Gómez
+G-DIAG-023:
+  estado: ok
+  fecha: 2026-09-03T09:48
+  ejecutor: Luis Gómez
+G-DIAG-024:
+  estado: ok
+  fecha: 2026-09-03T10:49
+  ejecutor: Luis Gómez
+G-DIAG-025:
+  estado: ok
+  fecha: 2026-09-03T11:50
+  ejecutor: Luis Gómez
+G-DIAG-026:
+  estado: ok
+  fecha: 2026-09-03T12:51
+  ejecutor: Luis Gómez
+G-DIAG-030:
+  estado: ok
+  fecha: 2026-09-03T13:52
+  ejecutor: Luis Gómez
+G-DIAG-031:
+  estado: ok
+  fecha: 2026-09-03T14:53
+  ejecutor: Luis Gómez
+G-DIAG-032:
+  estado: ok
+  fecha: 2026-09-03T15:54
+  ejecutor: Luis Gómez
+G-DIAG-033:
+  estado: ok
+  fecha: 2026-09-03T16:55
+  ejecutor: Luis Gómez
+G-DIAG-034:
+  estado: ok
+  fecha: 2026-09-03T17:56
+  ejecutor: Luis Gómez
+G-DIAG-035:
+  estado: ok
+  fecha: 2026-09-03T09:57
+  ejecutor: Luis Gómez
+G-DIAG-036:
+  estado: ok
+  fecha: 2026-09-03T10:58
+  ejecutor: Luis Gómez
+G-DIAG-037:
+  estado: ok
+  fecha: 2026-09-03T11:59
+  ejecutor: Luis Gómez
+G-DIAG-038:
+  estado: ok
+  fecha: 2026-09-03T12:00
+  ejecutor: Luis Gómez
+G-DIAG-039:
+  estado: ok
+  fecha: 2026-09-03T13:01
+  ejecutor: Luis Gómez
+G-DIAG-040:
+  estado: ok
+  fecha: 2026-09-03T14:02
+  ejecutor: Luis Gómez
+G-DIAG-041:
+  estado: ok
+  fecha: 2026-09-03T15:03
+  ejecutor: Luis Gómez
+G-DIAG-042:
+  estado: ok
+  fecha: 2026-09-03T16:04
+  ejecutor: Luis Gómez
+G-DIAG-043:
+  estado: ok
+  fecha: 2026-09-03T17:05
+  ejecutor: Luis Gómez
+G-DIAG-044:
+  estado: ok
+  fecha: 2026-09-03T09:06
+  ejecutor: Luis Gómez
+G-DIAG-045:
+  estado: ok
+  fecha: 2026-09-03T10:07
+  ejecutor: Luis Gómez
+G-DIAG-047:
+  estado: ok
+  fecha: 2026-09-03T11:08
+  ejecutor: Luis Gómez
+G-DIAG-048:
+  estado: no_ok
+  fecha: 2026-09-03T12:09
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-049:
+  estado: ok
+  fecha: 2026-09-03T13:10
+  ejecutor: Luis Gómez
+G-DIAG-050:
+  estado: ok
+  fecha: 2026-09-03T14:11
+  ejecutor: Luis Gómez
+G-REGI-001:
+  estado: no_ok
+  fecha: 2026-09-03T15:12
+  ejecutor: Luis Gómez
+  observaciones: No cumple el resultado esperado.
+G-REGI-002:
+  estado: ok
+  fecha: 2026-09-03T16:13
+  ejecutor: Luis Gómez
+G-REGI-004:
+  estado: ok
+  fecha: 2026-09-03T17:14
+  ejecutor: Luis Gómez
+G-REGI-005:
+  estado: ok
+  fecha: 2026-09-03T09:15
+  ejecutor: Luis Gómez
+G-REGI-006:
+  estado: ok
+  fecha: 2026-09-03T10:16
+  ejecutor: Luis Gómez
+G-REGI-007:
+  estado: ok
+  fecha: 2026-09-03T11:17
+  ejecutor: Luis Gómez
+G-REGI-008:
+  estado: ok
+  fecha: 2026-09-03T12:18
+  ejecutor: Luis Gómez
+G-REGI-009:
+  estado: ok
+  fecha: 2026-09-03T13:19
+  ejecutor: Luis Gómez
+G-REGI-010:
+  estado: ok
+  fecha: 2026-09-03T14:20
+  ejecutor: Luis Gómez
+G-REGI-011:
+  estado: ok
+  fecha: 2026-09-03T15:21
+  ejecutor: Luis Gómez
+G-REGI-012:
+  estado: ok
+  fecha: 2026-09-03T16:22
+  ejecutor: Luis Gómez
+G-REGI-013:
+  estado: ok
+  fecha: 2026-09-03T17:23
+  ejecutor: Luis Gómez
+G-REGI-014:
+  estado: ok
+  fecha: 2026-09-03T09:24
+  ejecutor: Luis Gómez
+G-REGI-015:
+  estado: ok
+  fecha: 2026-09-03T10:25
+  ejecutor: Luis Gómez
+G-REGI-016:
+  estado: ok
+  fecha: 2026-09-03T11:26
+  ejecutor: Luis Gómez
+G-REGI-018:
+  estado: ok
+  fecha: 2026-09-03T12:27
+  ejecutor: Luis Gómez
+G-REGI-020:
+  estado: ok
+  fecha: 2026-09-03T13:28
+  ejecutor: Luis Gómez
+G-REGI-021:
+  estado: ok
+  fecha: 2026-09-03T14:29
+  ejecutor: Luis Gómez
+G-REGI-022:
+  estado: ok
+  fecha: 2026-09-03T15:30
+  ejecutor: Luis Gómez
+G-REGI-024:
+  estado: ok
+  fecha: 2026-09-03T16:31
+  ejecutor: Luis Gómez
+G-REGI-025:
+  estado: ok
+  fecha: 2026-09-03T17:32
+  ejecutor: Luis Gómez
+G-REGI-027:
+  estado: ok
+  fecha: 2026-09-03T09:33
+  ejecutor: Luis Gómez
+G-REGI-028:
+  estado: ok
+  fecha: 2026-09-03T10:34
+  ejecutor: Luis Gómez
+G-REGI-029:
+  estado: ok
+  fecha: 2026-09-03T11:35
+  ejecutor: Luis Gómez
+G-REGI-030:
+  estado: ok
+  fecha: 2026-09-03T12:36
+  ejecutor: Luis Gómez
+G-REGI-031:
+  estado: ok
+  fecha: 2026-09-03T13:37
+  ejecutor: Luis Gómez
+G-REGI-032:
+  estado: ok
+  fecha: 2026-09-03T14:38
+  ejecutor: Luis Gómez
+G-REGI-033:
+  estado: ok
+  fecha: 2026-09-03T15:39
+  ejecutor: Luis Gómez
+G-REGI-034:
+  estado: ok
+  fecha: 2026-09-03T16:40
+  ejecutor: Luis Gómez
+G-REGI-035:
+  estado: ok
+  fecha: 2026-09-03T17:41
+  ejecutor: Luis Gómez
+G-REGI-036:
+  estado: ok
+  fecha: 2026-09-03T09:42
+  ejecutor: Luis Gómez
+G-REGI-038:
+  estado: ok
+  fecha: 2026-09-03T10:43
+  ejecutor: Luis Gómez
+G-REGI-039:
+  estado: ok
+  fecha: 2026-09-03T11:44
+  ejecutor: Luis Gómez
+G-REGI-040:
+  estado: ok
+  fecha: 2026-09-03T12:45
+  ejecutor: Luis Gómez
+G-REGI-042:
+  estado: ok
+  fecha: 2026-09-03T13:46
+  ejecutor: Luis Gómez
+G-REGI-043:
+  estado: ok
+  fecha: 2026-09-03T14:47
+  ejecutor: Luis Gómez
+G-REGI-044:
+  estado: ok
+  fecha: 2026-09-03T15:48
+  ejecutor: Luis Gómez
+G-REGI-045:
+  estado: ok
+  fecha: 2026-09-03T16:49
+  ejecutor: Luis Gómez
+G-REGI-046:
+  estado: ok
+  fecha: 2026-09-03T17:50
+  ejecutor: Luis Gómez
+G-REGI-047:
+  estado: ok
+  fecha: 2026-09-03T09:51
+  ejecutor: Luis Gómez
+G-REGI-048:
+  estado: ok
+  fecha: 2026-09-03T10:52
+  ejecutor: Luis Gómez
+G-REGI-049:
+  estado: ok
+  fecha: 2026-09-03T11:53
+  ejecutor: Luis Gómez
+G-REGI-050:
+  estado: ok
+  fecha: 2026-09-03T12:54
+  ejecutor: Luis Gómez
+G-CONF-001:
+  estado: ok
+  fecha: 2026-09-03T13:55
+  ejecutor: Luis Gómez
+G-CONF-003:
+  estado: ok
+  fecha: 2026-09-03T14:56
+  ejecutor: Luis Gómez
+G-CONF-006:
+  estado: ok
+  fecha: 2026-09-03T15:57
+  ejecutor: Luis Gómez
+G-CONF-007:
+  estado: ok
+  fecha: 2026-09-03T16:58
+  ejecutor: Luis Gómez
+G-CONF-008:
+  estado: ok
+  fecha: 2026-09-03T17:59
+  ejecutor: Luis Gómez
+G-CONF-010:
+  estado: ok
+  fecha: 2026-09-03T09:00
+  ejecutor: Luis Gómez
+G-CONF-012:
+  estado: ok
+  fecha: 2026-09-03T10:01
+  ejecutor: Luis Gómez
+G-CONF-013:
+  estado: ok
+  fecha: 2026-09-03T11:02
+  ejecutor: Luis Gómez
+G-CONF-015:
+  estado: ok
+  fecha: 2026-09-03T12:03
+  ejecutor: Luis Gómez
+G-CONF-016:
+  estado: ok
+  fecha: 2026-09-03T13:04
+  ejecutor: Luis Gómez
+G-CONF-017:
+  estado: ok
+  fecha: 2026-09-03T14:05
+  ejecutor: Luis Gómez
+G-CONF-018:
+  estado: ok
+  fecha: 2026-09-03T15:06
+  ejecutor: Luis Gómez
+G-CONF-020:
+  estado: ok
+  fecha: 2026-09-03T16:07
+  ejecutor: Luis Gómez
+G-CONF-021:
+  estado: ok
+  fecha: 2026-09-03T17:08
+  ejecutor: Luis Gómez
+G-CONF-022:
+  estado: ok
+  fecha: 2026-09-03T09:09
+  ejecutor: Luis Gómez
+G-CONF-023:
+  estado: ok
+  fecha: 2026-09-03T10:10
+  ejecutor: Luis Gómez
+G-CONF-026:
+  estado: ok
+  fecha: 2026-09-03T11:11
+  ejecutor: Luis Gómez
+G-CONF-027:
+  estado: ok
+  fecha: 2026-09-03T12:12
+  ejecutor: Luis Gómez
+G-CONF-030:
+  estado: ok
+  fecha: 2026-09-03T13:13
+  ejecutor: Luis Gómez
+G-CONF-032:
+  estado: ok
+  fecha: 2026-09-03T14:14
+  ejecutor: Luis Gómez
+G-CONF-033:
+  estado: ok
+  fecha: 2026-09-03T15:15
+  ejecutor: Luis Gómez
+G-CONF-035:
+  estado: ok
+  fecha: 2026-09-03T16:16
+  ejecutor: Luis Gómez
+G-CONF-036:
+  estado: ok
+  fecha: 2026-09-03T17:17
+  ejecutor: Luis Gómez
+G-CONF-037:
+  estado: ok
+  fecha: 2026-09-03T09:18
+  ejecutor: Luis Gómez
+G-CONF-038:
+  estado: ok
+  fecha: 2026-09-03T10:19
+  ejecutor: Luis Gómez
+G-CONF-039:
+  estado: ok
+  fecha: 2026-09-03T11:20
+  ejecutor: Luis Gómez
+G-CONF-040:
+  estado: ok
+  fecha: 2026-09-03T12:21
+  ejecutor: Luis Gómez
+G-CONF-041:
+  estado: ok
+  fecha: 2026-09-03T13:22
+  ejecutor: Luis Gómez
+G-CONF-042:
+  estado: ok
+  fecha: 2026-09-03T14:23
+  ejecutor: Luis Gómez
+G-CONF-043:
+  estado: ok
+  fecha: 2026-09-03T15:24
+  ejecutor: Luis Gómez
+G-CONF-044:
+  estado: ok
+  fecha: 2026-09-03T16:25
+  ejecutor: Luis Gómez
+G-CONF-045:
+  estado: ok
+  fecha: 2026-09-03T17:26
+  ejecutor: Luis Gómez
+G-CONF-046:
+  estado: ok
+  fecha: 2026-09-03T09:27
+  ejecutor: Luis Gómez
+G-CONF-047:
+  estado: ok
+  fecha: 2026-09-03T10:28
+  ejecutor: Luis Gómez
+G-CONF-048:
+  estado: ok
+  fecha: 2026-09-03T11:29
+  ejecutor: Luis Gómez
+G-CONF-050:
+  estado: ok
+  fecha: 2026-09-03T12:30
+  ejecutor: Luis Gómez

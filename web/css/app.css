@@ -913,3 +913,28 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .tabla-tendencia .celda-barra { width: 40%; }
 .tabla-tendencia .celda-barra .barra-progreso { margin: 0; height: 10px; }
 .tabla-tendencia tr.actual td { background: var(--accent-soft); }
+
+/* ---- pestañas de la validación y tablas por capítulos ---- */
+.pestanas-validacion { margin: 2px 0 14px; }
+.pestanas-validacion button { padding: 5px 16px; display: inline-flex; align-items: center; gap: 7px; }
+.pestanas-validacion .cuenta-pestana { font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
+.barra-tabla { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; }
+.barra-tabla .buscar-tabla { width: 240px; max-width: 100%; }
+.barra-tabla .hueco-flex { flex: 1; }
+.tabla-por-capitulos .fila-capitulo { cursor: pointer; }
+.tabla-por-capitulos .fila-capitulo td { background: var(--panel); border-bottom-color: var(--rule-strong); }
+.tabla-por-capitulos .fila-capitulo:hover td { background: var(--hover); }
+.tabla-por-capitulos .nombre-capitulo { display: inline-flex; align-items: center; gap: 6px; }
+.tabla-por-capitulos .conmutador { width: 18px; height: 18px; padding: 0; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink-3); cursor: pointer; border-radius: 3px; }
+.tabla-por-capitulos .conmutador .ico { width: 14px; height: 14px; transition: transform 0.12s; }
+.tabla-por-capitulos .conmutador[aria-expanded="true"] .ico { transform: rotate(90deg); }
+.tabla-por-capitulos td.sangria { padding-left: 32px; }
+.barra-progreso.mini { height: 8px; margin: 0; min-width: 80px; }
+.tabla-capitulos-val .celda-barra { width: 35%; }
+.resumen-enlaces { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.resumen-enlace { font: inherit; font-size: 13.5px; text-align: left; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: var(--ink-2); padding: 6px 10px; cursor: pointer; }
+.resumen-enlace:hover { background: var(--hover); color: var(--ink); }
+.resumen-enlace .e-txt-no_ok { color: var(--st-no_ok); font-weight: 600; }
+.resumen-enlace .e-txt-bloqueada { color: var(--st-bloqueada); font-weight: 600; }
+.pestanas-validacion .e-txt-no_ok { color: var(--st-no_ok); }
+.plegable-avisos summary { cursor: pointer; padding: 4px 0 8px; color: var(--accent); }

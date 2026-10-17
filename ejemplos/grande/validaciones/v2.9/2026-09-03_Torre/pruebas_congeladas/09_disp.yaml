@@ -1,0 +1,647 @@
+capitulo: Display
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-001
+    titulo: 'Funcionamiento normal: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en display, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-001
+    - REQ-DISP-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-002
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en display, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-013
+    - REQ-DISP-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-005
+    titulo: 'Funcionamiento normal: el controlador informa por el bus'
+    descripcion: Comprobar que, en display, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-006
+    titulo: 'Funcionamiento normal: el controlador registra el evento'
+    descripcion: Comprobar que, en display, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-006
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-007
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en display, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-008
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en display, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-020
+    - REQ-DISP-023
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-010
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en display, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-022
+    tags:
+    - regresion
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-012
+    titulo: 'Límites: el controlador informa por el bus'
+    descripcion: Comprobar que, en display, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-001
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-014
+    titulo: 'Límites: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en display, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-009
+    - REQ-DISP-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-015
+    titulo: 'Límites: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en display, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-017
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-017
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en display, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-018
+    titulo: 'Límites: el controlador se mantiene estable'
+    descripcion: Comprobar que, en display, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-009
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-019
+    titulo: 'Límites: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en display, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-020
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en display, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-014
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-021
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en display, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-020
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-023
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en display, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-024
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en display, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-005
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-025
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en display, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-018
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-028
+    titulo: 'Fallos: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en display, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-014
+    - REQ-DISP-019
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-029
+    titulo: 'Fallos: el controlador avisa al operador'
+    descripcion: Comprobar que, en display, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-030
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en display, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-006
+    tags:
+    - regresion
+    - humo
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-031
+    titulo: 'Recuperación: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en display, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-003
+    - REQ-DISP-016
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-033
+    titulo: 'Recuperación: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en display, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-020
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-035
+    titulo: 'Recuperación: el controlador avisa al operador'
+    descripcion: Comprobar que, en display, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-036
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en display, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-004
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-037
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en display, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-038
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en display, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-039
+    titulo: 'Recuperación: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en display, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-001
+    tags:
+    - regresion
+    - humo
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-041
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en display, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-002
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-042
+    titulo: 'Configuración: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en display, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-021
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-043
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en display, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-024
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-045
+    titulo: 'Configuración: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en display, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-010
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-047
+    titulo: 'Configuración: el controlador registra el evento'
+    descripcion: Comprobar que, en display, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-049
+    titulo: 'Configuración: el controlador responde a la orden'
+    descripcion: Comprobar que, en display, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Torre
+    requisitos:
+    - REQ-DISP-017
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-DISP-050
+    titulo: 'Configuración: el controlador se mantiene estable'
+    descripcion: Comprobar que, en display, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-DISP-023
+    - REQ-DISP-025
+    tags:
+    - regresion

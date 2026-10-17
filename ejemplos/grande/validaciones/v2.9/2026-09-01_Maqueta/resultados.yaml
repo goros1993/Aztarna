@@ -1,0 +1,3097 @@
+G-LLAM-001:
+  estado: ok
+  fecha: 2026-09-01T09:00
+  ejecutor: Ana Pérez
+G-LLAM-002:
+  estado: ok
+  fecha: 2026-09-01T10:01
+  ejecutor: Ana Pérez
+G-LLAM-003:
+  estado: ok
+  fecha: 2026-09-01T11:02
+  ejecutor: Ana Pérez
+G-LLAM-004:
+  estado: ok
+  fecha: 2026-09-01T12:03
+  ejecutor: Ana Pérez
+G-LLAM-005:
+  estado: no_ok
+  fecha: 2026-09-01T13:04
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-006:
+  estado: ok
+  fecha: 2026-09-01T14:05
+  ejecutor: Ana Pérez
+G-LLAM-008:
+  estado: ok
+  fecha: 2026-09-01T15:06
+  ejecutor: Ana Pérez
+G-LLAM-009:
+  estado: ok
+  fecha: 2026-09-01T16:07
+  ejecutor: Ana Pérez
+G-LLAM-010:
+  estado: ok
+  fecha: 2026-09-01T17:08
+  ejecutor: Ana Pérez
+G-LLAM-011:
+  estado: ok
+  fecha: 2026-09-01T09:09
+  ejecutor: Ana Pérez
+G-LLAM-013:
+  estado: no_ok
+  fecha: 2026-09-01T10:10
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-014:
+  estado: no_ok
+  fecha: 2026-09-01T11:11
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-015:
+  estado: ok
+  fecha: 2026-09-01T12:12
+  ejecutor: Ana Pérez
+G-LLAM-016:
+  estado: bloqueada
+  fecha: 2026-09-01T13:13
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-LLAM-017:
+  estado: ok
+  fecha: 2026-09-01T14:14
+  ejecutor: Ana Pérez
+G-LLAM-018:
+  estado: ok
+  fecha: 2026-09-01T15:15
+  ejecutor: Ana Pérez
+G-LLAM-019:
+  estado: ok
+  fecha: 2026-09-01T16:16
+  ejecutor: Ana Pérez
+G-LLAM-020:
+  estado: no_ok
+  fecha: 2026-09-01T17:17
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-021:
+  estado: no_ok
+  fecha: 2026-09-01T09:18
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-022:
+  estado: ok
+  fecha: 2026-09-01T10:19
+  ejecutor: Ana Pérez
+G-LLAM-023:
+  estado: ok
+  fecha: 2026-09-01T11:20
+  ejecutor: Ana Pérez
+G-LLAM-025:
+  estado: no_ok
+  fecha: 2026-09-01T12:21
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-LLAM-027:
+  estado: ok
+  fecha: 2026-09-01T13:22
+  ejecutor: Ana Pérez
+G-LLAM-029:
+  estado: ok
+  fecha: 2026-09-01T14:23
+  ejecutor: Ana Pérez
+G-LLAM-030:
+  estado: ok
+  fecha: 2026-09-01T15:24
+  ejecutor: Ana Pérez
+G-LLAM-031:
+  estado: ok
+  fecha: 2026-09-01T16:25
+  ejecutor: Ana Pérez
+G-LLAM-032:
+  estado: ok
+  fecha: 2026-09-01T17:26
+  ejecutor: Ana Pérez
+G-LLAM-033:
+  estado: bloqueada
+  fecha: 2026-09-01T09:27
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-LLAM-034:
+  estado: ok
+  fecha: 2026-09-01T10:28
+  ejecutor: Ana Pérez
+G-LLAM-037:
+  estado: ok
+  fecha: 2026-09-01T11:29
+  ejecutor: Ana Pérez
+G-LLAM-038:
+  estado: ok
+  fecha: 2026-09-01T12:30
+  ejecutor: Ana Pérez
+G-LLAM-039:
+  estado: ok
+  fecha: 2026-09-01T13:31
+  ejecutor: Ana Pérez
+G-LLAM-043:
+  estado: ok
+  fecha: 2026-09-01T14:32
+  ejecutor: Ana Pérez
+G-LLAM-044:
+  estado: ok
+  fecha: 2026-09-01T15:33
+  ejecutor: Ana Pérez
+G-LLAM-046:
+  estado: ok
+  fecha: 2026-09-01T16:34
+  ejecutor: Ana Pérez
+G-LLAM-047:
+  estado: ok
+  fecha: 2026-09-01T17:35
+  ejecutor: Ana Pérez
+G-LLAM-048:
+  estado: no_aplica
+  fecha: 2026-09-01T09:36
+  ejecutor: Ana Pérez
+G-LLAM-049:
+  estado: ok
+  fecha: 2026-09-01T10:37
+  ejecutor: Ana Pérez
+G-LLAM-050:
+  estado: ok
+  fecha: 2026-09-01T11:38
+  ejecutor: Ana Pérez
+G-PUER-001:
+  estado: ok
+  fecha: 2026-09-01T12:39
+  ejecutor: Ana Pérez
+G-PUER-002:
+  estado: ok
+  fecha: 2026-09-01T13:40
+  ejecutor: Ana Pérez
+G-PUER-003:
+  estado: no_ok
+  fecha: 2026-09-01T14:41
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-PUER-004:
+  estado: ok
+  fecha: 2026-09-01T15:42
+  ejecutor: Ana Pérez
+G-PUER-006:
+  estado: ok
+  fecha: 2026-09-01T16:43
+  ejecutor: Ana Pérez
+G-PUER-007:
+  estado: no_ok
+  fecha: 2026-09-01T17:44
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-PUER-008:
+  estado: bloqueada
+  fecha: 2026-09-01T09:45
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-PUER-009:
+  estado: ok
+  fecha: 2026-09-01T10:46
+  ejecutor: Ana Pérez
+G-PUER-010:
+  estado: ok
+  fecha: 2026-09-01T11:47
+  ejecutor: Ana Pérez
+G-PUER-011:
+  estado: ok
+  fecha: 2026-09-01T12:48
+  ejecutor: Ana Pérez
+G-PUER-012:
+  estado: ok
+  fecha: 2026-09-01T13:49
+  ejecutor: Ana Pérez
+G-PUER-013:
+  estado: ok
+  fecha: 2026-09-01T14:50
+  ejecutor: Ana Pérez
+G-PUER-014:
+  estado: ok
+  fecha: 2026-09-01T15:51
+  ejecutor: Ana Pérez
+G-PUER-015:
+  estado: ok
+  fecha: 2026-09-01T16:52
+  ejecutor: Ana Pérez
+G-PUER-016:
+  estado: ok
+  fecha: 2026-09-01T17:53
+  ejecutor: Ana Pérez
+G-PUER-019:
+  estado: ok
+  fecha: 2026-09-01T09:54
+  ejecutor: Ana Pérez
+G-PUER-020:
+  estado: ok
+  fecha: 2026-09-01T10:55
+  ejecutor: Ana Pérez
+G-PUER-021:
+  estado: bloqueada
+  fecha: 2026-09-01T11:56
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-PUER-023:
+  estado: ok
+  fecha: 2026-09-01T12:57
+  ejecutor: Ana Pérez
+G-PUER-024:
+  estado: ok
+  fecha: 2026-09-01T13:58
+  ejecutor: Ana Pérez
+G-PUER-028:
+  estado: ok
+  fecha: 2026-09-01T14:59
+  ejecutor: Ana Pérez
+G-PUER-029:
+  estado: ok
+  fecha: 2026-09-01T15:00
+  ejecutor: Ana Pérez
+G-PUER-031:
+  estado: ok
+  fecha: 2026-09-01T16:01
+  ejecutor: Ana Pérez
+G-PUER-032:
+  estado: ok
+  fecha: 2026-09-01T17:02
+  ejecutor: Ana Pérez
+G-PUER-033:
+  estado: ok
+  fecha: 2026-09-01T09:03
+  ejecutor: Ana Pérez
+G-PUER-034:
+  estado: ok
+  fecha: 2026-09-01T10:04
+  ejecutor: Ana Pérez
+G-PUER-035:
+  estado: bloqueada
+  fecha: 2026-09-01T11:05
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-PUER-037:
+  estado: ok
+  fecha: 2026-09-01T12:06
+  ejecutor: Ana Pérez
+G-PUER-038:
+  estado: ok
+  fecha: 2026-09-01T13:07
+  ejecutor: Ana Pérez
+G-PUER-040:
+  estado: ok
+  fecha: 2026-09-01T14:08
+  ejecutor: Ana Pérez
+G-PUER-042:
+  estado: ok
+  fecha: 2026-09-01T15:09
+  ejecutor: Ana Pérez
+G-PUER-044:
+  estado: ok
+  fecha: 2026-09-01T16:10
+  ejecutor: Ana Pérez
+G-PUER-045:
+  estado: ok
+  fecha: 2026-09-01T17:11
+  ejecutor: Ana Pérez
+G-PUER-046:
+  estado: ok
+  fecha: 2026-09-01T09:12
+  ejecutor: Ana Pérez
+G-PUER-049:
+  estado: ok
+  fecha: 2026-09-01T10:13
+  ejecutor: Ana Pérez
+G-PUER-050:
+  estado: ok
+  fecha: 2026-09-01T11:14
+  ejecutor: Ana Pérez
+G-NIVE-001:
+  estado: ok
+  fecha: 2026-09-01T12:15
+  ejecutor: Ana Pérez
+G-NIVE-003:
+  estado: ok
+  fecha: 2026-09-01T13:16
+  ejecutor: Ana Pérez
+G-NIVE-004:
+  estado: ok
+  fecha: 2026-09-01T14:17
+  ejecutor: Ana Pérez
+G-NIVE-005:
+  estado: ok
+  fecha: 2026-09-01T15:18
+  ejecutor: Ana Pérez
+G-NIVE-006:
+  estado: no_ok
+  fecha: 2026-09-01T16:19
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-NIVE-008:
+  estado: ok
+  fecha: 2026-09-01T17:20
+  ejecutor: Ana Pérez
+G-NIVE-009:
+  estado: ok
+  fecha: 2026-09-01T09:21
+  ejecutor: Ana Pérez
+G-NIVE-011:
+  estado: ok
+  fecha: 2026-09-01T10:22
+  ejecutor: Ana Pérez
+G-NIVE-012:
+  estado: ok
+  fecha: 2026-09-01T11:23
+  ejecutor: Ana Pérez
+G-NIVE-013:
+  estado: ok
+  fecha: 2026-09-01T12:24
+  ejecutor: Ana Pérez
+G-NIVE-015:
+  estado: ok
+  fecha: 2026-09-01T13:25
+  ejecutor: Ana Pérez
+G-NIVE-016:
+  estado: no_ok
+  fecha: 2026-09-01T14:26
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-NIVE-019:
+  estado: ok
+  fecha: 2026-09-01T15:27
+  ejecutor: Ana Pérez
+G-NIVE-021:
+  estado: ok
+  fecha: 2026-09-01T16:28
+  ejecutor: Ana Pérez
+G-NIVE-023:
+  estado: ok
+  fecha: 2026-09-01T17:29
+  ejecutor: Ana Pérez
+G-NIVE-024:
+  estado: ok
+  fecha: 2026-09-01T09:30
+  ejecutor: Ana Pérez
+G-NIVE-025:
+  estado: ok
+  fecha: 2026-09-01T10:31
+  ejecutor: Ana Pérez
+G-NIVE-027:
+  estado: ok
+  fecha: 2026-09-01T11:32
+  ejecutor: Ana Pérez
+G-NIVE-028:
+  estado: ok
+  fecha: 2026-09-01T12:33
+  ejecutor: Ana Pérez
+G-NIVE-030:
+  estado: no_ok
+  fecha: 2026-09-01T13:34
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-NIVE-031:
+  estado: ok
+  fecha: 2026-09-01T14:35
+  ejecutor: Ana Pérez
+G-NIVE-032:
+  estado: ok
+  fecha: 2026-09-01T15:36
+  ejecutor: Ana Pérez
+G-NIVE-034:
+  estado: ok
+  fecha: 2026-09-01T16:37
+  ejecutor: Ana Pérez
+G-NIVE-035:
+  estado: no_ok
+  fecha: 2026-09-01T17:38
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-NIVE-036:
+  estado: ok
+  fecha: 2026-09-01T09:39
+  ejecutor: Ana Pérez
+G-NIVE-039:
+  estado: ok
+  fecha: 2026-09-01T10:40
+  ejecutor: Ana Pérez
+G-NIVE-042:
+  estado: ok
+  fecha: 2026-09-01T11:41
+  ejecutor: Ana Pérez
+G-NIVE-044:
+  estado: ok
+  fecha: 2026-09-01T12:42
+  ejecutor: Ana Pérez
+G-NIVE-047:
+  estado: ok
+  fecha: 2026-09-01T13:43
+  ejecutor: Ana Pérez
+G-NIVE-048:
+  estado: ok
+  fecha: 2026-09-01T14:44
+  ejecutor: Ana Pérez
+G-NIVE-050:
+  estado: ok
+  fecha: 2026-09-01T15:45
+  ejecutor: Ana Pérez
+G-BUSC-001:
+  estado: ok
+  fecha: 2026-09-01T16:46
+  ejecutor: Ana Pérez
+G-BUSC-002:
+  estado: ok
+  fecha: 2026-09-01T17:47
+  ejecutor: Ana Pérez
+G-BUSC-005:
+  estado: ok
+  fecha: 2026-09-01T09:48
+  ejecutor: Ana Pérez
+G-BUSC-006:
+  estado: ok
+  fecha: 2026-09-01T10:49
+  ejecutor: Ana Pérez
+G-BUSC-007:
+  estado: ok
+  fecha: 2026-09-01T11:50
+  ejecutor: Ana Pérez
+G-BUSC-008:
+  estado: no_ok
+  fecha: 2026-09-01T12:51
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-009:
+  estado: ok
+  fecha: 2026-09-01T13:52
+  ejecutor: Ana Pérez
+G-BUSC-010:
+  estado: ok
+  fecha: 2026-09-01T14:53
+  ejecutor: Ana Pérez
+G-BUSC-011:
+  estado: no_ok
+  fecha: 2026-09-01T15:54
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-013:
+  estado: ok
+  fecha: 2026-09-01T16:55
+  ejecutor: Ana Pérez
+G-BUSC-014:
+  estado: ok
+  fecha: 2026-09-01T17:56
+  ejecutor: Ana Pérez
+G-BUSC-015:
+  estado: ok
+  fecha: 2026-09-01T09:57
+  ejecutor: Ana Pérez
+G-BUSC-016:
+  estado: no_ok
+  fecha: 2026-09-01T10:58
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-017:
+  estado: bloqueada
+  fecha: 2026-09-01T11:59
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-BUSC-018:
+  estado: ok
+  fecha: 2026-09-01T12:00
+  ejecutor: Ana Pérez
+G-BUSC-020:
+  estado: ok
+  fecha: 2026-09-01T13:01
+  ejecutor: Ana Pérez
+G-BUSC-021:
+  estado: ok
+  fecha: 2026-09-01T14:02
+  ejecutor: Ana Pérez
+G-BUSC-022:
+  estado: no_ok
+  fecha: 2026-09-01T15:03
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-024:
+  estado: ok
+  fecha: 2026-09-01T16:04
+  ejecutor: Ana Pérez
+G-BUSC-025:
+  estado: ok
+  fecha: 2026-09-01T17:05
+  ejecutor: Ana Pérez
+G-BUSC-028:
+  estado: ok
+  fecha: 2026-09-01T09:06
+  ejecutor: Ana Pérez
+G-BUSC-029:
+  estado: ok
+  fecha: 2026-09-01T10:07
+  ejecutor: Ana Pérez
+G-BUSC-031:
+  estado: no_ok
+  fecha: 2026-09-01T11:08
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BUSC-033:
+  estado: ok
+  fecha: 2026-09-01T12:09
+  ejecutor: Ana Pérez
+G-BUSC-034:
+  estado: ok
+  fecha: 2026-09-01T13:10
+  ejecutor: Ana Pérez
+G-BUSC-036:
+  estado: ok
+  fecha: 2026-09-01T14:11
+  ejecutor: Ana Pérez
+G-BUSC-037:
+  estado: ok
+  fecha: 2026-09-01T15:12
+  ejecutor: Ana Pérez
+G-BUSC-038:
+  estado: ok
+  fecha: 2026-09-01T16:13
+  ejecutor: Ana Pérez
+G-BUSC-041:
+  estado: ok
+  fecha: 2026-09-01T17:14
+  ejecutor: Ana Pérez
+G-BUSC-042:
+  estado: ok
+  fecha: 2026-09-01T09:15
+  ejecutor: Ana Pérez
+G-BUSC-043:
+  estado: ok
+  fecha: 2026-09-01T10:16
+  ejecutor: Ana Pérez
+G-BUSC-044:
+  estado: ok
+  fecha: 2026-09-01T11:17
+  ejecutor: Ana Pérez
+G-BUSC-047:
+  estado: ok
+  fecha: 2026-09-01T12:18
+  ejecutor: Ana Pérez
+G-BUSC-048:
+  estado: ok
+  fecha: 2026-09-01T13:19
+  ejecutor: Ana Pérez
+G-BUSC-050:
+  estado: ok
+  fecha: 2026-09-01T14:20
+  ejecutor: Ana Pérez
+G-SEGU-001:
+  estado: ok
+  fecha: 2026-09-01T15:21
+  ejecutor: Ana Pérez
+G-SEGU-002:
+  estado: no_ok
+  fecha: 2026-09-01T16:22
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-003:
+  estado: no_ok
+  fecha: 2026-09-01T17:23
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-004:
+  estado: ok
+  fecha: 2026-09-01T09:24
+  ejecutor: Ana Pérez
+G-SEGU-005:
+  estado: ok
+  fecha: 2026-09-01T10:25
+  ejecutor: Ana Pérez
+G-SEGU-006:
+  estado: ok
+  fecha: 2026-09-01T11:26
+  ejecutor: Ana Pérez
+G-SEGU-007:
+  estado: ok
+  fecha: 2026-09-01T12:27
+  ejecutor: Ana Pérez
+G-SEGU-009:
+  estado: ok
+  fecha: 2026-09-01T13:28
+  ejecutor: Ana Pérez
+G-SEGU-010:
+  estado: ok
+  fecha: 2026-09-01T14:29
+  ejecutor: Ana Pérez
+G-SEGU-013:
+  estado: ok
+  fecha: 2026-09-01T15:30
+  ejecutor: Ana Pérez
+G-SEGU-014:
+  estado: ok
+  fecha: 2026-09-01T16:31
+  ejecutor: Ana Pérez
+G-SEGU-015:
+  estado: no_ok
+  fecha: 2026-09-01T17:32
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-016:
+  estado: ok
+  fecha: 2026-09-01T09:33
+  ejecutor: Ana Pérez
+G-SEGU-019:
+  estado: ok
+  fecha: 2026-09-01T10:34
+  ejecutor: Ana Pérez
+G-SEGU-020:
+  estado: ok
+  fecha: 2026-09-01T11:35
+  ejecutor: Ana Pérez
+G-SEGU-021:
+  estado: ok
+  fecha: 2026-09-01T12:36
+  ejecutor: Ana Pérez
+G-SEGU-022:
+  estado: ok
+  fecha: 2026-09-01T13:37
+  ejecutor: Ana Pérez
+G-SEGU-023:
+  estado: ok
+  fecha: 2026-09-01T14:38
+  ejecutor: Ana Pérez
+G-SEGU-024:
+  estado: ok
+  fecha: 2026-09-01T15:39
+  ejecutor: Ana Pérez
+G-SEGU-025:
+  estado: ok
+  fecha: 2026-09-01T16:40
+  ejecutor: Ana Pérez
+G-SEGU-026:
+  estado: ok
+  fecha: 2026-09-01T17:41
+  ejecutor: Ana Pérez
+G-SEGU-027:
+  estado: ok
+  fecha: 2026-09-01T09:42
+  ejecutor: Ana Pérez
+G-SEGU-028:
+  estado: ok
+  fecha: 2026-09-01T10:43
+  ejecutor: Ana Pérez
+G-SEGU-029:
+  estado: ok
+  fecha: 2026-09-01T11:44
+  ejecutor: Ana Pérez
+G-SEGU-030:
+  estado: ok
+  fecha: 2026-09-01T12:45
+  ejecutor: Ana Pérez
+G-SEGU-031:
+  estado: ok
+  fecha: 2026-09-01T13:46
+  ejecutor: Ana Pérez
+G-SEGU-032:
+  estado: ok
+  fecha: 2026-09-01T14:47
+  ejecutor: Ana Pérez
+G-SEGU-033:
+  estado: ok
+  fecha: 2026-09-01T15:48
+  ejecutor: Ana Pérez
+G-SEGU-035:
+  estado: ok
+  fecha: 2026-09-01T16:49
+  ejecutor: Ana Pérez
+G-SEGU-036:
+  estado: ok
+  fecha: 2026-09-01T17:50
+  ejecutor: Ana Pérez
+G-SEGU-037:
+  estado: ok
+  fecha: 2026-09-01T09:51
+  ejecutor: Ana Pérez
+G-SEGU-039:
+  estado: ok
+  fecha: 2026-09-01T10:52
+  ejecutor: Ana Pérez
+G-SEGU-040:
+  estado: ok
+  fecha: 2026-09-01T11:53
+  ejecutor: Ana Pérez
+G-SEGU-041:
+  estado: ok
+  fecha: 2026-09-01T12:54
+  ejecutor: Ana Pérez
+G-SEGU-042:
+  estado: ok
+  fecha: 2026-09-01T13:55
+  ejecutor: Ana Pérez
+G-SEGU-044:
+  estado: ok
+  fecha: 2026-09-01T14:56
+  ejecutor: Ana Pérez
+G-SEGU-045:
+  estado: no_ok
+  fecha: 2026-09-01T15:57
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-SEGU-046:
+  estado: ok
+  fecha: 2026-09-01T16:58
+  ejecutor: Ana Pérez
+G-SEGU-047:
+  estado: ok
+  fecha: 2026-09-01T17:59
+  ejecutor: Ana Pérez
+G-SEGU-048:
+  estado: ok
+  fecha: 2026-09-01T09:00
+  ejecutor: Ana Pérez
+G-SEGU-049:
+  estado: ok
+  fecha: 2026-09-01T10:01
+  ejecutor: Ana Pérez
+G-SEGU-050:
+  estado: ok
+  fecha: 2026-09-01T11:02
+  ejecutor: Ana Pérez
+G-MANT-001:
+  estado: ok
+  fecha: 2026-09-01T12:03
+  ejecutor: Ana Pérez
+G-MANT-002:
+  estado: ok
+  fecha: 2026-09-01T13:04
+  ejecutor: Ana Pérez
+G-MANT-003:
+  estado: ok
+  fecha: 2026-09-01T14:05
+  ejecutor: Ana Pérez
+G-MANT-004:
+  estado: ok
+  fecha: 2026-09-01T15:06
+  ejecutor: Ana Pérez
+G-MANT-005:
+  estado: ok
+  fecha: 2026-09-01T16:07
+  ejecutor: Ana Pérez
+G-MANT-006:
+  estado: ok
+  fecha: 2026-09-01T17:08
+  ejecutor: Ana Pérez
+G-MANT-007:
+  estado: ok
+  fecha: 2026-09-01T09:09
+  ejecutor: Ana Pérez
+G-MANT-008:
+  estado: ok
+  fecha: 2026-09-01T10:10
+  ejecutor: Ana Pérez
+G-MANT-009:
+  estado: no_ok
+  fecha: 2026-09-01T11:11
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-MANT-010:
+  estado: ok
+  fecha: 2026-09-01T12:12
+  ejecutor: Ana Pérez
+G-MANT-011:
+  estado: no_ok
+  fecha: 2026-09-01T13:13
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-MANT-012:
+  estado: ok
+  fecha: 2026-09-01T14:14
+  ejecutor: Ana Pérez
+G-MANT-013:
+  estado: ok
+  fecha: 2026-09-01T15:15
+  ejecutor: Ana Pérez
+G-MANT-014:
+  estado: ok
+  fecha: 2026-09-01T16:16
+  ejecutor: Ana Pérez
+G-MANT-015:
+  estado: ok
+  fecha: 2026-09-01T17:17
+  ejecutor: Ana Pérez
+G-MANT-016:
+  estado: ok
+  fecha: 2026-09-01T09:18
+  ejecutor: Ana Pérez
+G-MANT-017:
+  estado: ok
+  fecha: 2026-09-01T10:19
+  ejecutor: Ana Pérez
+G-MANT-019:
+  estado: ok
+  fecha: 2026-09-01T11:20
+  ejecutor: Ana Pérez
+G-MANT-020:
+  estado: ok
+  fecha: 2026-09-01T12:21
+  ejecutor: Ana Pérez
+G-MANT-021:
+  estado: ok
+  fecha: 2026-09-01T13:22
+  ejecutor: Ana Pérez
+G-MANT-023:
+  estado: ok
+  fecha: 2026-09-01T14:23
+  ejecutor: Ana Pérez
+G-MANT-024:
+  estado: ok
+  fecha: 2026-09-01T15:24
+  ejecutor: Ana Pérez
+G-MANT-025:
+  estado: ok
+  fecha: 2026-09-01T16:25
+  ejecutor: Ana Pérez
+G-MANT-026:
+  estado: ok
+  fecha: 2026-09-01T17:26
+  ejecutor: Ana Pérez
+G-MANT-027:
+  estado: ok
+  fecha: 2026-09-01T09:27
+  ejecutor: Ana Pérez
+G-MANT-028:
+  estado: ok
+  fecha: 2026-09-01T10:28
+  ejecutor: Ana Pérez
+G-MANT-030:
+  estado: ok
+  fecha: 2026-09-01T11:29
+  ejecutor: Ana Pérez
+G-MANT-031:
+  estado: ok
+  fecha: 2026-09-01T12:30
+  ejecutor: Ana Pérez
+G-MANT-032:
+  estado: ok
+  fecha: 2026-09-01T13:31
+  ejecutor: Ana Pérez
+G-MANT-034:
+  estado: ok
+  fecha: 2026-09-01T14:32
+  ejecutor: Ana Pérez
+G-MANT-035:
+  estado: ok
+  fecha: 2026-09-01T15:33
+  ejecutor: Ana Pérez
+G-MANT-036:
+  estado: ok
+  fecha: 2026-09-01T16:34
+  ejecutor: Ana Pérez
+G-MANT-038:
+  estado: ok
+  fecha: 2026-09-01T17:35
+  ejecutor: Ana Pérez
+G-MANT-039:
+  estado: ok
+  fecha: 2026-09-01T09:36
+  ejecutor: Ana Pérez
+G-MANT-040:
+  estado: ok
+  fecha: 2026-09-01T10:37
+  ejecutor: Ana Pérez
+G-MANT-042:
+  estado: ok
+  fecha: 2026-09-01T11:38
+  ejecutor: Ana Pérez
+G-MANT-043:
+  estado: ok
+  fecha: 2026-09-01T12:39
+  ejecutor: Ana Pérez
+G-MANT-044:
+  estado: ok
+  fecha: 2026-09-01T13:40
+  ejecutor: Ana Pérez
+G-MANT-045:
+  estado: ok
+  fecha: 2026-09-01T14:41
+  ejecutor: Ana Pérez
+G-MANT-046:
+  estado: ok
+  fecha: 2026-09-01T15:42
+  ejecutor: Ana Pérez
+G-MANT-047:
+  estado: ok
+  fecha: 2026-09-01T16:43
+  ejecutor: Ana Pérez
+G-MANT-048:
+  estado: ok
+  fecha: 2026-09-01T17:44
+  ejecutor: Ana Pérez
+G-MANT-050:
+  estado: ok
+  fecha: 2026-09-01T09:45
+  ejecutor: Ana Pérez
+G-ALAR-001:
+  estado: ok
+  fecha: 2026-09-01T10:46
+  ejecutor: Ana Pérez
+G-ALAR-003:
+  estado: ok
+  fecha: 2026-09-01T11:47
+  ejecutor: Ana Pérez
+G-ALAR-004:
+  estado: ok
+  fecha: 2026-09-01T12:48
+  ejecutor: Ana Pérez
+G-ALAR-006:
+  estado: ok
+  fecha: 2026-09-01T13:49
+  ejecutor: Ana Pérez
+G-ALAR-009:
+  estado: ok
+  fecha: 2026-09-01T14:50
+  ejecutor: Ana Pérez
+G-ALAR-010:
+  estado: ok
+  fecha: 2026-09-01T15:51
+  ejecutor: Ana Pérez
+G-ALAR-011:
+  estado: ok
+  fecha: 2026-09-01T16:52
+  ejecutor: Ana Pérez
+G-ALAR-012:
+  estado: ok
+  fecha: 2026-09-01T17:53
+  ejecutor: Ana Pérez
+G-ALAR-013:
+  estado: ok
+  fecha: 2026-09-01T09:54
+  ejecutor: Ana Pérez
+G-ALAR-014:
+  estado: ok
+  fecha: 2026-09-01T10:55
+  ejecutor: Ana Pérez
+G-ALAR-015:
+  estado: ok
+  fecha: 2026-09-01T11:56
+  ejecutor: Ana Pérez
+G-ALAR-016:
+  estado: ok
+  fecha: 2026-09-01T12:57
+  ejecutor: Ana Pérez
+G-ALAR-017:
+  estado: ok
+  fecha: 2026-09-01T13:58
+  ejecutor: Ana Pérez
+G-ALAR-019:
+  estado: ok
+  fecha: 2026-09-01T14:59
+  ejecutor: Ana Pérez
+G-ALAR-021:
+  estado: ok
+  fecha: 2026-09-01T15:00
+  ejecutor: Ana Pérez
+G-ALAR-022:
+  estado: ok
+  fecha: 2026-09-01T16:01
+  ejecutor: Ana Pérez
+G-ALAR-023:
+  estado: no_ok
+  fecha: 2026-09-01T17:02
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ALAR-024:
+  estado: ok
+  fecha: 2026-09-01T09:03
+  ejecutor: Ana Pérez
+G-ALAR-025:
+  estado: ok
+  fecha: 2026-09-01T10:04
+  ejecutor: Ana Pérez
+G-ALAR-026:
+  estado: ok
+  fecha: 2026-09-01T11:05
+  ejecutor: Ana Pérez
+G-ALAR-027:
+  estado: ok
+  fecha: 2026-09-01T12:06
+  ejecutor: Ana Pérez
+G-ALAR-030:
+  estado: ok
+  fecha: 2026-09-01T13:07
+  ejecutor: Ana Pérez
+G-ALAR-031:
+  estado: ok
+  fecha: 2026-09-01T14:08
+  ejecutor: Ana Pérez
+G-ALAR-032:
+  estado: ok
+  fecha: 2026-09-01T15:09
+  ejecutor: Ana Pérez
+G-ALAR-033:
+  estado: ok
+  fecha: 2026-09-01T16:10
+  ejecutor: Ana Pérez
+G-ALAR-035:
+  estado: ok
+  fecha: 2026-09-01T17:11
+  ejecutor: Ana Pérez
+G-ALAR-037:
+  estado: ok
+  fecha: 2026-09-01T09:12
+  ejecutor: Ana Pérez
+G-ALAR-038:
+  estado: ok
+  fecha: 2026-09-01T10:13
+  ejecutor: Ana Pérez
+G-ALAR-039:
+  estado: ok
+  fecha: 2026-09-01T11:14
+  ejecutor: Ana Pérez
+G-ALAR-040:
+  estado: ok
+  fecha: 2026-09-01T12:15
+  ejecutor: Ana Pérez
+G-ALAR-042:
+  estado: no_ok
+  fecha: 2026-09-01T13:16
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ALAR-043:
+  estado: ok
+  fecha: 2026-09-01T14:17
+  ejecutor: Ana Pérez
+G-ALAR-044:
+  estado: ok
+  fecha: 2026-09-01T15:18
+  ejecutor: Ana Pérez
+G-ALAR-045:
+  estado: ok
+  fecha: 2026-09-01T16:19
+  ejecutor: Ana Pérez
+G-ALAR-047:
+  estado: no_ok
+  fecha: 2026-09-01T17:20
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ALAR-048:
+  estado: ok
+  fecha: 2026-09-01T09:21
+  ejecutor: Ana Pérez
+G-ALAR-049:
+  estado: ok
+  fecha: 2026-09-01T10:22
+  ejecutor: Ana Pérez
+G-ALAR-050:
+  estado: ok
+  fecha: 2026-09-01T11:23
+  ejecutor: Ana Pérez
+G-ENER-001:
+  estado: ok
+  fecha: 2026-09-01T12:24
+  ejecutor: Ana Pérez
+G-ENER-002:
+  estado: ok
+  fecha: 2026-09-01T13:25
+  ejecutor: Ana Pérez
+G-ENER-004:
+  estado: ok
+  fecha: 2026-09-01T14:26
+  ejecutor: Ana Pérez
+G-ENER-005:
+  estado: ok
+  fecha: 2026-09-01T15:27
+  ejecutor: Ana Pérez
+G-ENER-006:
+  estado: ok
+  fecha: 2026-09-01T16:28
+  ejecutor: Ana Pérez
+G-ENER-007:
+  estado: ok
+  fecha: 2026-09-01T17:29
+  ejecutor: Ana Pérez
+G-ENER-008:
+  estado: ok
+  fecha: 2026-09-01T09:30
+  ejecutor: Ana Pérez
+G-ENER-010:
+  estado: ok
+  fecha: 2026-09-01T10:31
+  ejecutor: Ana Pérez
+G-ENER-011:
+  estado: ok
+  fecha: 2026-09-01T11:32
+  ejecutor: Ana Pérez
+G-ENER-012:
+  estado: ok
+  fecha: 2026-09-01T12:33
+  ejecutor: Ana Pérez
+G-ENER-013:
+  estado: ok
+  fecha: 2026-09-01T13:34
+  ejecutor: Ana Pérez
+G-ENER-015:
+  estado: ok
+  fecha: 2026-09-01T14:35
+  ejecutor: Ana Pérez
+G-ENER-017:
+  estado: ok
+  fecha: 2026-09-01T15:36
+  ejecutor: Ana Pérez
+G-ENER-019:
+  estado: ok
+  fecha: 2026-09-01T16:37
+  ejecutor: Ana Pérez
+G-ENER-020:
+  estado: ok
+  fecha: 2026-09-01T17:38
+  ejecutor: Ana Pérez
+G-ENER-021:
+  estado: ok
+  fecha: 2026-09-01T09:39
+  ejecutor: Ana Pérez
+G-ENER-022:
+  estado: ok
+  fecha: 2026-09-01T10:40
+  ejecutor: Ana Pérez
+G-ENER-023:
+  estado: ok
+  fecha: 2026-09-01T11:41
+  ejecutor: Ana Pérez
+G-ENER-024:
+  estado: no_ok
+  fecha: 2026-09-01T12:42
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ENER-026:
+  estado: ok
+  fecha: 2026-09-01T13:43
+  ejecutor: Ana Pérez
+G-ENER-027:
+  estado: ok
+  fecha: 2026-09-01T14:44
+  ejecutor: Ana Pérez
+G-ENER-028:
+  estado: ok
+  fecha: 2026-09-01T15:45
+  ejecutor: Ana Pérez
+G-ENER-029:
+  estado: ok
+  fecha: 2026-09-01T16:46
+  ejecutor: Ana Pérez
+G-ENER-030:
+  estado: ok
+  fecha: 2026-09-01T17:47
+  ejecutor: Ana Pérez
+G-ENER-031:
+  estado: ok
+  fecha: 2026-09-01T09:48
+  ejecutor: Ana Pérez
+G-ENER-032:
+  estado: ok
+  fecha: 2026-09-01T10:49
+  ejecutor: Ana Pérez
+G-ENER-034:
+  estado: no_aplica
+  fecha: 2026-09-01T11:50
+  ejecutor: Ana Pérez
+G-ENER-035:
+  estado: ok
+  fecha: 2026-09-01T12:51
+  ejecutor: Ana Pérez
+G-ENER-036:
+  estado: ok
+  fecha: 2026-09-01T13:52
+  ejecutor: Ana Pérez
+G-ENER-038:
+  estado: ok
+  fecha: 2026-09-01T14:53
+  ejecutor: Ana Pérez
+G-ENER-039:
+  estado: ok
+  fecha: 2026-09-01T15:54
+  ejecutor: Ana Pérez
+G-ENER-042:
+  estado: ok
+  fecha: 2026-09-01T16:55
+  ejecutor: Ana Pérez
+G-ENER-043:
+  estado: ok
+  fecha: 2026-09-01T17:56
+  ejecutor: Ana Pérez
+G-ENER-044:
+  estado: ok
+  fecha: 2026-09-01T09:57
+  ejecutor: Ana Pérez
+G-ENER-045:
+  estado: ok
+  fecha: 2026-09-01T10:58
+  ejecutor: Ana Pérez
+G-ENER-046:
+  estado: ok
+  fecha: 2026-09-01T11:59
+  ejecutor: Ana Pérez
+G-ENER-048:
+  estado: ok
+  fecha: 2026-09-01T12:00
+  ejecutor: Ana Pérez
+G-ENER-049:
+  estado: ok
+  fecha: 2026-09-01T13:01
+  ejecutor: Ana Pérez
+G-ENER-050:
+  estado: ok
+  fecha: 2026-09-01T14:02
+  ejecutor: Ana Pérez
+G-DISP-001:
+  estado: ok
+  fecha: 2026-09-01T15:03
+  ejecutor: Ana Pérez
+G-DISP-002:
+  estado: ok
+  fecha: 2026-09-01T16:04
+  ejecutor: Ana Pérez
+G-DISP-003:
+  estado: ok
+  fecha: 2026-09-01T17:05
+  ejecutor: Ana Pérez
+G-DISP-004:
+  estado: ok
+  fecha: 2026-09-01T09:06
+  ejecutor: Ana Pérez
+G-DISP-006:
+  estado: ok
+  fecha: 2026-09-01T10:07
+  ejecutor: Ana Pérez
+G-DISP-007:
+  estado: ok
+  fecha: 2026-09-01T11:08
+  ejecutor: Ana Pérez
+G-DISP-009:
+  estado: ok
+  fecha: 2026-09-01T12:09
+  ejecutor: Ana Pérez
+G-DISP-010:
+  estado: no_ok
+  fecha: 2026-09-01T13:10
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-DISP-011:
+  estado: ok
+  fecha: 2026-09-01T14:11
+  ejecutor: Ana Pérez
+G-DISP-013:
+  estado: ok
+  fecha: 2026-09-01T15:12
+  ejecutor: Ana Pérez
+G-DISP-016:
+  estado: ok
+  fecha: 2026-09-01T16:13
+  ejecutor: Ana Pérez
+G-DISP-017:
+  estado: ok
+  fecha: 2026-09-01T17:14
+  ejecutor: Ana Pérez
+G-DISP-018:
+  estado: ok
+  fecha: 2026-09-01T09:15
+  ejecutor: Ana Pérez
+G-DISP-019:
+  estado: ok
+  fecha: 2026-09-01T10:16
+  ejecutor: Ana Pérez
+G-DISP-021:
+  estado: ok
+  fecha: 2026-09-01T11:17
+  ejecutor: Ana Pérez
+G-DISP-022:
+  estado: ok
+  fecha: 2026-09-01T12:18
+  ejecutor: Ana Pérez
+G-DISP-024:
+  estado: ok
+  fecha: 2026-09-01T13:19
+  ejecutor: Ana Pérez
+G-DISP-026:
+  estado: ok
+  fecha: 2026-09-01T14:20
+  ejecutor: Ana Pérez
+G-DISP-027:
+  estado: ok
+  fecha: 2026-09-01T15:21
+  ejecutor: Ana Pérez
+G-DISP-028:
+  estado: ok
+  fecha: 2026-09-01T16:22
+  ejecutor: Ana Pérez
+G-DISP-031:
+  estado: ok
+  fecha: 2026-09-01T17:23
+  ejecutor: Ana Pérez
+G-DISP-032:
+  estado: ok
+  fecha: 2026-09-01T09:24
+  ejecutor: Ana Pérez
+G-DISP-033:
+  estado: ok
+  fecha: 2026-09-01T10:25
+  ejecutor: Ana Pérez
+G-DISP-034:
+  estado: ok
+  fecha: 2026-09-01T11:26
+  ejecutor: Ana Pérez
+G-DISP-035:
+  estado: ok
+  fecha: 2026-09-01T12:27
+  ejecutor: Ana Pérez
+G-DISP-037:
+  estado: bloqueada
+  fecha: 2026-09-01T13:28
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-DISP-039:
+  estado: ok
+  fecha: 2026-09-01T14:29
+  ejecutor: Ana Pérez
+G-DISP-040:
+  estado: ok
+  fecha: 2026-09-01T15:30
+  ejecutor: Ana Pérez
+G-DISP-041:
+  estado: ok
+  fecha: 2026-09-01T16:31
+  ejecutor: Ana Pérez
+G-DISP-042:
+  estado: ok
+  fecha: 2026-09-01T17:32
+  ejecutor: Ana Pérez
+G-DISP-043:
+  estado: ok
+  fecha: 2026-09-01T09:33
+  ejecutor: Ana Pérez
+G-DISP-044:
+  estado: ok
+  fecha: 2026-09-01T10:34
+  ejecutor: Ana Pérez
+G-DISP-045:
+  estado: ok
+  fecha: 2026-09-01T11:35
+  ejecutor: Ana Pérez
+G-DISP-046:
+  estado: ok
+  fecha: 2026-09-01T12:36
+  ejecutor: Ana Pérez
+G-DISP-048:
+  estado: ok
+  fecha: 2026-09-01T13:37
+  ejecutor: Ana Pérez
+G-DISP-050:
+  estado: ok
+  fecha: 2026-09-01T14:38
+  ejecutor: Ana Pérez
+G-BOTO-001:
+  estado: ok
+  fecha: 2026-09-01T15:39
+  ejecutor: Ana Pérez
+G-BOTO-002:
+  estado: ok
+  fecha: 2026-09-01T16:40
+  ejecutor: Ana Pérez
+G-BOTO-003:
+  estado: ok
+  fecha: 2026-09-01T17:41
+  ejecutor: Ana Pérez
+G-BOTO-004:
+  estado: ok
+  fecha: 2026-09-01T09:42
+  ejecutor: Ana Pérez
+G-BOTO-005:
+  estado: ok
+  fecha: 2026-09-01T10:43
+  ejecutor: Ana Pérez
+G-BOTO-006:
+  estado: ok
+  fecha: 2026-09-01T11:44
+  ejecutor: Ana Pérez
+G-BOTO-007:
+  estado: ok
+  fecha: 2026-09-01T12:45
+  ejecutor: Ana Pérez
+G-BOTO-008:
+  estado: ok
+  fecha: 2026-09-01T13:46
+  ejecutor: Ana Pérez
+G-BOTO-009:
+  estado: ok
+  fecha: 2026-09-01T14:47
+  ejecutor: Ana Pérez
+G-BOTO-010:
+  estado: ok
+  fecha: 2026-09-01T15:48
+  ejecutor: Ana Pérez
+G-BOTO-011:
+  estado: ok
+  fecha: 2026-09-01T16:49
+  ejecutor: Ana Pérez
+G-BOTO-012:
+  estado: ok
+  fecha: 2026-09-01T17:50
+  ejecutor: Ana Pérez
+G-BOTO-013:
+  estado: ok
+  fecha: 2026-09-01T09:51
+  ejecutor: Ana Pérez
+G-BOTO-014:
+  estado: ok
+  fecha: 2026-09-01T10:52
+  ejecutor: Ana Pérez
+G-BOTO-016:
+  estado: ok
+  fecha: 2026-09-01T11:53
+  ejecutor: Ana Pérez
+G-BOTO-017:
+  estado: ok
+  fecha: 2026-09-01T12:54
+  ejecutor: Ana Pérez
+G-BOTO-018:
+  estado: ok
+  fecha: 2026-09-01T13:55
+  ejecutor: Ana Pérez
+G-BOTO-019:
+  estado: ok
+  fecha: 2026-09-01T14:56
+  ejecutor: Ana Pérez
+G-BOTO-020:
+  estado: ok
+  fecha: 2026-09-01T15:57
+  ejecutor: Ana Pérez
+G-BOTO-021:
+  estado: ok
+  fecha: 2026-09-01T16:58
+  ejecutor: Ana Pérez
+G-BOTO-022:
+  estado: ok
+  fecha: 2026-09-01T17:59
+  ejecutor: Ana Pérez
+G-BOTO-023:
+  estado: ok
+  fecha: 2026-09-01T09:00
+  ejecutor: Ana Pérez
+G-BOTO-024:
+  estado: ok
+  fecha: 2026-09-01T10:01
+  ejecutor: Ana Pérez
+G-BOTO-025:
+  estado: ok
+  fecha: 2026-09-01T11:02
+  ejecutor: Ana Pérez
+G-BOTO-026:
+  estado: ok
+  fecha: 2026-09-01T12:03
+  ejecutor: Ana Pérez
+G-BOTO-027:
+  estado: ok
+  fecha: 2026-09-01T13:04
+  ejecutor: Ana Pérez
+G-BOTO-028:
+  estado: ok
+  fecha: 2026-09-01T14:05
+  ejecutor: Ana Pérez
+G-BOTO-029:
+  estado: ok
+  fecha: 2026-09-01T15:06
+  ejecutor: Ana Pérez
+G-BOTO-031:
+  estado: ok
+  fecha: 2026-09-01T16:07
+  ejecutor: Ana Pérez
+G-BOTO-032:
+  estado: ok
+  fecha: 2026-09-01T17:08
+  ejecutor: Ana Pérez
+G-BOTO-033:
+  estado: ok
+  fecha: 2026-09-01T09:09
+  ejecutor: Ana Pérez
+G-BOTO-034:
+  estado: ok
+  fecha: 2026-09-01T10:10
+  ejecutor: Ana Pérez
+G-BOTO-035:
+  estado: ok
+  fecha: 2026-09-01T11:11
+  ejecutor: Ana Pérez
+G-BOTO-036:
+  estado: ok
+  fecha: 2026-09-01T12:12
+  ejecutor: Ana Pérez
+G-BOTO-037:
+  estado: bloqueada
+  fecha: 2026-09-01T13:13
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-BOTO-038:
+  estado: ok
+  fecha: 2026-09-01T14:14
+  ejecutor: Ana Pérez
+G-BOTO-039:
+  estado: ok
+  fecha: 2026-09-01T15:15
+  ejecutor: Ana Pérez
+G-BOTO-041:
+  estado: ok
+  fecha: 2026-09-01T16:16
+  ejecutor: Ana Pérez
+G-BOTO-042:
+  estado: ok
+  fecha: 2026-09-01T17:17
+  ejecutor: Ana Pérez
+G-BOTO-043:
+  estado: ok
+  fecha: 2026-09-01T09:18
+  ejecutor: Ana Pérez
+G-BOTO-044:
+  estado: no_ok
+  fecha: 2026-09-01T10:19
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-BOTO-045:
+  estado: ok
+  fecha: 2026-09-01T11:20
+  ejecutor: Ana Pérez
+G-BOTO-046:
+  estado: ok
+  fecha: 2026-09-01T12:21
+  ejecutor: Ana Pérez
+G-BOTO-047:
+  estado: ok
+  fecha: 2026-09-01T13:22
+  ejecutor: Ana Pérez
+G-BOTO-049:
+  estado: ok
+  fecha: 2026-09-01T14:23
+  ejecutor: Ana Pérez
+G-BOTO-050:
+  estado: ok
+  fecha: 2026-09-01T15:24
+  ejecutor: Ana Pérez
+G-INCE-001:
+  estado: ok
+  fecha: 2026-09-01T16:25
+  ejecutor: Ana Pérez
+G-INCE-002:
+  estado: ok
+  fecha: 2026-09-01T17:26
+  ejecutor: Ana Pérez
+G-INCE-004:
+  estado: ok
+  fecha: 2026-09-01T09:27
+  ejecutor: Ana Pérez
+G-INCE-005:
+  estado: ok
+  fecha: 2026-09-01T10:28
+  ejecutor: Ana Pérez
+G-INCE-007:
+  estado: ok
+  fecha: 2026-09-01T11:29
+  ejecutor: Ana Pérez
+G-INCE-008:
+  estado: ok
+  fecha: 2026-09-01T12:30
+  ejecutor: Ana Pérez
+G-INCE-009:
+  estado: no_ok
+  fecha: 2026-09-01T13:31
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-INCE-010:
+  estado: ok
+  fecha: 2026-09-01T14:32
+  ejecutor: Ana Pérez
+G-INCE-011:
+  estado: ok
+  fecha: 2026-09-01T15:33
+  ejecutor: Ana Pérez
+G-INCE-012:
+  estado: no_ok
+  fecha: 2026-09-01T16:34
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-INCE-013:
+  estado: ok
+  fecha: 2026-09-01T17:35
+  ejecutor: Ana Pérez
+G-INCE-014:
+  estado: ok
+  fecha: 2026-09-01T09:36
+  ejecutor: Ana Pérez
+G-INCE-015:
+  estado: ok
+  fecha: 2026-09-01T10:37
+  ejecutor: Ana Pérez
+G-INCE-016:
+  estado: ok
+  fecha: 2026-09-01T11:38
+  ejecutor: Ana Pérez
+G-INCE-017:
+  estado: ok
+  fecha: 2026-09-01T12:39
+  ejecutor: Ana Pérez
+G-INCE-018:
+  estado: ok
+  fecha: 2026-09-01T13:40
+  ejecutor: Ana Pérez
+G-INCE-019:
+  estado: ok
+  fecha: 2026-09-01T14:41
+  ejecutor: Ana Pérez
+G-INCE-020:
+  estado: ok
+  fecha: 2026-09-01T15:42
+  ejecutor: Ana Pérez
+G-INCE-021:
+  estado: ok
+  fecha: 2026-09-01T16:43
+  ejecutor: Ana Pérez
+G-INCE-022:
+  estado: ok
+  fecha: 2026-09-01T17:44
+  ejecutor: Ana Pérez
+G-INCE-024:
+  estado: ok
+  fecha: 2026-09-01T09:45
+  ejecutor: Ana Pérez
+G-INCE-025:
+  estado: ok
+  fecha: 2026-09-01T10:46
+  ejecutor: Ana Pérez
+G-INCE-029:
+  estado: ok
+  fecha: 2026-09-01T11:47
+  ejecutor: Ana Pérez
+G-INCE-031:
+  estado: ok
+  fecha: 2026-09-01T12:48
+  ejecutor: Ana Pérez
+G-INCE-032:
+  estado: ok
+  fecha: 2026-09-01T13:49
+  ejecutor: Ana Pérez
+G-INCE-034:
+  estado: ok
+  fecha: 2026-09-01T14:50
+  ejecutor: Ana Pérez
+G-INCE-036:
+  estado: ok
+  fecha: 2026-09-01T15:51
+  ejecutor: Ana Pérez
+G-INCE-037:
+  estado: ok
+  fecha: 2026-09-01T16:52
+  ejecutor: Ana Pérez
+G-INCE-039:
+  estado: ok
+  fecha: 2026-09-01T17:53
+  ejecutor: Ana Pérez
+G-INCE-040:
+  estado: ok
+  fecha: 2026-09-01T09:54
+  ejecutor: Ana Pérez
+G-INCE-041:
+  estado: ok
+  fecha: 2026-09-01T10:55
+  ejecutor: Ana Pérez
+G-INCE-042:
+  estado: ok
+  fecha: 2026-09-01T11:56
+  ejecutor: Ana Pérez
+G-INCE-043:
+  estado: ok
+  fecha: 2026-09-01T12:57
+  ejecutor: Ana Pérez
+G-INCE-044:
+  estado: ok
+  fecha: 2026-09-01T13:58
+  ejecutor: Ana Pérez
+G-INCE-046:
+  estado: ok
+  fecha: 2026-09-01T14:59
+  ejecutor: Ana Pérez
+G-INCE-050:
+  estado: ok
+  fecha: 2026-09-01T15:00
+  ejecutor: Ana Pérez
+G-RESC-002:
+  estado: ok
+  fecha: 2026-09-01T16:01
+  ejecutor: Ana Pérez
+G-RESC-003:
+  estado: ok
+  fecha: 2026-09-01T17:02
+  ejecutor: Ana Pérez
+G-RESC-004:
+  estado: ok
+  fecha: 2026-09-01T09:03
+  ejecutor: Ana Pérez
+G-RESC-005:
+  estado: ok
+  fecha: 2026-09-01T10:04
+  ejecutor: Ana Pérez
+G-RESC-006:
+  estado: ok
+  fecha: 2026-09-01T11:05
+  ejecutor: Ana Pérez
+G-RESC-007:
+  estado: ok
+  fecha: 2026-09-01T12:06
+  ejecutor: Ana Pérez
+G-RESC-009:
+  estado: ok
+  fecha: 2026-09-01T13:07
+  ejecutor: Ana Pérez
+G-RESC-010:
+  estado: ok
+  fecha: 2026-09-01T14:08
+  ejecutor: Ana Pérez
+G-RESC-012:
+  estado: ok
+  fecha: 2026-09-01T15:09
+  ejecutor: Ana Pérez
+G-RESC-013:
+  estado: ok
+  fecha: 2026-09-01T16:10
+  ejecutor: Ana Pérez
+G-RESC-014:
+  estado: no_ok
+  fecha: 2026-09-01T17:11
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-RESC-015:
+  estado: ok
+  fecha: 2026-09-01T09:12
+  ejecutor: Ana Pérez
+G-RESC-016:
+  estado: ok
+  fecha: 2026-09-01T10:13
+  ejecutor: Ana Pérez
+G-RESC-020:
+  estado: ok
+  fecha: 2026-09-01T11:14
+  ejecutor: Ana Pérez
+G-RESC-021:
+  estado: ok
+  fecha: 2026-09-01T12:15
+  ejecutor: Ana Pérez
+G-RESC-022:
+  estado: ok
+  fecha: 2026-09-01T13:16
+  ejecutor: Ana Pérez
+G-RESC-023:
+  estado: ok
+  fecha: 2026-09-01T14:17
+  ejecutor: Ana Pérez
+G-RESC-024:
+  estado: ok
+  fecha: 2026-09-01T15:18
+  ejecutor: Ana Pérez
+G-RESC-025:
+  estado: ok
+  fecha: 2026-09-01T16:19
+  ejecutor: Ana Pérez
+G-RESC-026:
+  estado: ok
+  fecha: 2026-09-01T17:20
+  ejecutor: Ana Pérez
+G-RESC-027:
+  estado: ok
+  fecha: 2026-09-01T09:21
+  ejecutor: Ana Pérez
+G-RESC-028:
+  estado: ok
+  fecha: 2026-09-01T10:22
+  ejecutor: Ana Pérez
+G-RESC-029:
+  estado: no_aplica
+  fecha: 2026-09-01T11:23
+  ejecutor: Ana Pérez
+G-RESC-030:
+  estado: ok
+  fecha: 2026-09-01T12:24
+  ejecutor: Ana Pérez
+G-RESC-031:
+  estado: ok
+  fecha: 2026-09-01T13:25
+  ejecutor: Ana Pérez
+G-RESC-032:
+  estado: ok
+  fecha: 2026-09-01T14:26
+  ejecutor: Ana Pérez
+G-RESC-034:
+  estado: ok
+  fecha: 2026-09-01T15:27
+  ejecutor: Ana Pérez
+G-RESC-035:
+  estado: ok
+  fecha: 2026-09-01T16:28
+  ejecutor: Ana Pérez
+G-RESC-036:
+  estado: ok
+  fecha: 2026-09-01T17:29
+  ejecutor: Ana Pérez
+G-RESC-037:
+  estado: ok
+  fecha: 2026-09-01T09:30
+  ejecutor: Ana Pérez
+G-RESC-038:
+  estado: ok
+  fecha: 2026-09-01T10:31
+  ejecutor: Ana Pérez
+G-RESC-039:
+  estado: ok
+  fecha: 2026-09-01T11:32
+  ejecutor: Ana Pérez
+G-RESC-040:
+  estado: no_ok
+  fecha: 2026-09-01T12:33
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-RESC-041:
+  estado: no_ok
+  fecha: 2026-09-01T13:34
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-RESC-043:
+  estado: ok
+  fecha: 2026-09-01T14:35
+  ejecutor: Ana Pérez
+G-RESC-045:
+  estado: no_ok
+  fecha: 2026-09-01T15:36
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-RESC-046:
+  estado: ok
+  fecha: 2026-09-01T16:37
+  ejecutor: Ana Pérez
+G-RESC-047:
+  estado: ok
+  fecha: 2026-09-01T17:38
+  ejecutor: Ana Pérez
+G-RESC-048:
+  estado: ok
+  fecha: 2026-09-01T09:39
+  ejecutor: Ana Pérez
+G-RESC-049:
+  estado: ok
+  fecha: 2026-09-01T10:40
+  ejecutor: Ana Pérez
+G-RESC-050:
+  estado: no_ok
+  fecha: 2026-09-01T11:41
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-GRUP-001:
+  estado: ok
+  fecha: 2026-09-01T12:42
+  ejecutor: Ana Pérez
+G-GRUP-002:
+  estado: ok
+  fecha: 2026-09-01T13:43
+  ejecutor: Ana Pérez
+G-GRUP-005:
+  estado: ok
+  fecha: 2026-09-01T14:44
+  ejecutor: Ana Pérez
+G-GRUP-007:
+  estado: ok
+  fecha: 2026-09-01T15:45
+  ejecutor: Ana Pérez
+G-GRUP-008:
+  estado: ok
+  fecha: 2026-09-01T16:46
+  ejecutor: Ana Pérez
+G-GRUP-009:
+  estado: ok
+  fecha: 2026-09-01T17:47
+  ejecutor: Ana Pérez
+G-GRUP-010:
+  estado: ok
+  fecha: 2026-09-01T09:48
+  ejecutor: Ana Pérez
+G-GRUP-011:
+  estado: ok
+  fecha: 2026-09-01T10:49
+  ejecutor: Ana Pérez
+G-GRUP-012:
+  estado: ok
+  fecha: 2026-09-01T11:50
+  ejecutor: Ana Pérez
+G-GRUP-013:
+  estado: no_ok
+  fecha: 2026-09-01T12:51
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-GRUP-014:
+  estado: ok
+  fecha: 2026-09-01T13:52
+  ejecutor: Ana Pérez
+G-GRUP-015:
+  estado: ok
+  fecha: 2026-09-01T14:53
+  ejecutor: Ana Pérez
+G-GRUP-016:
+  estado: ok
+  fecha: 2026-09-01T15:54
+  ejecutor: Ana Pérez
+G-GRUP-017:
+  estado: ok
+  fecha: 2026-09-01T16:55
+  ejecutor: Ana Pérez
+G-GRUP-018:
+  estado: ok
+  fecha: 2026-09-01T17:56
+  ejecutor: Ana Pérez
+G-GRUP-021:
+  estado: ok
+  fecha: 2026-09-01T09:57
+  ejecutor: Ana Pérez
+G-GRUP-024:
+  estado: ok
+  fecha: 2026-09-01T10:58
+  ejecutor: Ana Pérez
+G-GRUP-026:
+  estado: ok
+  fecha: 2026-09-01T11:59
+  ejecutor: Ana Pérez
+G-GRUP-028:
+  estado: ok
+  fecha: 2026-09-01T12:00
+  ejecutor: Ana Pérez
+G-GRUP-029:
+  estado: ok
+  fecha: 2026-09-01T13:01
+  ejecutor: Ana Pérez
+G-GRUP-030:
+  estado: ok
+  fecha: 2026-09-01T14:02
+  ejecutor: Ana Pérez
+G-GRUP-032:
+  estado: ok
+  fecha: 2026-09-01T15:03
+  ejecutor: Ana Pérez
+G-GRUP-034:
+  estado: ok
+  fecha: 2026-09-01T16:04
+  ejecutor: Ana Pérez
+G-GRUP-035:
+  estado: ok
+  fecha: 2026-09-01T17:05
+  ejecutor: Ana Pérez
+G-GRUP-036:
+  estado: ok
+  fecha: 2026-09-01T09:06
+  ejecutor: Ana Pérez
+G-GRUP-037:
+  estado: ok
+  fecha: 2026-09-01T10:07
+  ejecutor: Ana Pérez
+G-GRUP-038:
+  estado: ok
+  fecha: 2026-09-01T11:08
+  ejecutor: Ana Pérez
+G-GRUP-039:
+  estado: ok
+  fecha: 2026-09-01T12:09
+  ejecutor: Ana Pérez
+G-GRUP-041:
+  estado: ok
+  fecha: 2026-09-01T13:10
+  ejecutor: Ana Pérez
+G-GRUP-043:
+  estado: ok
+  fecha: 2026-09-01T14:11
+  ejecutor: Ana Pérez
+G-GRUP-045:
+  estado: ok
+  fecha: 2026-09-01T15:12
+  ejecutor: Ana Pérez
+G-GRUP-047:
+  estado: bloqueada
+  fecha: 2026-09-01T16:13
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-ACCE-003:
+  estado: no_ok
+  fecha: 2026-09-01T17:14
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-004:
+  estado: ok
+  fecha: 2026-09-01T09:15
+  ejecutor: Ana Pérez
+G-ACCE-005:
+  estado: bloqueada
+  fecha: 2026-09-01T10:16
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-ACCE-007:
+  estado: no_ok
+  fecha: 2026-09-01T11:17
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-008:
+  estado: ok
+  fecha: 2026-09-01T12:18
+  ejecutor: Ana Pérez
+G-ACCE-009:
+  estado: ok
+  fecha: 2026-09-01T13:19
+  ejecutor: Ana Pérez
+G-ACCE-010:
+  estado: ok
+  fecha: 2026-09-01T14:20
+  ejecutor: Ana Pérez
+G-ACCE-011:
+  estado: ok
+  fecha: 2026-09-01T15:21
+  ejecutor: Ana Pérez
+G-ACCE-012:
+  estado: ok
+  fecha: 2026-09-01T16:22
+  ejecutor: Ana Pérez
+G-ACCE-014:
+  estado: ok
+  fecha: 2026-09-01T17:23
+  ejecutor: Ana Pérez
+G-ACCE-016:
+  estado: ok
+  fecha: 2026-09-01T09:24
+  ejecutor: Ana Pérez
+G-ACCE-019:
+  estado: no_aplica
+  fecha: 2026-09-01T10:25
+  ejecutor: Ana Pérez
+G-ACCE-020:
+  estado: ok
+  fecha: 2026-09-01T11:26
+  ejecutor: Ana Pérez
+G-ACCE-021:
+  estado: ok
+  fecha: 2026-09-01T12:27
+  ejecutor: Ana Pérez
+G-ACCE-022:
+  estado: ok
+  fecha: 2026-09-01T13:28
+  ejecutor: Ana Pérez
+G-ACCE-023:
+  estado: ok
+  fecha: 2026-09-01T14:29
+  ejecutor: Ana Pérez
+G-ACCE-024:
+  estado: ok
+  fecha: 2026-09-01T15:30
+  ejecutor: Ana Pérez
+G-ACCE-025:
+  estado: no_ok
+  fecha: 2026-09-01T16:31
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-026:
+  estado: ok
+  fecha: 2026-09-01T17:32
+  ejecutor: Ana Pérez
+G-ACCE-027:
+  estado: ok
+  fecha: 2026-09-01T09:33
+  ejecutor: Ana Pérez
+G-ACCE-030:
+  estado: ok
+  fecha: 2026-09-01T10:34
+  ejecutor: Ana Pérez
+G-ACCE-031:
+  estado: ok
+  fecha: 2026-09-01T11:35
+  ejecutor: Ana Pérez
+G-ACCE-032:
+  estado: ok
+  fecha: 2026-09-01T12:36
+  ejecutor: Ana Pérez
+G-ACCE-033:
+  estado: ok
+  fecha: 2026-09-01T13:37
+  ejecutor: Ana Pérez
+G-ACCE-034:
+  estado: ok
+  fecha: 2026-09-01T14:38
+  ejecutor: Ana Pérez
+G-ACCE-035:
+  estado: ok
+  fecha: 2026-09-01T15:39
+  ejecutor: Ana Pérez
+G-ACCE-036:
+  estado: ok
+  fecha: 2026-09-01T16:40
+  ejecutor: Ana Pérez
+G-ACCE-037:
+  estado: ok
+  fecha: 2026-09-01T17:41
+  ejecutor: Ana Pérez
+G-ACCE-039:
+  estado: ok
+  fecha: 2026-09-01T09:42
+  ejecutor: Ana Pérez
+G-ACCE-040:
+  estado: no_ok
+  fecha: 2026-09-01T10:43
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-041:
+  estado: ok
+  fecha: 2026-09-01T11:44
+  ejecutor: Ana Pérez
+G-ACCE-043:
+  estado: ok
+  fecha: 2026-09-01T12:45
+  ejecutor: Ana Pérez
+G-ACCE-044:
+  estado: ok
+  fecha: 2026-09-01T13:46
+  ejecutor: Ana Pérez
+G-ACCE-045:
+  estado: ok
+  fecha: 2026-09-01T14:47
+  ejecutor: Ana Pérez
+G-ACCE-046:
+  estado: ok
+  fecha: 2026-09-01T15:48
+  ejecutor: Ana Pérez
+G-ACCE-047:
+  estado: no_ok
+  fecha: 2026-09-01T16:49
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ACCE-048:
+  estado: ok
+  fecha: 2026-09-01T17:50
+  ejecutor: Ana Pérez
+G-ACCE-049:
+  estado: ok
+  fecha: 2026-09-01T09:51
+  ejecutor: Ana Pérez
+G-ACCE-050:
+  estado: ok
+  fecha: 2026-09-01T10:52
+  ejecutor: Ana Pérez
+G-PESA-001:
+  estado: ok
+  fecha: 2026-09-01T11:53
+  ejecutor: Ana Pérez
+G-PESA-002:
+  estado: ok
+  fecha: 2026-09-01T12:54
+  ejecutor: Ana Pérez
+G-PESA-004:
+  estado: ok
+  fecha: 2026-09-01T13:55
+  ejecutor: Ana Pérez
+G-PESA-006:
+  estado: ok
+  fecha: 2026-09-01T14:56
+  ejecutor: Ana Pérez
+G-PESA-007:
+  estado: ok
+  fecha: 2026-09-01T15:57
+  ejecutor: Ana Pérez
+G-PESA-009:
+  estado: ok
+  fecha: 2026-09-01T16:58
+  ejecutor: Ana Pérez
+G-PESA-010:
+  estado: ok
+  fecha: 2026-09-01T17:59
+  ejecutor: Ana Pérez
+G-PESA-011:
+  estado: ok
+  fecha: 2026-09-01T09:00
+  ejecutor: Ana Pérez
+G-PESA-012:
+  estado: ok
+  fecha: 2026-09-01T10:01
+  ejecutor: Ana Pérez
+G-PESA-013:
+  estado: ok
+  fecha: 2026-09-01T11:02
+  ejecutor: Ana Pérez
+G-PESA-014:
+  estado: ok
+  fecha: 2026-09-01T12:03
+  ejecutor: Ana Pérez
+G-PESA-015:
+  estado: ok
+  fecha: 2026-09-01T13:04
+  ejecutor: Ana Pérez
+G-PESA-018:
+  estado: ok
+  fecha: 2026-09-01T14:05
+  ejecutor: Ana Pérez
+G-PESA-019:
+  estado: ok
+  fecha: 2026-09-01T15:06
+  ejecutor: Ana Pérez
+G-PESA-020:
+  estado: ok
+  fecha: 2026-09-01T16:07
+  ejecutor: Ana Pérez
+G-PESA-021:
+  estado: ok
+  fecha: 2026-09-01T17:08
+  ejecutor: Ana Pérez
+G-PESA-022:
+  estado: ok
+  fecha: 2026-09-01T09:09
+  ejecutor: Ana Pérez
+G-PESA-023:
+  estado: no_ok
+  fecha: 2026-09-01T10:10
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-PESA-024:
+  estado: ok
+  fecha: 2026-09-01T11:11
+  ejecutor: Ana Pérez
+G-PESA-025:
+  estado: ok
+  fecha: 2026-09-01T12:12
+  ejecutor: Ana Pérez
+G-PESA-026:
+  estado: ok
+  fecha: 2026-09-01T13:13
+  ejecutor: Ana Pérez
+G-PESA-027:
+  estado: ok
+  fecha: 2026-09-01T14:14
+  ejecutor: Ana Pérez
+G-PESA-029:
+  estado: ok
+  fecha: 2026-09-01T15:15
+  ejecutor: Ana Pérez
+G-PESA-030:
+  estado: ok
+  fecha: 2026-09-01T16:16
+  ejecutor: Ana Pérez
+G-PESA-031:
+  estado: ok
+  fecha: 2026-09-01T17:17
+  ejecutor: Ana Pérez
+G-PESA-032:
+  estado: ok
+  fecha: 2026-09-01T09:18
+  ejecutor: Ana Pérez
+G-PESA-036:
+  estado: ok
+  fecha: 2026-09-01T10:19
+  ejecutor: Ana Pérez
+G-PESA-037:
+  estado: ok
+  fecha: 2026-09-01T11:20
+  ejecutor: Ana Pérez
+G-PESA-038:
+  estado: ok
+  fecha: 2026-09-01T12:21
+  ejecutor: Ana Pérez
+G-PESA-040:
+  estado: ok
+  fecha: 2026-09-01T13:22
+  ejecutor: Ana Pérez
+G-PESA-042:
+  estado: ok
+  fecha: 2026-09-01T14:23
+  ejecutor: Ana Pérez
+G-PESA-043:
+  estado: no_ok
+  fecha: 2026-09-01T15:24
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-PESA-044:
+  estado: no_ok
+  fecha: 2026-09-01T16:25
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-PESA-045:
+  estado: ok
+  fecha: 2026-09-01T17:26
+  ejecutor: Ana Pérez
+G-PESA-048:
+  estado: ok
+  fecha: 2026-09-01T09:27
+  ejecutor: Ana Pérez
+G-PESA-049:
+  estado: ok
+  fecha: 2026-09-01T10:28
+  ejecutor: Ana Pérez
+G-PESA-050:
+  estado: ok
+  fecha: 2026-09-01T11:29
+  ejecutor: Ana Pérez
+G-VENT-001:
+  estado: no_aplica
+  fecha: 2026-09-01T12:30
+  ejecutor: Ana Pérez
+G-VENT-002:
+  estado: ok
+  fecha: 2026-09-01T13:31
+  ejecutor: Ana Pérez
+G-VENT-003:
+  estado: ok
+  fecha: 2026-09-01T14:32
+  ejecutor: Ana Pérez
+G-VENT-004:
+  estado: ok
+  fecha: 2026-09-01T15:33
+  ejecutor: Ana Pérez
+G-VENT-005:
+  estado: no_ok
+  fecha: 2026-09-01T16:34
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-006:
+  estado: ok
+  fecha: 2026-09-01T17:35
+  ejecutor: Ana Pérez
+G-VENT-008:
+  estado: ok
+  fecha: 2026-09-01T09:36
+  ejecutor: Ana Pérez
+G-VENT-009:
+  estado: bloqueada
+  fecha: 2026-09-01T10:37
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-VENT-010:
+  estado: no_ok
+  fecha: 2026-09-01T11:38
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-011:
+  estado: no_ok
+  fecha: 2026-09-01T12:39
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-012:
+  estado: ok
+  fecha: 2026-09-01T13:40
+  ejecutor: Ana Pérez
+G-VENT-013:
+  estado: bloqueada
+  fecha: 2026-09-01T14:41
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-VENT-014:
+  estado: ok
+  fecha: 2026-09-01T15:42
+  ejecutor: Ana Pérez
+G-VENT-015:
+  estado: ok
+  fecha: 2026-09-01T16:43
+  ejecutor: Ana Pérez
+G-VENT-017:
+  estado: ok
+  fecha: 2026-09-01T17:44
+  ejecutor: Ana Pérez
+G-VENT-018:
+  estado: ok
+  fecha: 2026-09-01T09:45
+  ejecutor: Ana Pérez
+G-VENT-019:
+  estado: ok
+  fecha: 2026-09-01T10:46
+  ejecutor: Ana Pérez
+G-VENT-020:
+  estado: ok
+  fecha: 2026-09-01T11:47
+  ejecutor: Ana Pérez
+G-VENT-021:
+  estado: ok
+  fecha: 2026-09-01T12:48
+  ejecutor: Ana Pérez
+G-VENT-022:
+  estado: ok
+  fecha: 2026-09-01T13:49
+  ejecutor: Ana Pérez
+G-VENT-023:
+  estado: ok
+  fecha: 2026-09-01T14:50
+  ejecutor: Ana Pérez
+G-VENT-025:
+  estado: ok
+  fecha: 2026-09-01T15:51
+  ejecutor: Ana Pérez
+G-VENT-026:
+  estado: ok
+  fecha: 2026-09-01T16:52
+  ejecutor: Ana Pérez
+G-VENT-027:
+  estado: ok
+  fecha: 2026-09-01T17:53
+  ejecutor: Ana Pérez
+G-VENT-029:
+  estado: no_ok
+  fecha: 2026-09-01T09:54
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-030:
+  estado: ok
+  fecha: 2026-09-01T10:55
+  ejecutor: Ana Pérez
+G-VENT-031:
+  estado: ok
+  fecha: 2026-09-01T11:56
+  ejecutor: Ana Pérez
+G-VENT-032:
+  estado: ok
+  fecha: 2026-09-01T12:57
+  ejecutor: Ana Pérez
+G-VENT-033:
+  estado: ok
+  fecha: 2026-09-01T13:58
+  ejecutor: Ana Pérez
+G-VENT-034:
+  estado: no_ok
+  fecha: 2026-09-01T14:59
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-035:
+  estado: ok
+  fecha: 2026-09-01T15:00
+  ejecutor: Ana Pérez
+G-VENT-037:
+  estado: ok
+  fecha: 2026-09-01T16:01
+  ejecutor: Ana Pérez
+G-VENT-038:
+  estado: ok
+  fecha: 2026-09-01T17:02
+  ejecutor: Ana Pérez
+G-VENT-039:
+  estado: ok
+  fecha: 2026-09-01T09:03
+  ejecutor: Ana Pérez
+G-VENT-040:
+  estado: ok
+  fecha: 2026-09-01T10:04
+  ejecutor: Ana Pérez
+G-VENT-042:
+  estado: ok
+  fecha: 2026-09-01T11:05
+  ejecutor: Ana Pérez
+G-VENT-043:
+  estado: ok
+  fecha: 2026-09-01T12:06
+  ejecutor: Ana Pérez
+G-VENT-044:
+  estado: ok
+  fecha: 2026-09-01T13:07
+  ejecutor: Ana Pérez
+G-VENT-045:
+  estado: ok
+  fecha: 2026-09-01T14:08
+  ejecutor: Ana Pérez
+G-VENT-046:
+  estado: no_ok
+  fecha: 2026-09-01T15:09
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-VENT-047:
+  estado: ok
+  fecha: 2026-09-01T16:10
+  ejecutor: Ana Pérez
+G-VENT-048:
+  estado: ok
+  fecha: 2026-09-01T17:11
+  ejecutor: Ana Pérez
+G-VENT-050:
+  estado: ok
+  fecha: 2026-09-01T09:12
+  ejecutor: Ana Pérez
+G-ILUM-001:
+  estado: bloqueada
+  fecha: 2026-09-01T10:13
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-ILUM-002:
+  estado: ok
+  fecha: 2026-09-01T11:14
+  ejecutor: Ana Pérez
+G-ILUM-003:
+  estado: ok
+  fecha: 2026-09-01T12:15
+  ejecutor: Ana Pérez
+G-ILUM-004:
+  estado: ok
+  fecha: 2026-09-01T13:16
+  ejecutor: Ana Pérez
+G-ILUM-005:
+  estado: ok
+  fecha: 2026-09-01T14:17
+  ejecutor: Ana Pérez
+G-ILUM-008:
+  estado: ok
+  fecha: 2026-09-01T15:18
+  ejecutor: Ana Pérez
+G-ILUM-010:
+  estado: ok
+  fecha: 2026-09-01T16:19
+  ejecutor: Ana Pérez
+G-ILUM-012:
+  estado: ok
+  fecha: 2026-09-01T17:20
+  ejecutor: Ana Pérez
+G-ILUM-013:
+  estado: no_ok
+  fecha: 2026-09-01T09:21
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ILUM-014:
+  estado: ok
+  fecha: 2026-09-01T10:22
+  ejecutor: Ana Pérez
+G-ILUM-015:
+  estado: ok
+  fecha: 2026-09-01T11:23
+  ejecutor: Ana Pérez
+G-ILUM-016:
+  estado: ok
+  fecha: 2026-09-01T12:24
+  ejecutor: Ana Pérez
+G-ILUM-018:
+  estado: ok
+  fecha: 2026-09-01T13:25
+  ejecutor: Ana Pérez
+G-ILUM-019:
+  estado: ok
+  fecha: 2026-09-01T14:26
+  ejecutor: Ana Pérez
+G-ILUM-021:
+  estado: ok
+  fecha: 2026-09-01T15:27
+  ejecutor: Ana Pérez
+G-ILUM-022:
+  estado: ok
+  fecha: 2026-09-01T16:28
+  ejecutor: Ana Pérez
+G-ILUM-023:
+  estado: ok
+  fecha: 2026-09-01T17:29
+  ejecutor: Ana Pérez
+G-ILUM-024:
+  estado: ok
+  fecha: 2026-09-01T09:30
+  ejecutor: Ana Pérez
+G-ILUM-025:
+  estado: ok
+  fecha: 2026-09-01T10:31
+  ejecutor: Ana Pérez
+G-ILUM-026:
+  estado: ok
+  fecha: 2026-09-01T11:32
+  ejecutor: Ana Pérez
+G-ILUM-027:
+  estado: ok
+  fecha: 2026-09-01T12:33
+  ejecutor: Ana Pérez
+G-ILUM-029:
+  estado: ok
+  fecha: 2026-09-01T13:34
+  ejecutor: Ana Pérez
+G-ILUM-030:
+  estado: ok
+  fecha: 2026-09-01T14:35
+  ejecutor: Ana Pérez
+G-ILUM-031:
+  estado: no_aplica
+  fecha: 2026-09-01T15:36
+  ejecutor: Ana Pérez
+G-ILUM-033:
+  estado: ok
+  fecha: 2026-09-01T16:37
+  ejecutor: Ana Pérez
+G-ILUM-034:
+  estado: no_ok
+  fecha: 2026-09-01T17:38
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ILUM-035:
+  estado: ok
+  fecha: 2026-09-01T09:39
+  ejecutor: Ana Pérez
+G-ILUM-036:
+  estado: ok
+  fecha: 2026-09-01T10:40
+  ejecutor: Ana Pérez
+G-ILUM-038:
+  estado: ok
+  fecha: 2026-09-01T11:41
+  ejecutor: Ana Pérez
+G-ILUM-039:
+  estado: ok
+  fecha: 2026-09-01T12:42
+  ejecutor: Ana Pérez
+G-ILUM-040:
+  estado: ok
+  fecha: 2026-09-01T13:43
+  ejecutor: Ana Pérez
+G-ILUM-041:
+  estado: ok
+  fecha: 2026-09-01T14:44
+  ejecutor: Ana Pérez
+G-ILUM-043:
+  estado: no_ok
+  fecha: 2026-09-01T15:45
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-ILUM-045:
+  estado: ok
+  fecha: 2026-09-01T16:46
+  ejecutor: Ana Pérez
+G-ILUM-048:
+  estado: ok
+  fecha: 2026-09-01T17:47
+  ejecutor: Ana Pérez
+G-ILUM-049:
+  estado: ok
+  fecha: 2026-09-01T09:48
+  ejecutor: Ana Pérez
+G-DIAG-001:
+  estado: bloqueada
+  fecha: 2026-09-01T10:49
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-DIAG-003:
+  estado: ok
+  fecha: 2026-09-01T11:50
+  ejecutor: Ana Pérez
+G-DIAG-004:
+  estado: ok
+  fecha: 2026-09-01T12:51
+  ejecutor: Ana Pérez
+G-DIAG-005:
+  estado: ok
+  fecha: 2026-09-01T13:52
+  ejecutor: Ana Pérez
+G-DIAG-006:
+  estado: ok
+  fecha: 2026-09-01T14:53
+  ejecutor: Ana Pérez
+G-DIAG-007:
+  estado: ok
+  fecha: 2026-09-01T15:54
+  ejecutor: Ana Pérez
+G-DIAG-008:
+  estado: ok
+  fecha: 2026-09-01T16:55
+  ejecutor: Ana Pérez
+G-DIAG-009:
+  estado: ok
+  fecha: 2026-09-01T17:56
+  ejecutor: Ana Pérez
+G-DIAG-011:
+  estado: ok
+  fecha: 2026-09-01T09:57
+  ejecutor: Ana Pérez
+G-DIAG-012:
+  estado: no_ok
+  fecha: 2026-09-01T10:58
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-014:
+  estado: ok
+  fecha: 2026-09-01T11:59
+  ejecutor: Ana Pérez
+G-DIAG-015:
+  estado: ok
+  fecha: 2026-09-01T12:00
+  ejecutor: Ana Pérez
+G-DIAG-016:
+  estado: ok
+  fecha: 2026-09-01T13:01
+  ejecutor: Ana Pérez
+G-DIAG-017:
+  estado: ok
+  fecha: 2026-09-01T14:02
+  ejecutor: Ana Pérez
+G-DIAG-019:
+  estado: ok
+  fecha: 2026-09-01T15:03
+  ejecutor: Ana Pérez
+G-DIAG-020:
+  estado: ok
+  fecha: 2026-09-01T16:04
+  ejecutor: Ana Pérez
+G-DIAG-021:
+  estado: ok
+  fecha: 2026-09-01T17:05
+  ejecutor: Ana Pérez
+G-DIAG-024:
+  estado: no_ok
+  fecha: 2026-09-01T09:06
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-025:
+  estado: ok
+  fecha: 2026-09-01T10:07
+  ejecutor: Ana Pérez
+G-DIAG-026:
+  estado: ok
+  fecha: 2026-09-01T11:08
+  ejecutor: Ana Pérez
+G-DIAG-027:
+  estado: ok
+  fecha: 2026-09-01T12:09
+  ejecutor: Ana Pérez
+G-DIAG-028:
+  estado: ok
+  fecha: 2026-09-01T13:10
+  ejecutor: Ana Pérez
+G-DIAG-029:
+  estado: ok
+  fecha: 2026-09-01T14:11
+  ejecutor: Ana Pérez
+G-DIAG-030:
+  estado: ok
+  fecha: 2026-09-01T15:12
+  ejecutor: Ana Pérez
+G-DIAG-034:
+  estado: ok
+  fecha: 2026-09-01T16:13
+  ejecutor: Ana Pérez
+G-DIAG-037:
+  estado: ok
+  fecha: 2026-09-01T17:14
+  ejecutor: Ana Pérez
+G-DIAG-041:
+  estado: ok
+  fecha: 2026-09-01T09:15
+  ejecutor: Ana Pérez
+G-DIAG-042:
+  estado: ok
+  fecha: 2026-09-01T10:16
+  ejecutor: Ana Pérez
+G-DIAG-043:
+  estado: ok
+  fecha: 2026-09-01T11:17
+  ejecutor: Ana Pérez
+G-DIAG-044:
+  estado: no_ok
+  fecha: 2026-09-01T12:18
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-DIAG-046:
+  estado: ok
+  fecha: 2026-09-01T13:19
+  ejecutor: Ana Pérez
+G-DIAG-048:
+  estado: ok
+  fecha: 2026-09-01T14:20
+  ejecutor: Ana Pérez
+G-DIAG-049:
+  estado: no_ok
+  fecha: 2026-09-01T15:21
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-REGI-001:
+  estado: ok
+  fecha: 2026-09-01T16:22
+  ejecutor: Ana Pérez
+G-REGI-003:
+  estado: ok
+  fecha: 2026-09-01T17:23
+  ejecutor: Ana Pérez
+G-REGI-004:
+  estado: ok
+  fecha: 2026-09-01T09:24
+  ejecutor: Ana Pérez
+G-REGI-006:
+  estado: ok
+  fecha: 2026-09-01T10:25
+  ejecutor: Ana Pérez
+G-REGI-007:
+  estado: ok
+  fecha: 2026-09-01T11:26
+  ejecutor: Ana Pérez
+G-REGI-009:
+  estado: ok
+  fecha: 2026-09-01T12:27
+  ejecutor: Ana Pérez
+G-REGI-011:
+  estado: ok
+  fecha: 2026-09-01T13:28
+  ejecutor: Ana Pérez
+G-REGI-012:
+  estado: ok
+  fecha: 2026-09-01T14:29
+  ejecutor: Ana Pérez
+G-REGI-013:
+  estado: ok
+  fecha: 2026-09-01T15:30
+  ejecutor: Ana Pérez
+G-REGI-014:
+  estado: no_ok
+  fecha: 2026-09-01T16:31
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-REGI-015:
+  estado: ok
+  fecha: 2026-09-01T17:32
+  ejecutor: Ana Pérez
+G-REGI-017:
+  estado: ok
+  fecha: 2026-09-01T09:33
+  ejecutor: Ana Pérez
+G-REGI-019:
+  estado: ok
+  fecha: 2026-09-01T10:34
+  ejecutor: Ana Pérez
+G-REGI-020:
+  estado: ok
+  fecha: 2026-09-01T11:35
+  ejecutor: Ana Pérez
+G-REGI-021:
+  estado: ok
+  fecha: 2026-09-01T12:36
+  ejecutor: Ana Pérez
+G-REGI-022:
+  estado: ok
+  fecha: 2026-09-01T13:37
+  ejecutor: Ana Pérez
+G-REGI-023:
+  estado: no_ok
+  fecha: 2026-09-01T14:38
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-REGI-024:
+  estado: ok
+  fecha: 2026-09-01T15:39
+  ejecutor: Ana Pérez
+G-REGI-025:
+  estado: ok
+  fecha: 2026-09-01T16:40
+  ejecutor: Ana Pérez
+G-REGI-026:
+  estado: ok
+  fecha: 2026-09-01T17:41
+  ejecutor: Ana Pérez
+G-REGI-027:
+  estado: ok
+  fecha: 2026-09-01T09:42
+  ejecutor: Ana Pérez
+G-REGI-029:
+  estado: ok
+  fecha: 2026-09-01T10:43
+  ejecutor: Ana Pérez
+G-REGI-034:
+  estado: ok
+  fecha: 2026-09-01T11:44
+  ejecutor: Ana Pérez
+G-REGI-037:
+  estado: ok
+  fecha: 2026-09-01T12:45
+  ejecutor: Ana Pérez
+G-REGI-038:
+  estado: ok
+  fecha: 2026-09-01T13:46
+  ejecutor: Ana Pérez
+G-REGI-039:
+  estado: ok
+  fecha: 2026-09-01T14:47
+  ejecutor: Ana Pérez
+G-REGI-040:
+  estado: ok
+  fecha: 2026-09-01T15:48
+  ejecutor: Ana Pérez
+G-REGI-041:
+  estado: ok
+  fecha: 2026-09-01T16:49
+  ejecutor: Ana Pérez
+G-REGI-042:
+  estado: ok
+  fecha: 2026-09-01T17:50
+  ejecutor: Ana Pérez
+G-REGI-043:
+  estado: ok
+  fecha: 2026-09-01T09:51
+  ejecutor: Ana Pérez
+G-REGI-045:
+  estado: no_ok
+  fecha: 2026-09-01T10:52
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-REGI-047:
+  estado: ok
+  fecha: 2026-09-01T11:53
+  ejecutor: Ana Pérez
+G-REGI-048:
+  estado: ok
+  fecha: 2026-09-01T12:54
+  ejecutor: Ana Pérez
+G-REGI-049:
+  estado: ok
+  fecha: 2026-09-01T13:55
+  ejecutor: Ana Pérez
+G-CONF-001:
+  estado: ok
+  fecha: 2026-09-01T14:56
+  ejecutor: Ana Pérez
+G-CONF-002:
+  estado: ok
+  fecha: 2026-09-01T15:57
+  ejecutor: Ana Pérez
+G-CONF-003:
+  estado: ok
+  fecha: 2026-09-01T16:58
+  ejecutor: Ana Pérez
+G-CONF-004:
+  estado: ok
+  fecha: 2026-09-01T17:59
+  ejecutor: Ana Pérez
+G-CONF-005:
+  estado: ok
+  fecha: 2026-09-01T09:00
+  ejecutor: Ana Pérez
+G-CONF-006:
+  estado: ok
+  fecha: 2026-09-01T10:01
+  ejecutor: Ana Pérez
+G-CONF-007:
+  estado: ok
+  fecha: 2026-09-01T11:02
+  ejecutor: Ana Pérez
+G-CONF-009:
+  estado: ok
+  fecha: 2026-09-01T12:03
+  ejecutor: Ana Pérez
+G-CONF-010:
+  estado: ok
+  fecha: 2026-09-01T13:04
+  ejecutor: Ana Pérez
+G-CONF-011:
+  estado: ok
+  fecha: 2026-09-01T14:05
+  ejecutor: Ana Pérez
+G-CONF-012:
+  estado: ok
+  fecha: 2026-09-01T15:06
+  ejecutor: Ana Pérez
+G-CONF-014:
+  estado: ok
+  fecha: 2026-09-01T16:07
+  ejecutor: Ana Pérez
+G-CONF-017:
+  estado: ok
+  fecha: 2026-09-01T17:08
+  ejecutor: Ana Pérez
+G-CONF-018:
+  estado: no_aplica
+  fecha: 2026-09-01T09:09
+  ejecutor: Ana Pérez
+G-CONF-019:
+  estado: ok
+  fecha: 2026-09-01T10:10
+  ejecutor: Ana Pérez
+G-CONF-021:
+  estado: ok
+  fecha: 2026-09-01T11:11
+  ejecutor: Ana Pérez
+G-CONF-022:
+  estado: ok
+  fecha: 2026-09-01T12:12
+  ejecutor: Ana Pérez
+G-CONF-024:
+  estado: ok
+  fecha: 2026-09-01T13:13
+  ejecutor: Ana Pérez
+G-CONF-025:
+  estado: no_ok
+  fecha: 2026-09-01T14:14
+  ejecutor: Ana Pérez
+  observaciones: No cumple el resultado esperado.
+G-CONF-026:
+  estado: no_aplica
+  fecha: 2026-09-01T15:15
+  ejecutor: Ana Pérez
+G-CONF-027:
+  estado: ok
+  fecha: 2026-09-01T16:16
+  ejecutor: Ana Pérez
+G-CONF-028:
+  estado: ok
+  fecha: 2026-09-01T17:17
+  ejecutor: Ana Pérez
+G-CONF-029:
+  estado: ok
+  fecha: 2026-09-01T09:18
+  ejecutor: Ana Pérez
+G-CONF-030:
+  estado: ok
+  fecha: 2026-09-01T10:19
+  ejecutor: Ana Pérez
+G-CONF-031:
+  estado: bloqueada
+  fecha: 2026-09-01T11:20
+  ejecutor: Ana Pérez
+  observaciones: Falta el equipo de pruebas.
+G-CONF-032:
+  estado: ok
+  fecha: 2026-09-01T12:21
+  ejecutor: Ana Pérez
+G-CONF-033:
+  estado: ok
+  fecha: 2026-09-01T13:22
+  ejecutor: Ana Pérez
+G-CONF-034:
+  estado: ok
+  fecha: 2026-09-01T14:23
+  ejecutor: Ana Pérez
+G-CONF-035:
+  estado: ok
+  fecha: 2026-09-01T15:24
+  ejecutor: Ana Pérez
+G-CONF-036:
+  estado: ok
+  fecha: 2026-09-01T16:25
+  ejecutor: Ana Pérez
+G-CONF-037:
+  estado: ok
+  fecha: 2026-09-01T17:26
+  ejecutor: Ana Pérez
+G-CONF-038:
+  estado: ok
+  fecha: 2026-09-01T09:27
+  ejecutor: Ana Pérez
+G-CONF-039:
+  estado: ok
+  fecha: 2026-09-01T10:28
+  ejecutor: Ana Pérez
+G-CONF-040:
+  estado: ok
+  fecha: 2026-09-01T11:29
+  ejecutor: Ana Pérez
+G-CONF-043:
+  estado: ok
+  fecha: 2026-09-01T12:30
+  ejecutor: Ana Pérez
+G-CONF-044:
+  estado: ok
+  fecha: 2026-09-01T13:31
+  ejecutor: Ana Pérez
+G-CONF-047:
+  estado: ok
+  fecha: 2026-09-01T14:32
+  ejecutor: Ana Pérez
+G-CONF-049:
+  estado: ok
+  fecha: 2026-09-01T15:33
+  ejecutor: Ana Pérez
+G-CONF-050:
+  estado: ok
+  fecha: 2026-09-01T16:34
+  ejecutor: Ana Pérez

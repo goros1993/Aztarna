@@ -75,11 +75,51 @@ const apiLista = new Promise((resolve) => {
 const api = new Proxy({}, {
   get: (_target, name) => async (...args) => {
     await apiLista;
-    const respuesta = await window.pywebview.api[name](...args);
+    const fin = ruletaAutomatica(name);
+    let respuesta;
+    try {
+      respuesta = await window.pywebview.api[name](...args);
+    } finally {
+      fin();
+    }
     if (!respuesta || !respuesta.ok) throw new ApiError((respuesta && respuesta.error) || "Error desconocido");
     return respuesta.datos;
   },
 });
+
+/* ---- ruleta automática: cualquier llamada que tarde se ve ---- */
+const RULETA_RETRASO_MS = 400;
+// Las que van en segundo plano (no deben tapar nada) y las que abren un diálogo de archivos.
+const SIN_RULETA = new Set(["bloqueo", "bloquear", "soltar_bloqueos", "comprobar_version", "campana_robot_progreso", "marcar_cambios",
+  "preferencias", "guardar_preferencias", "validar_yaml"]);
+const MENSAJE_RULETA = {
+  validacion_abrir: "Abriendo la validación…", validacion_estado: "Actualizando la validación…", validacion_crear: "Creando la validación…",
+  validacion_anadir_ejecucion: "Añadiendo las ejecuciones…", validacion_quitar_ejecucion: "Actualizando la validación…",
+  validacion_comparar_con: "Comparando con la otra validación…", validacion_nueva_ejecucion: "Creando la ejecución…",
+  campana_abrir: "Abriendo la ejecución…", campana_comparar: "Comparando las ejecuciones…",
+  iniciar: "Abriendo la carpeta…", recargar: "Recargando…", navegacion: "Cargando…", trazabilidad: "Calculando la trazabilidad…",
+};
+let ruletaVisible = null;
+let ruletaPendientes = 0;
+
+/** Empieza a esperar una llamada; si tarda, sale la ruleta. Devuelve la función que la termina. */
+function ruletaAutomatica(nombre) {
+  if (SIN_RULETA.has(nombre) || /elegir/.test(nombre)) return () => {};
+  let lenta = false;
+  const temporizador = setTimeout(() => {
+    lenta = true;
+    ruletaPendientes += 1;
+    if (!ruletaVisible && !document.querySelector(".espera")) {       // con conEspera ya hay una
+      ruletaVisible = capaEspera(MENSAJE_RULETA[nombre] || "Un momento…", "", { foco: false });
+    }
+  }, RULETA_RETRASO_MS);
+  return () => {
+    clearTimeout(temporizador);
+    if (!lenta) return;
+    ruletaPendientes -= 1;
+    if (ruletaPendientes === 0 && ruletaVisible) { ruletaVisible(); ruletaVisible = null; }
+  };
+}
 
 /* ---- avisos ---- */
 function aviso(mensaje, tipo = "info", accion = null) {
@@ -102,28 +142,38 @@ function fallo(error) {
  * promesa); no deja hacer clic en nada hasta que termina, bien o con error.
  */
 async function conEspera(mensaje, tarea, detalle = "") {
+  const quitar = capaEspera(mensaje, detalle);
+  try {
+    return await tarea();
+  } finally {
+    quitar();
+  }
+}
+
+/** Capa gris con la ruleta, el mensaje y el tiempo que lleva. Devuelve la función que la quita. */
+function capaEspera(mensaje, detalle = "", { foco = true } = {}) {
   const tiempo = h("p", { class: "espera-tiempo", "aria-live": "off" });
   const capa = h("div", { class: "espera", role: "alert", "aria-busy": "true", "aria-live": "assertive" },
     h("div", { class: "espera-caja" }, h("div", { class: "ruleta", "aria-hidden": "true" }), h("p", { text: mensaje }),
       detalle ? h("p", { class: "espera-detalle", text: detalle }) : null, tiempo));
-  const foco = document.activeElement;
+  const anterior = document.activeElement;
   // Dentro del diálogo abierto, si lo hay: un diálogo modal tapa todo lo que está fuera de él.
   const abiertos = document.querySelectorAll("dialog[open]");
   (abiertos.length ? abiertos[abiertos.length - 1] : document.body).appendChild(capa);
-  capa.tabIndex = -1;
-  capa.focus();
+  if (foco) {
+    capa.tabIndex = -1;
+    capa.focus();
+  }
   const inicio = Date.now();
   const reloj = setInterval(() => {
     const s = Math.round((Date.now() - inicio) / 1000);
     tiempo.textContent = s < 3 ? "" : `Lleva ${s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`}`;
   }, 1000);
-  try {
-    return await tarea();
-  } finally {
+  return () => {
     clearInterval(reloj);
     capa.remove();
-    if (foco && foco.focus) foco.focus();
-  }
+    if (foco && anterior && anterior.focus) anterior.focus();
+  };
 }
 
 function dialogo({ titulo, cuerpo, botones, ancho = false }) {

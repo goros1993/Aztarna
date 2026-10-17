@@ -1,0 +1,641 @@
+capitulo: Registro
+contenido:
+- seccion: Funcionamiento normal
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-001
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en registro, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-017
+    - REQ-REGI-025
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-003
+    titulo: 'Funcionamiento normal: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-003
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-004
+    titulo: 'Funcionamiento normal: el controlador registra el evento'
+    descripcion: Comprobar que, en registro, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-006
+    titulo: 'Funcionamiento normal: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en registro, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-007
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-007
+    titulo: 'Funcionamiento normal: el controlador responde a la orden'
+    descripcion: Comprobar que, en registro, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-013
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-009
+    titulo: 'Funcionamiento normal: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en registro, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «funcionamiento normal».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-016
+    - REQ-REGI-019
+    tags:
+    - regresion
+    - humo
+- seccion: Límites
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-011
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en registro, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-003
+    - REQ-REGI-007
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-012
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en registro, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-007
+    - REQ-REGI-010
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-013
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en registro, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-007
+    - REQ-REGI-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-014
+    titulo: 'Límites: el controlador avisa al operador'
+    descripcion: Comprobar que, en registro, el controlador avisa al operador.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador avisa al operador.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-015
+    titulo: 'Límites: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en registro, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-006
+    - REQ-REGI-015
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-017
+    titulo: 'Límites: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en registro, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-008
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-019
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en registro, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-010
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-020
+    titulo: 'Límites: el controlador responde a la orden'
+    descripcion: Comprobar que, en registro, el controlador responde a la orden.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «límites».
+    resultado_esperado:
+    - El controlador responde a la orden.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-002
+    - REQ-REGI-010
+    tags:
+    - regresion
+- seccion: Fallos
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-021
+    titulo: 'Fallos: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-003
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-022
+    titulo: 'Fallos: el controlador registra el evento'
+    descripcion: Comprobar que, en registro, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-003
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-023
+    titulo: 'Fallos: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en registro, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-001
+    - REQ-REGI-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-024
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en registro, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-003
+    - REQ-REGI-010
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-025
+    titulo: 'Fallos: el controlador se mantiene estable'
+    descripcion: Comprobar que, en registro, el controlador se mantiene estable.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador se mantiene estable.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-011
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-026
+    titulo: 'Fallos: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en registro, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-027
+    titulo: 'Fallos: el controlador vuelve al estado inicial'
+    descripcion: Comprobar que, en registro, el controlador vuelve al estado inicial.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador vuelve al estado inicial.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-011
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-029
+    titulo: 'Fallos: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en registro, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «fallos».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-014
+    tags:
+    - regresion
+- seccion: Recuperación
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-034
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en registro, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-037
+    titulo: 'Recuperación: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en registro, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-012
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-038
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-009
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-039
+    titulo: 'Recuperación: el controlador bloquea la maniobra'
+    descripcion: Comprobar que, en registro, el controlador bloquea la maniobra.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador bloquea la maniobra.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-006
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-040
+    titulo: 'Recuperación: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «recuperación».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-004
+    - REQ-REGI-012
+    tags:
+    - regresion
+- seccion: Configuración
+  nivel: 2
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-041
+    titulo: 'Configuración: el controlador respeta el tiempo máximo'
+    descripcion: Comprobar que, en registro, el controlador respeta el tiempo máximo.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador respeta el tiempo máximo.
+    entorno:
+    - Maqueta
+    requisitos:
+    - REQ-REGI-021
+    - REQ-REGI-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-042
+    titulo: 'Configuración: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-006
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-043
+    titulo: 'Configuración: el controlador se recupera tras el corte'
+    descripcion: Comprobar que, en registro, el controlador se recupera tras el corte.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador se recupera tras el corte.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-012
+    - REQ-REGI-022
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-045
+    titulo: 'Configuración: el controlador ignora la orden repetida'
+    descripcion: Comprobar que, en registro, el controlador ignora la orden repetida.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador ignora la orden repetida.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-047
+    titulo: 'Configuración: el controlador informa por el bus'
+    descripcion: Comprobar que, en registro, el controlador informa por el bus.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador informa por el bus.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-006
+    tags:
+    - regresion
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-048
+    titulo: 'Configuración: el controlador registra el evento'
+    descripcion: Comprobar que, en registro, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-022
+    tags:
+    - regresion
+    - humo
+- prueba:
+    nombre: ''
+    nivel: 3
+    id: G-REGI-049
+    titulo: 'Configuración: el controlador registra el evento'
+    descripcion: Comprobar que, en registro, el controlador registra el evento.
+    pasos:
+    - Preparar la instalación simulada.
+    - Provocar la situación de «configuración».
+    resultado_esperado:
+    - El controlador registra el evento.
+    entorno:
+    - Maqueta
+    - Torre
+    requisitos:
+    - REQ-REGI-008
+    tags:
+    - regresion

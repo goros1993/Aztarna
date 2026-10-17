@@ -6,7 +6,7 @@ Uso:
     python herramientas.py robot ruta/a/la/ejecución ruta/a/output.xml --simular  # solo muestra qué haría
 
 Cada test de Robot debe llevar la etiqueta id:<ID de la prueba YAML>.
-PASS -> OK, FAIL -> NO OK, SKIP -> No aplica. Ver docs/robot.md.
+PASS -> OK, FAIL -> NO OK, SKIP -> No aplica. Ver el apartado 10 de MANUAL.md.
 """
 from __future__ import annotations
 
