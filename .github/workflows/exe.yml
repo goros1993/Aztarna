@@ -1,0 +1,55 @@
+# El .exe de Windows: se construye con construir_exe.bat (el mismo que a mano).
+# - Al subir una etiqueta vX.Y.Z (que debe coincidir con __version__ de app/__init__.py
+#   y tener su entrada en CHANGELOG.md) publica una Release con Aztarna.exe y version.txt.
+# - A mano (Actions -> Ejecutable -> Run workflow) sólo lo deja como artefacto.
+name: Ejecutable
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Comprobar la etiqueta, la versión y el CHANGELOG
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version=$(python -c "import app; print(app.__version__)")
+          echo "__version__=$version, etiqueta=${GITHUB_REF_NAME}"
+          test "v$version" = "${GITHUB_REF_NAME}" || { echo "::error::La etiqueta ${GITHUB_REF_NAME} no coincide con __version__ = $version (app/__init__.py)"; exit 1; }
+          awk -v v="## $version" '$0 == v {dentro=1; next} /^## / && dentro {exit} dentro' CHANGELOG.md > notas.md
+          test -s notas.md || { echo "::error::CHANGELOG.md no tiene la entrada «## $version»"; exit 1; }
+
+      - name: Construir dist\Aztarna.exe
+        shell: cmd
+        run: construir_exe.bat
+
+      - name: Tests en Windows
+        shell: cmd
+        run: .venv-build\Scripts\python.exe -m unittest discover
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aztarna-exe
+          path: |
+            dist/Aztarna.exe
+            dist/version.txt
+          if-no-files-found: error
+
+      - name: Publicar la Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/Aztarna.exe dist/version.txt --title "Aztarna $GITHUB_REF_NAME" --notes-file notas.md

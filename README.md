@@ -188,7 +188,12 @@ docs/manual/       capturas del manual
 ```
 
 - La versión se define solo en `app/__init__.py`. Al publicar una versión,
-  súbela allí y añade su entrada en `CHANGELOG.md`.
+  súbela allí, añade su entrada en `CHANGELOG.md` y sube la etiqueta
+  (`git tag v1.1.0` y `git push origin v1.1.0`). GitHub Actions construye el
+  .exe en Windows, pasa los tests allí y publica la Release con `Aztarna.exe`,
+  `version.txt` y la entrada del CHANGELOG (`.github/workflows/exe.yml`; falla
+  sin publicar si la etiqueta no coincide con la versión o falta la entrada).
+  Los tests pasan además en cada push a `main` y en cada PR (`ci.yml`).
 - `web/vendor/yaml-editor.js` es CodeMirror 6 precompilado (licencia MIT): no
   hace falta Node. La interfaz habla con Python a través de
   `window.pywebview.api`.

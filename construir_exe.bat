@@ -5,16 +5,21 @@ REM Requiere Python 3.10 o posterior (py -3).
 
 cd /d "%~dp0"
 
-if not exist .venv-build (
+REM Se usa el python.exe del entorno directamente (sin activate.bat ni pyinstaller.exe):
+REM esos guardan la ruta absoluta de la carpeta y dejan de funcionar si se mueve o renombra.
+set PY=.venv-build\Scripts\python.exe
+if exist %PY% (
+    %PY% -c "import sys" 2>nul || rmdir /s /q .venv-build
+)
+if not exist %PY% (
     py -3 -m venv .venv-build || goto :error
 )
-call .venv-build\Scripts\activate.bat || goto :error
-python -m pip install --upgrade pip || goto :error
-python -m pip install -r requirements.txt pyinstaller || goto :error
+%PY% -m pip install --upgrade pip || goto :error
+%PY% -m pip install -r requirements.txt pyinstaller || goto :error
 
 REM web\ va dentro del .exe. No se empaquetan los ejemplos: el .exe se extrae en una
 REM carpeta temporal y lo que se editara ahi se perderia al cerrar.
-pyinstaller --noconfirm --clean --onefile --windowed ^
+%PY% -m PyInstaller --noconfirm --clean --onefile --windowed ^
     --name Aztarna ^
     --icon recursos\icono.ico ^
     --add-data "web;web" ^
@@ -28,7 +33,7 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
 
 REM version.txt junto al .exe: si se publica en una carpeta compartida, el editor de cada
 REM persona avisa cuando hay una version nueva (Ajustes, «Carpeta con la ultima version»).
-python -c "import app; print(app.__version__)" > dist\version.txt || goto :error
+%PY% -c "import app; print(app.__version__)" > dist\version.txt || goto :error
 
 echo.
 echo Listo: dist\Aztarna.exe y dist\version.txt
