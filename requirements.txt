@@ -3,3 +3,4 @@ Pillow>=10,<13
 ruamel.yaml>=0.18,<0.20
 pywebview>=5,<7
 markdown>=3.5,<4
+pytest>=8

@@ -23,7 +23,7 @@ EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml" / "prueb
 class EjecucionBase(unittest.TestCase):
     def setUp(self):
         self._tmp = TemporaryDirectory()
-        self.tmp = Path(self._tmp.name)
+        self.tmp = Path(self._tmp.name).resolve()   # en Windows, Temp puede venir con nombre corto (RUNNER~1)
         self.pruebas = self.tmp / "pruebas"
         shutil.copytree(EJEMPLOS, self.pruebas)
         shutil.copy(EJEMPLOS.parent / esquema.ARCHIVO_CONFIGURACION, self.tmp)

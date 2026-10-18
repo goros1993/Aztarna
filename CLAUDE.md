@@ -12,8 +12,8 @@ Aztarna is a local desktop editor (pywebview + plain HTML/JS, no server, no Node
 python -m venv .venv && .venv/bin/pip install -r requirements.txt   # Linux needs python3-gi + gir1.2-webkit2-4.1 (venv with --system-site-packages)
 .venv/bin/python editor_web.py [carpeta] [--depurar]     # run the editor (--depurar = devtools)
 .venv/bin/python herramientas.py <orden> --help          # CLI tools: importar, convertir, inventario, auditar, ids, word, informe, resultados, validacion, comparar, robot, trazabilidad
-.venv/bin/python -m unittest discover                    # all tests (~30 s)
-.venv/bin/python -m unittest tests.test_ejecucion.ApiTests.test_previsualizar_y_crear   # a single test
+.venv/bin/python -m pytest -q                            # all tests (~30 s); unittest.TestCase classes, run with pytest as in Araudi (pytest.ini)
+.venv/bin/python -m pytest tests/test_ejecucion.py::ApiTests::test_previsualizar_y_crear   # a single test
 node --check web/js/<archivo>.js                         # only "lint" available for the JS
 ```
 

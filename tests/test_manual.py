@@ -6,6 +6,8 @@ import sys
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from urllib.parse import urlparse
+from urllib.request import url2pathname
 
 import app
 import herramientas
@@ -22,7 +24,7 @@ class ManualTests(unittest.TestCase):
         enlaces = re.findall(r'href="#([^"]+)"', texto)
         self.assertGreater(len(enlaces), 5)
         self.assertEqual([e for e in enlaces if e not in anclajes], [])
-        imagenes = re.findall(r'src="file://([^"]+)"', texto)
+        imagenes = [url2pathname(urlparse(src).path) for src in re.findall(r'src="(file:[^"]+)"', texto)]
         self.assertGreater(len(imagenes), 20)
         self.assertEqual([i for i in imagenes if not Path(i).is_file()], [])
 

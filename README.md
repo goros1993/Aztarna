@@ -183,7 +183,7 @@ app/               lógica (esquema, editor, trazabilidad, ejecuciones, validaci
 web/               interfaz del editor (HTML, CSS y JavaScript, sin compilar)
 migracion/         importación inicial del Word original
 plantillas/        tablas de prueba y de requisito, e informe de auditoría
-tests/             python -m unittest discover
+tests/             python -m pytest
 docs/manual/       capturas del manual
 ```
 

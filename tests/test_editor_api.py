@@ -54,7 +54,7 @@ class ApiBase(unittest.TestCase):
     def setUp(self):
         self._tmp = TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
-        self.dir = Path(self._tmp.name) / "yaml"
+        self.dir = Path(self._tmp.name).resolve() / "yaml"   # resolve: en Windows, Temp puede venir con nombre corto (RUNNER~1)
         self.dir.mkdir()
         (self.dir / "01_demo.yaml").write_text(CAPITULO, encoding="utf-8")
         self.api = editor_api.EditorApi(self.dir)
