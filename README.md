@@ -46,7 +46,7 @@ herramientas.py` las lista y `<orden> --help` explica sus opciones):
 
 | Orden | Hace |
 |---|---|
-| `importar documento.docx -o proyecto` | Word → proyecto nuevo (pruebas o requisitos), con el mapeo propuesto |
+| `importar documento.docx -o proyecto` | Word o Excel → proyecto nuevo (pruebas o requisitos), con el mapeo propuesto |
 | `convertir documento.docx -o importacion` | Importación inicial del Word de pruebas, con avisos |
 | `inventario documento.docx` | Agrupa las tablas del Word por estructura |
 | `auditar documento.docx importacion/yaml` | Comprueba que la importación no pierde texto |
@@ -64,6 +64,7 @@ herramientas.py` las lista y `<orden> --help` explica sus opciones):
 ```text
 proyecto/
 ├── aztarna.yaml   opciones de maniobra y entorno del proyecto (opcional)
+├── importacion.yaml  cómo se importan sus Word y Excel (lo escribe el asistente; opcional)
 ├── pruebas/       indice.yaml, un YAML por capítulo, imagenes/ y formato.yaml
 └── requisitos/    lo mismo, y revisiones.yaml (requisitos cambiados)
 
@@ -142,12 +143,23 @@ al cerrar una ejecución se guarda una copia con sus pruebas congeladas. En
 línea de órdenes, `convertir`, `auditar` e `importar` admiten
 `--configuracion aztarna.yaml`.
 
-## Importación inicial desde Word
+## Importar desde Word o Excel
 
-El asistente del editor (**⋯ → Importar desde Word…**) o la orden `importar`
-cubren lo habitual: proponen qué es cada familia de tablas y a qué campo va
-cada etiqueta, y lo elegido se recuerda. La importación con la que empezó el
-proyecto se conserva como `convertir` + `auditar` + `ids`:
+El asistente del editor (**⋯ → Importar desde Word o Excel…**) o la orden
+`importar` cubren lo habitual: proponen qué es cada familia de tablas (o cada
+hoja del Excel) y a qué campo va cada etiqueta (o columna). Lo elegido se
+guarda en el `importacion.yaml` del proyecto (`app/mapeo_importacion.py`), para
+que todo el equipo importe igual, y en los ajustes del PC.
+
+- **Excel** (`app/importacion_excel.py`): una fila por elemento y una columna
+  por campo, con columnas de capítulo y sección; una fila sin ID ni título
+  continúa la de arriba. La plantilla se descarga desde el asistente. Al
+  actualizar desde un Excel solo cambian los campos que tienen columna.
+- **Poco a poco**: al añadir al proyecto abierto, cada capítulo importado va al
+  que ya existe con el mismo nombre, en su sección (`importacion.unir_capitulo`).
+
+La importación con la que empezó el proyecto se conserva como `convertir` +
+`auditar` + `ids`:
 
 ```bash
 python herramientas.py convertir "/ruta/privada/original.docx" -o importacion --configuracion aztarna.yaml

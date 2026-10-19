@@ -21,7 +21,7 @@ LIST_FIELDS = esquema.CAMPOS_LISTA
 # Claves de los elementos con ficha propia: pruebas y, en la carpeta de requisitos, requisitos.
 ITEM_KEYS = ("prueba", "requisito")
 # YAML de una carpeta que no son capítulos (revisiones.yaml: requisitos cambiados, ver trazabilidad.py).
-NOT_CHAPTERS = ("indice.yaml", "revisiones.yaml", formato.ARCHIVO, esquema.ARCHIVO_CONFIGURACION)
+NOT_CHAPTERS = ("indice.yaml", "revisiones.yaml", formato.ARCHIVO, esquema.ARCHIVO_CONFIGURACION, "importacion.yaml")
 ALLOWED_IMAGE_EXTENSIONS = {".bmp", ".emf", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 

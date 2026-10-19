@@ -9,8 +9,8 @@ function opcionesMenu() {
   const conCapitulos = S.capitulos.length > 0;
   return [
     {
-      texto: "Importar desde Word…", icono: "import", accion: asistenteImportar, desactivada: !importarDisponible(),
-      ayuda: importarDisponible() ? "Importar pruebas o requisitos de un documento de Word" : "Cambia al modo Pruebas o Requisitos para importar",
+      texto: "Importar desde Word o Excel…", icono: "import", accion: asistenteImportar, desactivada: !importarDisponible(),
+      ayuda: importarDisponible() ? "Importar pruebas o requisitos de un Word o un Excel (también los resultados de una ejecución, desde Word)" : "Cambia al modo Pruebas o Requisitos para importar",
     },
     S.modo === "ejecucion" ? null : {
       texto: enRequisitos() ? "Exportar DOCX de requisitos…" : "Exportar DOCX…", icono: "export", accion: exportarDocx,

@@ -3,6 +3,30 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.1.0
+
+Importar poco a poco, también desde Excel:
+
+- **Importar desde Excel** (⋯ → *Importar desde Word o Excel…*): una fila por
+  prueba o requisito y una columna por campo. Cada hoja es un grupo; las
+  columnas *Capítulo* y *Sección* ordenan las filas (sin ellas, el capítulo es
+  la hoja; «A > B» es una subsección); una fila sin ID ni título continúa la de
+  arriba (un paso por fila); en las listas, una línea por elemento. **Plantilla
+  de Excel** con una columna por campo y las opciones del proyecto en
+  desplegables, desde el primer paso del asistente.
+- **Importar poco a poco**: al añadir al proyecto abierto, cada capítulo va al
+  que ya existe con el mismo nombre y cada prueba a su sección, sin repetir
+  capítulos, textos ni secciones vacías. (Antes, cada importación añadía sus
+  capítulos al final del índice.)
+- Al **actualizar desde un Excel** solo cambian los campos que tienen columna;
+  los demás se conservan y los campos adicionales se combinan.
+- **Mapeo del proyecto** (`importacion.yaml`, junto a `aztarna.yaml`): lo
+  elegido al importar se guarda en el proyecto, para que todo el equipo
+  importe igual sin volver a elegir los campos. Se puede editar a mano.
+
+Necesita `openpyxl` (en `requirements.txt`). Sin cambios en el formato de los
+datos (sigue el 1).
+
 ## 1.0.0
 
 Primera versión con el nombre definitivo, **Aztarna** («huella, rastro» en

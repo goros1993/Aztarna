@@ -1,6 +1,7 @@
 "use strict";
-/* Asistente de importación (⋯ → Importar…): documento, familias de tablas,
-   campos y revisión. Importa pruebas o requisitos (app/importacion.py) o los
+/* Asistente de importación (⋯ → Importar…): documento, familias de tablas
+   (u hojas del Excel), campos y revisión. Importa pruebas o requisitos de un
+   Word o un Excel (app/importacion.py, app/importacion_excel.py) o los
    resultados de una ejecución (app/importacion_resultados.py); el mapeo
    elegido se recuerda para la próxima vez. */
 
@@ -13,13 +14,14 @@ function importarDisponible() {
 }
 
 const esResultados = () => IMP && IMP.preferido === "resultado";
+const esExcel = () => IMP && /\.(xlsx|xlsm)$/i.test(IMP.archivo || "");
 
 async function asistenteImportar() {
   if (!(await guardia())) return;
   setDirty(false);
   IMP = { paso: 0, archivo: "", preferido: S.modo === "ejecucion" ? "resultado" : enRequisitos() ? "requisito" : "prueba", modo: "nuevo", nombre: "",
-    analisis: null, mapeo: null, revision: null, ids: {} };
-  const dlg = h("dialog", { class: "ancho asistente", "aria-label": "Importar desde Word" });
+    analisis: null, mapeo: null, revision: null, ids: {}, guardarMapeo: true };
+  const dlg = h("dialog", { class: "ancho asistente", "aria-label": "Importar desde Word o Excel" });
   dlg.addEventListener("close", () => { dlg.remove(); if (IMP && IMP.dlg === dlg) IMP = null; });
   dlg.addEventListener("cancel", (e) => { if (document.querySelector(".espera")) e.preventDefault(); });
   document.body.appendChild(dlg);
@@ -46,7 +48,7 @@ function pintarAsistente() {
         : boton(IMP.modo === "nuevo" ? "Elegir carpeta e importar…" : "Importar", "primary", () => ejecutarImportacion().catch(fallo),
           { disabled: !IMP.revision || !Object.keys(IMP.revision.tipos).length }));
   IMP.dlg.replaceChildren(
-    h("div", { class: "dlg-cab" }, "Importar desde Word", pasos),
+    h("div", { class: "dlg-cab" }, esExcel() ? "Importar desde Excel" : "Importar desde Word o Excel", pasos),
     h("div", { class: "dlg-cuerpo asistente-cuerpo" }, cuerpo),
     pie);
   const primero = IMP.dlg.querySelector(".dlg-pie .btn.primary:not([disabled])");
@@ -61,15 +63,22 @@ async function siguientePaso() {
     if (!IMP.nombre) IMP.nombre = a.nombre_propuesto;
   } else if (IMP.paso === 1) {
     if (!tiposElegidos().length) {
-      aviso(esResultados() ? "Ninguna familia tiene resultados: no hay nada que importar" : "Ninguna familia es de pruebas ni de requisitos: no hay nada que importar", "error");
+      aviso(esResultados() ? "Ninguna familia tiene resultados: no hay nada que importar"
+        : esExcel() ? "Ninguna hoja es de pruebas ni de requisitos: no hay nada que importar"
+          : "Ninguna familia es de pruebas ni de requisitos: no hay nada que importar", "error");
       return;
     }
+
   } else if (IMP.paso === 2 && esResultados()) {
     if (!Object.values(IMP.mapeo.campos.resultado).includes("estado")) { aviso("Elige qué etiqueta tiene el resultado (va a «Resultado»)", "error"); return; }
     IMP.revision = await conEspera("Leyendo los resultados…", () => api.importar_resultados_revisar(IMP.archivo, IMP.mapeo), "Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.ejecucion = IMP.ejecucion || { nombre: IMP.analisis.nombre_propuesto, entorno_pruebas: "", entorno: "", objeto: "", responsable: leerLocal("ejecutor") || "" };
     IMP.enValidacion = Boolean(S.validacion);
   } else if (IMP.paso === 2) {
+    if (esExcel()) {
+      const sinId = tiposElegidos().filter((t) => !Object.values(IMP.mapeo.campos[t]).some((v) => v === "id" || v === "titulo"));
+      if (sinId.length) { aviso(`Elige qué columna es el ID (o el título) de ${sinId.map((t) => (t === "prueba" ? "las pruebas" : "los requisitos")).join(" y de ")}: cada fila con ID o título empieza uno nuevo`, "error"); return; }
+    }
     IMP.revision = await conEspera("Preparando la vista previa…", () => api.importar_revisar(IMP.archivo, IMP.mapeo, IMP.modo), "Se lee todo el documento con el mapeo elegido. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
     IMP.ids = {};
     IMP.acciones = {};
@@ -100,9 +109,9 @@ function pasoDocumento() {
   const nombre = h("input", { type: "text", id: "imp-nombre", value: IMP.nombre, placeholder: "Nombre de la carpeta del proyecto",
     disabled: IMP.modo !== "nuevo", oninput: (e) => { IMP.nombre = e.target.value; } });
   return h("div", { class: "asistente-documento" },
-    h("p", { class: "muted", text: "El editor busca las tablas del documento, las agrupa por sus etiquetas («Descripción:», «Pasos:»…) y te deja decidir a qué campo va cada una. No cambia nada hasta el último paso." }),
+    h("p", { class: "muted", text: "De un Word, el editor busca las tablas, las agrupa por sus etiquetas («Descripción:», «Pasos:»…) y te deja decidir a qué campo va cada una. De un Excel, cada hoja es un grupo y cada fila, una prueba o un requisito; eliges a qué campo va cada columna. No cambia nada hasta el último paso." }),
     h("div", { class: "campo" },
-      h("label", { text: "Documento de Word" }),
+      h("label", { text: "Documento de Word o Excel" }),
       h("div", { class: "fila-archivo" },
         h("button", { type: "button", class: "btn", onclick: async () => {
           try {
@@ -110,13 +119,16 @@ function pasoDocumento() {
             if (r.cancelado) return;
             if (r.archivo !== IMP.archivo) {
               IMP.archivo = r.archivo;
-              IMP.nombre = r.archivo.split(/[\\/]/).pop().replace(/\.docx$/i, "").replace(/\s+/g, "_");
+              IMP.nombre = r.archivo.split(/[\\/]/).pop().replace(/\.(docx|xlsx|xlsm)$/i, "").replace(/\s+/g, "_");
               IMP.analisis = null;
             }
             pintarAsistente();
           } catch (e) { fallo(e); }
         } }, icon("import"), IMP.archivo ? "Cambiar…" : "Elegir documento…"),
-        h("span", { class: "ruta-archivo", text: IMP.archivo || "Ningún documento elegido", title: IMP.archivo || "" }))),
+        h("span", { class: "ruta-archivo", text: IMP.archivo || "Ningún documento elegido", title: IMP.archivo || "" })),
+      soloResultados ? null : h("p", { class: "ayuda" }, "¿Vais a escribir las pruebas en Excel? ",
+        h("button", { type: "button", class: "enlace", text: "Descarga una plantilla", onclick: () => descargarPlantillaExcel(IMP.preferido === "requisito" ? "requisito" : "prueba") }),
+        " con una columna por campo: se importa sin tener que elegir nada.")),
     h("fieldset", { class: "grupo-radio" },
       h("legend", { text: "¿Qué contiene?" }),
       radio("imp-tipo", "prueba", "Pruebas", IMP.preferido, elegirTipo, soloResultados),
@@ -134,7 +146,15 @@ function pasoDocumento() {
       h("div", { class: "campo sangrado" }, nombre),
       radio("imp-modo", "anadir", abierto ? `Añadirlo al proyecto abierto (${abierto})` : "Añadirlo al proyecto abierto (no hay ninguno)", IMP.modo,
         (v) => { IMP.modo = v; nombre.disabled = true; }, !abierto),
-      h("p", { class: "ayuda", text: "Al añadir, los capítulos del documento van al final del índice y los IDs que ya existen en el proyecto se marcan para cambiarlos." })));
+      h("p", { class: "ayuda", text: "Al añadir, lo de cada capítulo va al capítulo del proyecto con el mismo nombre, en su sección (si no existe, se crea al final del índice). Lo que ya existe con el mismo ID se puede actualizar o dejar como está: así se puede importar poco a poco." })));
+}
+
+async function descargarPlantillaExcel(tipo) {
+  try {
+    const r = await api.importar_plantilla_excel(tipo);
+    if (r.cancelado) return;
+    aviso(`Plantilla guardada: ${r.archivo}`, "ok");
+  } catch (e) { fallo(e); }
 }
 
 /* ---- 2. familias de tablas ---- */
@@ -145,6 +165,20 @@ function pasoTablas() {
       a.tipos.map((t) => h("option", { value: t.valor, text: t.texto, selected: IMP.mapeo.tipos[f.firma] === t.valor })));
     const etiquetas = f.etiquetas.filter((e) => e.inicio);
     const visibles = etiquetas.slice(0, 14);
+    if (f.hoja !== undefined) {               // Excel: una hoja
+      return h("li", { class: "familia" },
+        h("div", { class: "familia-cab" },
+          h("strong", { text: `Hoja «${f.hoja}»` }),
+          h("span", { class: "muted", text: plural(f.tablas, "fila", "filas") }),
+          h("span", { class: "hueco" }),
+          sel),
+        f.tablas ? h("p", { class: "familia-ejemplos", text: "Por ejemplo: " + f.ejemplos.join(" · ") }) : null,
+        etiquetas.length
+          ? h("div", { class: "fichas-etiquetas" }, visibles.map((e) => h("span", { class: "ficha", text: e.etiqueta, title: `Con valor en ${plural(e.tablas, "fila", "filas")}` })),
+            etiquetas.length > visibles.length ? h("span", { class: "muted", text: `y ${etiquetas.length - visibles.length} más` }) : null)
+          : h("p", { class: "muted", text: "No se encuentra la fila de cabecera (la primera con dos celdas o más)." }),
+        f.imagenes ? h("p", { class: "ayuda", text: `${plural(f.imagenes, "imagen", "imágenes")} en la hoja: no se importan; añádelas después en el editor.` }) : null);
+    }
     return h("li", { class: "familia" },
       h("div", { class: "familia-cab" },
         h("strong", { text: `Familia ${f.numero}` }),
@@ -159,7 +193,9 @@ function pasoTablas() {
       f.anidadas ? h("p", { class: "ayuda", text: `${plural(f.anidadas, "tabla", "tablas")} dentro de celdas: en un requisito van a «Tablas e imágenes de la descripción»; en una prueba, a su contexto.` }) : null);
   });
   return h("div", {},
-    h("p", { class: "muted", text: `${plural(a.tablas, "tabla", "tablas")} en ${plural(a.familias.length, "familia", "familias")}. Una familia son las tablas con las mismas etiquetas (o casi). Elige qué es cada una: las «tablas informativas» se conservan tal cual, en el texto de su sección.` }),
+    h("p", { class: "muted", text: esExcel()
+      ? `${plural(a.familias.length, "hoja", "hojas")} con ${plural(a.tablas, "fila", "filas")}. Elige qué hay en cada una; las de notas o datos, «No importar».`
+      : `${plural(a.tablas, "tabla", "tablas")} en ${plural(a.familias.length, "familia", "familias")}. Una familia son las tablas con las mismas etiquetas (o casi). Elige qué es cada una: las «tablas informativas» se conservan tal cual, en el texto de su sección.` }),
     h("ul", { class: "familias" }, tarjetas));
 }
 
@@ -183,9 +219,11 @@ function pasoCampos() {
       h("h3", { text: { prueba: "Pruebas", requisito: "Requisitos", resultado: "Resultados" }[tipo] }),
       h("p", { class: "ayuda", text: tipo === "resultado"
         ? "La primera celda de la cabecera es el ID de la prueba: así se enlaza cada resultado. Las etiquetas de la propia prueba (descripción, pasos…) no se importan."
-        : "Cabecera de la tabla: la primera celda es el ID y la segunda, el título." }),
+        : esExcel()
+          ? "Cada fila con ID o título es una nueva; una fila sin ellos continúa la de arriba (por ejemplo, un paso por fila). «Capítulo» y «Sección» ordenan las filas (sin «Capítulo», el capítulo es el nombre de la hoja; «A > B» es la subsección B de A). En las columnas de lista, cada línea de la celda es un elemento."
+          : "Cabecera de la tabla: la primera celda es el ID y la segunda, el título." }),
       h("table", { class: "tabla-mapeo" },
-        h("thead", {}, h("tr", {}, h("th", { text: "Etiqueta en el Word" }), h("th", { text: "Tablas" }), h("th", { text: "Va a" }))),
+        h("thead", {}, h("tr", {}, h("th", { text: esExcel() ? "Columna del Excel" : "Etiqueta en el Word" }), h("th", { text: esExcel() ? "Filas" : "Tablas" }), h("th", { text: "Va a" }))),
         h("tbody", {}, filas.map((e) => {
           const sel = h("select", { "aria-label": `Campo para «${e.etiqueta}»`, onchange: (ev) => {
             IMP.mapeo.campos[tipo][e.clave] = ev.target.value;
@@ -203,8 +241,17 @@ function pasoCampos() {
         }))),
       valores);
   });
+  const mp = a.mapeo_proyecto;
+  const delProyecto = mp && (mp.archivo || (mp.problemas || []).length)
+    ? h("p", { class: (mp.problemas || []).length ? "aviso-panel" : "ok-panel" },
+      mp.archivo ? `Se parte del mapeo del proyecto (${mp.archivo.split(/[\\/]/).pop()}): lo que ya se eligió otras veces viene elegido.` : "",
+      (mp.problemas || []).length ? ` No se ha podido usar: ${mp.problemas.join("; ")}.` : "")
+    : null;
   return h("div", {},
-    h("p", { class: "muted", text: "A qué campo va cada etiqueta. «Campo adicional» la conserva con su nombre; «Parte del campo anterior» deja ese párrafo dentro del campo de antes (útil para una «Nota:» en mitad de un texto)." }),
+    delProyecto,
+    h("p", { class: "muted", text: esExcel()
+      ? "A qué campo va cada columna. «Campo adicional» la conserva con su nombre; «No importar» la deja fuera."
+      : "A qué campo va cada etiqueta. «Campo adicional» la conserva con su nombre; «Parte del campo anterior» deja ese párrafo dentro del campo de antes (útil para una «Nota:» en mitad de un texto)." }),
     bloques);
 }
 
@@ -264,18 +311,23 @@ function pasoRevisar() {
       const acciones = Object.values(IMP.acciones[tipo] || {});
       const cuenta = (a) => acciones.filter((x) => x === a).length;
       const nuevos = d.total - cuenta("actualizar") - cuenta("omitir");
-      return [nuevos ? plural(nuevos, `${tipo} nuevo`, `${TIPO_PLURAL[tipo]} nuevos`) : "",
-        cuenta("actualizar") ? plural(cuenta("actualizar"), "actualizado", "actualizados") : "",
+      const a = tipo === "prueba" ? "a" : "o";
+      return [nuevos ? plural(nuevos, `${tipo} nuev${a}`, `${TIPO_PLURAL[tipo]} nuev${a}s`) : "",
+        cuenta("actualizar") ? plural(cuenta("actualizar"), `actualizad${a}`, `actualizad${a}s`) : "",
         cuenta("omitir") ? `${cuenta("omitir")} sin tocar` : ""].filter(Boolean).join(", ");
     });
     resumen.replaceChildren(h("strong", { text: partes.join(" · ") }), ` ${destino}.`);
   };
   pintarResumen();
+  const guardar = h("div", { class: "campo" }, h("label", { class: "opcion-radio" },
+    h("input", { type: "checkbox", checked: IMP.guardarMapeo, onchange: (e) => { IMP.guardarMapeo = e.target.checked; } }),
+    h("span", { text: "Guardar lo elegido en el proyecto (importacion.yaml), para que el resto del equipo importe igual sin volver a elegir los campos" })));
   return h("div", { class: "revision-importar" },
     resumen,
+    guardar,
     tipos.map(([tipo, d]) => h("section", { class: "bloque-mapeo" },
       h("h3", { text: tipo === "prueba" ? "Pruebas" : "Requisitos" }),
-      h("p", { class: "muted", text: d.capitulos.map((c) => `${c.nombre} (${c.elementos})`).join(" · ") }),
+      h("p", { class: "muted", text: d.capitulos.map((c) => `${c.nombre} (${c.elementos}${c.existente ? ", se añade al capítulo que ya existe" : IMP.modo === "anadir" ? ", capítulo nuevo" : ""})`).join(" · ") }),
       tablaExistentes(tipo, d.existentes, pintarResumen),
       tablaIds(tipo, d.ids),
       ejemplosImportar(tipo, d.ejemplos))),
@@ -377,7 +429,9 @@ function tablaExistentes(tipo, existentes, alCambiar) {
   return h("div", { class: "existentes" },
     h("div", { class: "existentes-cab" },
       h("strong", { text: `${plural(existentes.length, "ya existe", "ya existen")} en el proyecto` }), todos),
-    h("p", { class: "ayuda", text: "Actualizar cambia sus campos por los del Word y conserva su sitio en el árbol. "
+    h("p", { class: "ayuda", text: (esExcel()
+      ? "Actualizar cambia los campos que tienen columna en el Excel (los demás se conservan, y sus campos adicionales se añaden a los que ya tenía) y conserva su sitio en el árbol. "
+      : "Actualizar cambia sus campos por los del Word y conserva su sitio en el árbol. ")
       + (tipo === "requisito" ? "Si un requisito actualizado tiene pruebas, quedará marcado para revisarlas. " : "")
       + "Por defecto se actualizan los que cambian y no se tocan los que están igual." }),
     h("table", { class: "tabla-mapeo" },
@@ -423,14 +477,14 @@ async function ejecutarImportacion() {
     if (elegida.cancelado) return;
     carpeta = elegida.carpeta;
   }
-  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta, IMP.acciones),
+  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta, IMP.acciones, IMP.guardarMapeo),
     "Se lee el documento, se copian las imágenes y se escriben los YAML. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
   if (r.cancelado) return;
   IMP.dlg.close();
   const res = r.resultado;
   const hechos = ["prueba", "requisito"].map((t) => [
-    res.totales[t] ? plural(res.totales[t], `${t} importado`, `${TIPO_PLURAL[t]} importados`) : "",
-    res.actualizados[t] ? plural(res.actualizados[t], `${t} actualizado`, `${TIPO_PLURAL[t]} actualizados`) : ""].filter(Boolean).join(", ")).filter(Boolean);
+    res.totales[t] ? plural(res.totales[t], `${t} importad${t === "prueba" ? "a" : "o"}`, `${TIPO_PLURAL[t]} importad${t === "prueba" ? "a" : "o"}s`) : "",
+    res.actualizados[t] ? plural(res.actualizados[t], `${t} actualizad${t === "prueba" ? "a" : "o"}`, `${TIPO_PLURAL[t]} actualizad${t === "prueba" ? "a" : "o"}s`) : ""].filter(Boolean).join(", ")).filter(Boolean);
   aviso(`${hechos.join(" · ")}${res.avisos ? ` (${plural(res.avisos, "aviso", "avisos")})` : ""}`, "ok");
   const soloRequisitos = !res.totales.prueba && !res.actualizados.prueba && (res.totales.requisito || res.actualizados.requisito);
   S.modo = soloRequisitos ? "requisitos" : "edicion";
