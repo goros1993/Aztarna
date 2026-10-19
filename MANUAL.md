@@ -73,7 +73,7 @@ de la ejecución.
 |---|---|
 | El programa (`Aztarna.exe`) | En la carpeta de red donde se publica; avisa cuando hay una versión nueva. |
 | Pruebas, requisitos y `aztarna.yaml` | En un **repositorio de Git** del equipo. Cada persona trabaja con su copia (clon) en su PC. |
-| Ejecuciones y validaciones | En una **carpeta compartida**, por ejemplo `\\servidor\pruebas\validaciones\v2.3\`, sin Git. |
+| Ejecuciones y validaciones | En una **carpeta compartida**, por ejemplo `\\servidor\pruebas\DEMO-A1\validaciones\`, sin Git: la **carpeta de validaciones del proyecto** (ver 6.0). |
 
 Las pruebas van en Git porque cambian poco a poco y conviene ver quién cambió
 qué. Las ejecuciones no: son registros que se rellenan una vez, con evidencias
@@ -101,6 +101,10 @@ sin commit.
 
 Puedes abrir la ejecución de otra persona aunque tenga sus pruebas en otra
 ruta: el editor usa tu copia de las pruebas (ver 6.3).
+
+Cada ejecución y cada validación sabe **de qué proyecto es**. El nombre del
+proyecto se ve en la barra superior, junto a la carpeta de pruebas, y en el
+modo Validación solo se ofrece lo de ese proyecto (ver 6.0).
 
 ---
 
@@ -153,8 +157,9 @@ en Ubuntu, *Configuración → Apariencia*.
 
 ![Ventana del editor en modo Pruebas](docs/manual/01_ventana_edicion.png)
 
-- **Barra superior:** modo (Pruebas / Requisitos / Validación), carpeta de
-  pruebas, en el modo Validación la validación y la ejecución abiertas,
+- **Barra superior:** modo (Pruebas / Requisitos / Validación), el **nombre
+  del proyecto** y su carpeta de pruebas, en el modo Validación la validación y
+  la ejecución abiertas (en ámbar si son de otro proyecto),
   capítulo, *Robot* (configuración de Robot Framework y número de pruebas
   automatizadas), *Recargar* (vuelve a leer los archivos del disco) y el
   menú **⋯** (ver abajo).
@@ -566,6 +571,36 @@ El trabajo habitual tiene dos pasos:
 2. **Alguien une las ejecuciones** de todos en la **validación de la versión**
    y genera el informe final (6.10).
 
+### 6.0 El proyecto y sus validaciones
+
+Al entrar en **Validación** se vuelve a abrir la última validación (o
+ejecución) que usaste, **si es del proyecto abierto**. Si no, aparece la
+portada:
+
+![Modo Validación sin nada abierto](docs/manual/08_ejecucion_inicio.png)
+
+- **Proyecto**: su nombre (*Cambiar nombre…*) y su **carpeta de
+  validaciones** (*Elegir…*): la carpeta compartida donde el equipo deja las
+  validaciones y las ejecuciones del proyecto. Las nuevas se proponen allí.
+  Los dos se guardan en el `aztarna.yaml` del proyecto: súbelo a Git para que
+  los usen los demás.
+- **Validaciones de este proyecto**: las que has usado y todas las que hay en
+  su carpeta de validaciones. **Ejecuciones recientes de este proyecto**,
+  debajo.
+- **De otros proyectos** (plegado): las recientes que son de otro proyecto.
+
+Si abres una validación o una ejecución de **otro proyecto**, el editor avisa
+antes, porque al abrirla cambia a sus pruebas:
+
+![Validación de otro proyecto](docs/manual/57_otro_proyecto.png)
+
+Si cambias de carpeta de pruebas con una validación o una ejecución de otro
+proyecto abierta, se deja de trabajar con ella (no se borra nada) y se avisa.
+
+Cada ejecución y validación nueva apunta su proyecto. Las de antes se
+reconocen por su carpeta de pruebas (o porque tus pruebas tienen todas las
+suyas) y se les apunta la primera vez que las abres.
+
 ### 6.1 Los resultados posibles
 
 | Resultado | Significa | Tecla |
@@ -580,10 +615,8 @@ El porcentaje de OK se calcula sobre las pruebas que aplican.
 
 ### 6.2 Crear una ejecución
 
-![Modo Validación sin nada abierto](docs/manual/08_ejecucion_inicio.png)
-
-Pasa a **Validación** y pulsa **Nueva ejecución** (o el botón de la ejecución,
-✓, en la barra superior).
+Pasa a **Validación** y pulsa **Nueva ejecución** (en la portada, ver 6.0, o
+en el botón de la ejecución, ✓, de la barra superior).
 
 ![Nueva ejecución](docs/manual/09_nueva_ejecucion.png)
 
@@ -604,10 +637,10 @@ prueba, entra con **Resincronizar** (en el resumen).
 
 ### 6.3 Abrir una ejecución
 
-Botón de la ejecución → **Abrir ejecución…** o una de las **recientes**. Al
-entrar en el modo Validación se abre la última que usaste (o la última
-validación). Al abrir una
-ejecución se abre también su carpeta de pruebas.
+Botón de la ejecución → **Abrir ejecución…** o una de las **recientes** (las
+de otro proyecto llevan *otro proyecto*). Al entrar en el modo Validación se
+abre la última que usaste de este proyecto (ver 6.0). Al abrir una ejecución
+se abre también su carpeta de pruebas.
 
 Si la ejecución es de otra persona y cada una tiene las pruebas en su PC (por
 ejemplo, cada una con su copia del repositorio), el editor usa la carpeta de
@@ -773,10 +806,11 @@ observaciones, incidencia, evidencias e intentos anteriores.
 
 ![Validación de una versión](docs/manual/32_validacion_panel.png)
 
-**Crear la validación.** Botón de la validación (el de las capas, en la barra
-superior) → **Nueva validación…**: nombre, versión y **qué pruebas hay que
-pasar** (las mismas fichas que al crear una ejecución). Después eliges dónde
-guardarla.
+**Crear la validación.** En la portada (ver 6.0) o con el botón de la
+validación (el de las capas, en la barra superior) → **Nueva validación…**:
+nombre, versión y **qué pruebas hay que pasar** (las mismas fichas que al
+crear una ejecución). Después eliges dónde guardarla (se propone la carpeta
+de validaciones del proyecto).
 
 **Añadir las ejecuciones.** **Añadir ejecuciones…** y elige la carpeta de una
 ejecución o una carpeta que contenga varias (por ejemplo, la compartida donde
@@ -1129,6 +1163,20 @@ a la de pruebas. Las ejecuciones, en la carpeta que elegiste al crearlas
 (`ejecucion.yaml`, `resultados.yaml`, `evidencias/` y, al cerrarla,
 `pruebas_congeladas/`). Las validaciones, en la suya (`validacion.yaml`, que
 solo apunta a sus ejecuciones). El editor no guarda nada en otro sitio.
+
+**¿Dónde se guardan el nombre del proyecto y su carpeta de validaciones?**
+En el `aztarna.yaml` del proyecto, en `proyecto:` (también se pueden escribir
+a mano):
+
+```yaml
+proyecto:
+  nombre: Controlador DEMO-A1
+  validaciones: \\servidor\pruebas\DEMO-A1\validaciones
+```
+
+Si las pruebas están en Git, el editor sabe que dos copias del repositorio son
+el mismo proyecto sin escribir nada más. Si no, la primera vez que creas una
+ejecución o una validación añade un `id:` a `proyecto:`; no lo cambies.
 
 **¿De dónde salen las opciones de Maniobra y Entorno?**
 Del archivo `aztarna.yaml` de la carpeta del proyecto (junto a `pruebas` y

@@ -31,8 +31,11 @@ class Base(unittest.TestCase):
         self.addCleanup(esquema.configurar, None)
 
     def proyecto_nuevo(self, nombre):
+        """Una copia de los ejemplos sin nombre de proyecto (se llama como su carpeta)."""
         destino = self.tmp / nombre
         shutil.copytree(EJEMPLOS, destino)
+        aztarna = destino / "aztarna.yaml"
+        aztarna.write_text(aztarna.read_text(encoding="utf-8").replace("proyecto:\n  nombre: Controlador DEMO-A1\n", ""), encoding="utf-8")
         return destino
 
 

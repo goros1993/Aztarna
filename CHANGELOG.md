@@ -24,8 +24,29 @@ Importar poco a poco, también desde Excel:
   elegido al importar se guarda en el proyecto, para que todo el equipo
   importe igual sin volver a elegir los campos. Se puede editar a mano.
 
+Proyecto, validaciones y ejecuciones:
+
+- **Cada ejecución y validación sabe de qué proyecto es.** El identificador del
+  proyecto sale de Git (igual en todos los clones) o se guarda en su
+  `aztarna.yaml`; las de antes se reconocen por sus pruebas y se les apunta al
+  abrirlas.
+- Al entrar en **Validación** solo se reabre la última validación o ejecución
+  **del proyecto abierto**. Portada con el proyecto, su **carpeta de
+  validaciones** (donde se crean y se buscan), sus validaciones y ejecuciones,
+  y las de otros proyectos aparte.
+- **Abrir una de otro proyecto avisa antes** (al abrirla cambian las pruebas).
+  Al cambiar de carpeta de pruebas se deja la de otro proyecto que estuviera
+  abierta. Los menús de recientes marcan las de otros proyectos.
+- El **nombre del proyecto** se ve en la barra superior, también en
+  Validación; se cambia desde la portada (`proyecto: nombre:` en
+  `aztarna.yaml`).
+
 Necesita `openpyxl` (en `requirements.txt`). Sin cambios en el formato de los
 datos (sigue el 1).
+
+**Al actualizar:** la 1.0.0 no abre un proyecto cuyo `aztarna.yaml` tenga
+`proyecto:` (el nombre o la carpeta de validaciones): que todo el equipo pase
+a la 1.1.0 antes de ponerlos.
 
 ## 1.0.0
 

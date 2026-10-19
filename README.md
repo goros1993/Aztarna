@@ -63,7 +63,7 @@ herramientas.py` las lista y `<orden> --help` explica sus opciones):
 
 ```text
 proyecto/
-├── aztarna.yaml   opciones de maniobra y entorno del proyecto (opcional)
+├── aztarna.yaml   nombre y carpeta de validaciones del proyecto, y opciones de maniobra y entorno (opcional)
 ├── importacion.yaml  cómo se importan sus Word y Excel (lo escribe el asistente; opcional)
 ├── pruebas/       indice.yaml, un YAML por capítulo, imagenes/ y formato.yaml
 └── requisitos/    lo mismo, y revisiones.yaml (requisitos cambiados)
@@ -92,6 +92,13 @@ Validación v2.3/
   pruebas están en Git, cada ejecución guarda el commit y la etiqueta al
   crearla y al cerrarla (`git` y `git_cierre`, `app/git_pruebas.py`). La
   validación avisa si sus ejecuciones usan versiones distintas.
+- Cada ejecución y validación guarda **de qué proyecto es** (`proyecto:` con
+  `id` y `nombre`, `app/proyecto.py`). El identificador sale de Git (el primer
+  commit del repositorio y la subcarpeta del proyecto, igual en todos los
+  clones) o, sin Git, se genera y se escribe en `aztarna.yaml`. En el modo
+  Validación solo se ofrece lo del proyecto abierto; abrir lo de otro pide
+  confirmación. `aztarna.yaml` puede indicar el `nombre` del proyecto y su
+  carpeta de `validaciones` (donde se crean y se buscan).
 - Cada carpeta indica la versión del formato de sus datos (`formato.yaml`, o la
   clave `formato` en `ejecucion.yaml` y `validacion.yaml`; `app/formato.py`).
   Una copia antigua del programa abre unos datos más nuevos, pero no los guarda.

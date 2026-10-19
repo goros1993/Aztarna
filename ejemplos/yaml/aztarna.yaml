@@ -1,6 +1,8 @@
 # Opciones de los campos de las pruebas de este proyecto (ver app/esquema.py).
 # Las lee el editor al abrir el proyecto; sin este archivo, Maniobra no tiene
 # opciones y Entorno usa Automático, Maqueta y Torre.
+proyecto:
+  nombre: Controlador DEMO-A1
 opciones:
   maniobra: [Simplex, Dúplex]
   entorno: [Automático, Maqueta, Torre]
