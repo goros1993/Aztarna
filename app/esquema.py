@@ -287,6 +287,8 @@ def completar(prueba: Any) -> None:
 #       entorno: [Automático, Maqueta, Torre]
 #     equivalencias:                  # otras formas de escribirlas en el Word
 #       maniobra: {S: Simplex, D: Dúplex}
+#     proyecto:                       # nombre, carpeta de validaciones… (ver app/proyecto.py)
+#       nombre: Controlador DEMO-A1
 #
 # Va en la carpeta del proyecto (junto a pruebas/ y requisitos/) o, en una
 # carpeta de pruebas suelta, dentro de ella. Un campo que no aparece conserva sus
@@ -316,8 +318,8 @@ def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[st
             datos = YAML(typ="safe").load(f) or {}
     except (OSError, YAMLError) as error:
         raise ValueError(f"No se puede leer {ruta}: {error}") from error
-    if not isinstance(datos, dict) or set(datos) - {"opciones", "equivalencias"}:
-        raise ValueError(f"{ruta}: solo admite «opciones» y «equivalencias».")
+    if not isinstance(datos, dict) or set(datos) - {"opciones", "equivalencias", "proyecto"}:
+        raise ValueError(f"{ruta}: solo admite «proyecto», «opciones» y «equivalencias».")
     opciones, equivalencias = {}, {}
     for campo, valores in (datos.get("opciones") or {}).items():
         if campo not in OPCIONES_BASE:

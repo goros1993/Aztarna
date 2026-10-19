@@ -22,6 +22,7 @@ from app import ajustes
 from app import ejecucion_core as ej
 from app import esquema
 from app import git_pruebas
+from app import proyecto
 from app import robot_core
 from app.editor_api import EditorApi, respuesta, to_plain
 
@@ -60,17 +61,76 @@ class EditorEjecucionApi(EditorApi):
             "estados": ej.ESTADOS_VISIBLES,
             "entornos": list(ej.entornos_pruebas()),
             "version_pruebas": git_pruebas.texto_ejecucion(datos),
+            "relacion": self._relacion(ejecucion["datos"], ej.carpeta_pruebas(ejecucion), ej.ids_de(ejecucion)),
         }
 
-    def _dialogo_carpeta(self) -> Path | None:
+    # --- proyecto: de cuál es cada ejecución y validación ------------------------
+    def _relacion(self, datos: dict[str, Any], pruebas_suyas: Path | None, ids: list[str] | None = None) -> str:
+        """Si una ejecución o una validación es del proyecto abierto: «mismo», «otro» o «desconocido».
+
+        Primero por el identificador del proyecto; si alguna no lo tiene, por la
+        carpeta de pruebas (o por tener todas sus pruebas, si es otra copia).
+        """
+        abierto = self._proyecto_abierto()
+        if abierto is None:
+            return proyecto.DESCONOCIDO
+        suyo = proyecto.de_datos(datos).get("id")
+        if suyo and abierto.get("id"):
+            return proyecto.MISMO if suyo == abierto["id"] else proyecto.OTRO
+        if self._solo_lectura:
+            carpeta = ej.carpeta_pruebas(self._ejecucion) if self._ejecucion is not None else None
+        else:
+            carpeta = self._yaml_dir
+        if carpeta is not None and pruebas_suyas is not None and pruebas_suyas.resolve() == carpeta.resolve():
+            return proyecto.MISMO
+        if carpeta is not None and not self._solo_lectura and ids and set(ids) <= self._ids_abiertos():
+            return proyecto.MISMO
+        return proyecto.OTRO if pruebas_suyas is not None else proyecto.DESCONOCIDO
+
+    def _ids_abiertos(self) -> set[str]:
+        return set(ej.indice_por_id(self._chapters))
+
+    def _proyecto_para_crear(self) -> dict[str, str] | None:
+        """Lo que guarda una ejecución o una validación nueva (y le da identificador al proyecto si no tiene)."""
+        if self._yaml_dir is None or self._solo_lectura:
+            return None
+        self._proyecto = proyecto.asegurar_id(self._yaml_dir)
+        return proyecto.para_guardar(self._proyecto)
+
+    def _apuntar_proyecto(self, entidad: dict[str, Any], guardar) -> None:
+        """A una ejecución o validación de este proyecto que aún no lo dice, se le apunta (solo eso)."""
+        abierto = self._proyecto_abierto()
+        if proyecto.de_datos(entidad["datos"]).get("id") or not abierto or not abierto.get("id") or abierto.get("congeladas"):
+            return
+        entidad["datos"]["proyecto"] = proyecto.para_guardar(abierto)
+        try:
+            guardar(entidad)
+        except (OSError, ValueError):
+            entidad["datos"].pop("proyecto", None)      # sin permiso de escritura: no pasa nada
+
+    def _otro_proyecto(self, tipo: str, carpeta: Path, datos: dict[str, Any], pruebas_suyas: Path | None) -> dict[str, Any]:
+        """Respuesta para que la interfaz pregunte antes de abrir una ejecución o validación de otro proyecto."""
+        suyo = proyecto.de_datos(datos).get("nombre") or (proyecto.carpeta_proyecto(pruebas_suyas).name if pruebas_suyas else "")
+        abierto = self._proyecto_abierto() or {}
+        return {"otro_proyecto": True, "tipo": tipo, "carpeta": str(carpeta), "nombre": str(datos.get("nombre") or carpeta.name),
+                "su_proyecto": suyo, "pruebas": str(pruebas_suyas) if pruebas_suyas else "",
+                "proyecto_abierto": abierto.get("nombre") or ""}
+
+    def _carpeta_validaciones(self) -> Path | None:
+        abierto = self._proyecto_abierto() or {}
+        ruta = Path(abierto["validaciones"]) if abierto.get("validaciones") else None
+        return ruta if ruta is not None and ruta.is_dir() else None
+
+    def _dialogo_carpeta(self, inicio: Path | None = None) -> Path | None:
         import webview
 
         if self._window is None:
             raise ValueError("El selector de carpetas solo está disponible en la aplicación.")
         kind = getattr(getattr(webview, "FileDialog", None), "FOLDER", None) or webview.FOLDER_DIALOG
-        # Empieza donde se eligió la última vez (normalmente, la carpeta con las ejecuciones o validaciones).
+        # Empieza en `inicio` o donde se eligió la última vez (normalmente, la carpeta con las ejecuciones o validaciones).
         guardada = ajustes.leer().get("carpeta_dialogos")
-        inicio = Path(guardada) if isinstance(guardada, str) and Path(guardada).is_dir() else Path.home()
+        if inicio is None or not inicio.is_dir():
+            inicio = Path(guardada) if isinstance(guardada, str) and Path(guardada).is_dir() else Path.home()
         elegida = self._window.create_file_dialog(kind, directory=str(inicio))
         if not elegida:
             return None
@@ -110,7 +170,7 @@ class EditorEjecucionApi(EditorApi):
         """Crea la ejecución en una subcarpeta nueva dentro de la carpeta elegida."""
         pruebas = self._require_dir()
         if carpeta is None:
-            padre = self._dialogo_carpeta()
+            padre = self._dialogo_carpeta(self._carpeta_validaciones())
             if padre is None:
                 return {"cancelado": True}
             destino = padre / _nombre_carpeta(str(nombre or ""))
@@ -118,7 +178,8 @@ class EditorEjecucionApi(EditorApi):
                 raise ValueError(f"Ya existe {destino}. Elige otra carpeta o cambia el nombre.")
         else:
             destino = Path(carpeta)
-        self._ejecucion = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
+        self._ejecucion = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro),
+                                   proyecto=self._proyecto_para_crear())
         return self._estado()
 
     def _abrir(self, carpeta: Path) -> dict[str, Any]:
@@ -150,14 +211,24 @@ class EditorEjecucionApi(EditorApi):
         return self._estado()
 
     @respuesta
-    def ejecucion_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
-        """Abre una ejecución; si sus pruebas están en otra carpeta, abre también esa carpeta."""
+    def ejecucion_abrir(self, carpeta: str | None = None, confirmar_otro: bool = False) -> dict[str, Any]:
+        """Abre una ejecución; si sus pruebas están en otra carpeta, abre también esa carpeta.
+
+        Si es de otro proyecto, sin `confirmar_otro` no la abre: devuelve `otro_proyecto` para preguntar.
+        """
         if carpeta is None:
-            elegida = self._dialogo_carpeta()
+            elegida = self._dialogo_carpeta(self._carpeta_validaciones())
             if elegida is None:
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
+        ejecucion = ej.cargar(elegida)
+        suyas = ej.carpeta_pruebas(ejecucion)
+        relacion = self._relacion(ejecucion["datos"], suyas, ej.ids_de(ejecucion))
+        if relacion == proyecto.OTRO and not confirmar_otro and self._yaml_dir is not None:
+            return self._otro_proyecto("ejecucion", elegida, ejecucion["datos"], suyas)
+        if relacion == proyecto.MISMO:
+            self._apuntar_proyecto(ejecucion, ej.guardar)
         return self._abrir(elegida)
 
     @respuesta

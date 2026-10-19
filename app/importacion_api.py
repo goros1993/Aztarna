@@ -210,7 +210,7 @@ class EditorImportacionApi(EditorValidacionApi):
             raise ValueError("Elige dónde crear la ejecución.")
         if destino.exists():
             raise ValueError(f"Ya existe {destino.name}. Cambia el nombre de la ejecución.")
-        r = ir.importar(documento, mapeo, destino, self._pruebas_del_proyecto(), nombre, datos)
+        r = ir.importar(documento, mapeo, destino, self._pruebas_del_proyecto(), nombre, datos, proyecto=self._proyecto_para_crear())
         if en_validacion and self._validacion is not None:
             vc.anadir_ejecucion(self._validacion, destino)
         self._recordar_mapeo_resultados(mapeo)

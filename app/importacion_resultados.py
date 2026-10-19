@@ -280,7 +280,7 @@ def revision(preparado: dict[str, Any]) -> dict[str, Any]:
 # 3. Crear la ejecución
 # ----------------------------------------------------------------------
 def importar(ruta: str | Path, mapeo: dict[str, Any], carpeta: str | Path, pruebas: str | Path,
-             nombre: str, datos: dict[str, Any] | None = None) -> dict[str, Any]:
+             nombre: str, datos: dict[str, Any] | None = None, proyecto: dict[str, str] | None = None) -> dict[str, Any]:
     """Crea en `carpeta` una ejecución con las pruebas del Word que están en el proyecto y apunta sus resultados."""
     from app.editor_core import read_chapters, tests_dir
     capitulos = read_chapters(tests_dir(Path(pruebas)))
@@ -291,7 +291,7 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], carpeta: str | Path, prueb
     if not str((datos or {}).get("entorno_pruebas") or "").strip():
         raise ValueError("Indica en qué entorno de pruebas se ejecutó (Automático, Maqueta o Torre).")
     filtro = {"importado_de": Path(ruta).name, "solo_ids": [r["id"] for r in resultados]}
-    ejecucion = ej.crear(carpeta, pruebas, nombre, filtro, datos or {})
+    ejecucion = ej.crear(carpeta, pruebas, nombre, filtro, datos or {}, proyecto=proyecto)
     huellas = {p["id"]: p["huella"] for p in ejecucion["datos"]["pruebas"]}
     apuntados = 0
     for r in resultados:

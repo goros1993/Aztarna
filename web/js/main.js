@@ -3,6 +3,7 @@
 
 const S = {
   carpeta: null,
+  proyecto: null,       // nombre e id del proyecto de las pruebas abiertas (ver app/proyecto.py)
   capitulos: [],
   capitulo: 0,
   nodos: [],
@@ -81,11 +82,16 @@ function aplicarResumen(resumen) {
   const boton = $("#carpeta-ruta");
   S.soloLectura = Boolean(resumen.solo_lectura);
   S.avisoFormato = resumen.aviso_formato || null;
+  S.proyecto = resumen.proyecto || null;
   boton.textContent = S.carpeta ? (S.soloLectura ? "Pruebas congeladas (solo lectura)" : S.carpeta) : "Sin carpeta";
   boton.title = S.soloLectura
     ? "Pruebas tal como estaban al cerrar la ejecución. No se pueden editar; para editar, abre la carpeta de pruebas."
     : S.carpeta || "";
-  $("#btn-carpeta").title = S.carpeta ? `Carpeta de pruebas: ${S.carpeta}\nPulsa para cambiarla.` : "Cambiar de carpeta";
+  const proyecto = $("#proyecto-nombre");
+  proyecto.textContent = S.proyecto ? S.proyecto.nombre : "";
+  proyecto.hidden = !S.proyecto;
+  $("#btn-carpeta").title = S.carpeta
+    ? `${S.proyecto ? `Proyecto: ${S.proyecto.nombre}\n` : ""}Carpeta de pruebas: ${S.carpeta}\nPulsa para cambiarla.` : "Cambiar de carpeta";
   const sel = $("#sel-capitulo");
   sel.replaceChildren(...S.capitulos.map((c) => h("option", {
     value: String(c.indice), text: textoCapitulo(c), selected: c.indice === S.capitulo,
@@ -164,6 +170,7 @@ async function elegirCarpeta() {
     S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
     S.colapsadas.clear(); cacheImagenes.clear(); S.capituloPorModo = {};
     aplicarResumen(r);
+    if (S.validacion || S.ejecucion) await soltarLoDeOtroProyecto();
     await cargarCobertura();
     await cargarNavegacion();
     mostrarVacio();

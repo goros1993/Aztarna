@@ -35,11 +35,16 @@ function pintarModo() {
   $("#modo-ejecucion").setAttribute("aria-pressed", String(ej));
   $("#txt-nueva").textContent = enRequisitos() ? "Requisito" : "Prueba";
   $("#buscar").placeholder = enRequisitos() ? "Buscar requisito por ID o texto" : "Buscar por ID o texto";
+  // Una validación o ejecución de otro proyecto (p. ej., tras cambiar de carpeta de pruebas) se marca.
+  const otro = (x) => Boolean(x && x.relacion === "otro");
+  const notaOtro = (x) => (otro(x) ? `\nEs de otro proyecto${x.datos.proyecto && x.datos.proyecto.nombre ? ` («${x.datos.proyecto.nombre}»)` : ""}, no del que tienes abierto.` : "");
   $("#validacion-nombre").textContent = S.validacion ? S.validacion.datos.nombre : "Sin validación";
-  $("#btn-validacion").title = S.validacion ? S.validacion.carpeta : "Crear o abrir la validación de una versión";
+  $("#btn-validacion").title = S.validacion ? S.validacion.carpeta + notaOtro(S.validacion) : "Crear o abrir la validación de una versión";
+  $("#btn-validacion").classList.toggle("otro-proyecto", otro(S.validacion));
   const nombre = $("#ejecucion-nombre");
   nombre.textContent = S.ejecucion ? S.ejecucion.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin ejecución";
-  $("#btn-ejecucion").title = S.ejecucion ? S.ejecucion.carpeta : "Crear o abrir una ejecución";
+  $("#btn-ejecucion").title = S.ejecucion ? S.ejecucion.carpeta + notaOtro(S.ejecucion) : "Crear o abrir una ejecución";
+  $("#btn-ejecucion").classList.toggle("otro-proyecto", otro(S.ejecucion));
   $("#filtro-estado").value = S.filtroEstado;
   etiquetarCapitulos();
 }
@@ -155,18 +160,25 @@ function recordarReciente() {
   guardarLocal("ejecuciones-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
-/** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada. */
+/** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada de este proyecto. */
 async function recuperarEjecucion() {
   try {
     const actual = await api.ejecucion_estado();
-    if (actual) { S.ejecucion = actual; return; }
-    const ultima = recientes()[0];
+    if (actual && actual.relacion !== "otro") { S.ejecucion = actual; return; }
+    if (actual) await api.ejecucion_soltar();
+    const portada = await api.validacion_portada([], recientes().map((r) => r.carpeta));
+    const ultima = portada.ejecuciones.find((e) => e.relacion === "mismo");
     if (ultima) await usarEjecucion(await api.ejecucion_abrir(ultima.carpeta), { silencio: true });
   } catch (_e) { /* la última ejecución ya no existe: se elegirá otra */ }
 }
 
 async function usarEjecucion(r, { silencio = false } = {}) {
   if (!r || r.cancelado) return;
+  if (r.otro_proyecto) {
+    if (silencio || !(await confirmarOtroProyecto(r))) return;
+    r = await api.ejecucion_abrir(r.carpeta, true);
+    if (!r || r.cancelado) return;
+  }
   if (r.faltan_pruebas) {
     if (silencio) return;
     const respuesta = await dialogo({
@@ -209,6 +221,7 @@ async function abrirEjecucion(carpeta = null) {
 
 async function menuEjecucion() {
   const lista = recientes().filter((r) => !S.ejecucion || r.carpeta !== S.ejecucion.carpeta);
+  const relaciones = await relacionesRecientes([], lista.map((r) => r.carpeta));
   const cuerpo = h("div", { class: "menu-ejecucion" },
     S.validacion ? h("p", { class: "muted", text: `Validación abierta: «${S.validacion.datos.nombre}». Las ejecuciones nuevas se crean dentro de ella; una que abras y no forme parte de ella se puede añadir desde su resumen.` }) : null,
     S.ejecucion ? h("p", {}, "Abierta: ", h("strong", { text: S.ejecucion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.ejecucion.carpeta })) : null,
@@ -216,7 +229,7 @@ async function menuEjecucion() {
     lista.map((r) => h("button", {
       type: "button", class: "btn ghost reciente", title: r.carpeta,
       onclick: (e) => e.target.closest("dialog").close("reciente:" + r.carpeta),
-    }, h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta }))));
+    }, h("span", {}, r.nombre, etiquetaOtro(relaciones.get(r.carpeta))), h("span", { class: "muted", text: r.carpeta }))));
   const r = await dialogo({
     titulo: "Ejecuciones", cuerpo,
     botones: [
@@ -424,20 +437,7 @@ function mostrarPanelEjecucion() {
   R = null;
   if (!S.ejecucion && S.validacion) { mostrarPanelValidacion(); return; }
   if (!S.ejecucion) {
-    const lista = recientes();
-    mostrar(h("div", { class: "centro" },
-      h("h2", { text: "Validación de una versión" }),
-      h("p", { text: "Una validación agrupa las ejecuciones de una versión (una por entorno: Automático, Maqueta, Torre) y da el resultado de cada prueba en cada entorno. Cada ejecución guarda sus resultados en su carpeta; los YAML de pruebas no se tocan." }),
-      h("div", { class: "fila-botones" },
-        h("button", { class: "btn primary", type: "button", onclick: nuevaValidacion, text: "Nueva validación" }),
-        h("button", { class: "btn", type: "button", onclick: () => abrirValidacion(), text: "Abrir validación…" })),
-      h("p", { class: "muted", text: "También puedes trabajar con una ejecución suelta, sin validación:" }),
-      h("div", { class: "fila-botones" },
-        h("button", { class: "btn", type: "button", onclick: () => nuevaEjecucion(), text: "Nueva ejecución" }),
-        h("button", { class: "btn", type: "button", onclick: () => abrirEjecucion(), text: "Abrir ejecución…" })),
-      lista.length ? h("div", { class: "recientes" }, h("p", { class: "muted", text: "Recientes" }),
-        lista.map((r) => h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: () => abrirEjecucion(r.carpeta) },
-          h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta })))) : null));
+    pintarPortadaValidacion();
     return;
   }
   const c = S.ejecucion;

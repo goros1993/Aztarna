@@ -439,6 +439,17 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 /* En validación la carpeta de pruebas la decide la validación o la ejecución: solo el icono (la ruta, en el título). */
 #app.modo-ejecucion .barra .carpeta { min-width: 0; max-width: none; padding-left: 9px; padding-right: 9px; }
 #app.modo-ejecucion .barra .carpeta span { display: none; }
+/* El nombre del proyecto se ve siempre (también en validación: de él son las validaciones que se ofrecen). */
+.carpeta .proyecto-nombre:not([hidden]) { font-weight: 600; direction: ltr; flex: none; max-width: 18vw; }
+#app.modo-ejecucion .barra .carpeta .proyecto-nombre:not([hidden]) { display: inline; }
+.barra .btn.otro-proyecto { border-color: var(--warn); color: var(--warn); }
+.etiqueta-otro { color: var(--warn); font-size: 12px; }
+#app.modo-ejecucion .barra .carpeta { flex: none; }
+.centro.portada-validacion { max-width: 640px; }
+.portada-validacion .proyecto-datos { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 6px 12px; align-items: center; margin: 4px 0 18px; text-align: left; }
+.portada-validacion .proyecto-datos dt { color: var(--ink-3); }
+.portada-validacion .proyecto-datos dd { margin: 0; overflow-wrap: anywhere; }
+.portada-validacion h3 { margin: 18px 0 6px; font-size: 14px; text-align: left; }
 #app.modo-ejecucion .capitulo select { min-width: 160px; max-width: 20vw; }
 .barra .ejecucion span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vista-ejecucion { padding: 0 32px 72px; max-width: 1600px; }

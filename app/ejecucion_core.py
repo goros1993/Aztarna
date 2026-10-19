@@ -353,8 +353,11 @@ def editar_datos(ejecucion: dict[str, Any], cambios: dict[str, Any]) -> None:
 
 def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
           filtro: dict[str, Any], datos: dict[str, Any] | None = None,
-          ids_robot: set[str] | None = None) -> dict[str, Any]:
-    """Crea una ejecución nueva con las pruebas que cumplen el filtro (lista congelada)."""
+          ids_robot: set[str] | None = None, proyecto: dict[str, str] | None = None) -> dict[str, Any]:
+    """Crea una ejecución nueva con las pruebas que cumplen el filtro (lista congelada).
+
+    `proyecto`: {"id", "nombre"} del proyecto de las pruebas (ver app/proyecto.py).
+    """
     carpeta = Path(carpeta)
     if es_ejecucion(carpeta):
         raise ValueError("Esa carpeta ya contiene una ejecución.")
@@ -383,6 +386,8 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str,
         },
         "resultados": {},
     }
+    if proyecto:
+        ejecucion["datos"]["proyecto"] = dict(proyecto)
     version = git_pruebas.estado(pruebas_yaml)      # qué versión de las pruebas (si están en Git)
     if version:
         ejecucion["datos"]["git"] = version

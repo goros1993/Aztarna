@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import proyecto
 from app import validacion_core as vc
 from app.editor_api import respuesta, to_plain
 from app.ejecucion_api import EditorEjecucionApi, _nombre_carpeta
@@ -43,7 +44,10 @@ class EditorValidacionApi(EditorEjecucionApi):
         pruebas = vc.carpeta_pruebas(validacion)
         mismas = pruebas is not None and self._yaml_dir is not None and pruebas.resolve() == self._yaml_dir \
             and not self._solo_lectura
-        return to_plain(vc.consolidar(validacion, self._chapters if mismas else None))
+        estado = to_plain(vc.consolidar(validacion, self._chapters if mismas else None))
+        estado["relacion"] = self._relacion(validacion["datos"], pruebas)
+        estado["proyecto"] = proyecto.de_datos(validacion["datos"])
+        return estado
 
     def _abrir_validacion(self, carpeta: Path) -> dict[str, Any]:
         validacion = vc.cargar(carpeta)
@@ -65,14 +69,79 @@ class EditorValidacionApi(EditorEjecucionApi):
         return self._estado_validacion() if self._validacion is not None else None
 
     @respuesta
-    def validacion_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
+    def validacion_abrir(self, carpeta: str | None = None, confirmar_otro: bool = False) -> dict[str, Any]:
+        """Abre la validación (y sus pruebas). Si es de otro proyecto, sin `confirmar_otro` no la abre:
+        devuelve `otro_proyecto` para que la interfaz pregunte."""
         if carpeta is None:
-            elegida = self._dialogo_carpeta()
+            elegida = self._dialogo_carpeta(self._carpeta_validaciones())
             if elegida is None:
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
+        validacion = vc.cargar(elegida)
+        suyas = vc.carpeta_pruebas(validacion)
+        relacion = self._relacion(validacion["datos"], suyas)
+        if relacion == proyecto.OTRO and not confirmar_otro and self._yaml_dir is not None:
+            return self._otro_proyecto("validacion", elegida, validacion["datos"], suyas)
+        if relacion == proyecto.MISMO:
+            self._apuntar_proyecto(validacion, vc.guardar)
         return self._abrir_validacion(elegida)
+
+    # --- portada del modo Validación y proyecto ---------------------------------------
+    @respuesta
+    def validacion_portada(self, validaciones: list[str] | None = None, ejecuciones: list[str] | None = None) -> dict[str, Any]:
+        """El proyecto abierto y, de cada validación y ejecución (las recientes y las de la carpeta de
+        validaciones del proyecto), si es de este proyecto. Lo que no existe ya se omite."""
+        abierto = self._proyecto_abierto()
+        recientes_v = [str(c) for c in (validaciones or [])]
+        candidatas = [Path(c) for c in recientes_v]
+        en_carpeta: set[str] = set()
+        carpeta = self._carpeta_validaciones()
+        if carpeta is not None:
+            for c in vc.buscar_validaciones(carpeta):
+                en_carpeta.add(str(c.resolve()))
+                candidatas.append(c)
+        lista_v, vistas = [], set()
+        for c in candidatas:
+            clave = str(c.resolve()) if c.exists() else str(c)
+            if clave in vistas:
+                continue
+            vistas.add(clave)
+            try:
+                v = vc.cargar(c)
+            except (OSError, ValueError):
+                continue
+            lista_v.append({"carpeta": str(c), "nombre": str(v["datos"].get("nombre") or c.name),
+                            "version": str(v["datos"].get("version") or ""), "relacion": self._relacion(v["datos"], vc.carpeta_pruebas(v)),
+                            "proyecto": proyecto.de_datos(v["datos"]).get("nombre", ""), "reciente": str(c) in recientes_v,
+                            "en_carpeta": clave in en_carpeta})
+        lista_e = []
+        for c in [Path(x) for x in (ejecuciones or [])]:
+            try:
+                e = ej.cargar(c)
+            except (OSError, ValueError):
+                continue
+            suyas = ej.carpeta_pruebas(e) or self._pruebas_en_este_pc(e)
+            lista_e.append({"carpeta": str(c), "nombre": str(e["datos"].get("nombre") or c.name),
+                            "cerrada": e["datos"].get("estado") == "cerrada",
+                            "relacion": self._relacion(e["datos"], suyas, ej.ids_de(e)),
+                            "proyecto": proyecto.de_datos(e["datos"]).get("nombre", "")})
+        return {"proyecto": abierto, "validaciones": lista_v, "ejecuciones": lista_e}
+
+    @respuesta
+    def proyecto_configurar(self, nombre: str | None = None, validaciones: str | None = None,
+                            elegir_validaciones: bool = False) -> dict[str, Any]:
+        """Cambia el nombre del proyecto o su carpeta de validaciones (en su aztarna.yaml)."""
+        if self._yaml_dir is None or self._solo_lectura:
+            raise ValueError("Abre la carpeta de pruebas del proyecto (no unas pruebas congeladas) para cambiarlo.")
+        self._exigir_escritura()
+        if elegir_validaciones:
+            elegida = self._dialogo_carpeta(self._carpeta_validaciones())
+            if elegida is None:
+                return {"cancelado": True}
+            validaciones = str(elegida)
+        self._proyecto = proyecto.configurar(self._yaml_dir, nombre, validaciones)
+        return {"proyecto": self._proyecto_abierto(), "carpeta": self._summary()}
 
     @respuesta
     def validacion_crear(self, nombre: str, version: str = "", filtro: dict[str, Any] | None = None,
@@ -80,7 +149,7 @@ class EditorValidacionApi(EditorEjecucionApi):
         """Crea la validación en una subcarpeta nueva de la carpeta elegida."""
         pruebas = self._require_dir()
         if carpeta is None:
-            padre = self._dialogo_carpeta()
+            padre = self._dialogo_carpeta(self._carpeta_validaciones())
             if padre is None:
                 return {"cancelado": True}
             destino = padre / _nombre_carpeta(str(nombre or ""))
@@ -88,7 +157,7 @@ class EditorValidacionApi(EditorEjecucionApi):
                 raise ValueError(f"Ya existe {destino}. Elige otra carpeta o cambia el nombre.")
         else:
             destino = Path(carpeta)
-        self._validacion = vc.crear(destino, pruebas, nombre, version, filtro or {})
+        self._validacion = vc.crear(destino, pruebas, nombre, version, filtro or {}, proyecto=self._proyecto_para_crear())
         self._ejecucion = None
         return self._estado_validacion()
 
@@ -232,6 +301,7 @@ class EditorValidacionApi(EditorEjecucionApi):
         destino = validacion["carpeta"] / _nombre_carpeta(str(nombre or ""))
         if destino.exists():
             raise ValueError(f"Ya existe {destino.name} en la validación. Cambia el nombre.")
-        self._ejecucion = ej.crear(destino, self._require_dir(), nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
+        self._ejecucion = ej.crear(destino, self._require_dir(), nombre, filtro or {}, datos or {}, self._ids_robot(filtro),
+                                   proyecto=self._proyecto_para_crear())
         vc.anadir_ejecucion(validacion, destino)
         return self._estado()

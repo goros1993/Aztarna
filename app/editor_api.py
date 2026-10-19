@@ -29,7 +29,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import ajustes, bloqueos, esquema, formato, trazabilidad
+from app import ajustes, bloqueos, esquema, formato, proyecto, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -350,6 +350,7 @@ class EditorApi:
         self._req_chapters: list[dict[str, Any]] = []      # requisitos (subcarpeta requisitos/)
         self._req_error: str | None = None                 # por qué no se pudieron leer los requisitos
         self._coleccion = "pruebas"                        # lo que se edita: "pruebas" o "requisitos"
+        self._proyecto: dict[str, Any] | None = None       # nombre, id y carpeta de validaciones (app/proyecto.py)
         self._mtimes: dict[Path, int] = {}
         self._thumbs: dict[tuple[str, int, int, int], dict[str, Any]] = {}
         self._carpeta_inicial = Path(carpeta_inicial) if carpeta_inicial else None
@@ -420,6 +421,7 @@ class EditorApi:
         if not chapters:
             raise ValueError("No se encontraron capítulos YAML en la carpeta.")
         esquema.configurar(yaml_dir)            # opciones de maniobra y entorno del proyecto
+        self._proyecto = proyecto.leer(yaml_dir)
         self._solo_lectura = False
         self._yaml_dir = yaml_dir.resolve()
         self._chapters = chapters
@@ -507,6 +509,17 @@ class EditorApi:
             raise
         self._mtimes[path] = path.stat().st_mtime_ns
 
+    def _proyecto_abierto(self) -> dict[str, Any] | None:
+        """El proyecto de las pruebas abiertas; con las pruebas congeladas de una ejecución, el de la ejecución."""
+        if self._yaml_dir is None:
+            return None
+        ejecucion = getattr(self, "_ejecucion", None)
+        if self._solo_lectura and ejecucion is not None:
+            suyo = proyecto.de_datos(ejecucion["datos"])
+            return {"id": suyo.get("id") or None, "nombre": suyo.get("nombre") or str(ejecucion["datos"].get("nombre") or ""),
+                    "validaciones": None, "archivo": None, "congeladas": True}
+        return self._proyecto
+
     def _summary(self) -> dict[str, Any]:
         clave = self._clave()
         return {
@@ -517,6 +530,7 @@ class EditorApi:
             "hay_requisitos": bool(self._req_chapters),
             "error_requisitos": self._req_error,
             "esquema": self._esquema(),
+            "proyecto": self._proyecto_abierto(),
             "capitulos": [
                 {
                     "indice": i,

@@ -100,7 +100,8 @@ def guardar(validacion: dict[str, Any]) -> None:
 
 
 def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str, version: str = "",
-          seleccion: dict[str, Any] | None = None) -> dict[str, Any]:
+          seleccion: dict[str, Any] | None = None, proyecto: dict[str, str] | None = None) -> dict[str, Any]:
+    """Crea la validación. `proyecto`: {"id", "nombre"} del proyecto de las pruebas (ver app/proyecto.py)."""
     carpeta = Path(carpeta)
     if es_validacion(carpeta):
         raise ValueError("Esa carpeta ya contiene una validación.")
@@ -116,6 +117,8 @@ def crear(carpeta: str | Path, pruebas_yaml: str | Path, nombre: str, version: s
     datos: dict[str, Any] = {"nombre": nombre}
     if str(version or "").strip():
         datos["version"] = str(version).strip()
+    if proyecto:
+        datos["proyecto"] = dict(proyecto)
     datos.update({"creada": ej.ahora(), **_rutas(carpeta, pruebas, "pruebas_yaml"),
                   "seleccion": dict(seleccion or {}), "ejecuciones": []})
     validacion = {"carpeta": carpeta, "datos": datos}
@@ -173,6 +176,24 @@ def buscar_ejecuciones(carpeta: str | Path) -> list[Path]:
             encontradas.append(hija)
         else:
             encontradas.extend(n for n in sorted(p for p in hija.iterdir() if p.is_dir()) if ej.es_ejecucion(n))
+    return encontradas
+
+
+def buscar_validaciones(carpeta: str | Path) -> list[Path]:
+    """Las validaciones que hay en la carpeta (ella misma, sus subcarpetas y las de estas)."""
+    carpeta = Path(carpeta)
+    if es_validacion(carpeta):
+        return [carpeta]
+    encontradas = []
+    try:
+        hijas = sorted(p for p in carpeta.iterdir() if p.is_dir()) if carpeta.is_dir() else []
+        for hija in hijas:
+            if es_validacion(hija):
+                encontradas.append(hija)
+            else:
+                encontradas.extend(n for n in sorted(p for p in hija.iterdir() if p.is_dir()) if es_validacion(n))
+    except OSError:                                   # unidad de red caída o sin permiso
+        pass
     return encontradas
 
 

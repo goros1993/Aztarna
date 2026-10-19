@@ -21,19 +21,43 @@ function recordarValidacion() {
   guardarLocal("validaciones-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
-/** Al entrar en el modo: la validación que tenga abierta Python o, si no, la última usada. */
+/** Al entrar en el modo: la validación que tenga abierta Python o, si no, la última usada de este proyecto
+    (una de otro proyecto no se abre sola: se elige en la portada). */
 async function recuperarValidacion() {
   try {
     const actual = await api.validacion_estado();
-    if (actual) { S.validacion = actual; return; }
+    if (actual && actual.relacion !== "otro") { S.validacion = actual; return; }
+    if (actual) await api.validacion_soltar();     // se cambiaron las pruebas a las de otro proyecto
     if (leerLocal("sin-validacion") === "1") return;
-    const ultima = recientesValidacion()[0];
+    const portada = await api.validacion_portada(recientesValidacion().map((r) => r.carpeta), []);
+    const ultima = portada.validaciones.find((v) => v.reciente && v.relacion === "mismo");
     if (ultima) await usarValidacion(await api.validacion_abrir(ultima.carpeta), { silencio: true });
   } catch (_e) { /* ya no existe: se elegirá otra */ }
 }
 
+/** Antes de abrir una validación o una ejecución de otro proyecto: ¿seguro? (al abrirla cambian las pruebas). */
+async function confirmarOtroProyecto(r) {
+  const que = r.tipo === "validacion" ? "Esta validación" : "Esta ejecución";
+  const suyo = r.su_proyecto ? `del proyecto «${r.su_proyecto}»` : "de otro proyecto";
+  const respuesta = await dialogo({
+    titulo: `${r.tipo === "validacion" ? "Validación" : "Ejecución"} de otro proyecto`,
+    cuerpo: h("div", {},
+      h("p", {}, `${que}, `, h("strong", { text: `«${r.nombre}»` }), `, es ${suyo}, no del que tienes abierto`,
+        r.proyecto_abierto ? h("span", {}, " (", h("strong", { text: r.proyecto_abierto }), ")") : null, "."),
+      h("p", { text: "Si la abres, el editor cambia a sus pruebas." }),
+      r.pruebas ? h("p", { class: "muted", text: `Sus pruebas: ${r.pruebas}` }) : null),
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Abrirla igualmente", valor: "si", tipo: "primary" }],
+  });
+  return respuesta === "si";
+}
+
 async function usarValidacion(r, { silencio = false } = {}) {
   if (!r || r.cancelado) return;
+  if (r.otro_proyecto) {
+    if (silencio || !(await confirmarOtroProyecto(r))) return;
+    r = await api.validacion_abrir(r.carpeta, true);
+    if (!r || r.cancelado) return;
+  }
   if (r.carpeta_pruebas) {        // la validación usa otra carpeta de pruebas: se abre esa
     cacheImagenes.clear();
     S.capitulo = 0; S.consulta = ""; $("#buscar").value = ""; S.colapsadas.clear();
@@ -51,6 +75,108 @@ async function usarValidacion(r, { silencio = false } = {}) {
     mostrarVacio();
     aviso(`Validación «${r.datos.nombre}» abierta`, "ok");
   }
+}
+
+/** « · otro proyecto (X)» junto a una reciente que no es del proyecto abierto. */
+function etiquetaOtro(x) {
+  if (!x || x.relacion !== "otro") return null;
+  return h("span", { class: "etiqueta-otro", text: ` · otro proyecto${x.proyecto ? ` (${x.proyecto})` : ""}` });
+}
+
+/* ---- portada del modo (sin validación ni ejecución abiertas) ---- */
+/** El proyecto abierto, sus validaciones y ejecuciones, y las de otros proyectos aparte. */
+async function pintarPortadaValidacion() {
+  const caja = h("div", { class: "centro portada-validacion" }, h("p", { class: "muted", text: "Buscando las validaciones del proyecto…" }));
+  mostrar(caja);
+  let p;
+  try {
+    p = await api.validacion_portada(recientesValidacion().map((r) => r.carpeta), recientes().map((r) => r.carpeta));
+  } catch (e) { p = { proyecto: S.proyecto, validaciones: [], ejecuciones: [] }; }
+  if (!caja.isConnected || S.validacion || S.ejecucion) return;      // mientras tanto se abrió otra cosa
+  const proyecto = p.proyecto;
+  const fila = (texto, detalle, accion, extra = null) => h("button", { type: "button", class: "btn ghost reciente", title: detalle, onclick: accion },
+    h("span", {}, texto, extra), h("span", { class: "muted", text: detalle }));
+  const deEste = p.validaciones.filter((v) => v.relacion === "mismo" || (v.en_carpeta && v.relacion !== "otro"));
+  const ejecucionesEste = p.ejecuciones.filter((e) => e.relacion === "mismo");
+  const otras = [...p.validaciones.filter((v) => !deEste.includes(v)).map((v) => ({ ...v, tipo: "validación" })),
+    ...p.ejecuciones.filter((e) => e.relacion !== "mismo").map((e) => ({ ...e, tipo: "ejecución" }))];
+  const editable = proyecto && !proyecto.congeladas && !S.soloLectura;
+  caja.replaceChildren();
+  append(caja, [
+    h("h2", { text: "Validación de una versión" }),
+    h("p", { text: "Una validación agrupa las ejecuciones de una versión (una por entorno: Automático, Maqueta, Torre) y da el resultado de cada prueba en cada entorno. Cada ejecución guarda sus resultados en su carpeta; los YAML de pruebas no se tocan." }),
+    proyecto ? h("dl", { class: "proyecto-datos" },
+      h("dt", { text: "Proyecto" }), h("dd", {}, h("strong", { text: proyecto.nombre })),
+      editable ? h("button", { class: "btn ghost peq", type: "button", text: "Cambiar nombre…", onclick: cambiarNombreProyecto }) : h("span"),
+      h("dt", { text: "Carpeta de validaciones" }),
+      h("dd", { class: proyecto.validaciones ? "" : "muted", text: proyecto.validaciones || "Sin indicar: indícala para que las validaciones y ejecuciones se creen y se busquen allí." }),
+      editable ? h("button", { class: "btn ghost peq", type: "button", text: proyecto.validaciones ? "Cambiar…" : "Elegir…", onclick: elegirCarpetaValidaciones }) : h("span")) : null,
+    h("div", { class: "fila-botones" },
+      h("button", { class: "btn primary", type: "button", onclick: nuevaValidacion, text: "Nueva validación" }),
+      h("button", { class: "btn", type: "button", onclick: () => abrirValidacion(), text: "Abrir validación…" })),
+    deEste.length ? h("div", { class: "recientes" }, h("h3", { text: "Validaciones de este proyecto" }),
+      deEste.map((v) => fila(v.nombre + (v.version ? ` · ${v.version}` : ""), v.carpeta, () => abrirValidacion(v.carpeta)))) : null,
+    h("p", { class: "muted", text: "También puedes trabajar con una ejecución suelta, sin validación:" }),
+    h("div", { class: "fila-botones" },
+      h("button", { class: "btn", type: "button", onclick: () => nuevaEjecucion(), text: "Nueva ejecución" }),
+      h("button", { class: "btn", type: "button", onclick: () => abrirEjecucion(), text: "Abrir ejecución…" })),
+    ejecucionesEste.length ? h("div", { class: "recientes" }, h("h3", { text: "Ejecuciones recientes de este proyecto" }),
+      ejecucionesEste.map((e) => fila(e.nombre + (e.cerrada ? " (cerrada)" : ""), e.carpeta, () => abrirEjecucion(e.carpeta)))) : null,
+    otras.length ? h("details", { class: "recientes" },
+      h("summary", { class: "muted", text: `De otros proyectos (${otras.length})` }),
+      otras.map((o) => fila(`${o.nombre} `, o.carpeta, () => (o.tipo === "validación" ? abrirValidacion(o.carpeta) : abrirEjecucion(o.carpeta)),
+        h("span", { class: "etiqueta-otro", text: `${o.tipo}${o.proyecto ? ` · ${o.proyecto}` : o.relacion === "otro" ? " · otro proyecto" : ""}` })))) : null]);
+}
+
+/** Tras cambiar de carpeta de pruebas: la validación o la ejecución abiertas de otro proyecto se dejan (no se borra nada). */
+async function soltarLoDeOtroProyecto() {
+  const dejadas = [];
+  try {
+    if (S.validacion) {
+      const v = await api.validacion_estado();
+      if (v && v.relacion === "otro") { await api.validacion_soltar(); dejadas.push(`la validación «${v.datos.nombre}»`); S.validacion = null; } else S.validacion = v;
+    }
+    if (S.ejecucion) {
+      const e = await api.ejecucion_estado();
+      if (e && e.relacion === "otro") { await api.ejecucion_soltar(); dejadas.push(`la ejecución «${e.datos.nombre}»`); S.ejecucion = null; } else S.ejecucion = e;
+    }
+  } catch (_e) { /* se queda como estaba */ }
+  if (dejadas.length) aviso(`Se ha dejado ${dejadas.join(" y ")}: es de otro proyecto`, "info");
+  pintarModo();
+}
+
+/** Relación con el proyecto abierto de cada carpeta reciente («mismo», «otro»…), para marcar las de otros proyectos. */
+async function relacionesRecientes(validaciones, ejecuciones) {
+  try {
+    const p = await api.validacion_portada(validaciones, ejecuciones);
+    return new Map([...p.validaciones, ...p.ejecuciones].map((x) => [x.carpeta, x]));
+  } catch (_e) { return new Map(); }
+}
+
+async function cambiarNombreProyecto() {
+  const campo = h("input", { type: "text", value: S.proyecto ? S.proyecto.nombre : "", "aria-label": "Nombre del proyecto" });
+  const r = await dialogo({
+    titulo: "Nombre del proyecto",
+    cuerpo: h("div", {}, h("p", { class: "muted", text: "Se guarda en el aztarna.yaml del proyecto (súbelo a Git para que lo vean los demás). Las ejecuciones y validaciones nuevas lo apuntan." }),
+      h("div", { class: "campo" }, campo)),
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si") return;
+  try {
+    const res = await api.proyecto_configurar(campo.value.trim());
+    aplicarResumen(res.carpeta);
+    pintarPortadaValidacion();
+  } catch (e) { fallo(e); }
+}
+
+async function elegirCarpetaValidaciones() {
+  try {
+    const res = await api.proyecto_configurar(null, null, true);
+    if (res.cancelado) return;
+    aplicarResumen(res.carpeta);
+    aviso("Las validaciones y ejecuciones nuevas se crearán en esa carpeta (sube el aztarna.yaml a Git para que la usen los demás)", "ok");
+    pintarPortadaValidacion();
+  } catch (e) { fallo(e); }
 }
 
 async function refrescarValidacion() {
@@ -79,6 +205,7 @@ async function soltarValidacion() {
 
 async function menuValidacion() {
   const lista = recientesValidacion().filter((r) => !S.validacion || r.carpeta !== S.validacion.carpeta);
+  const relaciones = await relacionesRecientes(lista.map((r) => r.carpeta), []);
   const cuerpo = h("div", { class: "menu-ejecucion" },
     h("p", { class: "muted", text: "Una validación agrupa las ejecuciones de una versión (en Automático, Maqueta, Torre…) y da el resultado de cada prueba en cada entorno." }),
     S.validacion ? h("p", {}, "Abierta: ", h("strong", { text: S.validacion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.validacion.carpeta })) : null,
@@ -86,7 +213,7 @@ async function menuValidacion() {
     lista.map((r) => h("button", {
       type: "button", class: "btn ghost reciente", title: r.carpeta,
       onclick: (e) => e.target.closest("dialog").close("reciente:" + r.carpeta),
-    }, h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta }))));
+    }, h("span", {}, r.nombre, etiquetaOtro(relaciones.get(r.carpeta))), h("span", { class: "muted", text: r.carpeta }))));
   const botones = [{ texto: "Cerrar", valor: "", tipo: "ghost" }];
   if (S.validacion) botones.push({ texto: "Trabajar sin validación", valor: "soltar", tipo: "" });
   botones.push({ texto: "Abrir validación…", valor: "abrir", tipo: "" }, { texto: "Nueva validación…", valor: "nueva", tipo: "primary" });
