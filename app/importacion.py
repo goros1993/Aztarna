@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Importar pruebas o requisitos de un Word, con un mapeo de sus etiquetas a nuestro esquema.
 
+Un Excel (una fila por elemento) se lee en app/importacion_excel.py y sigue
+el mismo camino a partir de la conversión: revisión e importación.
+
 Lo usa el asistente de importación del editor (⋯ → Importar…) y la orden
 `python herramientas.py importar`. Tres pasos:
 
@@ -99,6 +102,13 @@ IGNORADAS_PRUEBA = ["Componente", "Plataforma", "Criticidad", "Referencia", "Eje
                     *esquema.ADICIONALES_ELIMINADOS]
 # Campos que comparten pruebas y requisitos: no sirven para distinguirlos.
 COMUNES = {"descripcion", "fecha", "version"}
+# Clave (solo durante la importación, no se escribe) con los campos que trae un elemento de un Excel:
+# al actualizar uno que ya existe, solo cambian esos y los demás se conservan.
+COLUMNAS = "_columnas"
+
+
+def _sin_columnas(elemento: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in elemento.items() if k != COLUMNAS}
 
 
 def clave(etiqueta: str) -> str:
@@ -254,8 +264,15 @@ def analizar_documento(doc, preferido: str | None = None) -> dict[str, Any]:
     return {"tablas": len(estructuras), "familias": resultado, "familia_de_tabla": de_tabla}
 
 
+def es_excel(ruta: str | Path) -> bool:
+    return Path(ruta).suffix.lower() in (".xlsx", ".xlsm")
+
+
 def analizar(ruta: str | Path, preferido: str | None = None) -> dict[str, Any]:
-    """Familias de tablas del Word, con el tipo y los campos propuestos."""
+    """Familias de tablas del Word (o las hojas del Excel), con el tipo y los campos propuestos."""
+    if es_excel(ruta):
+        from app import importacion_excel
+        return importacion_excel.analizar_libro(ruta, preferido)
     resultado = analizar_documento(Document(str(ruta)), preferido)
     resultado.pop("familia_de_tabla")
     resultado["archivo"] = str(ruta)
@@ -567,9 +584,12 @@ def convertir_documento(doc, mapeo: dict[str, Any], guardar_imagen=None) -> dict
     return {"capitulos": capitulos, "avisos": avisos, "totales": {t: cuenta[t] for t in TIPOS}}
 
 
-def convertir_documento_ruta(ruta: str | Path, mapeo: dict[str, Any]) -> dict[str, Any]:
-    """Conversión para revisar (las imágenes no se escriben)."""
-    return convertir_documento(Document(str(ruta)), mapeo, _GuardadorEnMemoria())
+def convertir_documento_ruta(ruta: str | Path, mapeo: dict[str, Any], guardador: "_GuardadorEnMemoria | None" = None) -> dict[str, Any]:
+    """Conversión del Word o del Excel (las imágenes quedan en el guardador, en memoria)."""
+    if es_excel(ruta):
+        from app import importacion_excel
+        return importacion_excel.convertir_libro(ruta, mapeo)
+    return convertir_documento(Document(str(ruta)), mapeo, guardador or _GuardadorEnMemoria())
 
 
 # ----------------------------------------------------------------------
@@ -645,7 +665,7 @@ def _resumen_elemento(e: dict[str, Any], tipo: str) -> list[list[str]]:
     """Campos con valor de un elemento, como texto corto, para la vista previa."""
     filas = []
     for k, v in e.items():
-        if k in ("nombre", "nivel") or v in (None, "", [], {}):
+        if k in ("nombre", "nivel", COLUMNAS) or v in (None, "", [], {}):
             continue
         nombre = NOMBRES[tipo].get(k, k)
         if k == "campos_adicionales":
@@ -714,15 +734,31 @@ def del_proyecto(carpeta: Path, tipo: str) -> dict[str, tuple[dict[str, Any], An
     return resultado
 
 
+def _combinado(nuevo: dict[str, Any], actual: dict[str, Any]) -> dict[str, Any]:
+    """Lo que quedaría al actualizar: con un Excel, los campos que no trae siguen como estaban y sus
+    campos adicionales se añaden a los que ya había; con un Word, todo es lo del Word."""
+    solo = nuevo.get(COLUMNAS)
+    nuevo = _sin_columnas(nuevo)
+    if solo is None:
+        return nuevo
+    resultado = {k: v for k, v in actual.items() if k not in solo}
+    resultado.update({k: v for k, v in nuevo.items() if k in solo})
+    if "campos_adicionales" in solo and isinstance(actual.get("campos_adicionales"), dict):
+        resultado["campos_adicionales"] = {**actual["campos_adicionales"], **(nuevo.get("campos_adicionales") or {})}
+    return resultado
+
+
 def diferencias(nuevo: dict[str, Any], actual: Any, tipo: str, imagenes: dict[str, bytes], carpeta: Path) -> list[str]:
     """Campos que cambiarían al actualizar `actual` con `nuevo` (sin contar encabezado ni nivel)."""
     from app.editor_api import to_plain
     actual = to_plain(actual)
+    solo = nuevo.get(COLUMNAS)
+    nuevo = _combinado(nuevo, actual)
     de_nuevo = lambda ruta: _huella_bytes(imagenes.get(ruta))
     del_actual = lambda ruta: _huella_bytes((carpeta / ruta).read_bytes() if (carpeta / ruta).is_file() else None)
     cambios = []
     for k in [k for k in (*nuevo, *actual) if k not in ("nombre", "nivel")]:
-        if k in cambios or NOMBRES[tipo].get(k, k) in cambios:
+        if k in cambios or NOMBRES[tipo].get(k, k) in cambios or (solo is not None and k not in solo):
             continue
         x, y = _comparable(nuevo.get(k), de_nuevo), _comparable(actual.get(k), del_actual)
         if k == "campos_adicionales" and isinstance(x, dict) and isinstance(y, dict):
@@ -773,7 +809,7 @@ def actualizar_en_proyecto(carpeta: Path, tipo: str, nuevos: list[dict[str, Any]
             continue
         capitulo, actual = proyecto[ident]
         anterior = to_plain(actual)
-        cambios = {k: v for k, v in nuevo.items() if k not in ("nombre", "nivel")}
+        cambios = {k: v for k, v in _combinado(nuevo, anterior).items() if k not in ("nombre", "nivel")}
         for k in [k for k in actual if k not in cambios and k not in ("nombre", "nivel")]:
             del actual[k]
         apply_changes(actual, cambios)
@@ -808,10 +844,12 @@ def revision(conversion: dict[str, Any], existentes: dict[str, set[str]] | None 
         for c in ya:
             c["propuesta"] = propuestas.get(c["orden"], "")
         en_proyecto = {c["orden"] for c in ya}
+        del_proyecto_ = capitulos_del_proyecto(carpetas[tipo]) if carpetas and existentes.get(tipo) is not None else {}
         tipos[tipo] = {
             "total": len(lista),
             "capitulos": [{"nombre": c["capitulo"] or "(antes del primer capítulo)",
-                           "elementos": sum(1 for e in c["contenido"] if isinstance(e, dict) and tipo in e)} for c in caps],
+                           "elementos": sum(1 for e in c["contenido"] if isinstance(e, dict) and tipo in e),
+                           "existente": _nombre_clave(c["capitulo"]) in del_proyecto_} for c in caps],
             "ids": [p for p in ids if p["orden"] not in en_proyecto],
             "existentes": ya,
             "ejemplos": [{"id": e.get("id", ""), "titulo": e.get("titulo", ""), "campos": _resumen_elemento(e, tipo)}
@@ -836,6 +874,7 @@ TIPOS_AVISO = {
     "tabla_informativa": ("Tabla informativa (se conserva tal cual)", "info"),
     "tabla_en_celda": ("Tabla dentro de una celda (se conserva en el contexto)", "aviso"),
     "campo_desconocido": ("Etiqueta mapeada a un campo que no existe", "aviso"),
+    "imagen_excel": ("Imágenes del Excel (no se importan)", "aviso"),
 }
 
 
@@ -890,6 +929,127 @@ def escribir(capitulos: list[dict[str, Any]], carpeta: Path, imagenes: dict[str,
     return nuevos
 
 
+# ----------------------------------------------------------------------
+# Añadir a los capítulos que ya existen (importar poco a poco)
+# ----------------------------------------------------------------------
+def _nombre_clave(nombre: Any) -> str:
+    return clave(str(nombre or ""))
+
+
+def capitulos_del_proyecto(carpeta: Path) -> dict[str, dict[str, Any]]:
+    """{nombre normalizado: capítulo} de la carpeta (el primero, si dos se llaman igual)."""
+    from app.editor_core import read_chapters
+    if not carpeta.is_dir() or not any(carpeta.glob("*.yaml")):
+        return {}
+    resultado: dict[str, dict[str, Any]] = {}
+    for c in read_chapters(carpeta):
+        resultado.setdefault(_nombre_clave(c["data"].get("capitulo")), c)
+    return resultado
+
+
+def _con_contenido(contenido: list[Any], inicio: int, nivel: int) -> bool:
+    """Si la sección que empieza en `inicio` tiene alguna prueba, requisito o tabla en su bloque."""
+    from app.editor_core import element_level, is_table, item_key
+    for e in contenido[inicio + 1:]:
+        nivel_e = element_level(e)
+        if nivel_e is not None and nivel_e <= nivel:
+            return False                      # empieza otra sección (o un elemento) del mismo nivel
+        if item_key(e) or is_table(e):
+            return True
+    return False
+
+
+def unir_capitulo(capitulo: dict[str, Any], contenido: list[Any]) -> int:
+    """Añade al capítulo del proyecto lo importado de un capítulo con el mismo nombre.
+
+    Las secciones se buscan por su ruta de títulos (sección › subsección): si ya
+    existe, lo importado va al final de esa sección; si no, se crea al final de
+    la sección madre (o del capítulo). Los niveles se ajustan a los del
+    proyecto. No se repiten los textos y tablas que ya estén, ni las secciones
+    que se quedan vacías (todas sus pruebas ya existían). Devuelve cuántos
+    elementos (pruebas o requisitos) se han añadido.
+    """
+    from app.editor_core import element_level, item_key, normalize_level, section_end_index
+    destino = capitulo["data"].setdefault("contenido", [])
+
+    def buscar(ruta: list[str]) -> int | None:
+        """Índice de la sección del proyecto con esa ruta de títulos, o None."""
+        pila: list[tuple[str, int]] = []
+        for i, e in enumerate(destino):
+            if isinstance(e, dict) and isinstance(e.get("seccion"), str):
+                nivel = normalize_level(e.get("nivel"), 2)
+                pila = [p for p in pila if p[1] < nivel] + [(_nombre_clave(e["seccion"]), nivel)]
+                if [p[0] for p in pila] == ruta:
+                    return i
+        return None
+
+    def nivel_de(indice: int | None) -> int:
+        return normalize_level(destino[indice].get("nivel"), 2) if indice is not None else 1
+
+    def tras_lo_suyo(indice: int) -> int:
+        """Detrás de lo que cuelga directamente de la sección: antes de su primera subsección."""
+        fin = section_end_index(destino, indice)
+        return next((j for j in range(indice + 1, fin) if isinstance(destino[j], dict) and isinstance(destino[j].get("seccion"), str)), fin)
+
+    def ya_esta(elemento: Any) -> bool:
+        from app.editor_api import to_plain
+        return to_plain(elemento) in [to_plain(e) for e in destino]
+
+    ruta: list[tuple[str, int]] = []          # secciones abiertas de lo importado: (nombre, nivel en el Word)
+    actual: int | None = None                 # sección del proyecto donde va lo que sigue (None: el capítulo)
+    añadidos = 0
+    for i, e in enumerate(contenido):
+        if isinstance(e, dict) and isinstance(e.get("seccion"), str):
+            nivel = normalize_level(e.get("nivel"), 2)
+            ruta = [p for p in ruta if p[1] < nivel] + [(_nombre_clave(e["seccion"]), nivel)]
+            encontrada = buscar([p[0] for p in ruta])
+            if encontrada is not None:
+                actual = encontrada
+                continue
+            madre = buscar([p[0] for p in ruta[:-1]]) if len(ruta) > 1 else None
+            if not _con_contenido(contenido, i, nivel):
+                actual = madre                # sección sin nada nuevo: no se crea
+                continue
+            nueva = {**e, "nivel": min(nivel_de(madre) + 1, 6)}
+            posicion = section_end_index(destino, madre) if madre is not None else len(destino)
+            destino.insert(posicion, nueva)
+            actual = posicion
+            continue
+        tipo = item_key(e)
+        if not tipo and ya_esta(e):
+            continue                          # el mismo texto o tabla de la vez anterior
+        if tipo:
+            e = {tipo: {**e[tipo], "nivel": min(nivel_de(actual) + 1, 6)}}
+            añadidos += 1
+        posicion = tras_lo_suyo(actual) if actual is not None else len(destino)
+        if actual is None and not tipo:
+            # Texto o tabla del capítulo (antes de su primera sección): delante de las secciones.
+            posicion = next((j for j, x in enumerate(destino) if element_level(x) is not None), len(destino))
+        destino.insert(posicion, e)
+    return añadidos
+
+
+def unir_a_existentes(capitulos: list[dict[str, Any]], carpeta: Path, imagenes: dict[str, bytes]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Añade a los capítulos del proyecto los importados con el mismo nombre. Devuelve los que no
+    tienen pareja (se escriben como capítulos nuevos) y los nombres de los archivos que han cambiado."""
+    from app.editor_core import save_chapter
+    del_proyecto_ = capitulos_del_proyecto(carpeta)
+    restantes, cambiados = [], []
+    for c in capitulos:
+        existente = del_proyecto_.get(_nombre_clave(c["capitulo"]))
+        if existente is None:
+            restantes.append(c)
+            continue
+        unir_capitulo(existente, c["contenido"])
+        save_chapter(existente)
+        cambiados.append(existente["path"].name)
+        for ruta in _rutas_imagenes(c):
+            if ruta in imagenes and not (carpeta / ruta).exists():
+                (carpeta / ruta).parent.mkdir(parents=True, exist_ok=True)
+                (carpeta / ruta).write_bytes(imagenes[ruta])
+    return restantes, cambiados
+
+
 def carpetas_destino(destino: str | Path, modo: str) -> dict[str, Path]:
     """Carpetas de pruebas y de requisitos: las de un proyecto nuevo o las del abierto."""
     destino = Path(destino)
@@ -921,7 +1081,7 @@ def preparar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path | None
     carpetas = carpetas_destino(destino, modo) if destino else {}
     existentes = ids_existentes(carpetas) if destino and modo == "anadir" else {}
     guardador = _GuardadorEnMemoria(imagenes_ocupadas(carpetas) if destino and modo == "anadir" else None)
-    conversion = convertir_documento(Document(str(ruta)), mapeo, guardador)
+    conversion = convertir_documento_ruta(ruta, mapeo, guardador)
     return {"conversion": conversion, "carpetas": carpetas, "existentes": existentes, "imagenes": guardador.datos}
 
 
@@ -944,7 +1104,7 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
     for tipo, carpeta in p["carpetas"].items():
         formato.comprobar_carpeta(carpeta, f"La carpeta de {TIPOS_VISIBLES[tipo].lower()}")
     conversion, capitulos = p["conversion"], p["conversion"]["capitulos"]
-    resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "totales": {}, "ids_cambiados": {},
+    resultado: dict[str, Any] = {"carpetas": {}, "archivos": {}, "unidos": {}, "totales": {}, "ids_cambiados": {},
                                  "actualizados": {}, "omitidos": {}}
     for tipo in CLASES:
         lista = elementos(capitulos, tipo)
@@ -973,12 +1133,18 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
                     p["carpetas"][tipo], tipo, para_actualizar, p["imagenes"], p["carpetas"].get("prueba"))
                 resultado["carpetas"][tipo] = str(p["carpetas"][tipo])
             resultado["omitidos"][tipo] = sum(1 for a in apartar.values() if a == "omitir")
+    for tipo in CLASES:                       # la clave de las columnas no se escribe
+        for e in elementos(capitulos, tipo):
+            e.pop(COLUMNAS, None)
     for tipo in CLASES:
         caps = separar(capitulos, tipo)
         if not caps:
             continue
         carpeta = p["carpetas"][tipo]
-        resultado["archivos"][tipo] = escribir(caps, carpeta, p["imagenes"])
+        nuevos_caps = caps
+        if modo == "anadir":                  # los capítulos que ya existen reciben lo nuevo en su sitio
+            nuevos_caps, resultado["unidos"][tipo] = unir_a_existentes(caps, carpeta, p["imagenes"])
+        resultado["archivos"][tipo] = escribir(nuevos_caps, carpeta, p["imagenes"]) if nuevos_caps else []
         resultado["carpetas"][tipo] = str(carpeta)
         resultado["totales"][tipo] = len(elementos(caps, tipo))
     if not resultado["carpetas"]:
@@ -999,8 +1165,8 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path, modo:
 # Línea de órdenes
 # ----------------------------------------------------------------------
 def main(argv=None, prog=None) -> None:
-    ap = argparse.ArgumentParser(prog=prog, description="Importa pruebas o requisitos de un Word con un mapeo de etiquetas")
-    ap.add_argument("docx", help="documento Word")
+    ap = argparse.ArgumentParser(prog=prog, description="Importa pruebas o requisitos de un Word o un Excel con un mapeo de etiquetas")
+    ap.add_argument("docx", help="documento Word (.docx) o Excel (.xlsx)")
     ap.add_argument("-o", "--salida", help="carpeta del proyecto nuevo (sin ella, solo muestra el análisis)")
     ap.add_argument("--tipo", choices=["prueba", "requisito"], help="qué se espera encontrar (ayuda a proponer)")
     ap.add_argument("--mapeo", help="mapeo en JSON (el que guarda el editor o --guardar-mapeo)")
@@ -1012,7 +1178,10 @@ def main(argv=None, prog=None) -> None:
         esquema.configurar(args.configuracion)
     analisis = analizar(args.docx, args.tipo)
     mapeo = mapeo_propuesto(analisis, json.loads(Path(args.mapeo).read_text(encoding="utf-8")) if args.mapeo else None)
-    print(f"{analisis['tablas']} tablas en {len(analisis['familias'])} familias:")
+    if analisis.get("origen") == "excel":
+        print(f"{analisis['tablas']} filas en {len(analisis['familias'])} hojas:")
+    else:
+        print(f"{analisis['tablas']} tablas en {len(analisis['familias'])} familias:")
     for f in analisis["familias"]:
         tipo = mapeo["tipos"][f["firma"]]
         print(f"  {f['numero']:3d}. {f['tablas']:5d} {'tabla ' if f['tablas'] == 1 else 'tablas'} → {TIPOS_VISIBLES[tipo]}")

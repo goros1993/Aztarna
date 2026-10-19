@@ -243,10 +243,11 @@ class TestMapeo(unittest.TestCase):
                                 imp.ids_existentes(imp.carpetas_destino(proyecto, "anadir")))
         self.assertEqual([p["motivo"] for p in revision["tipos"]["requisito"]["ids"]], ["ya existe en el proyecto"] * 3)
         r = imp.importar(self.docx, mapeo, proyecto, "anadir", renombrar_propuestos=True)
-        self.assertEqual(r["archivos"]["requisito"], ["02_requisitos_del_sistema.yaml"])
+        # El capítulo ya existe: los nuevos van a él, no a un capítulo repetido.
+        self.assertEqual((r["archivos"]["requisito"], r["unidos"]["requisito"]), ([], ["01_requisitos_del_sistema.yaml"]))
         ids = _items(proyecto / "requisitos", "requisito")
         self.assertEqual(len(ids), 6)
-        self.assertEqual(len(read_chapters(proyecto / "requisitos")), 2)
+        self.assertEqual(len(read_chapters(proyecto / "requisitos")), 1)
 
     def test_detalle_y_adicionales_en_el_word(self):
         """Las tablas de la descripción y los campos adicionales salen en el Word y se vuelven a importar igual."""
@@ -357,8 +358,10 @@ class TestActualizar(unittest.TestCase):
             self.assertEqual(reqs["SR-001"]["descripcion"], "en menos de 3 s")
             self.assertEqual(reqs["SR-001"]["nivel"], 3)                         # conserva su sitio
             capitulos = read_chapters(tmp / "p" / "requisitos")
-            self.assertEqual(len(capitulos), 2)                                  # SR-020 en un capítulo nuevo
-            self.assertEqual([e for _i, e in items_in_chapter(capitulos[1], "requisito")][0]["id"], "SR-020")
+            self.assertEqual(len(capitulos), 1)                                  # el capítulo ya existía: no se repite
+            self.assertEqual(r["unidos"], {"requisito": [capitulos[0]["path"].name]})
+            self.assertEqual([e["id"] for _i, e in items_in_chapter(capitulos[0], "requisito")],
+                             ["SR-001", "SR-002", "SR-009", "SR-020"])            # SR-020, al final de «Arranque»
             from app import trazabilidad
             revisiones = trazabilidad.leer_revisiones(tmp / "p" / "requisitos")
             self.assertEqual(revisiones["SR-001"]["descripcion"], "en menos de 5 s")   # texto anterior, para revisar T-1
@@ -382,6 +385,55 @@ class TestActualizar(unittest.TestCase):
                 self.assertEqual(len(ya), len(_items(EJEMPLOS / coleccion, tipo)))
                 # «Criterio de aceptación» (formato antiguo) se propone como «No importar».
                 self.assertEqual([(c["id"], c["cambios"]) for c in ya if c["cambios"]], esperado)
+
+    def test_importar_poco_a_poco_en_los_capitulos_que_ya_existen(self):
+        """Cada vez se importa un Word con unas pocas pruebas: van a su capítulo y su sección, sin repetirlos."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            def word(ruta, secciones):
+                doc = Document()
+                doc.add_heading("Requisitos", 1)
+                doc.add_paragraph("Texto del capítulo.")
+                for seccion, reqs in secciones:
+                    doc.add_heading(seccion, 2)
+                    for ident in reqs:
+                        _requisito(doc, ident, f"Título {ident}", [f"Descripción: {ident}", "Tipo: Obligatorio"])
+                doc.save(ruta)
+            word(tmp / "1.docx", [("Arranque", ["SR-001", "SR-005"]), ("Parada", ["SR-002", "SR-006"])])
+            mapeo = imp.mapeo_propuesto(imp.analizar(tmp / "1.docx", "requisito"))
+            imp.importar(tmp / "1.docx", mapeo, tmp / "p")
+            # Segunda tanda: una nueva en «Parada», una sección nueva y SR-001 otra vez (sin cambios).
+            word(tmp / "2.docx", [("Arranque", ["SR-001", "SR-005"]), ("Parada", ["SR-003", "SR-007"]), ("Alarmas", ["SR-004", "SR-008"])])
+            p = imp.preparar(tmp / "2.docx", mapeo, tmp / "p", "anadir")
+            rev = imp.revision(p["conversion"], p["existentes"], p["carpetas"], p["imagenes"])["tipos"]["requisito"]
+            self.assertEqual([(c["nombre"], c["existente"]) for c in rev["capitulos"]], [("Requisitos", True)])
+            imp.importar(tmp / "2.docx", mapeo, tmp / "p", "anadir", acciones={"requisito": {"0": "omitir", "1": "omitir"}})
+            capitulos = read_chapters(tmp / "p" / "requisitos")
+            self.assertEqual(len(capitulos), 1)
+            self.assertEqual(_estructura(tmp / "p" / "requisitos"), [[
+                ("section", "Arranque", 2, None), ("requirement", "SR-001", 3, "Arranque"), ("requirement", "SR-005", 3, "Arranque"),
+                ("section", "Parada", 2, None), ("requirement", "SR-002", 3, "Parada"), ("requirement", "SR-006", 3, "Parada"),
+                ("requirement", "SR-003", 3, "Parada"), ("requirement", "SR-007", 3, "Parada"),
+                ("section", "Alarmas", 2, None), ("requirement", "SR-004", 3, "Alarmas"), ("requirement", "SR-008", 3, "Alarmas")]])
+            textos = [e for e in capitulos[0]["data"]["contenido"] if isinstance(e, dict) and "texto" in e]
+            self.assertEqual(len(textos), 1)                                     # el texto del capítulo no se repite
+            # Una tercera tanda solo con lo que ya está: no hay nada nuevo que escribir.
+            with self.assertRaisesRegex(ValueError, "No importar"):
+                imp.importar(tmp / "2.docx", mapeo, tmp / "p", "anadir",
+                             acciones={"requisito": {str(i): "omitir" for i in range(6)}})
+
+    def test_unir_ajusta_los_niveles_y_crea_las_subsecciones(self):
+        capitulo = {"data": {"capitulo": "C", "contenido": [
+            {"seccion": "A", "nivel": 3}, {"prueba": {"id": "T-1", "nivel": 4}},
+            {"seccion": "B", "nivel": 3}]}}
+        importado = [
+            {"seccion": "A", "nivel": 2}, {"prueba": {"id": "T-2", "nivel": 3}},
+            {"seccion": "A1", "nivel": 3}, {"prueba": {"id": "T-3", "nivel": 4}},
+            {"seccion": "Vacía", "nivel": 2},
+            {"seccion": "Nueva", "nivel": 2}, {"prueba": {"id": "T-4", "nivel": 3}}]
+        self.assertEqual(imp.unir_capitulo(capitulo, importado), 3)
+        resumen = [(e.get("seccion") or e["prueba"]["id"], e.get("nivel") or e["prueba"]["nivel"]) for e in capitulo["data"]["contenido"]]
+        self.assertEqual(resumen, [("A", 3), ("T-1", 4), ("T-2", 4), ("A1", 4), ("T-3", 5), ("B", 3), ("Nueva", 2), ("T-4", 3)])
 
     def test_texto_no_importado(self):
         with tempfile.TemporaryDirectory() as tmp:

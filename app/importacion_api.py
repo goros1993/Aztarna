@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""API del asistente de importación (⋯ → Importar…). La lógica está en importacion.py.
+"""API del asistente de importación (⋯ → Importar…). La lógica está en importacion.py
+(y, para un Excel, en importacion_excel.py).
 
-El asistente analiza el Word, deja elegir qué es cada familia de tablas y a
+El asistente analiza el Word o el Excel, deja elegir qué es cada familia de tablas (u hoja) y a
 qué campo va cada etiqueta, muestra lo que se va a importar (con los IDs que
 hay que revisar) y lo escribe en un proyecto nuevo o en el abierto. El mapeo
 elegido se recuerda en los ajustes del PC para la próxima importación.
@@ -15,6 +16,7 @@ from typing import Any
 from app import ajustes
 from app import ejecucion_core as ej
 from app import importacion as imp
+from app import importacion_excel as ix
 from app import importacion_resultados as ir
 from app import validacion_core as vc
 from app.editor_api import respuesta, to_plain
@@ -22,7 +24,9 @@ from app.ejecucion_api import _nombre_carpeta
 from app.validacion_api import EditorValidacionApi
 
 AJUSTE_MAPEO = "importacion_mapeo"
+AJUSTE_MAPEO_EXCEL = "importacion_mapeo_excel"      # las columnas de un Excel no son etiquetas del Word: aparte
 AJUSTE_MAPEO_RESULTADOS = "importacion_resultados_mapeo"
+EXTENSIONES = (".docx", ".xlsx", ".xlsm")
 
 
 def _opciones(tipo: str) -> list[dict[str, str]]:
@@ -42,8 +46,8 @@ class EditorImportacionApi(EditorValidacionApi):
     @staticmethod
     def _documento(archivo: str) -> Path:
         ruta = Path(str(archivo or ""))
-        if ruta.suffix.lower() != ".docx" or not ruta.is_file():
-            raise ValueError("Elige un documento de Word (.docx) que exista.")
+        if ruta.suffix.lower() not in EXTENSIONES or not ruta.is_file():
+            raise ValueError("Elige un documento de Word (.docx) o un Excel (.xlsx) que exista.")
         return ruta
 
     @respuesta
@@ -55,7 +59,8 @@ class EditorImportacionApi(EditorValidacionApi):
         kind = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or webview.OPEN_DIALOG
         guardada = ajustes.leer().get("carpeta_importacion")
         inicio = Path(guardada) if isinstance(guardada, str) and Path(guardada).is_dir() else Path.home()
-        elegidos = self._window.create_file_dialog(kind, directory=str(inicio), file_types=("Documentos de Word (*.docx)",))
+        elegidos = self._window.create_file_dialog(kind, directory=str(inicio), file_types=(
+            "Word o Excel (*.docx;*.xlsx;*.xlsm)", "Documentos de Word (*.docx)", "Libros de Excel (*.xlsx;*.xlsm)"))
         if not elegidos:
             return {"cancelado": True}
         archivo = Path(elegidos[0] if isinstance(elegidos, (list, tuple)) else elegidos)
@@ -75,6 +80,8 @@ class EditorImportacionApi(EditorValidacionApi):
     @respuesta
     def importar_analizar(self, archivo: str, tipo: str | None = None) -> dict[str, Any]:
         """Familias de tablas del Word y el mapeo propuesto (con lo elegido la última vez)."""
+        if tipo == "resultado" and imp.es_excel(archivo):
+            raise ValueError("Los resultados de una ejecución se importan desde un Word. Desde un Excel se importan pruebas o requisitos.")
         if tipo == "resultado":
             self._pruebas_del_proyecto()
             analisis = ir.analizar(self._documento(archivo))
@@ -88,14 +95,16 @@ class EditorImportacionApi(EditorValidacionApi):
                             for e in ("ok", "no_ok", "bloqueada", "no_aplica", ir.SIN_RESULTADO)],
                 "nombre_propuesto": f"Resultados {Path(archivo).stem}",
             }
+        excel = imp.es_excel(archivo)
         analisis = imp.analizar(self._documento(archivo), tipo if tipo in imp.CLASES else None)
-        recordado = ajustes.leer().get(AJUSTE_MAPEO)
+        recordado = ajustes.leer().get(AJUSTE_MAPEO_EXCEL if excel else AJUSTE_MAPEO)
         abierto = self._abierto()
         return {
             **analisis,
+            "origen": "excel" if excel else "word",
             "mapeo": imp.mapeo_propuesto(analisis, recordado if isinstance(recordado, dict) else None),
-            "tipos": [{"valor": t, "texto": imp.TIPOS_VISIBLES[t]} for t in imp.TIPOS],
-            "opciones": {t: _opciones(t) for t in imp.CLASES},
+            "tipos": [{"valor": t, "texto": imp.TIPOS_VISIBLES[t]} for t in imp.TIPOS if not (excel and t == "tabla")],
+            "opciones": {t: ix.opciones(t) if excel else _opciones(t) for t in imp.CLASES},
             "proyecto_abierto": str(abierto) if abierto else None,
             "nombre_propuesto": _nombre_proyecto(Path(archivo).stem),
         }
@@ -153,7 +162,7 @@ class EditorImportacionApi(EditorValidacionApi):
             if destino.exists() and any(destino.iterdir()):
                 raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
         resultado = imp.importar(documento, mapeo, destino, modo, ids=ids, acciones=acciones if modo == "anadir" else None)
-        self._recordar_mapeo(mapeo)
+        self._recordar_mapeo(mapeo, AJUSTE_MAPEO_EXCEL if imp.es_excel(documento) else AJUSTE_MAPEO)
         self._ejecucion = None
         self._load(destino)
         self._coleccion = "requisitos" if "prueba" not in resultado["carpetas"] and self._req_chapters else "pruebas"
@@ -206,12 +215,27 @@ class EditorImportacionApi(EditorValidacionApi):
             "valores": {**dict(anterior.get("valores") or {}), **dict(mapeo.get("valores") or {})},
         }})
 
+    @respuesta
+    def importar_plantilla_excel(self, tipo: str = "prueba", salida: str | None = None) -> dict[str, Any]:
+        """Excel vacío con una columna por campo, para rellenar e importar. Sin `salida`, abre «Guardar como»."""
+        if tipo not in imp.CLASES:
+            raise ValueError(f"Tipo desconocido: {tipo}")
+        if salida is None:
+            carpeta = self._abierto().parent if self._abierto() is not None else Path.home()
+            salida = self._guardar_como(carpeta, f"plantilla_{'pruebas' if tipo == 'prueba' else 'requisitos'}.xlsx", "Libro de Excel (*.xlsx)")
+            if salida is None:
+                return {"cancelado": True}
+        ruta = Path(salida)
+        if ruta.suffix.lower() != ".xlsx":
+            ruta = ruta.with_suffix(".xlsx")
+        return {"archivo": str(ix.plantilla(ruta, tipo))}
+
     @staticmethod
-    def _recordar_mapeo(mapeo: dict[str, Any]) -> None:
+    def _recordar_mapeo(mapeo: dict[str, Any], clave: str = AJUSTE_MAPEO) -> None:
         """Fusiona el mapeo elegido con el recordado (las etiquetas de otros documentos se conservan)."""
-        anterior = ajustes.leer().get(AJUSTE_MAPEO)
+        anterior = ajustes.leer().get(clave)
         anterior = anterior if isinstance(anterior, dict) else {}
         campos = {t: {**dict((anterior.get("campos") or {}).get(t) or {}), **dict((mapeo.get("campos") or {}).get(t) or {})}
                   for t in imp.CLASES}
-        ajustes.guardar({AJUSTE_MAPEO: {"tipos": {**dict(anterior.get("tipos") or {}), **dict(mapeo.get("tipos") or {})},
-                                        "campos": campos}})
+        ajustes.guardar({clave: {"tipos": {**dict(anterior.get("tipos") or {}), **dict(mapeo.get("tipos") or {})},
+                                 "campos": campos}})
