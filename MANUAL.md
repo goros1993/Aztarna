@@ -12,7 +12,7 @@ ejecutan. No hace falta saber programar ni conocer el formato de los archivos.
 4. [Editar pruebas (modo Pruebas)](#4-editar-pruebas-modo-pruebas)
 5. [Requisitos y trazabilidad (modo Requisitos)](#5-requisitos-y-trazabilidad-modo-requisitos)
 6. [Ejecutar y validar (modo Validación)](#6-ejecutar-y-validar-modo-validación)
-7. [Importar desde Word](#7-importar-desde-word)
+7. [Importar desde Word o Excel](#7-importar-desde-word-o-excel)
 8. [Atajos de teclado](#8-atajos-de-teclado)
 9. [Preguntas frecuentes y problemas](#9-preguntas-frecuentes-y-problemas)
 10. [Robot Framework: guía para quien escribe los tests](#10-robot-framework-guía-para-quien-escribe-los-tests)
@@ -172,8 +172,9 @@ en Ubuntu, *Configuración → Apariencia*.
 
 El menú **⋯**, a la derecha de la barra superior, reúne:
 
-- **Importar desde Word…**: pruebas, requisitos o resultados de una
-  ejecución (ver 7). En el modo Validación, solo resultados.
+- **Importar desde Word o Excel…**: pruebas o requisitos de un Word o un
+  Excel, o resultados de una ejecución desde Word (ver 7). En el modo
+  Validación, solo resultados.
 - **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
   ver 4.8. No aparece en el modo Validación.
 - **Tamaño**: **−** y **+** agrandan o reducen todo (texto, botones,
@@ -905,13 +906,16 @@ versión, archiva su validación con el informe.
 
 ---
 
-## 7. Importar desde Word
+## 7. Importar desde Word o Excel
 
-**⋯ → Importar desde Word…** trae al proyecto las pruebas o los requisitos de
-un documento de Word, o los resultados de una ejecución. El editor no cambia
-nada hasta el último paso, y recuerda lo que eliges para la próxima vez.
+**⋯ → Importar desde Word o Excel…** trae al proyecto las pruebas o los
+requisitos de un documento de Word o de un Excel, o los resultados de una
+ejecución (desde Word). El editor no cambia nada hasta el último paso, y
+recuerda lo que eliges para la próxima vez (ver 7.7). Se puede importar
+**poco a poco**: cada vez, un Word o un Excel con unas pocas pruebas nuevas o
+cambiadas, que van a su capítulo y su sección del proyecto (ver 7.4).
 
-Se espera la forma de las plantillas: la primera fila de cada tabla es
+Del Excel se habla en 7.6. Del Word se espera la forma de las plantillas: la primera fila de cada tabla es
 «**ID** | **Título**» y cada celda de las demás empieza por «**Etiqueta:**
 valor» («Descripción: …», «Fuente: …»). Un párrafo «Etiqueta:» solo en su
 línea abre otro campo dentro de la misma celda («Situación inicial:» y
@@ -922,10 +926,12 @@ secciones.
 
 ![Elegir el documento](docs/manual/37_importar_documento.png)
 
-Elige el Word, **qué contiene** (pruebas, requisitos, los dos, o resultados;
-solo sirve para proponer) y **dónde se importa**: en un **proyecto nuevo**
-(una carpeta con `pruebas/` y `requisitos/`; nada de lo que ya tienes se toca)
-o **añadido al proyecto abierto** (sus capítulos van al final del índice).
+Elige el Word o el Excel, **qué contiene** (pruebas, requisitos, los dos, o
+resultados; solo sirve para proponer) y **dónde se importa**: en un **proyecto
+nuevo** (una carpeta con `pruebas/` y `requisitos/`; nada de lo que ya tienes
+se toca) o **añadido al proyecto abierto**: lo de cada capítulo va al capítulo
+del proyecto con el mismo nombre (si no hay ninguno, se crea al final del
+índice).
 
 Con documentos grandes cada paso puede tardar un poco: la ventana se pone gris
 con un mensaje y el tiempo que lleva.
@@ -982,6 +988,15 @@ en cada uno y qué hacer:
 Por defecto se actualizan los que cambian y no se tocan los que están igual;
 *Para todos…* aplica lo mismo a todos.
 
+**Importar poco a poco.** Al añadir al proyecto abierto, cada capítulo del
+documento va al capítulo del proyecto con el mismo nombre (la revisión lo
+indica: *se añade al capítulo que ya existe*), y dentro de él cada prueba a
+la sección con el mismo nombre, detrás de las que ya tiene. Una sección que
+no existe se crea al final de su sección madre. No se repiten los textos ni
+las tablas que ya estaban, ni las secciones que se quedarían vacías porque
+todas sus pruebas ya existían. Así cada persona puede ir importando sus
+pruebas nuevas, una tanda cada vez, sin que se dupliquen capítulos.
+
 ### 7.5 Resultados de una ejecución
 
 Para un Word con las tablas de las pruebas y unas filas más con el resultado
@@ -1007,6 +1022,75 @@ prueba, banco y responsable. Con una validación abierta, se puede crear
 
 La ejecución queda **abierta** con esas pruebas y sus resultados (con su fecha
 y quién la ejecutó): revísala, completa las pendientes y ciérrala.
+
+### 7.6 Desde Excel
+
+Un Excel con **una fila por prueba** (o por requisito) y **una columna por
+campo**. Lo más cómodo es partir de la plantilla: en el primer paso del
+asistente, *Descarga una plantilla* guarda un Excel con una columna por campo
+(con las opciones del proyecto en desplegables) que se importa sin tener que
+elegir nada.
+
+- **Hojas.** Cada hoja es un grupo; en el paso 2 eliges qué hay en cada una:
+  pruebas, requisitos o *No importar* (para las de notas o datos).
+
+  ![Las hojas del Excel](docs/manual/54_excel_hojas.png)
+
+- **Columnas.** La cabecera es la primera fila con dos celdas o más (puede
+  haber un título encima). En el paso 3 eliges a qué campo va cada columna,
+  igual que con las etiquetas del Word; además de los campos están **ID**,
+  **Título**, **Capítulo** y **Sección**.
+
+  ![A qué campo va cada columna](docs/manual/55_excel_columnas.png)
+
+- **Filas.** Cada fila con ID o título es una prueba nueva. Una fila sin ID ni
+  título continúa la de arriba: así se puede escribir un paso por fila.
+- **Listas** (pasos, situación inicial, parametrización): una línea por
+  elemento dentro de la celda (**Alt+Intro**); «1.», «-» o «•» al principio
+  se quitan. Requisitos y tags, separados por comas o en líneas.
+- **Capítulo y sección.** Sin columna *Capítulo*, el capítulo es el nombre de
+  la hoja. «A > B» en la sección es la subsección B de A. Una celda vacía de
+  capítulo o sección sigue siendo la de arriba (como una celda combinada).
+- **Actualizar desde un Excel** cambia solo los campos que tienen columna: lo
+  demás que tenga la prueba (escrito después en el editor, por ejemplo) se
+  conserva, y sus campos adicionales se añaden a los que ya tenía.
+- Las imágenes del Excel no se importan (se avisa); añádelas en el editor.
+  Los resultados de una ejecución se importan desde Word.
+
+### 7.7 El mapeo del proyecto (importacion.yaml)
+
+Al importar, en la revisión está marcado **Guardar lo elegido en el
+proyecto**: qué es cada hoja y a qué campo va cada columna o etiqueta se
+guardan en `importacion.yaml`, en la carpeta del proyecto (junto a
+`aztarna.yaml`). Súbelo a Git con las pruebas: la próxima vez que alguien
+importe en el proyecto, desde cualquier PC, el paso **Campos** dice *Se parte
+del mapeo del proyecto* y trae elegido lo de la vez anterior.
+
+![Campos elegidos a partir del mapeo del proyecto](docs/manual/56_excel_mapeo_proyecto.png)
+
+Se puede editar a mano. Los nombres van tal cual están en el Excel o en el
+Word (no cuentan mayúsculas, tildes ni espacios) y los campos, como en el
+desplegable (`id`, `titulo`, `pasos`, `adicional`, `ignorar`…):
+
+```yaml
+excel:
+  hojas:
+    Llamadas: prueba
+    Notas: ignorar
+  columnas:
+    prueba:
+      ID: id
+      Pasos a seguir: pasos
+      Comentario: ignorar
+word:
+  etiquetas:
+    prueba:
+      ENSAYO(s) / Proceso(s): pasos
+```
+
+Lo que no se pueda usar (un campo que no existe) se avisa en el paso
+**Campos**. Sin `importacion.yaml`, se usa lo recordado en tu PC y, si no, lo
+que el editor deduce de los nombres.
 
 ---
 
