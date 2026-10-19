@@ -20,7 +20,7 @@ async function asistenteImportar() {
   if (!(await guardia())) return;
   setDirty(false);
   IMP = { paso: 0, archivo: "", preferido: S.modo === "ejecucion" ? "resultado" : enRequisitos() ? "requisito" : "prueba", modo: "nuevo", nombre: "",
-    analisis: null, mapeo: null, revision: null, ids: {} };
+    analisis: null, mapeo: null, revision: null, ids: {}, guardarMapeo: true };
   const dlg = h("dialog", { class: "ancho asistente", "aria-label": "Importar desde Word o Excel" });
   dlg.addEventListener("close", () => { dlg.remove(); if (IMP && IMP.dlg === dlg) IMP = null; });
   dlg.addEventListener("cancel", (e) => { if (document.querySelector(".espera")) e.preventDefault(); });
@@ -241,7 +241,14 @@ function pasoCampos() {
         }))),
       valores);
   });
+  const mp = a.mapeo_proyecto;
+  const delProyecto = mp && (mp.archivo || (mp.problemas || []).length)
+    ? h("p", { class: (mp.problemas || []).length ? "aviso-panel" : "ok-panel" },
+      mp.archivo ? `Se parte del mapeo del proyecto (${mp.archivo.split(/[\\/]/).pop()}): lo que ya se eligió otras veces viene elegido.` : "",
+      (mp.problemas || []).length ? ` No se ha podido usar: ${mp.problemas.join("; ")}.` : "")
+    : null;
   return h("div", {},
+    delProyecto,
     h("p", { class: "muted", text: esExcel()
       ? "A qué campo va cada columna. «Campo adicional» la conserva con su nombre; «No importar» la deja fuera."
       : "A qué campo va cada etiqueta. «Campo adicional» la conserva con su nombre; «Parte del campo anterior» deja ese párrafo dentro del campo de antes (útil para una «Nota:» en mitad de un texto)." }),
@@ -312,8 +319,12 @@ function pasoRevisar() {
     resumen.replaceChildren(h("strong", { text: partes.join(" · ") }), ` ${destino}.`);
   };
   pintarResumen();
+  const guardar = h("div", { class: "campo" }, h("label", { class: "opcion-radio" },
+    h("input", { type: "checkbox", checked: IMP.guardarMapeo, onchange: (e) => { IMP.guardarMapeo = e.target.checked; } }),
+    h("span", { text: "Guardar lo elegido en el proyecto (importacion.yaml), para que el resto del equipo importe igual sin volver a elegir los campos" })));
   return h("div", { class: "revision-importar" },
     resumen,
+    guardar,
     tipos.map(([tipo, d]) => h("section", { class: "bloque-mapeo" },
       h("h3", { text: tipo === "prueba" ? "Pruebas" : "Requisitos" }),
       h("p", { class: "muted", text: d.capitulos.map((c) => `${c.nombre} (${c.elementos}${c.existente ? ", se añade al capítulo que ya existe" : IMP.modo === "anadir" ? ", capítulo nuevo" : ""})`).join(" · ") }),
@@ -466,7 +477,7 @@ async function ejecutarImportacion() {
     if (elegida.cancelado) return;
     carpeta = elegida.carpeta;
   }
-  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta, IMP.acciones),
+  const r = await conEspera("Importando…", () => api.importar_ejecutar(IMP.archivo, IMP.mapeo, IMP.modo, IMP.ids, IMP.nombre, carpeta, IMP.acciones, IMP.guardarMapeo),
     "Se lee el documento, se copian las imágenes y se escriben los YAML. Con documentos grandes puede tardar unos minutos; no cierres la ventana.");
   if (r.cancelado) return;
   IMP.dlg.close();
