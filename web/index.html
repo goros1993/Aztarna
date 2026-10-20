@@ -47,22 +47,30 @@
   <header class="barra">
     <div class="marca"><img src="img/icono.png" alt="" width="22" height="22"><span class="marca-texto">Aztarna</span></div>
     <div class="seg modo" role="group" aria-label="Modo de trabajo">
-      <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Pruebas</button>
-      <button type="button" id="modo-requisitos" aria-pressed="false" title="Editar los requisitos y ver qué pruebas los cubren">Requisitos</button>
-      <button type="button" id="modo-ejecucion" aria-pressed="false" title="Validar una versión: ejecuciones de pruebas y sus resultados">Validación</button>
+      <button type="button" id="modo-edicion" aria-pressed="true" title="Editar las pruebas">Editar pruebas</button>
+      <button type="button" id="modo-requisitos" aria-pressed="false" title="Editar los requisitos y ver qué pruebas los cubren">Editar requisitos</button>
+      <button type="button" id="modo-ejecucion" aria-pressed="false" title="Validar una versión: ejecuciones de pruebas y sus resultados">Validar</button>
     </div>
     <button class="btn carpeta" id="btn-carpeta" type="button" title="Cambiar de carpeta">
       <svg class="ico" aria-hidden="true"><use href="#i-folder"/></svg>
       <span id="carpeta-ruta">Sin carpeta</span>
     </button>
-    <button class="btn ejecucion solo-ejecucion" id="btn-validacion" type="button" title="Crear o abrir la validación de una versión">
-      <svg class="ico" aria-hidden="true"><use href="#i-capas"/></svg>
-      <span id="validacion-nombre">Sin validación</span>
-    </button>
-    <button class="btn ejecucion solo-ejecucion" id="btn-ejecucion" type="button" title="Crear, abrir o cambiar de ejecución">
-      <svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>
-      <span id="ejecucion-nombre">Sin ejecución</span>
-    </button>
+    <nav class="ruta-contexto solo-ejecucion" aria-label="Dónde estás">
+      <button class="btn miga" id="btn-validacion" type="button" title="Crear o abrir la validación de una versión">
+        <svg class="ico" aria-hidden="true"><use href="#i-capas"/></svg>
+        <span id="validacion-nombre">Sin validación</span>
+      </button>
+      <svg class="ico sep-miga" aria-hidden="true"><use href="#i-chevron"/></svg>
+      <button class="btn miga" id="btn-ejecucion" type="button" title="Crear, abrir o cambiar de ejecución">
+        <span class="punto-miga" id="ejecucion-punto"></span>
+        <span id="ejecucion-nombre">Sin ejecución</span>
+        <span class="detalle-miga" id="ejecucion-detalle"></span>
+        <svg class="ico flecha-miga" aria-hidden="true"><use href="#i-down"/></svg>
+      </button>
+      <svg class="ico sep-miga" id="sep-prueba" aria-hidden="true" hidden><use href="#i-chevron"/></svg>
+      <span class="miga-prueba" id="miga-prueba" hidden></span>
+    </nav>
+    <button class="btn pastilla-volver" id="btn-volver" type="button" hidden></button>
     <label class="capitulo" for="sel-capitulo">
       <span class="sr">Capítulo</span>
       <select id="sel-capitulo" disabled></select>
@@ -78,9 +86,14 @@
       <svg class="ico" aria-hidden="true"><use href="#i-mas"/></svg>
     </button>
   </header>
+  <div class="franja-contexto" id="franja-contexto" role="status" hidden></div>
 
   <div class="cuerpo" id="cuerpo">
     <aside class="lateral" id="lateral" aria-label="Navegación del capítulo">
+      <div class="titulo-lateral" id="titulo-lateral">
+        <span class="tl-tit" id="titulo-lateral-tit"></span>
+        <span class="tl-sub" id="titulo-lateral-sub"></span>
+      </div>
       <div class="busqueda">
         <div class="caja-busqueda">
           <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>

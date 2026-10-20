@@ -305,7 +305,9 @@ let filtroRequisitosValidacion = "";
 let filtroComparacion = null;          // null: todas menos «sin cambios»
 
 /* ---- pestañas del panel ---- */
-const PESTANAS_VAL = { resumen: "Resumen", pruebas: "Pruebas", requisitos: "Requisitos", comparacion: "Comparación" };
+const PESTANAS_VAL = { resumen: "Resumen", pruebas: "Resultados por prueba", requisitos: "Cobertura de requisitos", comparacion: "Comparación" };
+/** Nombre de la pestaña: la de comparación dice con qué validación se compara. */
+const textoPestana = (k, v) => (k === "comparacion" && v.comparacion && v.comparacion.encontrada ? `Frente a ${v.comparacion.nombre}` : PESTANAS_VAL[k]);
 let pestanaValidacion = leerLocal("validacion-pestana") || "resumen";
 /** Texto de búsqueda (ID o título) de cada pestaña con tabla. */
 const buscarValidacion = { pruebas: "", requisitos: "", comparacion: "" };
@@ -620,7 +622,7 @@ async function compararEjecucion() {
   });
 }
 
-/* ---- pestaña «Pruebas»: prueba × entorno, por capítulos ---- */
+/* ---- pestaña «Resultados por prueba»: prueba × entorno, por capítulos ---- */
 function pestanaPruebas(v) {
   const entornos = v.entornos;
   const filas = v.pruebas.filter((p) => (!filtroTablaValidacion || p.estado === filtroTablaValidacion) && coincideTexto(p, buscarValidacion.pruebas));
@@ -654,11 +656,11 @@ function pestanaResumen(v) {
   const barra = h("div", { class: "barra-progreso", role: "img", "aria-label": `${t.validada} de ${v.total} validadas` },
     VAL_ORDEN.map((e) => t[e] ? h("span", { class: "e-" + claseEstado(e), style: { flexGrow: String(t[e]) }, title: `${VAL_TXT[e]}: ${t[e]}` }) : null));
   const tarjeta = (estado, extra = "") => h("button", {
-    type: "button", class: `tarjeta pulsable e-${claseEstado(estado)}`, title: "Ver estas pruebas (en la pestaña «Pruebas» y en el árbol)",
+    type: "button", class: `tarjeta pulsable e-${claseEstado(estado)}`, title: "Ver estas pruebas (en «Resultados por prueba» y en el árbol)",
     onclick: async () => { pestanaValidacion = "pruebas"; guardarLocal("validacion-pestana", "pruebas"); await filtrarValidacion(estado); },
   }, h("span", { class: "t-tit", text: VAL_TXT[estado] }), h("span", { class: "t-val", text: String(t[estado]) }), extra ? h("span", { class: "t-extra", text: extra }) : null);
 
-  // Por capítulo: una fila por capítulo; al pulsarla se abre en la pestaña «Pruebas».
+  // Por capítulo: una fila por capítulo; al pulsarla se abre en «Resultados por prueba».
   const capitulos = agruparPorCapitulo(v.pruebas);
   const tablaCapitulos = h("table", { class: "tabla-estados tabla-capitulos-val" },
     h("thead", {}, h("tr", {}, h("th", { text: "Capítulo" }), h("th", { class: "num", text: "Pruebas" }), h("th", { text: "Resultado" }),
@@ -698,17 +700,26 @@ function pestanaResumen(v) {
       ["ok", "no_ok", "bloqueada", "no_aplica", "pendiente", "sin_planificar"].map((k) =>
         h("td", { class: "num" + (c[k] ? " e-txt-" + claseEstado(k) : ""), text: c[k] ? String(c[k]) : "·" }))))));
 
+  // Ejecuciones agrupadas por entorno (una fila por persona y banco).
+  const porEntorno = new Map();
+  for (const e of v.ejecuciones) {
+    const clave = e.encontrada ? e.entorno_pruebas || "(sin entorno de pruebas)" : "No se encuentran";
+    if (!porEntorno.has(clave)) porEntorno.set(clave, []);
+    porEntorno.get(clave).push(e);
+  }
   const ejecuciones = v.ejecuciones.length
     ? h("table", { class: "tabla-estados tabla-ejecuciones" },
-      h("thead", {}, h("tr", {}, ["Ejecución", "Entorno", "Estado", "Avance", "Responsable", ""].map((x) => h("th", { text: x })))),
-      h("tbody", {}, v.ejecuciones.map((e) => h("tr", { class: e.encontrada ? "pulsable" : "", title: e.encontrada ? "Abrir la ejecución" + (e.version_pruebas ? `\nVersión de las pruebas: ${e.version_pruebas}` : "") : e.ruta,
-        onclick: (ev) => { if (e.encontrada && !ev.target.closest(".quitar")) abrirEjecucionDeValidacion(e.carpeta); } },
-        h("td", { text: e.encontrada ? e.nombre : `${e.ruta} (no se encuentra)` }),
-        h("td", { text: e.encontrada ? e.entorno_pruebas || "(sin indicar)" : "" }),
-        h("td", {}, e.encontrada ? h("span", { class: "chip-estado " + (e.cerrada ? "cerrada" : "abierta"), text: e.cerrada ? "Cerrada" : "Abierta" }) : null),
-        h("td", { text: e.encontrada ? `${e.ejecutadas}/${e.total}` : "" }),
-        h("td", { text: e.responsable || "" }),
-        h("td", { class: "acciones-fila" }, botonIcono("x", "Quitar de la validación", () => quitarEjecucion(e), "quitar"))))))
+      h("thead", {}, h("tr", {}, ["Ejecución", "Banco", "Responsable", "Estado", "Avance", ""].map((x) => h("th", { text: x })))),
+      [...porEntorno].map(([entorno, lista]) => h("tbody", {},
+        h("tr", { class: "grupo-entorno" }, h("th", { colspan: "6", scope: "rowgroup", text: entorno })),
+        lista.map((e) => h("tr", { class: e.encontrada ? "pulsable" : "", title: e.encontrada ? "Abrir la ejecución" + (e.version_pruebas ? `\nVersión de las pruebas: ${e.version_pruebas}` : "") : e.ruta,
+          onclick: (ev) => { if (e.encontrada && !ev.target.closest(".quitar")) abrirEjecucionDeValidacion(e.carpeta); } },
+          h("td", { text: e.encontrada ? e.nombre : `${e.ruta} (no se encuentra)` }),
+          h("td", { text: e.banco || "" }),
+          h("td", { text: e.responsable || "" }),
+          h("td", {}, e.encontrada ? h("span", { class: "chip-estado " + (e.cerrada ? "cerrada" : "abierta"), text: e.cerrada ? "Cerrada" : "Abierta" }) : null),
+          h("td", { text: e.encontrada ? `${e.ejecutadas}/${e.total}` : "" }),
+          h("td", { class: "acciones-fila" }, botonIcono("x", "Quitar de la validación", () => quitarEjecucion(e), "quitar")))))))
     : h("p", { class: "muted", text: "Todavía no hay ejecuciones. Añade las que ha hecho cada persona («Añadir ejecuciones…»: una, o una carpeta con varias) o crea una nueva." });
 
   const listaAvisos = h("ul", { class: "lista-problemas en-panel" }, v.avisos.map((a) => h("li", {
@@ -729,7 +740,7 @@ function pestanaResumen(v) {
       enlaces.length ? h("div", { class: "resumen-enlaces" }, enlaces) : null),
     capitulos.length > 1 ? h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por capítulo" }),
       h("p", { class: "ayuda", text: "Pulsa un capítulo para ver sus pruebas." })), tablaCapitulos) : null,
-    h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecuciones" })), ejecuciones),
+    h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecuciones, por entorno" })), ejecuciones),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: "Por entorno" }),
       h("p", { class: "ayuda", text: "Cuántas pruebas piden cada entorno y su resultado en él. «Sin planificar»: ninguna ejecución de ese entorno las incluye." })), tablaEntornos),
     h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: `Avisos (${v.avisos.length})` })), avisos),
@@ -750,7 +761,7 @@ function mostrarPanelValidacion() {
   const selector = h("div", { class: "seg pestanas-validacion", role: "tablist", "aria-label": "Vista de la validación" },
     pestanas.map((k) => h("button", { type: "button", role: "tab", "aria-selected": String(k === pestanaValidacion), "aria-pressed": String(k === pestanaValidacion),
       title: k === "comparacion" && cuenta.comparacion ? plural(cuenta.comparacion, "nuevo fallo", "nuevos fallos") : "",
-      onclick: () => irAPestanaValidacion(k) }, PESTANAS_VAL[k],
+      onclick: () => irAPestanaValidacion(k) }, textoPestana(k, v),
     cuenta[k] ? h("span", { class: "cuenta-pestana" + (k === "comparacion" ? " e-txt-no_ok" : ""), text: String(cuenta[k]) }) : null)));
   const contenido = { resumen: pestanaResumen, pruebas: pestanaPruebas, requisitos: pestanaRequisitos, comparacion: pestanaComparacion }[pestanaValidacion](v);
 
@@ -811,6 +822,7 @@ async function darPorRevisadaEnValidacion(p) {
 function mostrarPruebaValidacion(datos) {
   F = null; R = null;
   const el = datos.elemento;
+  ponerMigaPrueba(String(el.id || ""));
   const p = S.validacion.pruebas.find((x) => x.id === String(el.id || ""));
   const bloque = !p
     ? h("p", { class: "aviso-panel", text: "Esta prueba no entra en la validación (no cumple su criterio)." })
@@ -836,6 +848,7 @@ function mostrarPruebaValidacion(datos) {
       h("span", { class: "placa" }, h("span", { class: "texto-placa", text: el.id || "(sin ID)" })),
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: el.titulo || el.nombre || "" }),
         h("span", { class: "ruta", text: `Validación «${S.validacion.datos.nombre}»` })),
+      p ? botonEditarPrueba(p.id) : null,
       p ? chipEstadoValidacion(p.estado, "grande") : null),
     h("div", { class: "columnas-ejecucion" }, fichaPrueba(el), bloque)));
 }

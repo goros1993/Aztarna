@@ -5,6 +5,26 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
 ## Sin publicar
 
+- **Saber dónde estás en el modo Validar**:
+  - los modos se llaman *Editar pruebas*, *Editar requisitos* y *Validar*, y
+    las pestañas de la validación *Resumen*, *Resultados por prueba*,
+    *Cobertura de requisitos* y *Frente a «la anterior»*, para que no se
+    repitan los nombres;
+  - la barra muestra la ruta **validación › ejecución › prueba**: la
+    validación lleva a su resumen y la ejecución (banco, responsable, abierta o
+    cerrada, avance) abre la lista de las ejecuciones de la validación
+    agrupadas por entorno, para cambiar de una a otra;
+  - una franja bajo la barra indica en qué ejecución se apuntan los resultados
+    (gris si está cerrada) y tiene *Volver a la validación*;
+  - encima del árbol, qué pruebas se ven (*de la validación*, *de esta
+    ejecución* y su avance, o *todas* y el capítulo);
+  - **Editar esta prueba** (al pasarla o en la validación) abre la prueba en
+    *Editar pruebas* con una pastilla para volver; al editar, una línea dice
+    su estado en la validación, con *Ver en la validación*;
+  - al pasar una prueba, *En el resto de la validación* muestra lo que dicen
+    las otras ejecuciones;
+  - en el resumen de la validación, las ejecuciones van agrupadas por entorno,
+    con su banco.
 - **Quitar el aviso «La prueba ha cambiado después de ejecutarse»**: botón
   *No hay que repetirla* en el panel de resultado (ejecución abierta) y en la
   ficha de la prueba de la validación. El resultado vale para la prueba actual

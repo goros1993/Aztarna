@@ -35,13 +35,149 @@ function pintarModo() {
   $("#modo-ejecucion").setAttribute("aria-pressed", String(ej));
   $("#txt-nueva").textContent = enRequisitos() ? "Requisito" : "Prueba";
   $("#buscar").placeholder = enRequisitos() ? "Buscar requisito por ID o texto" : "Buscar por ID o texto";
-  $("#validacion-nombre").textContent = S.validacion ? S.validacion.datos.nombre : "Sin validación";
-  $("#btn-validacion").title = S.validacion ? S.validacion.carpeta : "Crear o abrir la validación de una versión";
-  const nombre = $("#ejecucion-nombre");
-  nombre.textContent = S.ejecucion ? S.ejecucion.datos.nombre + (cerrada() ? " (cerrada)" : "") : "Sin ejecución";
-  $("#btn-ejecucion").title = S.ejecucion ? S.ejecucion.carpeta : "Crear o abrir una ejecución";
+  pintarRuta();
+  pintarFranja();
+  pintarTituloLateral();
+  pintarVolver();
   $("#filtro-estado").value = S.filtroEstado;
   etiquetarCapitulos();
+}
+
+/* ---- dónde estás: ruta de la barra, franja, título del árbol y vuelta ---- */
+let migaPrueba = null;      // ID de la prueba abierta en el modo Validar (último tramo de la ruta)
+
+/** Ruta de la barra: validación › ejecución › prueba. */
+function pintarRuta() {
+  const v = S.validacion, e = S.ejecucion;
+  $("#validacion-nombre").textContent = v ? v.datos.nombre : "Sin validación";
+  $("#btn-validacion").title = !v ? "Crear o abrir la validación de una versión"
+    : e || migaPrueba ? `Volver al resumen de la validación\n${v.carpeta}` : `Cambiar de validación\n${v.carpeta}`;
+  $("#btn-validacion").classList.toggle("actual", Boolean(v && !e && !migaPrueba));
+  const boton = $("#btn-ejecucion");
+  boton.classList.toggle("vacia", !e);
+  boton.classList.toggle("actual", Boolean(e && !migaPrueba));
+  $("#ejecucion-punto").className = "punto-miga" + (e ? (e.cerrada ? " cerrada" : " abierta") : "");
+  $("#ejecucion-nombre").textContent = e ? nombreCorto(e.datos) : v ? `Elegir ejecución (${v.ejecuciones.filter((x) => x.encontrada).length})` : "Sin ejecución";
+  $("#ejecucion-detalle").textContent = e ? `${e.cerrada ? "Cerrada" : "Abierta"} · ${e.resumen.ejecutadas}/${e.resumen.total}` : "";
+  boton.title = e ? `${e.datos.nombre}\n${[e.datos.entorno_pruebas, e.datos.entorno, e.datos.responsable].filter(Boolean).join(" · ")}\n${e.carpeta}\nPulsa para cambiar de ejecución.`
+    : "Elegir, abrir o crear una ejecución";
+  $("#sep-prueba").hidden = !migaPrueba;
+  $("#miga-prueba").hidden = !migaPrueba;
+  $("#miga-prueba").textContent = migaPrueba || "";
+}
+
+/** Nombre de una ejecución para la barra: el banco y el responsable, si los tiene (si no, su nombre). */
+function nombreCorto(d) {
+  const persona = String(d.responsable || "").trim().split(/\s+/)[0];
+  const banco = String(d.entorno || d.entorno_pruebas || "").trim();
+  return banco && persona ? `${banco} · ${persona}` : String(d.nombre || "");
+}
+
+function ponerMigaPrueba(id) {
+  migaPrueba = id || null;
+  pintarRuta();
+}
+
+/** Franja bajo la barra con la ejecución en la que se apuntan los resultados. */
+function pintarFranja() {
+  const franja = $("#franja-contexto");
+  const e = enEjecucion() ? S.ejecucion : null;
+  franja.hidden = !e;
+  if (!e) { franja.replaceChildren(); return; }
+  const d = e.datos;
+  franja.classList.toggle("cerrada", e.cerrada);
+  const detalle = [d.entorno_pruebas ? `entorno ${d.entorno_pruebas}` : "sin entorno de pruebas", d.entorno ? `banco ${d.entorno}` : null, d.responsable || null].filter(Boolean).join(" · ");
+  franja.replaceChildren(
+    icon(e.cerrada ? "candado" : "check"),
+    h("span", { class: "franja-texto" },
+      e.cerrada ? "Ejecución cerrada, solo lectura: " : "Apuntando resultados en ",
+      h("strong", { text: `«${d.nombre}»` }), ` · ${detalle}`,
+      S.validacion && e.en_validacion === false ? h("span", { class: "franja-nota", text: " · no forma parte de la validación" }) : null),
+    h("span", { class: "relleno" }),
+    S.validacion ? h("button", { type: "button", class: "enlace franja-volver", onclick: volverAValidacion }, "← Volver a la validación") : null);
+}
+
+/** Encima del árbol: qué pruebas se están viendo. */
+function pintarTituloLateral() {
+  let tit = "", sub = "";
+  const capitulo = S.capitulos[S.capitulo];
+  if (enEjecucion() && S.ejecucion) {
+    const r = S.ejecucion.resumen;
+    tit = "Pruebas de esta ejecución";
+    sub = `${r.ejecutadas} de ${r.total} ejecutadas` + (r.totales.pendiente ? ` · ${plural(r.totales.pendiente, "pendiente", "pendientes")}` : "");
+  } else if (enEjecucion() && S.validacion) {
+    tit = "Pruebas de la validación";
+    sub = `${plural(S.validacion.total, "prueba", "pruebas")} · ${S.validacion.totales.validada} validadas`;
+  } else if (enEjecucion()) {
+    tit = "Pruebas";
+  } else {
+    tit = enRequisitos() ? "Todos los requisitos" : "Todas las pruebas";
+    if (capitulo) sub = `Capítulo «${capitulo.nombre}» · ${plural(capitulo.pruebas, enRequisitos() ? "requisito" : "prueba", enRequisitos() ? "requisitos" : "pruebas")}`;
+  }
+  if (S.filtroEstado && enEjecucion()) sub += ` · filtro: ${$("#filtro-estado").selectedOptions[0]?.textContent || S.filtroEstado}`;
+  $("#titulo-lateral-tit").textContent = tit;
+  $("#titulo-lateral-sub").textContent = sub;
+}
+
+/** Pastilla para volver a la ejecución o a la validación tras «Editar esta prueba». */
+function pintarVolver() {
+  const boton = $("#btn-volver");
+  const visible = Boolean(S.volverA && !enEjecucion());
+  boton.hidden = !visible;
+  boton.replaceChildren(...(visible ? [h("span", { text: `← Volver a ${S.volverA.texto}` })] : []));
+  boton.title = visible ? `Volver al modo Validar, a la prueba ${S.volverA.id}` : "";
+}
+
+/** Desde el modo Validar: edita la prueba (en Editar pruebas) y deja la pastilla para volver. */
+async function editarPruebaDesdeValidacion(id) {
+  const p = (S.ejecucion && S.ejecucion.resumen.pruebas.find((x) => x.id === id))
+    || (S.validacion && S.validacion.pruebas.find((x) => x.id === id));
+  if (!p || !p.archivo) { aviso(`La prueba ${id} no está en los YAML de pruebas`, "error"); return; }
+  if (S.soloLectura) {
+    aviso("La ejecución está cerrada y muestra sus pruebas congeladas: vuelve a la validación (o abre la carpeta de pruebas) para editarla", "error");
+    return;
+  }
+  const volverA = { id, texto: S.ejecucion ? nombreCorto(S.ejecucion.datos) : "la validación" };
+  await cambiarModo("edicion");
+  if (S.modo !== "edicion") return;           // cambios sin guardar: se quedó donde estaba
+  S.volverA = volverA;
+  pintarVolver();
+  await irAPruebaEnEdicion(p.archivo, p.indice);
+}
+
+/** Abre una prueba en el modo de edición (por su capítulo e índice). */
+async function irAPruebaEnEdicion(archivo, indice) {
+  const ci = S.capitulos.findIndex((c) => c.archivo === archivo);
+  if (ci < 0) return;
+  if (ci !== S.capitulo || S.consulta) {
+    S.capitulo = ci;
+    $("#sel-capitulo").value = String(ci);
+    S.consulta = ""; $("#buscar").value = "";
+  }
+  await cargarNavegacion();
+  const nodo = S.nodos.find((n) => n.indice === indice);
+  for (let padre = nodo ? nodo.padre : null; padre !== null && padre !== undefined;) {
+    const sec = S.nodos.find((n) => n.indice === padre);
+    if (!sec) break;
+    S.colapsadas.delete(claveColapso(sec));
+    padre = sec.padre;
+  }
+  S.seleccion = null;
+  await seleccionar("prueba", indice);
+}
+
+/** Vuelve al modo Validar, a la prueba (en la ejecución abierta o en la validación). */
+async function verPruebaEnValidar(id) {
+  await cambiarModo("ejecucion");
+  if (!enEjecucion()) return;
+  if (S.ejecucion && S.ejecucion.resumen.pruebas.some((x) => x.id === id)) { await irAPruebaEjecucion(id); return; }
+  const p = !S.ejecucion && S.validacion && S.validacion.pruebas.find((x) => x.id === id);
+  if (p) await irAPruebaValidacion(p);
+}
+
+async function volverDeEdicion() {
+  const destino = S.volverA;
+  if (destino) await verPruebaEnValidar(destino.id);
 }
 
 async function cambiarModo(modo) {
@@ -53,6 +189,8 @@ async function cambiarModo(modo) {
   S.modo = modo;
   guardarLocal("modo", modo);
   S.seleccion = null;
+  S.volverA = null;
+  migaPrueba = null;
   S.filtroEstado = "";
   S.filtroCobertura = "";
   R = null;
@@ -241,9 +379,9 @@ async function abrirEjecucion(carpeta = null) {
 }
 
 async function menuEjecucion() {
+  if (S.validacion) { await menuEjecucionesValidacion(); return; }
   const lista = recientes().filter((r) => !S.ejecucion || r.carpeta !== S.ejecucion.carpeta);
   const cuerpo = h("div", { class: "menu-ejecucion" },
-    S.validacion ? h("p", { class: "muted", text: `Validación abierta: «${S.validacion.datos.nombre}». Las ejecuciones nuevas se crean dentro de ella; una que abras y no forme parte de ella se puede añadir desde su resumen.` }) : null,
     S.ejecucion ? h("p", {}, "Abierta: ", h("strong", { text: S.ejecucion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.ejecucion.carpeta })) : null,
     lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
     lista.map((r) => h("button", {
@@ -258,9 +396,66 @@ async function menuEjecucion() {
       { texto: "Nueva ejecución…", valor: "nueva", tipo: "primary" },
     ],
   });
-  if (r === "nueva") await nuevaEjecucion({ enValidacion: Boolean(S.validacion) });
+  if (r === "nueva") await nuevaEjecucion();
   else if (r === "abrir") await abrirEjecucion();
   else if (r && r.startsWith("reciente:")) await abrirEjecucion(r.slice(9));
+}
+
+/** Las ejecuciones de la validación, agrupadas por entorno, para cambiar de una a otra. */
+async function menuEjecucionesValidacion() {
+  const v = S.validacion;
+  const actual = S.ejecucion && S.ejecucion.carpeta;
+  const grupos = new Map();
+  for (const e of v.ejecuciones) {
+    const clave = e.encontrada ? e.entorno_pruebas || "(sin entorno)" : "No se encuentran";
+    if (!grupos.has(clave)) grupos.set(clave, []);
+    grupos.get(clave).push(e);
+  }
+  const fila = (e) => {
+    const esta = e.encontrada && e.carpeta === actual;
+    const pct = e.total ? Math.round(100 * e.ejecutadas / e.total) : 0;
+    return h("button", {
+      type: "button", class: "fila-ejecucion" + (esta ? " actual" : ""), disabled: !e.encontrada, title: e.carpeta || e.ruta,
+      "aria-current": esta ? "true" : null,
+      onclick: (ev) => ev.target.closest("dialog").close("ejecucion:" + e.indice),
+    },
+    h("span", { class: "punto-miga " + (e.cerrada ? "cerrada" : "abierta") }),
+    h("span", { class: "fe-nombre" }, h("strong", { text: e.encontrada ? e.nombre : e.ruta }),
+      h("span", { class: "muted", text: [e.banco, e.responsable, esta ? "estás aquí" : null].filter(Boolean).join(" · ") })),
+    e.encontrada ? h("span", { class: "chip-estado " + (e.cerrada ? "cerrada" : "abierta"), text: e.cerrada ? "Cerrada" : "Abierta" }) : h("span"),
+    e.encontrada ? h("span", { class: "fe-avance" }, h("span", { class: "fe-barra" }, h("span", { style: { width: pct + "%" } })), `${e.ejecutadas}/${e.total}`) : h("span"));
+  };
+  const cuerpo = h("div", { class: "menu-ejecucion menu-ejecuciones-val" },
+    v.ejecuciones.length
+      ? [...grupos].map(([entorno, lista]) => h("div", { class: "grupo-ejecuciones" }, h("h4", { text: entorno }), lista.map(fila)))
+      : h("p", { class: "muted", text: "La validación todavía no tiene ejecuciones: crea una o añade las que ha hecho cada persona." }));
+  const r = await dialogo({
+    titulo: `Ejecuciones de «${v.datos.nombre}»`, cuerpo, ancho: true,
+    botones: [
+      { texto: "Cerrar", valor: "", tipo: "ghost" },
+      ...(S.ejecucion ? [{ texto: "Resumen de la validación", valor: "resumen", tipo: "" }] : []),
+      { texto: "Abrir una ejecución suelta…", valor: "abrir", tipo: "" },
+      { texto: "Nueva ejecución…", valor: "nueva", tipo: "primary" },
+    ],
+  });
+  if (r === "nueva") await nuevaEjecucion({ enValidacion: true });
+  else if (r === "abrir") await abrirEjecucion();
+  else if (r === "resumen") await volverAValidacion();
+  else if (r && r.startsWith("ejecucion:")) {
+    const e = v.ejecuciones[Number(r.slice(10))];
+    if (e && e.carpeta !== actual) await abrirEjecucionDeValidacion(e.carpeta);
+  }
+}
+
+/** La validación de la ruta: vuelve a su resumen o, si ya se está en él, permite cambiar de validación. */
+async function pulsarMigaValidacion() {
+  if (!S.validacion || (!S.ejecucion && !migaPrueba)) { await menuValidacion(); return; }
+  if (S.ejecucion) { await volverAValidacion(); return; }
+  if (!(await guardia())) return;
+  setDirty(false);
+  S.seleccion = null;
+  renderArbol();
+  mostrarVacio();
 }
 
 /**
@@ -455,6 +650,7 @@ async function siguientePendiente(desdeId = null) {
 /* ---- panel de la ejecución (sin prueba seleccionada) ---- */
 function mostrarPanelEjecucion() {
   R = null;
+  ponerMigaPrueba(null);
   if (!S.ejecucion && S.validacion) { mostrarPanelValidacion(); return; }
   if (!S.ejecucion) {
     const lista = recientes();
@@ -741,6 +937,7 @@ async function mostrarEnEjecucion(datos) {
   if (datos.tipo !== "prueba") {
     const sec = datos.elemento;
     R = null;
+    ponerMigaPrueba(null);
     mostrar(h("div", { class: "formulario" },
       h("div", { class: "acciones" }, h("span", { class: "placa seccion" }, h("span", { class: "texto-placa", text: "Sección" })),
         h("div", { class: "titulo" }, h("span", { class: "nombre", text: sec.seccion }))),
@@ -749,6 +946,7 @@ async function mostrarEnEjecucion(datos) {
   }
   const el = datos.elemento;
   const id = String(el.id || "");
+  ponerMigaPrueba(id);
   const info = await api.ejecucion_resultado(id);
   const res = info.resultado;
   R = {
@@ -764,8 +962,40 @@ async function mostrarEnEjecucion(datos) {
       h("span", { class: "placa" }, h("span", { class: "texto-placa", text: id || "(sin ID)" })),
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: el.titulo || el.nombre || "" }),
         el.nombre && el.titulo ? h("span", { class: "ruta", text: el.nombre }) : null),
+      botonEditarPrueba(id),
       h("span", { class: "chip-estado grande e-" + R.original, id: "estado-cabecera", text: ESTADO_TXT[R.original] })),
     h("div", { class: "columnas-ejecucion" }, fichaPrueba(el), panelResultado())));
+}
+
+/** «Editar esta prueba»: la abre en Editar pruebas (no con las pruebas congeladas de una ejecución cerrada). */
+function botonEditarPrueba(id) {
+  if (!id) return null;
+  return h("button", {
+    class: "btn", type: "button", disabled: S.soloLectura,
+    title: S.soloLectura ? "La ejecución está cerrada y muestra sus pruebas congeladas: no se pueden editar" : "Abrir esta prueba en «Editar pruebas» (con una pastilla para volver aquí)",
+    onclick: () => editarPruebaDesdeValidacion(id),
+  }, "Editar esta prueba");
+}
+
+/** En el panel de resultado: lo que dicen de la prueba las otras ejecuciones de la validación. */
+function restoDeLaValidacion(id) {
+  const v = S.validacion;
+  const p = v && S.ejecucion && S.ejecucion.en_validacion !== false && v.pruebas.find((x) => x.id === id);
+  if (!p) return null;
+  const actual = v.ejecuciones.findIndex((e) => e.carpeta === S.ejecucion.carpeta);
+  const filas = [];
+  for (const [entorno, c] of Object.entries(p.entornos)) {
+    const suyos = c.historial.filter((r) => r.ejecucion_indice !== actual);
+    if (!suyos.length) continue;
+    const r = suyos[0];
+    filas.push(h("li", {},
+      h("span", { class: `punto-estado e-${claseEstado(r.estado)}` }),
+      h("span", { text: `${entorno} · ${r.ejecucion}: ${CELDA_TXT[r.estado]}${r.estado === "pendiente" ? "" : " · " + fechaCorta(r.fecha)}${c.cuenta ? "" : " (no cuenta)"}` })));
+  }
+  return h("div", { class: "seccion-panel resto-validacion" },
+    h("div", { class: "cab-panel" }, h("h3", { text: "En el resto de la validación" }),
+      h("span", { class: `chip-estado e-${claseEstado(p.estado)}`, text: VAL_TXT[p.estado] })),
+    filas.length ? h("ul", { class: "historial-entorno" }, filas) : h("p", { class: "muted", text: "Ninguna otra ejecución de la validación la incluye." }));
 }
 
 function panelResultado() {
@@ -824,6 +1054,7 @@ function panelResultado() {
           h("span", { class: "muted", text: [String(i.fecha || "").replace("T", " "), i.ejecutor, i.incidencia].filter(Boolean).join(" · ") }),
           i.incidencia ? enlacesIncidencia(i.incidencia) : null,
           i.observaciones ? h("div", { text: i.observaciones }) : null)))) : null,
+      restoDeLaValidacion(R.id),
       bloqueada ? null : h("div", { class: "acciones-resultado" },
         h("span", { class: "pie-resultado", text: R.fecha ? `Guardado ${fechaCorta(R.fecha)}` : "", title: R.fecha ? String(R.fecha).replace("T", " ") : "" }),
         h("button", { class: "btn", type: "button", onclick: () => guardarResultado(), title: "Ctrl+S", text: "Guardar" }),
@@ -943,7 +1174,8 @@ function iniciarEjecucion() {
   $("#modo-requisitos").addEventListener("click", () => cambiarModo("requisitos"));
   $("#modo-ejecucion").addEventListener("click", () => cambiarModo("ejecucion"));
   $("#btn-ejecucion").addEventListener("click", menuEjecucion);
-  $("#btn-validacion").addEventListener("click", menuValidacion);
+  $("#btn-validacion").addEventListener("click", pulsarMigaValidacion);
+  $("#btn-volver").addEventListener("click", volverDeEdicion);
   $("#btn-panel-ejecucion").addEventListener("click", async () => {
     if (!(await guardia())) return;
     setDirty(false);

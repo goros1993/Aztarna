@@ -245,13 +245,13 @@ class ApiTests(unittest.TestCase):
         v = ok(self, self.api.validacion_crear("Validación v2.3", "2.3.0", {"etiquetas": ["regresion"]}, str(self.tmp / "val")))
         self.assertEqual((v["total"], v["ejecuciones"]), (10, []))
         e = ok(self, self.api.validacion_nueva_ejecucion("En Torre", {"etiquetas": ["regresion"], "entorno": ["Torre"]},
-                                                          {"entorno_pruebas": "Torre"}))
+                                                          {"entorno_pruebas": "Torre", "entorno": "Torre 2"}))
         self.assertTrue(e["carpeta"].startswith(str(self.tmp / "val")))
         ok(self, self.api.ejecucion_registrar("DEMO-PUER-001", "ok"))
         v = ok(self, self.api.validacion_estado())
         puer = next(p for p in v["pruebas"] if p["id"] == "DEMO-PUER-001")
         self.assertEqual(puer["estado"], "validada")
-        self.assertEqual(v["ejecuciones"][0]["entorno_pruebas"], "Torre")
+        self.assertEqual((v["ejecuciones"][0]["entorno_pruebas"], v["ejecuciones"][0]["banco"]), ("Torre", "Torre 2"))
 
     def test_abrir_quitar_y_volver_desde_una_ejecucion_cerrada(self):
         ok(self, self.api.validacion_crear("V", "", {"incluir_ids": ["DEMO-PUER-001"], "capitulos": ["__x__"]}, str(self.tmp / "val")))

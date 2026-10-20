@@ -9,9 +9,9 @@ ejecutan. No hace falta saber programar ni conocer el formato de los archivos.
 1. [Qué es y cómo se organiza](#1-qué-es-y-cómo-se-organiza)
 2. [Abrir el editor](#2-abrir-el-editor)
 3. [La ventana](#3-la-ventana)
-4. [Editar pruebas (modo Pruebas)](#4-editar-pruebas-modo-pruebas)
-5. [Requisitos y trazabilidad (modo Requisitos)](#5-requisitos-y-trazabilidad-modo-requisitos)
-6. [Ejecutar y validar (modo Validación)](#6-ejecutar-y-validar-modo-validación)
+4. [Editar pruebas (modo Editar pruebas)](#4-editar-pruebas-modo-editar-pruebas)
+5. [Requisitos y trazabilidad (modo Editar requisitos)](#5-requisitos-y-trazabilidad-modo-editar-requisitos)
+6. [Ejecutar y validar (modo Validar)](#6-ejecutar-y-validar-modo-validar)
 7. [Importar desde Word o Excel](#7-importar-desde-word-o-excel)
 8. [Atajos de teclado](#8-atajos-de-teclado)
 9. [Preguntas frecuentes y problemas](#9-preguntas-frecuentes-y-problemas)
@@ -54,9 +54,9 @@ Por eso el editor tiene tres modos, que se eligen arriba a la izquierda:
 
 | Modo | Para qué |
 |---|---|
-| **Pruebas** | Crear, cambiar, mover y borrar pruebas. |
-| **Requisitos** | Crear, cambiar, mover y borrar requisitos, y ver qué pruebas cubren cada uno. |
-| **Validación** | Pasar las pruebas de una ejecución y apuntar el resultado, y unir ejecuciones en la validación de una versión. En este modo las pruebas no se pueden cambiar. |
+| **Editar pruebas** | Crear, cambiar, mover y borrar pruebas. |
+| **Editar requisitos** | Crear, cambiar, mover y borrar requisitos, y ver qué pruebas cubren cada uno. |
+| **Validar** | Pasar las pruebas de una ejecución y apuntar el resultado, y unir ejecuciones en la validación de una versión. En este modo las pruebas no se pueden cambiar. |
 
 Los resultados **nunca** se escriben en las pruebas: se guardan en la carpeta
 de la ejecución.
@@ -151,14 +151,16 @@ en Ubuntu, *Configuración → Apariencia*.
 
 ## 3. La ventana
 
-![Ventana del editor en modo Pruebas](docs/manual/01_ventana_edicion.png)
+![Ventana del editor en modo Editar pruebas](docs/manual/01_ventana_edicion.png)
 
-- **Barra superior:** modo (Pruebas / Requisitos / Validación), carpeta de
-  pruebas, en el modo Validación la validación y la ejecución abiertas,
-  capítulo, *Robot* (configuración de Robot Framework y número de pruebas
+- **Barra superior:** modo (Editar pruebas / Editar requisitos / Validar),
+  carpeta de pruebas, en el modo Validar la **ruta** de dónde estás (ver
+  abajo), capítulo, *Robot* (configuración de Robot Framework y número de pruebas
   automatizadas), *Recargar* (vuelve a leer los archivos del disco) y el
   menú **⋯** (ver abajo).
-- **Panel izquierdo:** buscador (por ID o texto) y el **árbol** del capítulo
+- **Panel izquierdo:** encima, qué se está viendo (*Todas las pruebas* y el
+  capítulo, *Pruebas de la validación* o *Pruebas de esta ejecución* y su
+  avance); el buscador (por ID o texto) y el **árbol** del capítulo
   con sus secciones y pruebas. Las secciones se pliegan y despliegan con la
   flecha; los dos botones junto al buscador **pliegan** o **despliegan todas**
   a la vez. El ancho del panel se ajusta arrastrando su borde.
@@ -168,15 +170,33 @@ en Ubuntu, *Configuración → Apariencia*.
   aviso de *Cambios sin guardar* y, a la derecha, la versión del editor (al
   pulsarla se abre *Acerca de*).
 
+**Dónde estás (modo Validar).** La barra muestra una ruta: **validación ›
+ejecución › prueba**.
+
+- Pulsa la **validación** para volver a su resumen (si ya estás en él, para
+  cambiar de validación).
+- Pulsa la **ejecución** (con su banco, responsable, si está abierta o cerrada
+  y cuántas lleva) para cambiar a otra: salen las de la validación agrupadas
+  por entorno, con su avance, y las opciones de crear una nueva o abrir una
+  suelta.
+- Con una ejecución abierta, una **franja** bajo la barra dice en qué
+  ejecución se están apuntando los resultados (en gris si está cerrada, solo
+  lectura) y tiene *Volver a la validación*.
+- En una prueba, **Editar esta prueba** la abre en *Editar pruebas* con una
+  pastilla **← Volver a…** en la barra para volver a la misma prueba. Al
+  editar una prueba con una validación abierta, una línea encima del
+  formulario dice su estado en la validación y en cada entorno, con *Ver en la
+  validación*.
+
 ![Menú ⋯](docs/manual/35_menu.png)
 
 El menú **⋯**, a la derecha de la barra superior, reúne:
 
 - **Importar desde Word o Excel…**: pruebas o requisitos de un Word o un
   Excel, o resultados de una ejecución desde Word (ver 7). En el modo
-  Validación, solo resultados.
-- **Exportar DOCX…** (en el modo Requisitos, *Exportar DOCX de requisitos…*):
-  ver 4.8. No aparece en el modo Validación.
+  Validar, solo resultados.
+- **Exportar DOCX…** (en el modo Editar requisitos, *Exportar DOCX de requisitos…*):
+  ver 4.8. No aparece en el modo Validar.
 - **Tamaño**: **−** y **+** agrandan o reducen todo (texto, botones,
   imágenes); el porcentaje vuelve al 100 %. Ver abajo.
 - **Ajustes…**: tu nombre, dónde se publica el programa y la dirección de las
@@ -219,7 +239,7 @@ Word que genera el editor.
 
 ---
 
-## 4. Editar pruebas (modo Pruebas)
+## 4. Editar pruebas (modo Editar pruebas)
 
 ### 4.1 Editar una prueba
 
@@ -443,7 +463,7 @@ Las tablas que van **antes del primer título** del capítulo (por ejemplo, el
 historial de cambios al principio) no tienen sección: aparecen en el árbol
 con un icono de tabla y se editan igual.
 
-En modo Validación, las tablas del contexto se ven (sin editar) en la ficha
+En modo Validar, las tablas del contexto se ven (sin editar) en la ficha
 de la prueba o de la sección.
 
 ### 4.10 Buscar y reemplazar en todos los capítulos
@@ -461,7 +481,7 @@ se salta los capítulos que está editando otra persona. Si cambia el texto de
 un requisito con pruebas, queda con sus pruebas por revisar, como al editarlo
 a mano. Con Git se puede deshacer; sin Git, no.
 
-## 5. Requisitos y trazabilidad (modo Requisitos)
+## 5. Requisitos y trazabilidad (modo Editar requisitos)
 
 Los requisitos se editan igual que las pruebas: árbol con capítulos y
 secciones, **+ Requisito** y **+ Sección**, arrastrar para reordenar, vista
@@ -469,7 +489,7 @@ YAML, validación y **⋯ → Exportar DOCX de requisitos…** (un documento con
 requisito). La diferencia es que el editor relaciona cada requisito con las
 pruebas que lo citan en su campo **Requisitos**.
 
-Si todavía no hay requisitos, el modo Requisitos ofrece **Crear
+Si todavía no hay requisitos, el modo Editar requisitos ofrece **Crear
 requisitos**: crea la carpeta `requisitos` (junto a la carpeta `pruebas`) con
 un primer capítulo.
 
@@ -491,7 +511,7 @@ sus requisitos tienen pruebas (por ejemplo, `3/4`), en rojo si falta alguno.
 
 ![Panel de cobertura](docs/manual/28_requisitos_panel.png)
 
-Al entrar en el modo Requisitos (o con el botón **Cobertura**) se ve el
+Al entrar en el modo Editar requisitos (o con el botón **Cobertura**) se ve el
 resumen de todos los capítulos:
 
 - el porcentaje de requisitos cubiertos y las cifras de cada estado; al
@@ -523,7 +543,7 @@ tabla.
 ![Requisito importado con una tabla en la descripción](docs/manual/42_requisito_detalle.png)
 
 Encima está el bloque **Pruebas que lo cubren**, con su estado y la lista de
-pruebas: pulsa una para abrirla (el editor pasa al modo Pruebas).
+pruebas: pulsa una para abrirla (el editor pasa al modo Editar pruebas).
 
 Para cubrir un requisito, añade su ID en el campo **Requisitos** de la
 prueba:
@@ -556,7 +576,7 @@ el panel y en la validación).
 
 ---
 
-## 6. Ejecutar y validar (modo Validación)
+## 6. Ejecutar y validar (modo Validar)
 
 El trabajo habitual tiene dos pasos:
 
@@ -580,10 +600,10 @@ El porcentaje de OK se calcula sobre las pruebas que aplican.
 
 ### 6.2 Crear una ejecución
 
-![Modo Validación sin nada abierto](docs/manual/08_ejecucion_inicio.png)
+![Modo Validar sin nada abierto](docs/manual/08_ejecucion_inicio.png)
 
-Pasa a **Validación** y pulsa **Nueva ejecución** (o el botón de la ejecución,
-✓, en la barra superior).
+Pasa a **Validar** y pulsa **Nueva ejecución** (o la ejecución de la ruta, en
+la barra superior → *Nueva ejecución…*).
 
 ![Nueva ejecución](docs/manual/09_nueva_ejecucion.png)
 
@@ -604,8 +624,8 @@ prueba, entra con **Resincronizar** (en el resumen).
 
 ### 6.3 Abrir una ejecución
 
-Botón de la ejecución → **Abrir ejecución…** o una de las **recientes**. Al
-entrar en el modo Validación se abre la última que usaste (o la última
+La ejecución de la ruta (barra superior) → **Abrir ejecución…** o una de las **recientes** (con una validación abierta, sus ejecuciones; *Abrir una ejecución suelta…* para otras). Al
+entrar en el modo Validar se abre la última que usaste (o la última
 validación). Al abrir una
 ejecución se abre también su carpeta de pruebas.
 
@@ -664,7 +684,7 @@ ejecución abierta, desde la ficha de la prueba en la validación (también con
 ejecuciones cerradas), se apunta en la validación (`revisadas` en
 `validacion.yaml`).
 
-Al editar una prueba y volver al modo Validación, la validación se recalcula
+Al editar una prueba y volver al modo Validar, la validación se recalcula
 con la prueba actual: si se cambia su *Entorno*, cuentan los resultados del
 entorno nuevo.
 
@@ -824,13 +844,14 @@ El panel tiene cuatro pestañas:
   capítulo** (pulsa uno para ver sus pruebas), las ejecuciones (pulsa una para
   abrirla), la tabla **por entorno** (*Sin planificar*: ninguna ejecución de
   ese entorno incluye la prueba) y los avisos. Las cifras de arriba llevan a
-  la pestaña *Pruebas* con ese filtro (también en el árbol).
-- **Pruebas**: la tabla **prueba × entorno** agrupada por capítulos, cada uno
+  *Resultados por prueba* con ese filtro (también en el árbol). Las
+  ejecuciones van agrupadas por entorno, con su banco y su responsable.
+- **Resultados por prueba**: la tabla **prueba × entorno** agrupada por capítulos, cada uno
   con su barra y su porcentaje de validadas. Pulsa un capítulo para
   desplegarlo; *Desplegar todo* / *Plegar todo*; buscador por ID o título y
   filtro por resultado. Con pocas filas (o mientras buscas) sale todo
   desplegado.
-- **Requisitos** y **Comparación**: ver abajo.
+- **Cobertura de requisitos** y **Frente a** la validación anterior (o *Comparación*, si no se compara con ninguna): ver abajo.
 
 La pestaña elegida se recuerda.
 
@@ -848,7 +869,7 @@ apuntar o corregir el resultado.
 ![Una prueba en la validación](docs/manual/34_validacion_prueba.png)
 
 **Requisitos de la versión.** Si el proyecto tiene requisitos, la pestaña
-**Requisitos** dice cuáles quedan verificados con esta validación:
+**Cobertura de requisitos** dice cuáles quedan verificados con esta validación:
 
 - **verificado**: todas las pruebas de la validación que lo citan están
   validadas; **fallido** si alguna es NO OK; **bloqueado** o **pendiente** si
@@ -864,7 +885,7 @@ impacto…** crea una ejecución dentro de la validación con solo esas pruebas.
 
 ![Requisitos en la validación](docs/manual/47_validacion_requisitos.png)
 
-**Comparar con la versión anterior.** En la pestaña **Comparación**, *Comparar
+**Comparar con la versión anterior.** En la pestaña **Comparación** (*Frente a…* cuando ya se compara), *Comparar
 con otra validación…* elige la validación de la versión anterior (se
 recuerda). Verás:
 
@@ -1128,8 +1149,8 @@ que el editor deduce de los nombres.
 | Retroceso | Fila vacía | Borrar la fila |
 | Alt+↑ / Alt+↓ | Lista | Mover la fila |
 | Ctrl+V | Lista o evidencias | Pegar una captura |
-| 1, 2, 3, 4, 0 | Validación (una prueba) | OK, NO OK, Bloqueada, No aplica, Pendiente |
-| Ctrl+Intro | Validación (una prueba) | Guardar y siguiente pendiente |
+| 1, 2, 3, 4, 0 | Validar (una prueba) | OK, NO OK, Bloqueada, No aplica, Pendiente |
+| Ctrl+Intro | Validar (una prueba) | Guardar y siguiente pendiente |
 
 ---
 
@@ -1194,7 +1215,7 @@ y pulsa **Cambiar datos…** (en el apartado *Ejecución* del resumen).
 
 **No me deja crear la ejecución.**
 O ninguna prueba cumple el criterio elegido, o hay IDs repetidos o vacíos
-(revisa la validación en el modo Pruebas).
+(revisa la validación en el modo Editar pruebas).
 
 **No me deja cerrar la ejecución.**
 Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
@@ -1295,7 +1316,7 @@ observaciones indican qué tests se ejecutaron y por qué falló cada uno.
    robot --outputdir resultados pruebas_robot/
    ```
 
-2. En el editor, modo **Validación**, abre la ejecución y pulsa **Importar
+2. En el editor, modo **Validar**, abre la ejecución y pulsa **Importar
    Robot…** en el resumen. Elige el `output.xml`. Antes de cambiar nada verás
    qué resultado tendrá cada prueba y los avisos:
    - pruebas que ya tenían un resultado manual (el manual no se pierde: queda
