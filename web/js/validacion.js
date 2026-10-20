@@ -796,6 +796,17 @@ async function irAPruebaValidacion(p) {
   await seleccionar("prueba", p.indice);
 }
 
+async function darPorRevisadaEnValidacion(p) {
+  try {
+    S.validacion = await api.validacion_dar_por_revisada(p.id);
+    pintarModo();
+    await cargarNavegacion();
+    aviso(`${p.id}: sus resultados valen para la prueba actual`, "ok");
+    S.seleccion = null;
+    await seleccionar("prueba", p.indice);
+  } catch (e) { fallo(e); }
+}
+
 /** Ficha de una prueba con su resultado en cada entorno (sin ejecución abierta). */
 function mostrarPruebaValidacion(datos) {
   F = null; R = null;
@@ -806,6 +817,9 @@ function mostrarPruebaValidacion(datos) {
     : h("div", { class: "panel-resultado resultados-entorno" },
       h("h3", { text: "Resultado en la versión" }),
       chipEstadoValidacion(p.estado, "grande"),
+      (p.cambiada_en || []).length ? avisoCambiada(
+        `La prueba ha cambiado después de ejecutarse en ${p.cambiada_en.join(", ")}. Revisa si hay que repetirla.`,
+        () => darPorRevisadaEnValidacion(p)) : null,
       Object.entries(p.entornos).map(([entorno, c]) => h("div", { class: "entorno-resultado" + (c.cuenta ? "" : " no-cuenta") },
         h("div", { class: "entorno-cab" }, h("strong", { text: entorno }), h("span", { class: `chip-estado peq e-${claseEstado(c.estado)}`, text: CELDA_TXT[c.estado] }),
           c.cuenta ? null : h("span", { class: "muted", text: "no lo pide la prueba" })),

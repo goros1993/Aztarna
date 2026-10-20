@@ -212,6 +212,19 @@ class ResumenTests(EjecucionBase):
         self.assertIn(("DEMO-LLAM-002", "La prueba ya no existe en los YAML de pruebas."), mensajes)
         self.assertIn(("DEMO-LLAM-002", "Resultado NO OK sin observaciones."), mensajes)
 
+    def test_dar_por_revisada_una_prueba_cambiada(self):
+        ej.registrar(self.ejecucion, "DEMO-LLAM-001", "ok", huella_actual="antigua")
+        capitulos = self.capitulos()
+        actual = ej.huella(ej.indice_por_id(capitulos)["DEMO-LLAM-001"]["prueba"])
+        self.assertTrue(next(p for p in ej.resumen(self.ejecucion, capitulos)["pruebas"] if p["id"] == "DEMO-LLAM-001")["cambiada"])
+        ej.dar_por_revisada(self.ejecucion, "DEMO-LLAM-001", actual)
+        recargada = ej.cargar(self.ejecucion["carpeta"])
+        self.assertEqual(recargada["resultados"]["DEMO-LLAM-001"]["huella"], actual)
+        self.assertIn("revisada", recargada["resultados"]["DEMO-LLAM-001"])
+        self.assertFalse(any(p["cambiada"] for p in ej.resumen(recargada, capitulos)["pruebas"]))
+        with self.assertRaises(ValueError):          # sin resultado no hay nada que revisar
+            ej.dar_por_revisada(self.ejecucion, "DEMO-LLAM-002", actual)
+
 
 class CicloTests(EjecucionBase):
     def test_resincronizar_añade_las_pruebas_nuevas(self):

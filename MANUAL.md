@@ -655,6 +655,19 @@ ejecutarse (al pasar el ratón se ve en qué entorno o ejecución). La opción
 *Cambiadas tras ejecutarse* del desplegable deja solo esas pruebas, para
 decidir cuáles repetir.
 
+Si el cambio no afecta a lo que se probó (por ejemplo, se corrige una errata o
+se cambia el *Entorno* de la prueba porque se pasó en otro), pulsa **No hay
+que repetirla** en el aviso del panel de resultado: el resultado pasa a valer
+para la prueba tal como está ahora y el aviso desaparece (vuelve si la prueba
+cambia otra vez). En una ejecución abierta se apunta en su resultado; sin
+ejecución abierta, desde la ficha de la prueba en la validación (también con
+ejecuciones cerradas), se apunta en la validación (`revisadas` en
+`validacion.yaml`).
+
+Al editar una prueba y volver al modo Validación, la validación se recalcula
+con la prueba actual: si se cambia su *Entorno*, cuentan los resultados del
+entorno nuevo.
+
 A la izquierda está la prueba en solo lectura, compacta para ver de una un
 ensayo de 20 o 30 pasos (sus datos en una línea arriba); a la derecha, su
 resultado. Los cuatro resultados van en una fila y las **observaciones**

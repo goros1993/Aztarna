@@ -625,6 +625,23 @@ def cerrar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
     guardar(ejecucion)
 
 
+def dar_por_revisada(ejecucion: dict[str, Any], test_id: str, huella_actual: str) -> None:
+    """La prueba ha cambiado después de ejecutarse, pero el cambio no obliga a repetirla.
+
+    Su resultado pasa a contar como de la versión actual de la prueba (deja de
+    avisar hasta que vuelva a cambiar); `revisada` apunta cuándo se decidió.
+    """
+    _exigir_abierta(ejecucion)
+    resultado = ejecucion["resultados"].get(test_id)
+    if not resultado or estado_de(ejecucion, test_id) == "pendiente":
+        raise ValueError(f"La prueba {test_id} no tiene resultado en esta ejecución.")
+    if not huella_actual:
+        raise ValueError(f"La prueba {test_id} ya no existe en los YAML de pruebas.")
+    resultado["huella"] = huella_actual
+    resultado["revisada"] = ahora()
+    guardar(ejecucion)
+
+
 def capitulos_de(ejecucion: dict[str, Any]) -> list[dict[str, Any]]:
     """Capítulos con los que trabajar: los congelados si está cerrada, si no los vigentes."""
     if ejecucion["datos"].get("estado") == "cerrada":

@@ -143,6 +143,21 @@ def editar(validacion: dict[str, Any], cambios: dict[str, Any]) -> None:
     guardar(validacion)
 
 
+def dar_por_revisada(validacion: dict[str, Any], test_id: str, huella_actual: str) -> None:
+    """La prueba ha cambiado después de ejecutarse, pero sus resultados siguen valiendo.
+
+    Se apunta la versión de la prueba revisada (`revisadas: {ID: huella}`): no
+    se avisa mientras la prueba no vuelva a cambiar.
+    """
+    if not huella_actual:
+        raise ValueError(f"La prueba {test_id} ya no existe en los YAML de pruebas.")
+    revisadas = validacion["datos"].get("revisadas")
+    if not isinstance(revisadas, dict):
+        revisadas = validacion["datos"]["revisadas"] = {}
+    revisadas[str(test_id)] = huella_actual
+    guardar(validacion)
+
+
 def rutas_ejecuciones(validacion: dict[str, Any]) -> list[tuple[dict[str, Any], Path | None]]:
     """(entrada de validacion.yaml, carpeta encontrada o None) de cada ejecución."""
     return [(e, _resolver(validacion["carpeta"], e, "ruta")) for e in validacion["datos"]["ejecuciones"]]
@@ -369,6 +384,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         capitulos = lectura.capitulos(pruebas_dir)
     entornos = list(ej.entornos_pruebas())
     avisos: list[dict[str, str]] = []
+    revisadas = validacion["datos"].get("revisadas") or {}     # ID -> huella cuyo cambio se dio por revisado
 
     # Ejecuciones y sus resultados.
     ejecuciones, resultados_por_id = [], {}
@@ -427,7 +443,8 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
             estado = vigente["estado"] if vigente else SIN_PLANIFICAR
             celdas[entorno] = {"estado": estado, "cuenta": True, "vigente": vigente,
                                "historial": sorted(suyos, key=lambda r: r["fecha"], reverse=True)}
-            if vigente and estado != "pendiente" and vigente["huella"] and vigente["huella"] != actual:
+            if vigente and estado != "pendiente" and vigente["huella"] and vigente["huella"] != actual \
+                    and revisadas.get(test_id) != actual:
                 cambiada_en.append(entorno)
                 avisos.append({"tipo": "aviso", "id": test_id, "mensaje": f"La prueba ha cambiado después de ejecutarse en {entorno} («{vigente['ejecucion']}»)."})
             pe = por_entorno[entorno]

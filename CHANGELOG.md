@@ -3,6 +3,20 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## Sin publicar
+
+- **Quitar el aviso «La prueba ha cambiado después de ejecutarse»**: botón
+  *No hay que repetirla* en el panel de resultado (ejecución abierta) y en la
+  ficha de la prueba de la validación. El resultado vale para la prueba actual
+  y el aviso vuelve solo si cambia otra vez.
+- Al volver al modo Validación después de editar pruebas, la validación y la
+  ejecución abiertas se recalculan. Antes seguían mostrando lo calculado con la
+  prueba anterior: por ejemplo, una prueba de Maqueta pasada en Torre seguía
+  *pendiente* aunque se cambiara su entorno a Torre.
+
+Sin cambios en el formato de los datos (sigue el 1; `revisadas` en
+`validacion.yaml` y `revisada` en los resultados son opcionales).
+
 ## 1.1.0
 
 Importar poco a poco, también desde Excel:
