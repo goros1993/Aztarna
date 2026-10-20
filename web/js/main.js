@@ -23,6 +23,7 @@ const S = {
   keywords: null,       // keywords de Robot que se proponen al escribir los pasos
   esquema: null,        // campos de las pruebas y sus opciones (esquema.py)
   filtroEstado: "",     // en ejecución: mostrar solo las pruebas con este estado
+  volverA: null,        // al editar una prueba desde Validar: {id, texto} para volver a ella
 };
 
 const enRequisitos = () => S.modo === "requisitos";
@@ -107,6 +108,7 @@ async function cargarNavegacion() {
   if (S.modo === "ejecucion") S.nodos = filtrarNodosEjecucion(S.nodos);
   if (enRequisitos()) S.nodos = filtrarNodosCobertura(S.nodos);
   renderArbol();
+  pintarTituloLateral();
 }
 
 /** Recarga resumen, árbol y (opcionalmente) selecciona un elemento. */

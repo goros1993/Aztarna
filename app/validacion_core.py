@@ -402,6 +402,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         ejecuciones.append({
             **info, "encontrada": True, "nombre": str(d.get("nombre") or ruta.name), "entorno_pruebas": entorno,
             "objeto": str(d.get("objeto") or ""), "responsable": str(d.get("responsable") or ""),
+            "banco": str(d.get("entorno") or ""),          # banco / instalación (p. ej., «Torre 2»)
             "cerrada": d.get("estado") == "cerrada", "inicio": str(d.get("inicio") or ""), "fin": str(d.get("fin") or ""),
             "total": resumen["total"], "ejecutadas": resumen["ejecutadas"], "totales": resumen["totales"],
             "version_pruebas": git_pruebas.texto_ejecucion(d),

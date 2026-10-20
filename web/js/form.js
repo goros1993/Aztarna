@@ -667,9 +667,24 @@ function nivelDeUbicacion(u, esSeccion) {
 }
 
 /* ---- pantallas de formulario ---- */
+/** Al editar una prueba con una validación abierta: su estado en ella y el enlace para verla. */
+function tiraValidacion() {
+  const v = S.validacion;
+  const p = v && F.modo === "editar" && v.pruebas.find((x) => x.id === F.idOriginal);
+  if (!v || !F.idOriginal) return null;
+  const nombre = h("strong", { text: v.datos.nombre });
+  if (!p) return h("div", { class: "tira-validacion" }, icon("capas"), h("span", {}, "No entra en ", nombre, " (no cumple su criterio)."));
+  const entornos = Object.entries(p.entornos).map(([entorno, c]) => `${entorno}: ${CELDA_TXT[c.estado]}${c.cuenta ? "" : " (no cuenta)"}`);
+  return h("div", { class: "tira-validacion" }, icon("capas"),
+    h("span", {}, "En ", nombre, ": ", h("strong", { class: "e-txt-" + claseEstado(p.estado), text: VAL_TXT[p.estado] }),
+      entornos.length ? ` · ${entornos.join(" · ")}` : ""),
+    h("span", { class: "relleno" }),
+    h("button", { type: "button", class: "enlace", text: "Ver en la validación", onclick: () => verPruebaEnValidar(p.id) }));
+}
+
 function cuerpoPrueba(ubicacion) {
   const v = F.valores;
-  const cont = h("div", { class: "formulario" }, cabecera(), ubicacion);
+  const cont = h("div", { class: "formulario" }, cabecera(), tiraValidacion(), ubicacion);
   cont.appendChild(h("section", { class: "bloque", "aria-label": "Datos de la prueba" },
     h("div", { class: "bloque-cab" }, h("h3", { text: "Datos de la prueba" })),
     h("div", { class: "rejilla" },
@@ -784,6 +799,7 @@ async function guardarActual() {
     if (tipo === "prueba") await api.guardar_prueba(S.capitulo, indice, cambios);
     else await api.guardar_seccion(S.capitulo, indice, cambios);
     setDirty(false);
+    if (tipo === "prueba") await actualizarResultados();      // la tira de la validación, con la prueba nueva
     await refrescarTodo({ seleccionar: { tipo, indice } });
     aviso(tipo === "prueba" ? "Prueba guardada" : "Sección guardada", "ok");
     return true;

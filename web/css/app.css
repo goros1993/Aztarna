@@ -435,12 +435,58 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 .chip-estado.cerrada { color: var(--ink-2); background: var(--panel); }
 
 /* ficha + panel de resultado */
-.barra .ejecucion { flex: 0 1 auto; min-width: 150px; max-width: 24vw; }
+/* Dónde estás (modo Validar): validación › ejecución › prueba */
+.ruta-contexto { display: flex; align-items: center; gap: 3px; min-width: 0; flex: 0 1 auto; }
+.barra .miga { flex: 0 1 auto; min-width: 0; max-width: 26vw; }
+.barra #btn-validacion { flex-shrink: 2; }
+.barra .miga-prueba { flex: none; max-width: 14vw; }
+/* En Validar la ruta necesita sitio: el capítulo y lo secundario, más estrechos. */
+#app.modo-ejecucion .capitulo { flex: 0 1 200px; min-width: 110px; }
+#app.modo-ejecucion .capitulo select { min-width: 0; width: 100%; max-width: none; }
+#app.modo-ejecucion #btn-recargar .etiqueta, #app.modo-ejecucion #robot-resumen { display: none; }
+.miga.actual { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.miga.vacia { border-style: dashed; color: var(--ink-2); }
+.miga .detalle-miga { color: var(--ink-2); font-weight: 400; }
+.miga .detalle-miga:empty { display: none; }
+.miga .flecha-miga { width: 12px; height: 12px; color: var(--ink-3); }
+.sep-miga { width: 14px; height: 14px; color: var(--ink-3); }
+.miga-prueba { font-family: var(--mono, ui-monospace, monospace); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.punto-miga { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--ink-3); }
+.punto-miga.abierta { background: var(--accent); }
+.punto-miga:not(.abierta):not(.cerrada) { display: none; }
+.barra .pastilla-volver { flex: none; max-width: 24vw; }
+.pastilla-volver span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pastilla-volver { border-radius: 999px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.pastilla-volver:hover { background: var(--accent); filter: brightness(1.08); }
+.franja-contexto { display: flex; align-items: center; gap: 10px; padding: 6px 16px; background: var(--accent); color: var(--accent-ink); font-size: 13px; }
+.franja-contexto[hidden] { display: none; }
+.franja-contexto.cerrada { background: var(--panel); color: var(--ink-2); border-bottom: 1px solid var(--rule); }
+.franja-contexto .franja-texto { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.franja-contexto .franja-volver { color: inherit; font-weight: 600; white-space: nowrap; }
+.franja-contexto .franja-nota { opacity: 0.85; }
+.titulo-lateral { display: flex; flex-direction: column; gap: 1px; padding: 10px 12px 0; }
+.titulo-lateral .tl-tit { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.titulo-lateral .tl-sub { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titulo-lateral .tl-sub:empty { display: none; }
+.tira-validacion { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--panel); font-size: 13px; }
+.tira-validacion > .ico { color: var(--accent); }
+.menu-ejecuciones-val { display: flex; flex-direction: column; gap: 2px; min-width: min(560px, 80vw); }
+.grupo-ejecuciones h4 { margin: 10px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.fila-ejecucion { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 130px; gap: 10px; align-items: center; width: 100%; padding: 8px 10px; text-align: left; font: inherit; color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
+.fila-ejecucion:hover { background: var(--hover); }
+.fila-ejecucion.actual { background: var(--accent-soft); border-color: var(--accent); }
+.fila-ejecucion:disabled { cursor: default; opacity: 0.6; }
+.fila-ejecucion .fe-nombre { display: flex; flex-direction: column; min-width: 0; }
+.fila-ejecucion .fe-nombre > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fila-ejecucion .fe-avance { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.fe-barra { flex: 1; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; display: flex; }
+.fe-barra > span { background: var(--st-ok); }
+.tabla-ejecuciones .grupo-entorno th { text-align: left; background: var(--panel); color: var(--accent); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+.resto-validacion .historial-entorno { margin: 0; }
 /* En validación la carpeta de pruebas la decide la validación o la ejecución: solo el icono (la ruta, en el título). */
 #app.modo-ejecucion .barra .carpeta { min-width: 0; max-width: none; padding-left: 9px; padding-right: 9px; }
 #app.modo-ejecucion .barra .carpeta span { display: none; }
-#app.modo-ejecucion .capitulo select { min-width: 160px; max-width: 20vw; }
-.barra .ejecucion span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra .miga span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vista-ejecucion { padding: 0 32px 72px; max-width: 1600px; }
 .vista-ejecucion .acciones { gap: 14px; }
 .chip-estado.grande { font-size: 13.5px; padding: 3px 12px; border-radius: 12px; }
@@ -974,8 +1020,9 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 @media (max-width: 1250px) {
   .marca .marca-texto, #btn-recargar .etiqueta, #robot-resumen { display: none; }
   .marca { margin-right: 0; }
-  .capitulo select, #app.modo-ejecucion .capitulo select { min-width: 120px; }
-  .barra .ejecucion { min-width: 110px; }
+  .capitulo select { min-width: 120px; }
+  .barra .miga { min-width: 0; }
+  .miga .detalle-miga { display: none; }
 }
 @media (max-width: 980px) {
   .barra .seg.modo button { padding-left: 8px; padding-right: 8px; }
