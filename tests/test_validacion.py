@@ -152,6 +152,20 @@ class ConsolidarTests(ValidacionBase):
         self.assertEqual(self.prueba(d, "DEMO-PUER-002")["cambiada_en"], ["Torre"])
         self.assertEqual(self.prueba(d, "DEMO-NIV-001")["cambiada_en"], [])
 
+    def test_dar_por_revisada_quita_el_aviso_hasta_que_vuelva_a_cambiar(self):
+        torre = self.ejecucion("torre", "Torre", ["DEMO-PUER-002"])
+        ej.registrar(torre, "DEMO-PUER-002", "ok", fecha="2026-11-01T10:00", huella_actual="otra")
+        actual = ej.huella(ej.indice_por_id(ej.read_chapters(self.pruebas))["DEMO-PUER-002"]["prueba"])
+        vc.dar_por_revisada(self.val, "DEMO-PUER-002", actual)
+        self.assertEqual(vc.cargar(self.tmp / "validacion")["datos"]["revisadas"], {"DEMO-PUER-002": actual})
+        d = vc.consolidar(vc.cargar(self.tmp / "validacion"))
+        self.assertEqual(self.prueba(d, "DEMO-PUER-002")["cambiada_en"], [])
+        self.assertFalse(any(a["id"] == "DEMO-PUER-002" and "ha cambiado" in a["mensaje"] for a in d["avisos"]))
+        self.assertEqual(self.prueba(d, "DEMO-PUER-002")["estado"], "validada")
+        # Si vuelve a cambiar, vuelve a avisar.
+        vc.dar_por_revisada(self.val, "DEMO-PUER-002", "anterior")
+        self.assertEqual(self.prueba(vc.consolidar(self.val), "DEMO-PUER-002")["cambiada_en"], ["Torre"])
+
     def test_borrador_hasta_cerrar_todas(self):
         torre = self.ejecucion("torre", "Torre", ["DEMO-PUER-002"])
         ej.registrar(torre, "DEMO-PUER-002", "ok", fecha="2026-11-01T10:00")
@@ -265,6 +279,34 @@ class ApiTests(unittest.TestCase):
         self.assertIs(ok(self, self.api.ejecucion_estado())["en_validacion"], True)
         ok(self, self.api.validacion_soltar())
         self.assertIsNone(ok(self, self.api.ejecucion_estado())["en_validacion"])
+
+    def _guardar_prueba(self, test_id, cambios):
+        p = next(p for p in ok(self, self.api.validacion_estado())["pruebas"] if p["id"] == test_id)
+        capitulo = next(i for i, c in enumerate(self.api._chapters) if c["path"].name == p["archivo"])
+        ok(self, self.api.guardar_prueba(capitulo, p["indice"], cambios))
+
+    def test_cambiar_el_entorno_de_la_prueba_recoge_lo_ejecutado_y_se_puede_dar_por_revisada(self):
+        """Preparada para Maqueta y pasada en Torre: al cambiarla a Torre cuenta lo de Torre."""
+        ok(self, self.api.validacion_crear("V", "", {"incluir_ids": ["DEMO-LLAM-003"], "capitulos": ["__x__"]}, str(self.tmp / "val")))
+        ok(self, self.api.validacion_nueva_ejecucion("T", {"incluir_ids": ["DEMO-LLAM-003"], "capitulos": ["__x__"]}, {"entorno_pruebas": "Torre"}))
+        ok(self, self.api.ejecucion_registrar("DEMO-LLAM-003", "ok"))
+        p = ok(self, self.api.validacion_estado())["pruebas"][0]
+        self.assertEqual((p["requeridos"], p["estado"]), (["Maqueta"], "pendiente"))
+        self._guardar_prueba("DEMO-LLAM-003", {"entorno": ["Torre"]})
+        p = ok(self, self.api.validacion_estado())["pruebas"][0]
+        self.assertEqual((p["requeridos"], p["estado"], p["cambiada_en"]), (["Torre"], "validada", ["Torre"]))
+        # Desde la ejecución abierta: el resultado pasa a valer para la prueba actual.
+        e = ok(self, self.api.ejecucion_dar_por_revisada("DEMO-LLAM-003"))
+        self.assertEqual([x["id"] for x in e["resumen"]["pruebas"] if x["cambiada"]], [])
+        self.assertFalse(ok(self, self.api.ejecucion_resultado("DEMO-LLAM-003"))["prueba_cambiada"])
+        self.assertEqual(ok(self, self.api.validacion_estado())["pruebas"][0]["cambiada_en"], [])
+        # Desde la validación (por ejemplo, con la ejecución ya cerrada).
+        self._guardar_prueba("DEMO-LLAM-003", {"titulo": "Otro título"})
+        ok(self, self.api.ejecucion_cerrar())
+        ok(self, self.api.ejecucion_soltar())
+        self.assertEqual(ok(self, self.api.validacion_estado())["pruebas"][0]["cambiada_en"], ["Torre"])
+        v = ok(self, self.api.validacion_dar_por_revisada("DEMO-LLAM-003"))
+        self.assertEqual((v["pruebas"][0]["cambiada_en"], v["pruebas"][0]["estado"]), ([], "validada"))
 
 
 if __name__ == "__main__":

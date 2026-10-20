@@ -475,6 +475,8 @@ dialog.ancho { max-width: min(1000px, 94vw); }
 .rejilla-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
 .rejilla-2 .campo { grid-column: auto; }
 .aviso-panel { margin: 0; padding: 8px 12px; border-radius: 4px; background: var(--warn-soft); color: var(--warn); font-size: 13px; line-height: 1.4; }
+.aviso-cambiada { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.aviso-cambiada .btn { flex: none; }
 .acciones-resultado {
   position: sticky; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 12px 18px;
   background: var(--panel); border-top: 1px solid var(--rule); margin-top: auto;
@@ -773,6 +775,7 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 .resultados-entorno { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 .resultados-entorno h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-2); }
 .resultados-entorno > .chip-estado { align-self: flex-start; }
+.resultados-entorno > .aviso-panel { margin: 0; }
 .entorno-resultado { border-top: 1px solid var(--rule); padding-top: 10px; }
 .entorno-resultado.no-cuenta { opacity: 0.7; }
 .entorno-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import lectura
 from app import validacion_core as vc
 from app.editor_api import respuesta, to_plain
 from app.ejecucion_api import EditorEjecucionApi, _nombre_carpeta
@@ -38,12 +39,15 @@ class EditorValidacionApi(EditorEjecucionApi):
             raise ValueError("No hay ninguna validación abierta.")
         return self._validacion
 
-    def _estado_validacion(self) -> dict[str, Any]:
-        validacion = self._requiere_validacion()
-        pruebas = vc.carpeta_pruebas(validacion)
+    def _capitulos_validacion(self) -> list[dict[str, Any]] | None:
+        """Los capítulos cargados si son los de la validación (None si no: los lee ella)."""
+        pruebas = vc.carpeta_pruebas(self._requiere_validacion())
         mismas = pruebas is not None and self._yaml_dir is not None and pruebas.resolve() == self._yaml_dir \
             and not self._solo_lectura
-        return to_plain(vc.consolidar(validacion, self._chapters if mismas else None))
+        return self._chapters if mismas else None
+
+    def _estado_validacion(self) -> dict[str, Any]:
+        return to_plain(vc.consolidar(self._requiere_validacion(), self._capitulos_validacion()))
 
     def _abrir_validacion(self, carpeta: Path) -> dict[str, Any]:
         validacion = vc.cargar(carpeta)
@@ -101,6 +105,18 @@ class EditorValidacionApi(EditorEjecucionApi):
     @respuesta
     def validacion_editar(self, cambios: dict[str, Any]) -> dict[str, Any]:
         vc.editar(self._requiere_validacion(), cambios or {})
+        return self._estado_validacion()
+
+    @respuesta
+    def validacion_dar_por_revisada(self, test_id: str) -> dict[str, Any]:
+        """La prueba cambió después de ejecutarse y sus resultados siguen valiendo: deja de avisar."""
+        validacion = self._requiere_validacion()
+        capitulos = self._capitulos_validacion()
+        if capitulos is None:
+            pruebas = vc.carpeta_pruebas(validacion)
+            capitulos = lectura.capitulos(pruebas) if pruebas else []
+        encontrada = ej.indice_por_id(capitulos).get(test_id)
+        vc.dar_por_revisada(validacion, test_id, ej.huella(encontrada["prueba"]) if encontrada else "")
         return self._estado_validacion()
 
     @respuesta

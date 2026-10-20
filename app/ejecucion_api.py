@@ -233,6 +233,13 @@ class EditorEjecucionApi(EditorApi):
         return self._estado()
 
     @respuesta
+    def ejecucion_dar_por_revisada(self, test_id: str) -> dict[str, Any]:
+        """La prueba cambió después de ejecutarse y no hay que repetirla: deja de avisar."""
+        prueba = self._prueba(test_id)
+        ej.dar_por_revisada(self._requiere_ejecucion(), test_id, ej.huella(prueba) if prueba is not None else "")
+        return self._estado()
+
+    @respuesta
     def ejecucion_evidencia_base64(self, test_id: str, nombre: str, datos: str) -> dict[str, str]:
         """Guarda una evidencia pegada o soltada en la ventana."""
         ejecucion = self._requiere_ejecucion()

@@ -67,12 +67,21 @@ async function cambiarModo(modo) {
       S.problemas = []; S.resumen = null; renderResumenProblemas(); renderProblemas();
     } catch (e) { fallo(e); }
   }
+  if (modo === "ejecucion") await actualizarResultados();
   if (modo === "ejecucion" && !S.validacion) await recuperarValidacion();
   if (modo === "ejecucion" && !S.ejecucion && !S.validacion) await recuperarEjecucion();
   pintarModo();
   await cargarNavegacion();
   mostrarVacio();
   if (cambiaColeccion) validarEnSegundoPlano();
+}
+
+/** Vuelve a calcular la ejecución y la validación abiertas: las pruebas pueden haber cambiado al editarlas. */
+async function actualizarResultados() {
+  try {
+    if (S.ejecucion) S.ejecucion = (await api.ejecucion_estado()) || S.ejecucion;
+    if (S.validacion) S.validacion = (await api.validacion_estado()) || S.validacion;
+  } catch (e) { fallo(e); }
 }
 
 /** Texto de cada capítulo en el selector: en ejecución, cuántas pruebas de la ejecución quedan. */
@@ -121,6 +130,30 @@ function pruebasCambiadas() {
 function marcaCambiada(id) {
   const motivo = pruebasCambiadas().get(id);
   return motivo ? h("span", { class: "marca-cambio", title: motivo, role: "img", "aria-label": motivo }, icon("alert")) : null;
+}
+
+/** Aviso de prueba cambiada después de ejecutarse, con el botón para quitarlo (si se puede). */
+function avisoCambiada(texto, alRevisar) {
+  return h("div", { class: "aviso-panel aviso-cambiada" },
+    h("span", { text: texto }),
+    alRevisar ? h("button", {
+      type: "button", class: "btn peq", text: "No hay que repetirla",
+      title: "El cambio no afecta a lo que se probó: el resultado vale para la prueba actual y deja de avisar (hasta que vuelva a cambiar)",
+      onclick: alRevisar,
+    }) : null);
+}
+
+async function darPorRevisadaEnEjecucion() {
+  if (!R || !(await guardia())) return;
+  const id = R.id, indice = S.seleccion && S.seleccion.indice;
+  try {
+    S.ejecucion = await api.ejecucion_dar_por_revisada(id);
+    setDirty(false);
+    pintarModo();
+    await cargarNavegacion();
+    aviso(`${id}: el resultado vale para la prueba actual`, "ok");
+    if (indice !== null && indice !== undefined) { S.seleccion = null; await seleccionar("prueba", indice); }
+  } catch (e) { fallo(e); }
 }
 
 /** En ejecución el árbol solo muestra las pruebas de la ejecución (y las secciones que las contienen). */
@@ -758,7 +791,8 @@ function panelResultado() {
       R.origen === "robot" ? h("p", { class: "origen-panel", text: "Resultado importado de Robot Framework. Si lo cambias a mano, el importado queda en el historial." }) : null,
       tieneRobot(R.id) ? h("div", { class: "seccion-panel robot-panel" },
         h("div", { class: "cab-panel" }, h("h3", {}, icon("robot"), " Tests de Robot")), listaTestsRobot(R.id)) : null,
-      R.cambiada ? h("p", { class: "aviso-panel", text: "La prueba ha cambiado después de ejecutarse. Revisa si hay que repetirla." }) : null,
+      R.cambiada ? avisoCambiada("La prueba ha cambiado después de ejecutarse. Revisa si hay que repetirla.",
+        bloqueada ? null : darPorRevisadaEnEjecucion) : null,
       h("div", { class: "seccion-panel" },
         h("div", { class: "cab-panel" }, h("h3", { text: "Resultado" }),
           R.estado !== "pendiente" && !bloqueada ? h("button", {
