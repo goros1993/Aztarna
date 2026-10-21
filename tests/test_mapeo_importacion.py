@@ -56,7 +56,8 @@ class MapeoDelProyecto(unittest.TestCase):
         self.ok(otro.iniciar())
         a = self.ok(otro.importar_analizar(str(self.tmp / "luis.xlsx"), "prueba"))
         self.assertEqual(a["mapeo"]["campos"]["prueba"]["comentario"], "ignorar")
-        self.assertEqual(a["mapeo_proyecto"]["archivo"], str(guardado))
+        # Mismo archivo aunque la ruta se escriba distinto (en Windows, RUNNER~1 frente a runneradmin).
+        self.assertEqual(Path(a["mapeo_proyecto"]["archivo"]).resolve(), guardado.resolve())
         # Sin guardar: el archivo no cambia.
         a["mapeo"]["campos"]["prueba"]["comentario"] = "adicional"
         self.ok(otro.importar_ejecutar(str(self.tmp / "luis.xlsx"), a["mapeo"], "anadir", {}, "", None, {}, False))
