@@ -61,6 +61,10 @@ Validar y triaje de resultados distintos:
   elegido al importar se guarda en el proyecto, para que todo el equipo
   importe igual sin volver a elegir los campos. Se puede editar a mano.
 
+- **Manual** con todas las capturas rehechas (y nuevas de la ruta, el cambio de
+  ejecución, el triaje y editar desde Validar), y **README** con qué hace el
+  programa y cómo descargarlo.
+
 Necesita `openpyxl` (en `requirements.txt`). Sin cambios en el formato de los
 datos (sigue el 1; `triaje` y `revisadas` en `validacion.yaml` y `revisada` en
 los resultados son opcionales).

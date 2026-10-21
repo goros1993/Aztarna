@@ -82,7 +82,6 @@ Sin issue todavía:
 | Robot: avisar si se cierra el editor con Robot en marcha; contar en la cobertura qué pasos ya son keywords | pequeño | — |
 | Requisitos: líneas base y comparación entre revisiones (nuevos, eliminados, modificados con diff, posibles renombrados) | medio | — |
 | Tablas informativas: las celdas unidas en vertical se importan repetidas en cada fila, y el editor no puede unirlas en vertical | pequeño | — |
-| Manual: rehacer la captura 22 (Robot en marcha; es antigua y aún lleva el nombre anterior) | pequeño | ejecutar Robot |
 | Probar con datos reales: el enlace de incidencias con el Jira de la empresa y Robot Framework en el PC de uso | pequeño | el PC de uso |
 | Repartir una ejecución entre varias personas (asignar pruebas y filtro «Mis pendientes») | medio | decidir si hace falta |
 | Primera apertura de una validación grande en red (unos 4 s en local con 1000 pruebas): leer los YAML más rápido si se nota | pequeño | medirlo en la red |

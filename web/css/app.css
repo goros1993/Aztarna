@@ -1026,6 +1026,10 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
   .barra .miga { min-width: 0; }
   .miga .detalle-miga { display: none; }
 }
+/* En Validar, con la ventana normal, la ruta necesita el sitio: el avance de la ejecución ya está en la franja y encima del árbol. */
+@media (max-width: 1500px) {
+  #app.modo-ejecucion .miga .detalle-miga { display: none; }
+}
 @media (max-width: 980px) {
   .barra .seg.modo button { padding-left: 8px; padding-right: 8px; }
 }

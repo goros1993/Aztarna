@@ -2,7 +2,7 @@
 /* Buscar (y reemplazar) en todos los capítulos del proyecto, no solo en el abierto. */
 
 async function buscarEnTodo() {
-  if (S.modo === "ejecucion") { aviso("En el modo Validación, busca en el árbol del capítulo; para buscar en todo, cambia a Pruebas o Requisitos", "info"); return; }
+  if (S.modo === "ejecucion") { aviso("En el modo Validar, busca en el árbol del capítulo; para buscar en todo, cambia a Editar pruebas o Editar requisitos", "info"); return; }
   if (!S.capitulos.length) return;
   if (!(await guardia())) return;
   setDirty(false);

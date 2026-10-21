@@ -1,6 +1,6 @@
 "use strict";
 /* Validación de una versión: varias ejecuciones consolidadas por prueba y
-   entorno de pruebas (ver validacion_core.py). Vive en el modo «Validación»
+   entorno de pruebas (ver validacion_core.py). Vive en el modo «Validar»
    junto a las ejecuciones: con una validación abierta y ninguna ejecución, el
    panel y el árbol muestran el resultado consolidado. */
 

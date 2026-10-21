@@ -6,15 +6,61 @@ hasta sus pruebas y sus resultados.
 Las pruebas y los requisitos se guardan en YAML y se editan con un editor
 local. Con ellos se ve qué requisitos cubre cada prueba, se pasan las pruebas
 (ejecuciones), se unen los resultados de una versión (validación) y se
-generan los Word y los informes. Un asistente importa los datos iniciales
-desde Word.
+generan los Word y los informes. Un asistente importa los datos desde Word
+o Excel.
 
 El uso del editor se explica en el [manual de usuario](MANUAL.md), que
 también se abre desde el editor (**⋯ → Manual de usuario**). Las novedades
 están en el [CHANGELOG](CHANGELOG.md) y el trabajo pendiente, en
 [PENDIENTE.md](PENDIENTE.md).
 
-## Instalación
+![La validación de una versión](docs/manual/32_validacion_panel.png)
+
+## Qué hace
+
+- **Pruebas y requisitos, en YAML.** Un editor con formulario: formato de
+  texto, tablas, imágenes, pasos con las keywords de Robot Framework, cambios
+  en varias pruebas a la vez y buscar y reemplazar en todo el proyecto. Varias
+  personas pueden trabajar en la misma carpeta: cada capítulo lo edita una a
+  la vez.
+- **Trazabilidad.** Qué pruebas cubren cada requisito, qué requisitos se
+  quedan sin cubrir y cuáles han cambiado y tienen pruebas por revisar. Matriz
+  exportable.
+- **Ejecuciones.** Se pasan las pruebas en un entorno (Automático, Maqueta,
+  Torre…) y se apunta el resultado, las observaciones, la incidencia y las
+  evidencias (capturas, logs). Las pruebas automatizadas se lanzan con Robot
+  Framework o se importan sus resultados. Al cerrarla, la ejecución guarda una
+  copia de sus pruebas y saca su informe en Word o PDF.
+- **Validación de una versión.** Une las ejecuciones de varias personas y
+  entornos y da el resultado de cada prueba en cada entorno que pide:
+  - si en un entorno una ejecución da NO OK y otra OK, la prueba queda **NO OK
+    hasta que el responsable decide en el triaje** (vale el OK, se mantiene el
+    NO OK o hay que repetirla), con un motivo que queda registrado;
+  - qué requisitos quedan verificados con la versión;
+  - qué cambia respecto a la versión anterior: nuevos fallos y arreglos;
+  - informe de la versión en Word o PDF, y resultados en CSV para Excel.
+- **Saber dónde estás.** En el modo Validar, la barra muestra la ruta
+  validación › ejecución › prueba, una franja indica en qué ejecución se
+  apuntan los resultados, y *Editar esta prueba* lleva a la prueba con una
+  pastilla para volver.
+- **Importar desde Word o Excel**, también poco a poco, con lo elegido
+  guardado en el proyecto para que todo el equipo importe igual. Y generar el
+  Word de las pruebas o de los requisitos desde los YAML.
+
+![Pasar una prueba](docs/manual/11_pasar_prueba.png)
+
+## Descargar (Windows)
+
+La última versión está en
+[Releases](https://github.com/goros1993/Aztarna/releases): `Aztarna.exe` es un
+solo archivo, sin instalación. Necesita WebView2, que viene con Windows 10 y 11.
+Cada persona guarda sus ajustes en `%APPDATA%\Aztarna\ajustes.json`.
+
+Para un equipo, lo cómodo es dejar `Aztarna.exe` y `version.txt` en una
+carpeta compartida e indicarla en **⋯ → Ajustes…**: al arrancar, el editor
+avisa si allí hay una versión más nueva que la suya.
+
+## Instalación (desde el código)
 
 Hace falta Python 3.10 o posterior.
 
@@ -75,7 +121,7 @@ proyecto/
 └── pruebas_congeladas/         copia de sus pruebas al cerrarla
 
 Validación v2.3/
-└── validacion.yaml             versión, criterio y rutas de sus ejecuciones
+└── validacion.yaml             versión, criterio, rutas de sus ejecuciones y triaje
 ```
 
 - Los **YAML son la fuente de verdad**. El Word original solo se usa para la
@@ -86,7 +132,13 @@ Validación v2.3/
   la cobertura y la matriz se calculan a partir de él (`app/trazabilidad.py`).
 - Las ejecuciones reconocen cada prueba por su **ID**, así que debe ser único
   y estable. La *huella* del contenido avisa de las pruebas que cambian
-  después de ejecutarse.
+  después de ejecutarse (el aviso se puede quitar si el cambio no obliga a
+  repetirla: `revisada` en el resultado o `revisadas` en la validación).
+- La validación consolida por prueba y entorno (`app/validacion_core.py`): en
+  cada entorno vale el resultado más reciente, salvo que una ejecución diga NO
+  OK y otra OK; entonces es NO OK *por triar* hasta que se decide en el triaje
+  (`triaje` en `validacion.yaml`, con quién, cuándo y la firma de los
+  resultados valorados: si llegan otros, la decisión caduca).
 - Lo previsto es tener `proyecto/` en un repositorio de Git (cada persona con
   su clon) y las ejecuciones y validaciones en una carpeta compartida. Si las
   pruebas están en Git, cada ejecución guarda el commit y la etiqueta al
@@ -197,6 +249,7 @@ migracion/         importación inicial del Word original
 plantillas/        tablas de prueba y de requisito, e informe de auditoría
 tests/             python -m pytest
 docs/manual/       capturas del manual
+docs/capturas/     cómo se hacen: capturar.sh recorre la interfaz real en Chromium (Playwright)
 ```
 
 - La versión se define solo en `app/__init__.py`. Al publicar una versión,
