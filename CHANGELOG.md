@@ -3,8 +3,19 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
-## Sin publicar
+## 1.1.0
 
+Importar poco a poco (también desde Excel), saber dónde estás en el modo
+Validar y triaje de resultados distintos:
+
+- **Un NO OK pesa más que un OK: triaje.** Si en un entorno unas ejecuciones
+  dicen NO OK y otras OK (o No aplica), la prueba cuenta como **NO OK, por
+  triar** (antes valía el resultado más reciente). El gestor de la validación
+  decide en la ficha de la prueba, con un motivo obligatorio: *Vale el OK*, *Se
+  mantiene NO OK* o *Hay que repetirla*. La decisión queda en
+  `validacion.yaml` (`triaje`, con quién y cuándo), sale en el informe y caduca
+  sola si llegan otros resultados o cambia la prueba. Balanza en el árbol y en
+  la tabla, filtro *Por triar* y línea *Triaje* en el resumen.
 - **Saber dónde estás en el modo Validar**:
   - los modos se llaman *Editar pruebas*, *Editar requisitos* y *Validar*, y
     las pestañas de la validación *Resumen*, *Resultados por prueba*,
@@ -29,18 +40,10 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   *No hay que repetirla* en el panel de resultado (ejecución abierta) y en la
   ficha de la prueba de la validación. El resultado vale para la prueba actual
   y el aviso vuelve solo si cambia otra vez.
-- Al volver al modo Validación después de editar pruebas, la validación y la
+- Al volver al modo Validar después de editar pruebas, la validación y la
   ejecución abiertas se recalculan. Antes seguían mostrando lo calculado con la
   prueba anterior: por ejemplo, una prueba de Maqueta pasada en Torre seguía
   *pendiente* aunque se cambiara su entorno a Torre.
-
-Sin cambios en el formato de los datos (sigue el 1; `revisadas` en
-`validacion.yaml` y `revisada` en los resultados son opcionales).
-
-## 1.1.0
-
-Importar poco a poco, también desde Excel:
-
 - **Importar desde Excel** (⋯ → *Importar desde Word o Excel…*): una fila por
   prueba o requisito y una columna por campo. Cada hoja es un grupo; las
   columnas *Capítulo* y *Sección* ordenan las filas (sin ellas, el capítulo es
@@ -59,7 +62,8 @@ Importar poco a poco, también desde Excel:
   importe igual sin volver a elegir los campos. Se puede editar a mano.
 
 Necesita `openpyxl` (en `requirements.txt`). Sin cambios en el formato de los
-datos (sigue el 1).
+datos (sigue el 1; `triaje` y `revisadas` en `validacion.yaml` y `revisada` en
+los resultados son opcionales).
 
 ## 1.0.0
 

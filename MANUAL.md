@@ -828,7 +828,11 @@ abierta, su resumen lo avisa (sus resultados no cuentan) y ofrece
 pruebas* dónde hay que pasarla, y cada ejecución en qué entorno se hizo:
 
 - en cada entorno cuenta el resultado **más reciente** de las ejecuciones de
-  ese entorno (los anteriores quedan como historial);
+  ese entorno (los anteriores quedan como historial), **salvo que una diga NO
+  OK y otra OK** (o No aplica): entonces la prueba queda **NO OK, por triar**
+  hasta que se decida en el triaje (ver abajo). Una *Bloqueada* no entra en
+  esto: un OK posterior la resuelve. Solo cuenta el resultado actual de cada
+  ejecución, no los intentos corregidos dentro de ella;
 - una prueba queda **validada** cuando está OK (o No aplica) en **todos** sus
   entornos; **NO OK** si falla en alguno; **bloqueada** si alguno no se pudo
   ejecutar; **pendiente** si falta alguno;
@@ -849,7 +853,7 @@ El panel tiene cuatro pestañas:
 - **Resultados por prueba**: la tabla **prueba × entorno** agrupada por capítulos, cada uno
   con su barra y su porcentaje de validadas. Pulsa un capítulo para
   desplegarlo; *Desplegar todo* / *Plegar todo*; buscador por ID o título y
-  filtro por resultado. Con pocas filas (o mientras buscas) sale todo
+  filtro por resultado (o *Por triar*). Con pocas filas (o mientras buscas) sale todo
   desplegado.
 - **Cobertura de requisitos** y **Frente a** la validación anterior (o *Comparación*, si no se compara con ninguna): ver abajo.
 
@@ -867,6 +871,28 @@ historial; el nombre de cada ejecución lleva a esa prueba dentro de ella para
 apuntar o corregir el resultado.
 
 ![Una prueba en la validación](docs/manual/34_validacion_prueba.png)
+
+**Triaje: resultados distintos.** Si en un entorno unas ejecuciones dicen NO
+OK y otras OK (por ejemplo, falla en Torre 1 y pasa en Torre 2, o falla, se
+corrige y la repetición da OK), la prueba cuenta como **NO OK** y queda **por
+triar**: una balanza la marca en el árbol y en la tabla, el resumen dice
+cuántas hay (*Triaje: N pruebas por triar →*, que lleva a la tabla filtrada) y
+el filtro *Por triar* las deja solas.
+
+En la ficha de la prueba, bajo los resultados de ese entorno (con su
+ejecución, banco, persona, fecha, incidencia y observaciones), el gestor de la
+validación decide, con un **motivo obligatorio**:
+
+- **Vale el OK**: la prueba cuenta como OK en ese entorno (por ejemplo, el
+  NO OK era del banco o el fallo ya está corregido);
+- **Se mantiene NO OK**: queda confirmada como NO OK y deja de estar por triar;
+- **Hay que repetirla**: cuenta como pendiente.
+
+La decisión se guarda en la validación (`triaje` en `validacion.yaml`) con
+quién la tomó y cuándo, y sale en el informe de la validación (apartado
+*Triaje*). Se puede **cambiar** o **quitar**. **Caduca sola** si después llega
+otro resultado en ese entorno o la prueba cambia: la prueba vuelve a estar por
+triar, con un aviso y el motivo anterior a mano.
 
 **Requisitos de la versión.** Si el proyecto tiene requisitos, la pestaña
 **Cobertura de requisitos** dice cuáles quedan verificados con esta validación:

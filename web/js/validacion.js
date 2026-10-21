@@ -9,6 +9,7 @@ const VAL_ORDEN = ["validada", "no_ok", "bloqueada", "pendiente", "no_aplica"];
 const CELDA_TXT = { ok: "OK", no_ok: "NO OK", bloqueada: "Bloqueada", no_aplica: "No aplica", pendiente: "Pendiente", sin_planificar: "Sin planificar" };
 /** Clase de color de un estado (los de la validación usan los colores de los resultados). */
 const claseEstado = (e) => ({ validada: "ok", sin_planificar: "pendiente" }[e] || e);
+const DECISION_TXT = { ok: "Vale el OK", no_ok: "Se mantiene NO OK", repetir: "Hay que repetirla" };
 
 /* ---- abrir, crear, recientes ---- */
 function recientesValidacion() {
@@ -294,9 +295,12 @@ function celdaEntorno(p, entorno) {
     v && v.estado === "pendiente" ? `Planificada en «${v.ejecucion}», sin ejecutar` : null,
     !v ? "Ninguna ejecución de este entorno la incluye" : null,
     c.historial.length > 1 ? `${c.historial.length - 1} resultado(s) anterior(es) en este entorno` : null,
+    c.por_triar ? "Resultados distintos (NO OK y OK): cuenta como NO OK hasta que se trie." : null,
+    c.triaje ? `Triaje: ${DECISION_TXT[c.triaje.decision]}. ${c.triaje.motivo}` : null,
   ].filter(Boolean).join("\n");
-  return h("td", { class: "celda-entorno" + (c.cuenta ? "" : " no-cuenta"), title: titulo },
+  return h("td", { class: "celda-entorno" + (c.cuenta ? "" : " no-cuenta") + (c.por_triar ? " por-triar" : ""), title: titulo },
     h("span", { class: `chip-estado peq e-${claseEstado(c.estado)}`, text: CELDA_TXT[c.estado] || c.estado }),
+    c.por_triar || c.triaje ? h("span", { class: "marca-triaje" + (c.triaje ? " triada" : "") }, icon("balanza")) : null,
     c.historial.length > 1 ? h("span", { class: "muted historial-n", text: ` +${c.historial.length - 1}` }) : null);
 }
 
@@ -625,14 +629,15 @@ async function compararEjecucion() {
 /* ---- pestaña «Resultados por prueba»: prueba × entorno, por capítulos ---- */
 function pestanaPruebas(v) {
   const entornos = v.entornos;
-  const filas = v.pruebas.filter((p) => (!filtroTablaValidacion || p.estado === filtroTablaValidacion) && coincideTexto(p, buscarValidacion.pruebas));
+  const pasaFiltro = (p) => !filtroTablaValidacion || (filtroTablaValidacion === "por_triar" ? p.por_triar.length > 0 : p.estado === filtroTablaValidacion);
+  const filas = v.pruebas.filter((p) => pasaFiltro(p) && coincideTexto(p, buscarValidacion.pruebas));
   const grupos = agruparPorCapitulo(filas);
   const porCapitulo = new Map(agruparPorCapitulo(v.pruebas).map((g) => [g.nombre, contar(g.filas)]));
   const selFiltro = h("select", { class: "peq", "aria-label": "Mostrar", onchange: (e) => filtrarValidacion(e.target.value) },
-    [["", "Todas las pruebas"], ...VAL_ORDEN.map((e) => [e, VAL_TXT[e]])].map(([val, txt]) => h("option", { value: val, text: txt, selected: val === filtroTablaValidacion })));
+    [["", "Todas las pruebas"], ...VAL_ORDEN.map((e) => [e, VAL_TXT[e]]), ["por_triar", "Por triar"]].map(([val, txt]) => h("option", { value: val, text: txt, selected: val === filtroTablaValidacion })));
   return [h("section", { class: "bloque" },
     h("div", { class: "bloque-cab" }, h("h3", { text: `Pruebas (${filas.length}${filas.length !== v.total ? ` de ${v.total}` : ""})` }),
-      h("p", { class: "ayuda", text: "En gris, resultados en un entorno que la prueba no pide (no cuentan). Pasa el ratón por una celda para ver la ejecución." })),
+      h("p", { class: "ayuda", text: "En gris, resultados en un entorno que la prueba no pide (no cuentan). Con la balanza, resultados distintos en un entorno (triaje). Pasa el ratón por una celda para ver la ejecución." })),
     barraTabla("pruebas", grupos, selFiltro),
     grupos.length ? tablaPorCapitulos({
       clave: "pruebas", grupos, clase: "tabla-matriz",
@@ -680,6 +685,12 @@ function pestanaResumen(v) {
   const r = v.requisitos;
   const c = v.comparacion;
   const enlaces = [
+    v.por_triar || v.triadas ? h("button", { type: "button", class: "resumen-enlace",
+      onclick: async () => { pestanaValidacion = "pruebas"; guardarLocal("validacion-pestana", "pruebas"); await filtrarValidacion(v.por_triar ? "por_triar" : ""); } },
+    h("strong", { text: "Triaje: " }),
+    v.por_triar ? h("span", { class: "e-txt-no_ok", text: `${plural(v.por_triar, "prueba", "pruebas")} por triar` }) : "nada por triar",
+    v.por_triar ? " (resultados distintos en un entorno: cuentan como NO OK hasta que se decida)" : "",
+    v.triadas ? ` · ${plural(v.triadas, "decisión tomada", "decisiones tomadas")}` : "", " →") : null,
     r ? h("button", { type: "button", class: "resumen-enlace", onclick: () => irAPestanaValidacion("requisitos") },
       h("strong", { text: "Requisitos: " }),
       `${r.totales.verificado} verificados (${r.porcentaje_verificados} %)`,
@@ -781,7 +792,7 @@ function mostrarPanelValidacion() {
 
 async function filtrarValidacion(estado) {
   filtroTablaValidacion = estado;
-  S.filtroEstado = estado ? claseEstado(estado) : "";
+  S.filtroEstado = estado === "por_triar" ? estado : estado ? claseEstado(estado) : "";
   $("#filtro-estado").value = S.filtroEstado;
   await cargarNavegacion();
   if (!S.seleccion) mostrarVacio();
@@ -818,6 +829,56 @@ async function darPorRevisadaEnValidacion(p) {
   } catch (e) { fallo(e); }
 }
 
+/** Triaje de una prueba con resultados distintos en un entorno: la decisión tomada o los botones para tomarla. */
+let cambiandoTriaje = null;      // «ID|entorno» cuya decisión se está cambiando
+
+function bloqueTriaje(p, entorno, c) {
+  const cambiando = c.triaje && cambiandoTriaje === `${p.id}|${entorno}` ? c.triaje : null;
+  if (c.triaje && !cambiando) {
+    const t = c.triaje;
+    return h("div", { class: "triaje triada" },
+      h("div", { class: "triaje-cab" }, icon("balanza"), h("strong", { text: `Triaje: ${DECISION_TXT[t.decision]}` })),
+      h("p", { class: "triaje-motivo", text: t.motivo }),
+      h("p", { class: "muted", text: [t.quien, fechaCorta(t.fecha)].filter(Boolean).join(" · ") }),
+      h("div", { class: "fila-botones" },
+        h("button", { type: "button", class: "btn peq", text: "Cambiar la decisión", onclick: () => { cambiandoTriaje = `${p.id}|${entorno}`; mostrarVacioYPrueba(p); } }),
+        h("button", { type: "button", class: "btn ghost peq", text: "Quitar la decisión", onclick: () => triarPrueba(p, entorno, null) })));
+  }
+  const previo = cambiando || c.triaje_caducado;
+  const motivo = h("textarea", { rows: 3, placeholder: "Por qué (obligatorio): qué dicen las observaciones, si el fallo era del banco, si se corrigió…", value: previo ? previo.motivo : "" });
+  const decidir = (decision) => {
+    if (!motivo.value.trim()) { aviso("Escribe el motivo de la decisión", "error"); motivo.focus(); return; }
+    triarPrueba(p, entorno, decision, motivo.value);
+  };
+  return h("div", { class: "triaje" },
+    h("div", { class: "triaje-cab" }, icon("balanza"), h("strong", { text: cambiando ? `Cambiar la decisión («${DECISION_TXT[cambiando.decision]}»)` : "Resultados distintos: por triar" })),
+    h("p", { class: "muted", text: "Unas ejecuciones dicen NO OK y otras OK. Mientras no se decida, cuenta como NO OK. Revisa las observaciones y decide." }),
+    c.triaje_caducado && !cambiando ? h("p", { class: "aviso-panel", text: `La decisión anterior («${DECISION_TXT[c.triaje_caducado.decision]}») ya no vale: hay resultados nuevos o la prueba ha cambiado.` }) : null,
+    h("label", { class: "sr", text: "Motivo de la decisión" }), motivo,
+    h("div", { class: "fila-botones" },
+      h("button", { type: "button", class: "btn peq e-ok-btn", text: DECISION_TXT.ok, onclick: () => decidir("ok") }),
+      h("button", { type: "button", class: "btn peq e-no_ok-btn", text: DECISION_TXT.no_ok, onclick: () => decidir("no_ok") }),
+      h("button", { type: "button", class: "btn peq", text: DECISION_TXT.repetir, onclick: () => decidir("repetir") }),
+      cambiando ? h("button", { type: "button", class: "btn ghost peq", text: "Cancelar", onclick: () => { cambiandoTriaje = null; mostrarVacioYPrueba(p); } }) : null));
+}
+
+/** Vuelve a pintar la ficha de la prueba (con lo que haya cambiado en `S.validacion`). */
+async function mostrarVacioYPrueba(p) {
+  S.seleccion = null;
+  await seleccionar("prueba", p.indice);
+}
+
+async function triarPrueba(p, entorno, decision, motivo = "") {
+  cambiandoTriaje = null;
+  try {
+    S.validacion = await api.validacion_triar(p.id, entorno, decision, motivo);
+    pintarModo();
+    await cargarNavegacion();
+    aviso(decision ? `${p.id} en ${entorno}: ${DECISION_TXT[decision]}` : `${p.id} en ${entorno}: decisión quitada`, "ok");
+    await mostrarVacioYPrueba(p);
+  } catch (e) { fallo(e); }
+}
+
 /** Ficha de una prueba con su resultado en cada entorno (sin ejecución abierta). */
 function mostrarPruebaValidacion(datos) {
   F = null; R = null;
@@ -836,13 +897,18 @@ function mostrarPruebaValidacion(datos) {
         h("div", { class: "entorno-cab" }, h("strong", { text: entorno }), h("span", { class: `chip-estado peq e-${claseEstado(c.estado)}`, text: CELDA_TXT[c.estado] }),
           c.cuenta ? null : h("span", { class: "muted", text: "no lo pide la prueba" })),
         c.historial.length
-          ? h("ul", { class: "historial-entorno" }, c.historial.map((r, i) => h("li", { class: i ? "anterior" : "" },
-            h("span", { class: `punto-estado e-${claseEstado(r.estado)}` }),
-            h("span", { text: `${CELDA_TXT[r.estado]} · ${r.estado === "pendiente" ? "sin ejecutar" : fechaCorta(r.fecha)}${r.ejecutor ? " · " + r.ejecutor : ""}` }),
-            h("button", { class: "enlace", type: "button", text: r.ejecucion, title: "Abrir esta prueba en la ejecución",
-              onclick: () => abrirEjecucionDeValidacion(S.validacion.ejecuciones[r.ejecucion_indice].carpeta, p.id) }),
-            r.observaciones ? h("span", { class: "muted obs", text: r.observaciones }) : null)))
-          : h("p", { class: "muted", text: "Ninguna ejecución de este entorno la incluye." }))));
+          ? h("ul", { class: "historial-entorno" }, c.historial.map((r, i) => {
+            const e = S.validacion.ejecuciones[r.ejecucion_indice] || {};
+            return h("li", { class: i && !c.conflicto ? "anterior" : "" },
+              h("span", { class: `punto-estado e-${claseEstado(r.estado)}` }),
+              h("span", { text: `${CELDA_TXT[r.estado]} · ${r.estado === "pendiente" ? "sin ejecutar" : fechaCorta(r.fecha)}${r.ejecutor ? " · " + r.ejecutor : ""}${e.banco ? " · " + e.banco : ""}` }),
+              h("button", { class: "enlace", type: "button", text: r.ejecucion, title: "Abrir esta prueba en la ejecución",
+                onclick: () => abrirEjecucionDeValidacion(e.carpeta, p.id) }),
+              r.incidencia ? h("span", { class: "muted obs" }, "Incidencia: ", enlacesIncidencia(r.incidencia) || r.incidencia) : null,
+              r.observaciones ? h("span", { class: "muted obs", text: r.observaciones }) : null);
+          }))
+          : h("p", { class: "muted", text: "Ninguna ejecución de este entorno la incluye." }),
+        c.conflicto ? bloqueTriaje(p, entorno, c) : null)));
   mostrar(h("div", { class: "vista-ejecucion" },
     h("div", { class: "acciones" },
       h("span", { class: "placa" }, h("span", { class: "texto-placa", text: el.id || "(sin ID)" })),

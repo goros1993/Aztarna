@@ -100,11 +100,50 @@ class ConsolidarTests(ValidacionBase):
     def test_en_el_mismo_entorno_vale_el_mas_reciente(self):
         lunes = self.ejecucion("lunes", "Torre", ["DEMO-PUER-002"])
         jueves = self.ejecucion("jueves", "Torre", ["DEMO-PUER-002"])
+        ej.registrar(lunes, "DEMO-PUER-002", "bloqueada", observaciones="banco", fecha="2026-11-03T10:00")
+        ej.registrar(jueves, "DEMO-PUER-002", "ok", fecha="2026-11-06T10:00")
+        p = self.prueba(vc.consolidar(self.val), "DEMO-PUER-002")
+        self.assertEqual(p["estado"], "validada")                 # una bloqueada no se tría: la resuelve el OK
+        self.assertEqual([r["estado"] for r in p["entornos"]["Torre"]["historial"]], ["ok", "bloqueada"])
+        self.assertEqual(p["por_triar"], [])
+
+    def _con_conflicto(self):
+        """NO OK el lunes y OK el jueves, en Torre."""
+        lunes = self.ejecucion("lunes", "Torre", ["DEMO-PUER-002"])
+        jueves = self.ejecucion("jueves", "Torre", ["DEMO-PUER-002"])
         ej.registrar(jueves, "DEMO-PUER-002", "ok", fecha="2026-11-06T10:00")
         ej.registrar(lunes, "DEMO-PUER-002", "no_ok", observaciones="falla", fecha="2026-11-03T10:00")
+        return lunes, jueves
+
+    def test_un_no_ok_en_otra_ejecucion_deja_la_prueba_no_ok_por_triar(self):
+        self._con_conflicto()
+        d = vc.consolidar(self.val)
+        p = self.prueba(d, "DEMO-PUER-002")
+        c = p["entornos"]["Torre"]
+        self.assertEqual((p["estado"], c["estado"], p["por_triar"], d["por_triar"]), ("no_ok", "no_ok", ["Torre"], 1))
+        self.assertEqual(c["vigente"]["observaciones"], "falla")         # el resultado que explica el NO OK
+        self.assertTrue(any("Resultados distintos en Torre" in a["mensaje"] for a in d["avisos"]))
+
+    def test_triaje_decide_y_caduca_con_resultados_nuevos(self):
+        lunes, _jueves = self._con_conflicto()
+        c = self.prueba(vc.consolidar(self.val), "DEMO-PUER-002")["entornos"]["Torre"]
+        with self.assertRaises(ValueError):                              # el motivo es obligatorio
+            vc.triar(self.val, "DEMO-PUER-002", "Torre", "ok", " ", "Ana", c["firma"])
+        vc.triar(self.val, "DEMO-PUER-002", "Torre", "ok", "Falló el banco, no el producto", "Ana", c["firma"])
+        d = vc.consolidar(vc.cargar(self.tmp / "validacion"))
+        p = self.prueba(d, "DEMO-PUER-002")
+        self.assertEqual((p["estado"], p["por_triar"], d["triadas"]), ("validada", [], 1))
+        self.assertEqual(p["entornos"]["Torre"]["triaje"]["quien"], "Ana")
+        vc.triar(self.val, "DEMO-PUER-002", "Torre", "repetir", "Repetir con la barrera nueva", "Ana", c["firma"])
+        self.assertEqual(self.prueba(vc.consolidar(self.val), "DEMO-PUER-002")["estado"], "pendiente")
+        # Otro resultado: el triaje ya no vale y vuelve a estar por triar.
+        martes = self.ejecucion("martes", "Torre", ["DEMO-PUER-002"])
+        ej.registrar(martes, "DEMO-PUER-002", "ok", fecha="2026-11-07T10:00")
         p = self.prueba(vc.consolidar(self.val), "DEMO-PUER-002")
-        self.assertEqual(p["estado"], "validada")
-        self.assertEqual([r["estado"] for r in p["entornos"]["Torre"]["historial"]], ["ok", "no_ok"])
+        self.assertEqual((p["estado"], p["por_triar"]), ("no_ok", ["Torre"]))
+        self.assertIn("triaje_caducado", p["entornos"]["Torre"])
+        vc.triar(self.val, "DEMO-PUER-002", "Torre", None)
+        self.assertNotIn("triaje", vc.cargar(self.tmp / "validacion")["datos"])
 
     def test_otro_entorno_se_muestra_pero_no_cuenta(self):
         maqueta = self.ejecucion("maqueta", "Maqueta", ["DEMO-PUER-002"])
@@ -190,8 +229,22 @@ class EjemploTests(unittest.TestCase):
         self.assertEqual([e["entorno_pruebas"] for e in d["ejecuciones"]], ["Maqueta", "Automático", "Torre", "Torre"])
         self.assertEqual(d["totales"], {"no_ok": 1, "bloqueada": 1, "pendiente": 3, "validada": 4, "no_aplica": 1})
         puer = next(p for p in d["pruebas"] if p["id"] == "DEMO-PUER-002")
-        self.assertEqual([r["estado"] for r in puer["entornos"]["Torre"]["historial"]], ["ok", "no_ok"])   # vale la repetición
+        self.assertEqual([r["estado"] for r in puer["entornos"]["Torre"]["historial"]], ["ok", "no_ok"])
+        # El NO OK y la repetición OK están triados en el ejemplo (si cambia la prueba, el triaje caduca).
+        self.assertEqual((puer["entornos"]["Torre"]["triaje"]["decision"], d["por_triar"]), ("ok", 0))
         self.assertEqual([a["id"] for a in d["avisos"]], ["DEMO-NIV-001"])
+
+    def test_informe_con_el_triaje(self):
+        from docx import Document
+        from app import informe_validacion
+        with TemporaryDirectory() as tmp:
+            salida = Path(tmp) / "informe.docx"
+            informe_validacion.generar_informe(vc.cargar(EJEMPLOS.parent / "validaciones" / "validacion_v2.3"), salida, detalle=False)
+            doc = Document(str(salida))
+        tabla = next(t for t in doc.tables if len(t.columns) == 5 and t.rows[0].cells[3].text == "Decisión")
+        fila = tabla.rows[1]
+        self.assertEqual((fila.cells[0].text, fila.cells[1].text, fila.cells[3].text), ("DEMO-PUER-002", "Torre", "Vale el OK"))
+        self.assertIn("BUG-141", fila.cells[4].text)
 
 
 class InformeTests(ValidacionBase):
@@ -307,6 +360,20 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(ok(self, self.api.validacion_estado())["pruebas"][0]["cambiada_en"], ["Torre"])
         v = ok(self, self.api.validacion_dar_por_revisada("DEMO-LLAM-003"))
         self.assertEqual((v["pruebas"][0]["cambiada_en"], v["pruebas"][0]["estado"]), ([], "validada"))
+
+    def test_triar_desde_la_api(self):
+        ok(self, self.api.validacion_crear("V", "", {"incluir_ids": ["DEMO-PUER-001"], "capitulos": ["__x__"]}, str(self.tmp / "val")))
+        for nombre, estado in (("T1", "no_ok"), ("T2", "ok")):
+            ok(self, self.api.validacion_nueva_ejecucion(nombre, {"incluir_ids": ["DEMO-PUER-001"], "capitulos": ["__x__"]}, {"entorno_pruebas": "Torre"}))
+            ok(self, self.api.ejecucion_registrar("DEMO-PUER-001", estado, "obs"))
+        ok(self, self.api.ejecucion_soltar())
+        v = ok(self, self.api.validacion_estado())
+        self.assertEqual((v["pruebas"][0]["estado"], v["por_triar"]), ("no_ok", 1))
+        self.assertFalse(self.api.validacion_triar("DEMO-PUER-001", "Maqueta", "ok", "x")["ok"])   # ahí no hay conflicto
+        v = ok(self, self.api.validacion_triar("DEMO-PUER-001", "Torre", "ok", "El NO OK fue del banco"))
+        self.assertEqual((v["pruebas"][0]["estado"], v["por_triar"]), ("validada", 0))
+        v = ok(self, self.api.validacion_triar("DEMO-PUER-001", "Torre", None))
+        self.assertEqual(v["pruebas"][0]["estado"], "no_ok")
 
 
 if __name__ == "__main__":

@@ -270,6 +270,19 @@ function marcaCambiada(id) {
   return motivo ? h("span", { class: "marca-cambio", title: motivo, role: "img", "aria-label": motivo }, icon("alert")) : null;
 }
 
+/** Pruebas de la validación con resultados distintos sin triar: ID -> entornos. */
+function pruebasPorTriar() {
+  return new Map(S.validacion ? S.validacion.pruebas.filter((p) => (p.por_triar || []).length).map((p) => [p.id, p.por_triar]) : []);
+}
+
+/** Balanza junto a una prueba con resultados distintos sin triar (o null). */
+function marcaTriaje(id) {
+  const entornos = pruebasPorTriar().get(id);
+  if (!entornos) return null;
+  const motivo = `Resultados distintos en ${entornos.join(", ")} (NO OK y OK): cuenta como NO OK hasta que se trie.`;
+  return h("span", { class: "marca-triaje", title: motivo, role: "img", "aria-label": motivo }, icon("balanza"));
+}
+
 /** Aviso de prueba cambiada después de ejecutarse, con el botón para quitarlo (si se puede). */
 function avisoCambiada(texto, alRevisar) {
   return h("div", { class: "aviso-panel aviso-cambiada" },
@@ -302,7 +315,9 @@ function filtrarNodosEjecucion(nodos) {
   const quedan = new Set();
   for (const n of nodos) {
     if (n.tipo !== "prueba" || !estados.has(n.id)) continue;
-    if (S.filtroEstado === "cambiada" ? !pruebasCambiadas().has(n.id) : S.filtroEstado && estados.get(n.id) !== S.filtroEstado) continue;
+    if (S.filtroEstado === "cambiada" ? !pruebasCambiadas().has(n.id)
+      : S.filtroEstado === "por_triar" ? !pruebasPorTriar().has(n.id)
+        : S.filtroEstado && estados.get(n.id) !== S.filtroEstado) continue;
     quedan.add(n.indice);
     for (let p = n.padre; p !== null && p !== undefined; p = padres.get(p)) quedan.add(p);
   }

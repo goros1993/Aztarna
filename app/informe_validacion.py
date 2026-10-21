@@ -2,7 +2,7 @@
 """Informe de la validación de una versión: DOCX (y PDF si hay con qué convertirlo).
 
 Primero el resumen: las ejecuciones, el resultado de la versión, una tabla por
-capítulo, la comparación con la anterior y los requisitos. Después (si no se
+capítulo, la comparación con la anterior, los requisitos y el triaje. Después (si no se
 pide solo el resumen), el detalle por capítulos: las pruebas no validadas, el
 resultado de cada prueba en cada entorno y cada requisito. El detalle de cada
 paso está en el informe de cada ejecución (ver validacion_core.py).
@@ -105,6 +105,30 @@ def escribir_resumen(doc, d: dict[str, Any]) -> None:
                [[e, str(c["necesitan"]), *[str(c[k] or "·") for k in claves]] for e, c in d["por_entorno"].items()],
                [4, 2.5, 2.5, 2.5, 3, 3, 3, 3.5])
 
+
+
+def escribir_triaje(doc, d: dict[str, Any]) -> None:
+    """Pruebas con resultados distintos en un entorno (un NO OK y un OK): la decisión del triaje, o «por triar»."""
+    filas, estados = [], []
+    for p in d["pruebas"]:
+        for e, c in p["entornos"].items():
+            if not c.get("conflicto"):
+                continue
+            resultados = "; ".join(f"{CELDA_TXT[r['estado']]} ({r['ejecucion']}, {inf._fecha(r['fecha'])})"
+                                   for r in c["historial"] if r["estado"] != "pendiente")
+            t = c.get("triaje")
+            decision = vc.DECISIONES[t["decision"]] if t else "Por triar (cuenta como NO OK)"
+            motivo = f"{t['motivo']} ({t['quien'] or 'sin nombre'}, {inf._fecha(t['fecha'])})" if t else ""
+            filas.append([p["id"], e, resultados, decision, motivo])
+            estados.append(c["estado"])
+    if not filas:
+        return
+    inf._apartado(doc, "Triaje")
+    inf._parrafo(doc, "Pruebas con resultados distintos en un mismo entorno (un NO OK y un OK o No aplica). "
+                      "Sin decisión cuentan como NO OK; la decisión vale mientras no lleguen otros resultados ni cambie la prueba.")
+    tabla = inf._tabla(doc, ["Prueba", "Entorno", "Resultados", "Decisión", "Motivo"], filas, [3.2, 2.6, 7.4, 3.8, 8])
+    for fila, estado in zip(tabla.rows[1:], estados):
+        _colorear(fila.cells[3], estado)
 
 
 def escribir_avisos(doc, d: dict[str, Any]) -> None:
@@ -310,6 +334,7 @@ def generar_informe(validacion: dict[str, Any], salida: str | Path,
     escribir_por_capitulo(doc, d)
     escribir_comparacion(doc, d)
     escribir_requisitos(doc, d)
+    escribir_triaje(doc, d)
     if detalle:
         doc.add_page_break()
         inf._parrafo(doc, "Detalle por capítulo", negrita=True, tamaño=18, despues=6)
