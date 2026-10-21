@@ -6,6 +6,7 @@ ejecutan. No hace falta saber programar ni conocer el formato de los archivos.
 
 ## Contenido
 
+- [Novedades de la versión 1.1.0](#novedades-de-la-versión-110)
 1. [Qué es y cómo se organiza](#1-qué-es-y-cómo-se-organiza)
 2. [Abrir el editor](#2-abrir-el-editor)
 3. [La ventana](#3-la-ventana)
@@ -16,6 +17,43 @@ ejecutan. No hace falta saber programar ni conocer el formato de los archivos.
 8. [Atajos de teclado](#8-atajos-de-teclado)
 9. [Preguntas frecuentes y problemas](#9-preguntas-frecuentes-y-problemas)
 10. [Robot Framework: guía para quien escribe los tests](#10-robot-framework-guía-para-quien-escribe-los-tests)
+
+---
+
+## Novedades de la versión 1.1.0
+
+Si ya usabas Aztarna, esto es lo que cambia (la lista completa está en el
+CHANGELOG):
+
+- **Nombres de los modos.** Arriba a la izquierda: **Editar pruebas**,
+  **Editar requisitos** y **Validar** (antes *Pruebas*, *Requisitos* y
+  *Validación*). Las pestañas de la validación son *Resumen*, *Resultados por
+  prueba*, *Cobertura de requisitos* y *Frente a* la validación anterior.
+- **Saber dónde estás** en el modo Validar: la barra muestra la ruta
+  **validación › ejecución › prueba**; pulsando la ejecución se cambia a otra
+  de la validación (agrupadas por entorno). Una **franja** bajo la barra dice
+  en qué ejecución se apuntan los resultados, y encima del árbol se ve qué
+  pruebas se están mostrando. Ver [La ventana](#3-la-ventana).
+- **Editar esta prueba** desde Validar: abre la prueba para corregirla, con
+  una pastilla **← Volver a…** para regresar a la misma prueba; al editar, una
+  línea dice su estado en la validación. Al volver, la validación se recalcula
+  con la prueba nueva.
+- **Un NO OK pesa más que un OK.** Si en un mismo entorno una ejecución dice
+  NO OK y otra OK, la prueba cuenta como **NO OK, por triar**, hasta que el
+  gestor de la validación decide en el **triaje** (vale el OK, se mantiene el
+  NO OK o hay que repetirla) con un motivo. Antes valía el resultado más
+  reciente. Ver [La validación de una versión](#610-la-validación-de-una-versión).
+- **Quitar el aviso de prueba cambiada** con *No hay que repetirla*, cuando el
+  cambio no afecta a lo que se probó. Ver [Pasar una prueba](#65-pasar-una-prueba).
+- **En el resto de la validación**: al pasar una prueba se ve qué dicen de ella
+  las demás ejecuciones.
+- **Varias personas y bancos**: el resumen de la validación agrupa las
+  ejecuciones por entorno, con su banco y su responsable. Ver
+  [Varias personas, entornos y bancos](#varias-personas-entornos-y-bancos).
+- **Importar desde Excel** y **poco a poco** (cada capítulo va al que ya
+  existe), con lo elegido guardado en el proyecto para que todo el equipo
+  importe igual. Ver [Desde Excel](#76-desde-excel) y
+  [El mapeo del proyecto](#77-el-mapeo-del-proyecto-importacionyaml).
 
 ---
 
@@ -101,6 +139,35 @@ sin commit.
 
 Puedes abrir la ejecución de otra persona aunque tenga sus pruebas en otra
 ruta: el editor usa tu copia de las pruebas (ver 6.3).
+
+### Varias personas, entornos y bancos
+
+Una **ejecución** es siempre de **un entorno** (Automático, Maqueta, Torre…)
+y la lleva **una persona**. La **validación** junta todas. Por ejemplo, con dos
+torres y dos personas:
+
+| Ejecución | Entorno de pruebas | Banco / instalación | Responsable |
+|---|---|---|---|
+| «v2.3 · Torre 1 · Ana» | Torre | Torre 1 | Ana |
+| «v2.3 · Torre 1 · Luis» | Torre | Torre 1 | Luis |
+| «v2.3 · Torre 2 · Ana» | Torre | Torre 2 | Ana |
+| «v2.3 · Torre 2 · Luis» | Torre | Torre 2 | Luis |
+
+- Cada persona crea **sus propias ejecuciones**, aunque compartan entorno o
+  banco: dos personas no deben apuntar resultados en la misma ejecución a la
+  vez (el último en guardar puede pisar lo del otro).
+- El **banco** (campo *Banco / instalación*) distingue Torre 1 de Torre 2. Para
+  la validación las dos son *Torre*: una prueba que pide Torre queda cubierta
+  con cualquiera de ellas.
+- Si la misma prueba se pasa en varias ejecuciones del mismo entorno, cuenta la
+  **más reciente**; si una dice **NO OK** y otra **OK**, queda NO OK hasta que
+  se decide en el **triaje** (ver 6.10).
+- Si una prueba tiene que pasarse **en cada torre** por separado, las torres
+  son entornos distintos: se definen en el `aztarna.yaml` del proyecto (por
+  ejemplo `entorno: [Automático, Maqueta, Torre 1, Torre 2]`) y cada prueba
+  indica en cuáles hay que pasarla.
+- Pon en el **nombre** de la ejecución el banco y la persona: es lo que se ve
+  en la ruta, en la lista de ejecuciones y en el historial de cada prueba.
 
 ---
 
@@ -710,6 +777,16 @@ ocupan el resto del panel (también se pueden estirar por la esquina):
 
 Si una prueba se editó después de ejecutarla, el panel avisa por si hay que
 repetirla. *Volver a pendiente* deshace el último resultado.
+
+Si la ejecución forma parte de una validación, al final del panel **En el
+resto de la validación** dice cómo está la prueba en la versión y qué
+resultado tiene en las demás ejecuciones (entorno, ejecución, resultado y
+fecha). Así se ve, por ejemplo, si en la otra torre ya pasó o falló.
+
+**Editar esta prueba** (arriba, junto al resultado) la abre en *Editar
+pruebas* por si hay que corregirla; la pastilla **← Volver a…** de la barra
+trae de vuelta a esta misma prueba (ver «Dónde estás», en 3). Con la ejecución
+cerrada no se puede, porque muestra la copia congelada de sus pruebas.
 
 ### 6.6 Repetir una prueba
 
