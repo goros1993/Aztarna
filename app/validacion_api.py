@@ -120,6 +120,21 @@ class EditorValidacionApi(EditorEjecucionApi):
         return self._estado_validacion()
 
     @respuesta
+    def validacion_triar(self, test_id: str, entorno: str, decision: str | None, motivo: str = "") -> dict[str, Any]:
+        """Triaje de una prueba con resultados distintos en un entorno (decision None: quitar la decisión)."""
+        validacion = self._requiere_validacion()
+        if decision is not None:
+            consolidada = vc.consolidar(validacion, self._capitulos_validacion(), con_comparacion=False, con_requisitos=False)
+            prueba = next((p for p in consolidada["pruebas"] if p["id"] == test_id), None)
+            celda = prueba["entornos"].get(entorno) if prueba else None
+            if not celda or not celda.get("conflicto"):
+                raise ValueError(f"{test_id} no tiene resultados distintos en {entorno}: no hay nada que triar.")
+            vc.triar(validacion, test_id, entorno, decision, motivo, self._persona(), celda["firma"])
+        else:
+            vc.triar(validacion, test_id, entorno, None)
+        return self._estado_validacion()
+
+    @respuesta
     def ejecucion_soltar(self) -> dict[str, Any]:
         """Deja la ejecución abierta. Con una validación abierta vuelve a su carpeta de pruebas
         (una ejecución cerrada muestra sus pruebas congeladas, en solo lectura)."""

@@ -12,3 +12,12 @@ ejecuciones:
 - ruta: ../../ejecuciones/2026-11-05_Torre_Luis
 - ruta: ../../ejecuciones/2026-11-10_Torre_Luis_repeticion
 comparar_con: ../validacion_v2.2
+triaje:
+  DEMO-PUER-002:
+    Torre:
+      decision: ok
+      motivo: El NO OK de la regresión era BUG-141; corregido en rc3, la repetición
+        en torre da OK.
+      quien: Ana Pérez
+      fecha: 2026-11-11T09:15
+      firma: 8e4dfa343ec3

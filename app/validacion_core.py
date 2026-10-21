@@ -16,7 +16,11 @@ Maqueta o Torre). Cada prueba indica en qué entornos hay que pasarla (su campo
 `entorno`). El resultado se consolida por prueba y entorno:
 
 - en un entorno vale el resultado más reciente de entre las ejecuciones de ese
-  entorno (los anteriores quedan como historial);
+  entorno (los anteriores quedan como historial), salvo que alguna diga NO OK
+  y otra OK (o No aplica): entonces queda **NO OK, por triar**, hasta que el
+  gestor de la validación decide (triaje: vale el OK, se mantiene NO OK o hay
+  que repetirla) con un motivo. La decisión se guarda en `validacion.yaml`
+  (`triaje`) y deja de valer si llegan otros resultados o cambia la prueba;
 - una prueba sin entorno indicado se da por buena en cualquiera (con aviso);
 - un resultado en un entorno que la prueba no pide se muestra, pero no cuenta
   (un NO OK ahí se avisa);
@@ -29,6 +33,8 @@ Este módulo no depende de ninguna interfaz gráfica.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -51,6 +57,8 @@ ESTADOS_VISIBLES = {
 }
 # Estado de una prueba en un entorno (además de los de una ejecución).
 SIN_PLANIFICAR = "sin_planificar"      # ninguna ejecución de ese entorno la incluye
+# Decisiones del triaje de una prueba con resultados distintos en un entorno.
+DECISIONES = {"ok": "Vale el OK", "no_ok": "Se mantiene NO OK", "repetir": "Hay que repetirla"}
 
 
 # ----------------------------------------------------------------------
@@ -242,6 +250,78 @@ def _vigente(resultados: list[dict[str, Any]]) -> dict[str, Any] | None:
     return resultados[0] if resultados else None
 
 
+def _firma(ejecutados: list[dict[str, Any]], huella_prueba: str) -> str:
+    """Resultados que se valoraron en un triaje (y la versión de la prueba): si cambian, el triaje caduca."""
+    claves = sorted([r["ejecucion"], r["fecha"], r["estado"]] for r in ejecutados)
+    texto = json.dumps([claves, huella_prueba], ensure_ascii=False)
+    return hashlib.sha256(texto.encode("utf-8")).hexdigest()[:12]
+
+
+def _celda(suyos: list[dict[str, Any]], huella_prueba: str, triaje: Any) -> dict[str, Any]:
+    """Resultado de una prueba en un entorno que pide.
+
+    Vale el más reciente, salvo que alguna ejecución diga NO OK y otra OK o No
+    aplica: entonces es NO OK hasta que un triaje vigente diga otra cosa.
+    `vigente` es el resultado que explica el estado.
+    """
+    historial = sorted(suyos, key=lambda r: r["fecha"], reverse=True)
+    vigente = _vigente(suyos)
+    celda: dict[str, Any] = {"estado": vigente["estado"] if vigente else SIN_PLANIFICAR, "cuenta": True,
+                             "vigente": vigente, "historial": historial}
+    ejecutados = [r for r in historial if r["estado"] != "pendiente"]
+    estados = {r["estado"] for r in ejecutados}
+    if "no_ok" not in estados or not estados & {"ok", "no_aplica"}:
+        return celda
+    firma = _firma(ejecutados, huella_prueba)
+    celda.update({"conflicto": True, "firma": firma})
+    decision = triaje if isinstance(triaje, dict) and triaje.get("decision") in DECISIONES else None
+    datos = {k: str(decision.get(k) or "") for k in ("decision", "motivo", "quien", "fecha")} if decision else None
+    if decision and decision.get("firma") == firma:
+        celda["triaje"] = datos
+        if datos["decision"] == "repetir":
+            celda["estado"] = "pendiente"
+        else:
+            celda["estado"] = datos["decision"]
+            celda["vigente"] = next((r for r in ejecutados if r["estado"] == datos["decision"]), vigente)
+        return celda
+    celda.update({"estado": "no_ok", "por_triar": True, "vigente": next(r for r in ejecutados if r["estado"] == "no_ok")})
+    if datos:
+        celda["triaje_caducado"] = datos
+    return celda
+
+
+def triar(validacion: dict[str, Any], test_id: str, entorno: str, decision: str | None,
+          motivo: str = "", quien: str = "", firma: str = "") -> None:
+    """Decide el resultado de una prueba con resultados distintos en un entorno (None: quita la decisión).
+
+    `firma` identifica los resultados valorados (la de la celda consolidada): si
+    llegan otros o cambia la prueba, la decisión deja de valer.
+    """
+    triajes = validacion["datos"].get("triaje")
+    if not isinstance(triajes, dict):
+        triajes = validacion["datos"]["triaje"] = {}
+    test_id = str(test_id)
+    if decision is None:
+        if isinstance(triajes.get(test_id), dict):
+            triajes[test_id].pop(entorno, None)
+            if not triajes[test_id]:
+                del triajes[test_id]
+        if not triajes:
+            del validacion["datos"]["triaje"]
+        guardar(validacion)
+        return
+    if decision not in DECISIONES:
+        raise ValueError(f"Decisión no válida: {decision}.")
+    motivo = str(motivo or "").strip()
+    if not motivo:
+        raise ValueError("Indica el motivo de la decisión (por qué vale el OK, por qué se mantiene el NO OK o por qué hay que repetirla).")
+    if not isinstance(triajes.get(test_id), dict):
+        triajes[test_id] = {}
+    triajes[test_id][entorno] = {"decision": decision, "motivo": motivo, "quien": str(quien or "").strip(),
+                                 "fecha": ej.ahora(), "firma": firma}
+    guardar(validacion)
+
+
 def _estado_prueba(estados: list[str]) -> str:
     if "no_ok" in estados:
         return "no_ok"
@@ -385,6 +465,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
     entornos = list(ej.entornos_pruebas())
     avisos: list[dict[str, str]] = []
     revisadas = validacion["datos"].get("revisadas") or {}     # ID -> huella cuyo cambio se dio por revisado
+    triajes = validacion["datos"].get("triaje") or {}          # ID -> entorno -> decisión del triaje
 
     # Ejecuciones y sus resultados.
     ejecuciones, resultados_por_id = [], {}
@@ -440,10 +521,14 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         cambiada_en: list[str] = []
         for entorno in requeridos or [CUALQUIERA]:
             suyos = [r for r in resultados if entorno == CUALQUIERA or r["entorno"] == entorno]
-            vigente = _vigente(suyos)
-            estado = vigente["estado"] if vigente else SIN_PLANIFICAR
-            celdas[entorno] = {"estado": estado, "cuenta": True, "vigente": vigente,
-                               "historial": sorted(suyos, key=lambda r: r["fecha"], reverse=True)}
+            suyo = triajes.get(test_id) if isinstance(triajes.get(test_id), dict) else {}
+            celdas[entorno] = celda = _celda(suyos, actual, suyo.get(entorno))
+            vigente, estado = celda["vigente"], celda["estado"]
+            donde = "" if entorno == CUALQUIERA else f" en {entorno}"
+            if celda.get("por_triar"):
+                avisos.append({"tipo": "aviso", "id": test_id, "mensaje":
+                               f"Resultados distintos{donde} (NO OK y OK): queda NO OK hasta que se trie."
+                               + (" El triaje anterior ya no vale: hay resultados nuevos o la prueba ha cambiado." if celda.get("triaje_caducado") else "")})
             if vigente and estado != "pendiente" and vigente["huella"] and vigente["huella"] != actual \
                     and revisadas.get(test_id) != actual:
                 cambiada_en.append(entorno)
@@ -470,6 +555,7 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
             "id": test_id, "titulo": str(prueba.get("titulo") or prueba.get("nombre") or ""), "archivo": item["archivo"], "capitulo": capitulo,
             "indice": item["indice"], "requeridos": requeridos, "estado": estado, "entornos": celdas,
             "cambiada_en": cambiada_en,     # entornos cuyo resultado vigente es de una versión anterior de la prueba
+            "por_triar": [e for e, c in celdas.items() if c.get("por_triar")],   # entornos con resultados distintos sin decidir
         })
 
     en_validacion = {p["id"] for p in pruebas}
@@ -487,6 +573,8 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
         "total": total,
         "totales": totales,
         "porcentaje_validadas": porcentaje,
+        "por_triar": sum(1 for p in pruebas if p["por_triar"]),
+        "triadas": sum(1 for p in pruebas for c in p["entornos"].values() if c.get("triaje")),
         "por_entorno": {e: v for e, v in por_entorno.items() if v["necesitan"]},
         "por_capitulo": por_capitulo,
         "fuera_de_alcance": fuera,

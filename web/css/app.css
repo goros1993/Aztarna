@@ -826,9 +826,11 @@ fieldset.campo.opciones legend { padding: 0; margin-bottom: 4px; font-size: 12.5
 .entorno-resultado.no-cuenta { opacity: 0.7; }
 .entorno-cab { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .historial-entorno { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.historial-entorno li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.historial-entorno li { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 2px 8px; }
+.historial-entorno li > .punto-estado { align-self: start; margin-top: 4px; }
+.historial-entorno li > :not(.punto-estado) { grid-column: 2; justify-self: start; }
 .historial-entorno li.anterior { color: var(--ink-3); }
-.historial-entorno .obs { flex-basis: 100%; padding-left: 18px; font-size: 12px; }
+.historial-entorno .obs { font-size: 12px; }
 
 .marca { display: inline-flex; align-items: center; gap: 8px; }
 .marca img { border-radius: 5px; flex: none; }
@@ -1027,3 +1029,18 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 @media (max-width: 980px) {
   .barra .seg.modo button { padding-left: 8px; padding-right: 8px; }
 }
+
+/* Triaje: resultados distintos (NO OK y OK) de una prueba en un entorno */
+.marca-triaje { flex: none; display: inline-flex; color: var(--st-no_ok); margin-left: 4px; vertical-align: middle; }
+.marca-triaje.triada { color: var(--ink-3); }
+.marca-triaje .ico { width: 14px; height: 14px; }
+.celda-entorno.por-triar { box-shadow: inset 0 0 0 2px var(--st-no_ok-soft); }
+.triaje { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding: 10px 12px; border: 1px solid var(--st-no_ok); border-radius: 4px; background: var(--st-no_ok-soft); }
+.triaje.triada { border-color: var(--rule); background: var(--panel); }
+.triaje p { margin: 0; }
+.triaje .triaje-cab { display: flex; align-items: center; gap: 8px; }
+.triaje .triaje-motivo { white-space: pre-wrap; }
+.triaje textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 6px 8px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--paper); color: var(--ink); resize: vertical; }
+.triaje .fila-botones { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.e-ok-btn { border-color: var(--st-ok); color: var(--st-ok); }
+.btn.e-no_ok-btn { border-color: var(--st-no_ok); color: var(--st-no_ok); }
