@@ -179,6 +179,9 @@ ejecución › prueba**.
   y cuántas lleva) para cambiar a otra: salen las de la validación agrupadas
   por entorno, con su avance, y las opciones de crear una nueva o abrir una
   suelta.
+
+  ![Cambiar de ejecución desde la ruta](docs/manual/57_ruta_ejecuciones.png)
+
 - Con una ejecución abierta, una **franja** bajo la barra dice en qué
   ejecución se están apuntando los resultados (en gris si está cerrada, solo
   lectura) y tiene *Volver a la validación*.
@@ -187,6 +190,8 @@ ejecución › prueba**.
   editar una prueba con una validación abierta, una línea encima del
   formulario dice su estado en la validación y en cada entorno, con *Ver en la
   validación*.
+
+  ![Editar una prueba desde Validar](docs/manual/59_editar_desde_validar.png)
 
 ![Menú ⋯](docs/manual/35_menu.png)
 
@@ -882,6 +887,9 @@ el filtro *Por triar* las deja solas.
 En la ficha de la prueba, bajo los resultados de ese entorno (con su
 ejecución, banco, persona, fecha, incidencia y observaciones), el gestor de la
 validación decide, con un **motivo obligatorio**:
+
+![Triaje de una prueba con resultados distintos](docs/manual/58_triaje.png)
+
 
 - **Vale el OK**: la prueba cuenta como OK en ese entorno (por ejemplo, el
   NO OK era del banco o el fallo ya está corregido);

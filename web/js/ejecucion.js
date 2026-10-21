@@ -1,5 +1,5 @@
 "use strict";
-/* Modo «Ejecución»: ejecuciones, resultado de cada prueba y resumen.
+/* Modo «Validar»: ejecuciones, resultado de cada prueba y resumen.
    Los YAML de pruebas solo se leen; los resultados van a la carpeta de la
    ejecución (ver ejecucion_core.py). */
 
@@ -87,14 +87,15 @@ function pintarFranja() {
   const d = e.datos;
   franja.classList.toggle("cerrada", e.cerrada);
   const detalle = [d.entorno_pruebas ? `entorno ${d.entorno_pruebas}` : "sin entorno de pruebas", d.entorno ? `banco ${d.entorno}` : null, d.responsable || null].filter(Boolean).join(" · ");
-  franja.replaceChildren(
+  franja.replaceChildren(...[
     icon(e.cerrada ? "candado" : "check"),
     h("span", { class: "franja-texto" },
       e.cerrada ? "Ejecución cerrada, solo lectura: " : "Apuntando resultados en ",
       h("strong", { text: `«${d.nombre}»` }), ` · ${detalle}`,
       S.validacion && e.en_validacion === false ? h("span", { class: "franja-nota", text: " · no forma parte de la validación" }) : null),
     h("span", { class: "relleno" }),
-    S.validacion ? h("button", { type: "button", class: "enlace franja-volver", onclick: volverAValidacion }, "← Volver a la validación") : null);
+    S.validacion ? h("button", { type: "button", class: "enlace franja-volver", onclick: volverAValidacion }, "← Volver a la validación") : null,
+  ].filter(Boolean));
 }
 
 /** Encima del árbol: qué pruebas se están viendo. */

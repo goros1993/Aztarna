@@ -10,7 +10,7 @@ const TIPO_PLURAL = { prueba: "pruebas", requisito: "requisitos" };
 let IMP = null;
 
 function importarDisponible() {
-  return true;                 // en el modo Validación, solo resultados
+  return true;                 // en el modo Validar, solo resultados
 }
 
 const esResultados = () => IMP && IMP.preferido === "resultado";
@@ -136,7 +136,7 @@ function pasoDocumento() {
       radio("imp-tipo", "", "Lo decide el editor (pruebas y requisitos en el mismo documento)", IMP.preferido || "", elegirTipo, soloResultados),
       radio("imp-tipo", "resultado", "Resultados de una ejecución (las pruebas ya están en el proyecto)", IMP.preferido, elegirTipo, !S.carpeta),
       h("p", { class: "ayuda", text: soloResultados
-        ? "En el modo Validación solo se importan resultados; para importar pruebas o requisitos, cambia al modo Pruebas o Requisitos."
+        ? "En el modo Validar solo se importan resultados; para importar pruebas o requisitos, cambia a Editar pruebas o Editar requisitos."
         : "Solo sirve para proponer; en el siguiente paso eliges qué es cada grupo de tablas." })),
     esResultados() ? h("p", { class: "ayuda", text: "Los resultados se enlazan con las pruebas del proyecto por el ID de la cabecera de cada tabla. Se crea una ejecución nueva con esas pruebas"
       + (S.validacion ? `, que puedes añadir a la validación «${S.validacion.datos.nombre}».` : ".") + " Su nombre y su entorno de pruebas se eligen en el último paso." }) :
