@@ -348,6 +348,13 @@ El formulario sigue el orden de la tabla de la prueba en el documento:
   tabla; sale en filas al final de ella. Cada campo tiene un nombre y un
   valor; los que son listas se escriben con un elemento por línea.
 - **Imágenes de la prueba:** se añaden al final de su tabla en el documento.
+- **Adjuntos:** archivos que van con la prueba (un Excel con datos, un Word…),
+  en la carpeta `adjuntos/` junto a las pruebas. Al pulsar uno se abre con su
+  programa; **Añadir** copia archivos a esa carpeta y la **✕** lo quita de la
+  prueba. Los que venían incrustados en el Word importado salen también en el
+  paso o párrafo donde estaban (*en su sitio*): la **✕** de ese párrafo lo
+  quita solo de ahí (pasa al final de la tabla). Las **secciones** tienen el
+  mismo bloque para los adjuntos de su contexto.
 
 Pulsa **Guardar** (o **Ctrl+S**). Mientras haya cambios sin guardar verás
 *Sin guardar* junto al título; si intentas ir a otra prueba o cerrar la
@@ -498,6 +505,12 @@ indicar el número del primer título (por ejemplo, 8 si el documento original
 empezaba en el capítulo 8). Después eliges dónde guardarlo; mientras se genera verás
 una ruleta (con muchas pruebas e imágenes puede tardar un poco). El documento
 es una copia para leer o compartir: los cambios se hacen siempre en el editor.
+
+Los **adjuntos** van incrustados en el documento: los que venían del Word, en
+su sitio y como estaban (si eran un icono, un doble clic los abre en Excel);
+los añadidos a mano, al final de la tabla de la prueba (o tras el contexto de
+la sección), como icono con su nombre. Lo que Word no sabe incrustar (un PDF)
+sale con su nombre.
 
 ---
 
@@ -1116,6 +1129,14 @@ Antes de importar ves cuántos elementos entran y en qué capítulos, un
 borra la propuesta para conservar el ID) y los **avisos**: por ejemplo, texto
 del Word que no ha llegado a ningún campo. En un proyecto nuevo, **Elegir
 carpeta e importar…** pide dónde crearlo y lo abre.
+
+**Excel incrustados.** Un Excel (o un Word o un PowerPoint) incrustado en el
+documento, dentro de una prueba o en el texto de una sección, se guarda como
+**adjunto** de esa prueba o sección, en `adjuntos/` y con su ID en el nombre
+(`DEMO-LLAM-001_1.xlsx`), junto con su dibujo; en el paso o párrafo donde
+estaba queda la referencia (ver 4.1). Los avisos lo indican uno a uno. Lo que
+no se puede extraer (un PDF empaquetado, un objeto vinculado a un archivo de
+fuera del documento) queda como imagen, con un aviso.
 
 **Volver a importar un Word en el proyecto abierto.** Si el Word trae IDs que
 ya existen, aparece el bloque **Ya existen en el proyecto** con lo que cambia

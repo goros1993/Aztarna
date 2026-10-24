@@ -45,7 +45,7 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from ruamel.yaml import YAML
 
-from app import esquema, formato
+from app import adjuntos, esquema, formato
 from migracion import convertir as cv
 from migracion.ids_duplicados import _ID_VALIDO, _siguiente
 
@@ -97,9 +97,10 @@ SINONIMOS = {
         "version": ["Versión", "Revisión", "Edición"],
     },
 }
-# Etiquetas del formato antiguo de las pruebas que no pasan al esquema (como en convertir.py).
+# Etiquetas del formato antiguo de las pruebas que no pasan al esquema (como en convertir.py), y la
+# fila «Adjuntos» del Word que genera el editor (sus objetos se recogen igualmente: ver _Lector.objetos).
 IGNORADAS_PRUEBA = ["Componente", "Plataforma", "Criticidad", "Referencia", "Ejecución de prueba",
-                    *esquema.ADICIONALES_ELIMINADOS]
+                    *esquema.ADICIONALES_ELIMINADOS, esquema.ETIQUETAS["adjuntos"]]
 # Campos que comparten pruebas y requisitos: no sirven para distinguirlos.
 COMUNES = {"descripcion", "fecha", "version"}
 # Clave (solo durante la importación, no se escribe) con los campos que trae un elemento de un Excel:
@@ -416,9 +417,21 @@ class _Lector:
                 d[destino] = f"{d[destino]} {valor}".strip() if d.get(destino) else valor
         if extras:
             d["campos_adicionales"] = extras
+        self.objetos(tabla, d, avisos)
         resultado = self.normalizar(d, detalle, imagenes, avisos)
         self.comprobar_texto(segmentos, resultado, avisos)
         return resultado
+
+    def objetos(self, tabla: Table, d: dict[str, Any], avisos: list) -> None:
+        """Los objetos incrustados de la tabla (un Excel…): en una prueba, cada uno pasa a ser un
+        adjunto (ver adjuntos.py). Dónde va cada uno lo decide luego _colocar_adjuntos, por su dibujo;
+        aquí se recogen también los de los campos que no se importan."""
+        if not hasattr(self.guardar, "objeto"):
+            return
+        for o in adjuntos.objetos(tabla._tbl, tabla.part):
+            adjunto = self.guardar.objeto(o, d["id"], avisos, self.tipo == "prueba")
+            if adjunto is not None:
+                d.setdefault("adjuntos", []).append(adjunto)
 
     def comprobar_texto(self, segmentos, item, avisos) -> None:
         """Avisa de los párrafos del Word que no han llegado a ningún campo (sin contar los que se
@@ -537,13 +550,15 @@ class _Lector:
 
 
 class _GuardadorEnMemoria:
-    """Guarda las imágenes en memoria con un nombre libre (`imagenes/imagen_001.png`…);
-    se escriben al importar, en la carpeta de cada tipo."""
+    """Guarda las imágenes en memoria con un nombre libre (`imagenes/imagen_001.png`…), y los
+    adjuntos con el ID de su prueba (`adjuntos/DEMO-001_1.xlsx`); se escriben al importar, en la
+    carpeta de cada tipo."""
 
     def __init__(self, ocupados: set[str] | None = None) -> None:
         self.ocupados = set(ocupados or ())
         self.por_parte: dict[str, str] = {}
         self.datos: dict[str, bytes] = {}
+        self.de_dibujo: dict[str, str | None] = {}    # parte del dibujo de un objeto -> su adjunto (None: no lo es)
 
     def __call__(self, parte) -> str:
         nombre_parte = str(parte.partname)
@@ -557,6 +572,41 @@ class _GuardadorEnMemoria:
             self.por_parte[nombre_parte] = f"imagenes/{nombre}"
             self.datos[f"imagenes/{nombre}"] = parte.blob
         return self.por_parte[nombre_parte]
+
+    def objeto(self, o: dict[str, Any], ident: str, avisos: list, admite: bool = True) -> dict[str, Any] | None:
+        """El adjunto de un objeto incrustado (ver adjuntos.objetos): su archivo y su dibujo en `adjuntos/`
+        con el nombre `ident_n`. None si no se puede (queda su imagen, con un aviso) o si ya se ha guardado."""
+        dibujo = str(o["vista"].partname) if o["vista"] is not None else None
+        if dibujo in self.de_dibujo:
+            return None
+        que = adjuntos.nombre_tipo(o["prog_id"])
+        adjunto = None
+        if o["vinculado"]:
+            avisos.append(cv.Aviso("objeto_vinculado", f"{que} vinculado a «{o['vinculado']}»: no está dentro del documento; queda su imagen", ident))
+        elif o["datos"] is None:
+            avisos.append(cv.Aviso("objeto_no_extraido", f"{que} incrustado ({o['prog_id'] or 'sin tipo'}): no se puede extraer; queda su imagen", ident))
+        elif not admite:
+            avisos.append(cv.Aviso("objeto_no_extraido", f"{que} incrustado: los requisitos no tienen adjuntos; queda su imagen", ident))
+        else:
+            base = re.sub(r"[^\w.-]+", "_", ident[:40]).strip("._") or "adjunto"
+            usados = {Path(n).stem for n in self.ocupados}
+            n = 1
+            while f"{base}_{n}" in usados:
+                n += 1
+            raiz = f"{adjuntos.CARPETA}/{base}_{n}"
+            adjunto = {"archivo": raiz + o["extension"]}
+            self.datos[adjunto["archivo"]] = o["datos"]
+            self.ocupados.add(Path(adjunto["archivo"]).name)
+            if o["vista"] is not None:
+                adjunto["vista_previa"] = raiz + (Path(dibujo).suffix.lower() or ".emf")
+                self.datos[adjunto["vista_previa"]] = o["vista"].blob
+                self.ocupados.add(Path(adjunto["vista_previa"]).name)
+            if o["icono"]:
+                adjunto["icono"] = True
+            avisos.append(cv.Aviso("adjunto_incrustado", f"{que} incrustado: se guarda como adjunto ({adjunto['archivo']})", ident))
+        if dibujo is not None:
+            self.de_dibujo[dibujo] = adjunto["archivo"] if adjunto else None
+        return adjunto
 
 
 def convertir_documento(doc, mapeo: dict[str, Any], guardar_imagen=None) -> dict[str, Any]:
@@ -581,7 +631,66 @@ def convertir_documento(doc, mapeo: dict[str, Any], guardar_imagen=None) -> dict
 
     avisos: list = []
     capitulos = cv.extraer_capitulos(doc, avisos, guardar_imagen, leer)
+    _colocar_adjuntos(capitulos, doc, guardar_imagen, avisos)
     return {"capitulos": capitulos, "avisos": avisos, "totales": {t: cuenta[t] for t in TIPOS}}
+
+
+def _colocar_adjuntos(capitulos: list[dict[str, Any]], doc, guardador, avisos: list) -> None:
+    """Cada imagen que es el dibujo de un objeto incrustado (un Excel…) deja de ser imagen: en el
+    párrafo donde estaba queda la referencia a su adjunto. El adjunto es del elemento donde ha
+    quedado (la prueba, la sección, el texto del capítulo); los de las tablas de las pruebas ya
+    los ha guardado _Lector.objetos. Uno que no se puede extraer sigue siendo imagen."""
+    if not hasattr(guardador, "objeto"):
+        return
+    parte_de = {ruta: parte for parte, ruta in guardador.por_parte.items()}
+    objetos = {str(o["vista"].partname): o for o in adjuntos.objetos(doc.element.body, doc.part) if o["vista"] is not None}
+    for c in capitulos:
+        for e in c["contenido"]:
+            if not isinstance(e, dict):
+                continue
+            tipo = "prueba" if isinstance(e.get("prueba"), dict) else "requisito" if isinstance(e.get("requisito"), dict) else None
+            dueño = e[tipo] if tipo else e
+            nombre = (str(dueño.get("id") or "") if tipo else e["seccion"] if isinstance(e.get("seccion"), str)
+                      else str(c.get("capitulo") or "capitulo"))
+
+            def adjunto_de(ruta: str, dueño=dueño, tipo=tipo, nombre=nombre) -> str | None:
+                parte = parte_de.get(ruta)
+                if parte not in objetos:
+                    return None
+                if parte not in guardador.de_dibujo:
+                    nuevo = guardador.objeto(objetos[parte], nombre, avisos, tipo != "requisito")
+                    if nuevo is not None:
+                        dueño.setdefault("adjuntos", []).append(nuevo)
+                return guardador.de_dibujo.get(parte)
+
+            _sustituir_dibujos(dueño, adjunto_de, dueño)
+
+
+def _sustituir_dibujos(valor: Any, adjunto_de: Callable[[str], str | None], dueño: dict[str, Any], en_celda: bool = False) -> None:
+    """Quita de las imágenes los dibujos de los adjuntos y pone en su párrafo la referencia (en una
+    celda de tabla o entre las imágenes del propio elemento no hay párrafo: van al final)."""
+    if isinstance(valor, list):
+        for v in valor:
+            _sustituir_dibujos(v, adjunto_de, dueño, en_celda)
+        return
+    if not isinstance(valor, dict):
+        return
+    for clave in ("imagenes", "imagen"):
+        rutas = valor.get(clave)
+        rutas = rutas if isinstance(rutas, list) else [rutas] if isinstance(rutas, str) else []
+        de_adjunto = {r: adjunto_de(r) for r in rutas}
+        if not any(de_adjunto.values()):
+            continue
+        quedan = [r for r in rutas if not de_adjunto[r]]
+        if quedan:
+            valor[clave] = quedan if clave == "imagenes" else quedan[0]
+        else:
+            del valor[clave]
+        if valor is not dueño and not en_celda:
+            valor.setdefault("adjuntos", []).extend(a for a in de_adjunto.values() if a)
+    for clave, hijo in list(valor.items()):
+        if clave not in ("imagenes", "imagen", "adjuntos"):
+            _sustituir_dibujos(hijo, adjunto_de, dueño, en_celda or clave == "filas")
 
 
 def convertir_documento_ruta(ruta: str | Path, mapeo: dict[str, Any], guardador: "_GuardadorEnMemoria | None" = None) -> dict[str, Any]:
@@ -671,6 +780,9 @@ def _resumen_elemento(e: dict[str, Any], tipo: str) -> list[list[str]]:
         if k == "campos_adicionales":
             filas.extend([f"{n} (adicional)", str(x)[:300]] for n, x in v.items())
             continue
+        if k == "adjuntos":
+            filas.append([nombre, "\n".join(f"• {a['archivo'].split('/')[-1]}" for a in adjuntos.lista(v))])
+            continue
         if isinstance(v, list):
             partes = []
             for x in v:
@@ -691,6 +803,8 @@ def _resumen_elemento(e: dict[str, Any], tipo: str) -> list[list[str]]:
 # Los que ya existen en el proyecto: actualizar, importar como nuevos u omitir
 # ----------------------------------------------------------------------
 ACCIONES = ("actualizar", "nuevo", "omitir")
+# Rutas de archivos que van con el elemento: se escriben al importar y se comparan por su contenido.
+ARCHIVOS = ("imagenes/", f"{adjuntos.CARPETA}/")
 
 
 def _comparable(valor: Any, imagen: Callable[[str], str]) -> Any:
@@ -712,7 +826,7 @@ def _comparable(valor: Any, imagen: Callable[[str], str]) -> Any:
             else:
                 unidos.append(v)
         return [_comparable(v, imagen) for v in unidos] or None
-    if isinstance(valor, str) and valor.startswith("imagenes/"):
+    if isinstance(valor, str) and valor.startswith(ARCHIVOS):
         return imagen(valor)
     return None if valor in (None, "") else valor
 
@@ -875,6 +989,9 @@ TIPOS_AVISO = {
     "tabla_en_celda": ("Tabla dentro de una celda (se conserva en el contexto)", "aviso"),
     "campo_desconocido": ("Etiqueta mapeada a un campo que no existe", "aviso"),
     "imagen_excel": ("Imágenes del Excel (no se importan)", "aviso"),
+    "adjunto_incrustado": ("Documentos incrustados (Excel…) guardados como adjuntos", "info"),
+    "objeto_no_extraido": ("Objetos incrustados que no se pueden extraer (queda su imagen)", "aviso"),
+    "objeto_vinculado": ("Objetos vinculados a un archivo externo (queda su imagen)", "aviso"),
 }
 
 
@@ -893,7 +1010,7 @@ def _rutas_imagenes(valor: Any) -> set[str]:
         return set().union(*(_rutas_imagenes(v) for v in valor.values())) if valor else set()
     if isinstance(valor, list):
         return set().union(*(_rutas_imagenes(v) for v in valor)) if valor else set()
-    return {valor} if isinstance(valor, str) and valor.startswith("imagenes/") else set()
+    return {valor} if isinstance(valor, str) and valor.startswith(ARCHIVOS) else set()
 
 
 def escribir(capitulos: list[dict[str, Any]], carpeta: Path, imagenes: dict[str, bytes]) -> list[str]:
@@ -1073,7 +1190,9 @@ def ids_existentes(carpetas: dict[str, Path]) -> dict[str, set[str]]:
 
 
 def imagenes_ocupadas(carpetas: dict[str, Path]) -> set[str]:
-    return {p.name for c in carpetas.values() if (c / "imagenes").is_dir() for p in (c / "imagenes").iterdir()}
+    """Nombres ya usados en las carpetas de imágenes y de adjuntos."""
+    return {p.name for c in carpetas.values() for sub in ("imagenes", adjuntos.CARPETA)
+            if (c / sub).is_dir() for p in (c / sub).iterdir()}
 
 
 def preparar(ruta: str | Path, mapeo: dict[str, Any], destino: str | Path | None = None, modo: str = "nuevo") -> dict[str, Any]:

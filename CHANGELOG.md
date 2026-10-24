@@ -3,6 +3,26 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.2.0
+
+- **Adjuntos de las pruebas y las secciones**: archivos (un Excel con datos,
+  un Word…) que van con ellas, en `adjuntos/` junto a las pruebas. En el
+  editor, bloque **Adjuntos** en la prueba y en la sección: abrirlos con su
+  programa, añadir y quitar. El panel de problemas avisa si falta alguno, y al
+  cerrar una ejecución se congelan con las pruebas.
+- **Excel incrustados al importar un Word**: cada Excel (o Word, o PowerPoint)
+  incrustado en una prueba o en el texto de una sección pasa a ser un adjunto,
+  con su ID en el nombre; su dibujo (el EMF) ya no entra como imagen y en el
+  paso o párrafo donde estaba queda la referencia. Lo que no se puede extraer
+  (un PDF empaquetado, un objeto vinculado) queda como imagen, con un aviso.
+- **Al exportar a Word** los adjuntos vuelven incrustados en su sitio y como
+  estaban (si eran un icono, un doble clic los abre en Excel); los añadidos a
+  mano van al final de la tabla (o tras el contexto de la sección), como icono.
+- Claves nuevas en el YAML (`adjuntos`), sin cambio de formato de datos. Una
+  versión anterior no muestra los adjuntos ni los exporta; al guardar los
+  conserva, salvo un párrafo que solo tenga un adjunto (lo ve vacío y lo
+  quita): conviene que todo el equipo pase a la 1.2.0.
+
 ## 1.1.1
 
 - **Validar ya no salta a otro proyecto.** Al entrar en *Validar* sin nada

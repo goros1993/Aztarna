@@ -4,7 +4,7 @@
 # La versión sigue el versionado semántico; cada versión publicada lleva su etiqueta de Git (v0.8.0…)
 # y su entrada en CHANGELOG.md.
 NOMBRE = "Aztarna"
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 
 
 def firma() -> str:

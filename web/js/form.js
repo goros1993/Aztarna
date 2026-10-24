@@ -109,8 +109,14 @@ function valoresDePrueba(el = {}) {
   for (const k of LISTAS) v[k] = aLista(el[k]).map(filaDesde);
   v.campos_adicionales = extrasDesde(el.campos_adicionales);
   v.imagenes = aLista(el.imagenes).map(String);
+  v.adjuntos = listaAdjuntos(el.adjuntos);
   for (const k of [...MULTIPLES, ...TEXTOS]) v[k] = aLista(el[k]).map(String);
   return v;
+}
+
+/** Adjuntos de una prueba o sección como [{archivo, vista_previa?}] (en el YAML vale también solo la ruta). */
+function listaAdjuntos(valor) {
+  return aLista(valor).map((a) => (typeof a === "string" ? { archivo: a } : { ...a })).filter((a) => a.archivo);
 }
 
 function serializar(clave) {
@@ -118,12 +124,13 @@ function serializar(clave) {
   if (LISTAS.includes(clave) || REQ_LISTAS.includes(clave)) return filasAPlano(v);
   if (clave === "campos_adicionales") return extrasAPlano(v);
   if (clave === "imagenes" || MULTIPLES.includes(clave) || TEXTOS.includes(clave)) return [...v];
+  if (clave === "adjuntos") return v.map((a) => ({ ...a }));
   return v;
 }
 
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
-    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes"]
+    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes", "adjuntos"]
     : F.modo === "nueva" && F.tipo === "requisito" ? [...REQ_CAMPOS_TEXTO, ...REQ_LISTAS, ...REQ_MULTIPLES, "campos_adicionales"]
       : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
@@ -518,7 +525,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
         if (e.isComposing) return;
         if (sugerencias && sugerencias.tecla(e)) return;
         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertar(i + 1); }
-        else if (e.key === "Backspace" && !fila.texto && !fila.imagenes.length && filas.length) { e.preventDefault(); quitar(i); }
+        else if (e.key === "Backspace" && !fila.texto && !fila.imagenes.length && !referencias(fila).length && filas.length) { e.preventDefault(); quitar(i); }
         else if (e.altKey && e.key === "ArrowUp") { e.preventDefault(); mover(i, -1); }
         else if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); mover(i, 1); }
       },
@@ -527,8 +534,16 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const miniaturas = fila.imagenes.length
       ? h("div", { class: "imagenes" }, fila.imagenes.map((ruta, k) => miniatura(ruta, () => { fila.imagenes.splice(k, 1); tocar(clave); pintar(i); })))
       : null;
+    const refs = referencias(fila);
+    const enlaces = refs.length
+      ? h("div", { class: "adjuntos" }, refs.map((ruta, k) => chipAdjunto(ruta, "Quitar de este párrafo (sigue entre los adjuntos, al final)", () => {
+        refs.splice(k, 1);
+        if (refs.length) fila.extra.adjuntos = refs; else delete fila.extra.adjuntos;
+        tocar(clave); pintar(i);
+      })))
+      : null;
     const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
-    const contenido = h("div", { class: "contenido" }, editor, miniaturas);
+    const contenido = h("div", { class: "contenido" }, editor, miniaturas, enlaces);
     if (conKeywords) sugerencias = sugerenciasKeywords(editor.querySelector(".editable"), contenido, fila.texto);
     const li = h("li", { class: "elemento", style: { "--nivel": String(fila.nivel) } },
       asa,
@@ -621,6 +636,68 @@ function galeria() {
     zona);
 }
 
+/* ---- adjuntos de la prueba o de la sección (ver adjuntos.py) ---- */
+/** Adjuntos que van en un párrafo de una lista (su clave `adjuntos`: rutas). */
+const referencias = (fila) => aLista(fila.extra && fila.extra.adjuntos).map(String);
+
+/** Un adjunto: su nombre (lo abre con el programa del sistema) y la ✕ para quitarlo. */
+function chipAdjunto(ruta, quitarTexto, alQuitar, nota = "") {
+  const nombre = ruta.split("/").pop();
+  return h("div", { class: "archivo-evidencia" },
+    h("button", { type: "button", class: "enlace", text: nombre, title: "Abrir con el programa del sistema", onclick: () => api.abrir_adjunto(ruta).catch(fallo) }),
+    nota ? h("span", { class: "muted", text: nota }) : null,
+    h("button", { type: "button", class: "btn icono quitar", title: quitarTexto, "aria-label": `${quitarTexto}: ${nombre}`, onclick: alQuitar }, icon("x")));
+}
+
+function bloqueAdjuntos() {
+  const adjuntos = F.valores.adjuntos;
+  const contenedor = h("div", { class: "adjuntos" });
+  const listas = () => Object.entries(F.valores).filter(([k, v]) => Array.isArray(v) && (LISTAS.includes(k) || REQ_LISTAS.includes(k)));
+  const nombrados = () => new Set(listas().flatMap(([_k, filas]) => filas.flatMap(referencias)));
+  function quitar(i) {
+    const [a] = adjuntos.splice(i, 1);
+    tocar("adjuntos");
+    // Fuera también de los párrafos donde iba: se vuelve a pintar el formulario.
+    let enParrafos = false;
+    for (const [clave, filas] of listas()) {
+      for (const fila of filas) {
+        const refs = referencias(fila);
+        if (!refs.includes(a.archivo)) continue;
+        const quedan = refs.filter((r) => r !== a.archivo);
+        if (quedan.length) fila.extra.adjuntos = quedan; else delete fila.extra.adjuntos;
+        tocar(clave);
+        enParrafos = true;
+      }
+    }
+    if (!enParrafos) { pintar(); return; }
+    const panel = document.querySelector(".principal");
+    const arriba = panel ? panel.scrollTop : 0;
+    mostrar(F.tipo === "prueba" ? cuerpoPrueba(null) : cuerpoSeccion(null));
+    if (panel) panel.scrollTop = arriba;
+  }
+  function pintar() {
+    contenedor.replaceChildren();
+    if (!adjuntos.length) contenedor.appendChild(h("p", { class: "vacio", text: "Sin adjuntos." }));
+    const enSuSitio = nombrados();
+    adjuntos.forEach((a, i) => contenedor.appendChild(chipAdjunto(a.archivo, "Quitar el adjunto", () => quitar(i),
+      enSuSitio.has(a.archivo) ? "en su sitio" : "")));
+  }
+  async function elegir() {
+    try {
+      const r = await api.elegir_adjuntos();
+      if (r.adjuntos.length) { adjuntos.push(...r.adjuntos); tocar("adjuntos"); pintar(); }
+    } catch (err) { fallo(err); }
+  }
+  pintar();
+  const deLaPrueba = F.tipo === "prueba";
+  return h("section", { class: "bloque", "aria-label": deLaPrueba ? "Adjuntos de la prueba" : "Adjuntos de la sección" },
+    h("div", { class: "bloque-cab" },
+      h("h3", { text: "Adjuntos" }),
+      h("p", { class: "ayuda", text: `Excel, Word… que van con la ${deLaPrueba ? "prueba" : "sección"}. En el documento, los que venían incrustados en el Word vuelven a su sitio («en su sitio»: el párrafo donde se ven); el resto, ${deLaPrueba ? "al final de la tabla" : "tras el contexto"}.` }),
+      h("button", { class: "btn ghost peq", type: "button", onclick: elegir }, icon("plus"), "Añadir")),
+    contenedor);
+}
+
 /* ---- ubicación al crear ---- */
 async function selectorUbicacion(esSeccion, porDefecto) {
   const secciones = await api.ubicaciones(S.capitulo);
@@ -708,6 +785,7 @@ function cuerpoPrueba(ubicacion) {
         campoTexto("version", "Versión", { ancho: true }))),
     editorExtras(),
     galeria(),
+    bloqueAdjuntos(),
     bloqueAutomatizacion(F.idOriginal || F.valores.id)]);    // null si Robot no está configurado
   return cont;
 }
@@ -718,6 +796,7 @@ function cuerpoSeccion(ubicacion) {
     h("div", { class: "rejilla" }, campoTexto("nombre", "Nombre de la sección", { completo: true }))));
   if (F.modo === "editar") {
     cont.appendChild(editorLista("contexto", "Contexto", { ayuda: "Texto y tablas de la sección, que aparecen tras su título.", conTablas: true }));
+    cont.appendChild(bloqueAdjuntos());
   }
   return cont;
 }
@@ -732,7 +811,7 @@ function mostrarElemento(datos) {
   } else {
     F = {
       modo: "editar", tipo: "seccion", indice: datos.indice, nivel: el.nivel, vista: "form", cambios: new Set(),
-      valores: { nombre: String(el.seccion || ""), contexto: aLista(el.contexto).map(filaDesde) },
+      valores: { nombre: String(el.seccion || ""), contexto: aLista(el.contexto).map(filaDesde), adjuntos: listaAdjuntos(el.adjuntos) },
     };
     mostrar(cuerpoSeccion(null));
   }

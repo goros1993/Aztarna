@@ -25,7 +25,7 @@ from typing import Any
 
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app import esquema, formato, git_pruebas
+from app import adjuntos, esquema, formato, git_pruebas
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_EJECUCION = "ejecucion.yaml"
@@ -572,7 +572,7 @@ def _rutas_imagen(valor: Any) -> set[str]:
 
 
 def congelar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path:
-    """Copia a `pruebas_congeladas/` las pruebas de la ejecución (con sus secciones e imágenes).
+    """Copia a `pruebas_congeladas/` las pruebas de la ejecución (con sus secciones, imágenes y adjuntos).
 
     Tiene el mismo formato que una carpeta de pruebas, así que el informe y la
     revisión de una ejecución cerrada no dependen de cómo evolucionen los YAML.
@@ -591,7 +591,7 @@ def congelar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> Path
         nombre = capitulo["data"].get("capitulo") or capitulo["path"].stem
         _escribir_yaml(destino / capitulo["path"].name, {"capitulo": nombre, "contenido": contenido})
         indice.append({"capitulo": nombre, "archivo": capitulo["path"].name})
-        imagenes |= _rutas_imagen(contenido)
+        imagenes |= _rutas_imagen(contenido) | adjuntos.archivos(contenido)
     _escribir_yaml(destino / "indice.yaml", indice)
     if base is not None:
         configuracion = esquema.archivo_configuracion(base)

@@ -29,7 +29,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import ajustes, bloqueos, esquema, formato, trazabilidad
+from app import adjuntos, ajustes, bloqueos, esquema, formato, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -173,6 +173,10 @@ def _clean_item(item: Any) -> Any:
             images = [str(v).strip() for v in (value or []) if str(v).strip()]
             if images:
                 cleaned[key] = images
+        elif key == "adjuntos":
+            refs = adjuntos.referencias(item)
+            if refs:
+                cleaned[key] = refs
         elif key == "nivel":
             if value not in (None, "", 0):
                 cleaned[key] = int(value)
@@ -190,7 +194,8 @@ def _clean_list(items: Any, field: str) -> list[Any]:
     for item in items:
         cleaned = _clean_item(item)
         empty_text = isinstance(cleaned, str) and not cleaned
-        empty_map = isinstance(cleaned, dict) and not cleaned.get("texto") and not cleaned.get("imagenes") and "tabla" not in cleaned
+        empty_map = (isinstance(cleaned, dict) and not cleaned.get("texto") and not cleaned.get("imagenes")
+                     and not cleaned.get("adjuntos") and "tabla" not in cleaned)
         if not (empty_text or empty_map):
             result.append(cleaned)
     return result
@@ -287,6 +292,10 @@ def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
             cleaned[field] = _clean_list(value, field)
             if any(not isinstance(v, str) for v in cleaned[field]):
                 raise ValueError("'imagenes' debe ser una lista de rutas.")
+        elif field == "adjuntos":
+            if value not in (None, "") and not isinstance(value, list):
+                raise ValueError("'adjuntos' debe ser una lista.")
+            cleaned[field] = adjuntos.lista(value)
         elif field == "etiquetas":
             cleaned[field] = _clean_tags(value)
         elif field == "nivel":
@@ -1129,6 +1138,8 @@ class EditorApi:
             changes["seccion"] = name
         if "contexto" in cambios:
             changes["contexto"] = _clean_list(cambios["contexto"], "contexto")
+        if "adjuntos" in cambios:
+            changes["adjuntos"] = clean_test_changes({"adjuntos": cambios["adjuntos"]})["adjuntos"]
         apply_changes(element, changes)
         self._persist(chapter)
         return {"indice": indice}
@@ -1505,6 +1516,54 @@ class EditorApi:
         rutas = save_uploaded_images([_ArchivoLocal(name, contenido)], self._require_dir() / "imagenes")
         return {"rutas": rutas}
 
+    # --- adjuntos ------------------------------------------------------------
+    @respuesta
+    def elegir_adjuntos(self) -> dict[str, Any]:
+        """Selector del sistema; copia los archivos elegidos a `adjuntos/` (con su nombre)."""
+        import webview
+
+        if self._window is None:
+            raise ValueError("El selector de archivos solo está disponible en la aplicación.")
+        kind = getattr(getattr(webview, "FileDialog", None), "OPEN", None) or webview.OPEN_DIALOG
+        chosen = self._window.create_file_dialog(
+            kind, allow_multiple=True, file_types=("Excel, Word… (*.xlsx;*.xlsm;*.xls;*.docx;*.doc;*.pptx;*.pdf)", "Todos los archivos (*.*)"),
+        )
+        return {"adjuntos": self._copiar_adjuntos([Path(p) for p in chosen or []])}
+
+    def _copiar_adjuntos(self, files: list[Path]) -> list[dict[str, str]]:
+        """Copia los archivos a `adjuntos/`. Uno con el mismo nombre y otro contenido se guarda como «nombre_2»."""
+        self._exigir_escritura()
+        carpeta = self._require_dir() / adjuntos.CARPETA
+        nuevos = []
+        for path in files:
+            if path.stat().st_size > MAX_IMAGE_BYTES:
+                raise ValueError(f"{path.name} supera los 25 MB.")
+            contenido = path.read_bytes()
+            destino, n = carpeta / path.name, 1
+            while destino.exists() and destino.read_bytes() != contenido:
+                n += 1
+                destino = carpeta / f"{path.stem}_{n}{path.suffix}"
+            carpeta.mkdir(parents=True, exist_ok=True)
+            destino.write_bytes(contenido)
+            nuevos.append({"archivo": f"{adjuntos.CARPETA}/{destino.name}"})
+        return nuevos
+
+    @respuesta
+    def abrir_adjunto(self, ruta: str) -> dict[str, Any]:
+        """Abre un adjunto de la prueba con el programa predeterminado del sistema."""
+        base = self._require_dir()
+        archivo = (base / str(ruta)).resolve()
+        if base not in archivo.parents or not archivo.is_file():
+            raise ValueError(f"No se encuentra el adjunto: {ruta}.")
+        if sys.platform.startswith("win"):
+            import os
+            os.startfile(archivo)  # noqa: S606 - archivo de la carpeta de pruebas
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", str(archivo)])  # noqa: S603,S607
+        else:
+            subprocess.Popen(["xdg-open", str(archivo)])  # noqa: S603,S607
+        return {}
+
     # --- validación ---------------------------------------------------------
     @respuesta
     def validar(self) -> dict[str, Any]:
@@ -1532,6 +1591,7 @@ class EditorApi:
                     continue
                 if isinstance(element.get("seccion"), str):
                     self._check_images(add, base, ci, index, "", _image_values(element))
+                    self._check_adjuntos(add, base, ci, index, "", element)
                     self._check_context_tables(add, ci, index, "", element.get("contexto"))
                     continue
                 if "tabla" in element:
@@ -1540,6 +1600,7 @@ class EditorApi:
                     elif len(table_rows(element["tabla"])) != len(element["tabla"].get("filas") or []):
                         add("error", ci, index, "", "Cada fila de la tabla debe ser una lista de celdas.")
                     self._check_images(add, base, ci, index, "", _image_values(element))
+                    self._check_adjuntos(add, base, ci, index, "", element)
                     continue
                 test = element.get("prueba")
                 if not isinstance(test, dict):
@@ -1578,6 +1639,7 @@ class EditorApi:
                 if level is not None and (not isinstance(level, int) or not 1 <= level <= 6):
                     add("aviso", ci, index, test_id, f"Nivel fuera del rango 1-6: {level}.")
                 self._check_images(add, base, ci, index, test_id, _image_values(test))
+                self._check_adjuntos(add, base, ci, index, test_id, test)
         for test_id, places in seen.items():
             if len(places) > 1:
                 where = ", ".join(self._chapters[c]["path"].name for c, _i in places)
@@ -1677,6 +1739,18 @@ class EditorApi:
                 add("aviso", ci, index, test_id, f"Formato de imagen no admitido: {rel}.")
             elif not full.is_file():
                 add("error", ci, index, test_id, f"No existe la imagen: {rel}.")
+
+    @staticmethod
+    def _check_adjuntos(add: Callable[..., None], base: Path, ci: int, index: int, test_id: str, elemento: Any) -> None:
+        """La lista de adjuntos del elemento y los que nombran sus párrafos: que existan sus archivos y dibujos."""
+        if elemento.get("adjuntos") is not None and not isinstance(elemento.get("adjuntos"), list):
+            add("error", ci, index, test_id, "'adjuntos' debe ser una lista.")
+            return
+        for ruta in sorted(adjuntos.archivos(elemento)):
+            if Path(ruta).is_absolute():
+                add("aviso", ci, index, test_id, f"Ruta de adjunto absoluta: {ruta}.")
+            elif not (base / ruta).is_file():
+                add("error", ci, index, test_id, f"No existe el adjunto: {ruta}.")
 
     # --- exportación -----------------------------------------------------------
     @respuesta

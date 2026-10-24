@@ -12,6 +12,8 @@ Requisitos:
     pip install python-docx ruamel.yaml
 """
 import argparse
+import io
+import itertools
 import re
 import struct
 from pathlib import Path
@@ -24,10 +26,12 @@ from docx.oxml.ns import nsdecls
 from docx.oxml.ns import qn
 from docx.oxml.shape import CT_Inline
 from docx.opc.constants import CONTENT_TYPE, RELATIONSHIP_TYPE
+from docx.opc.part import Part
 from docx.parts.image import ImagePart
 from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
+from app import adjuntos as adj
 from app import firma
 from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS, REQ_ETIQUETAS
 from app.editor_core import NOT_CHAPTERS
@@ -219,6 +223,178 @@ def agregar_imagen(run, ruta, ancho):
     run._r.add_drawing(inline)
 
 
+# ----------------------------------------------------------------------
+# Adjuntos: objetos incrustados (ver adjuntos.py)
+# ----------------------------------------------------------------------
+# Adjuntos del elemento que se está escribiendo (prueba, sección…) que aún no han salido en el
+# documento: [{archivo, vista, icono}] (rutas absolutas). Salen en el párrafo que los nombra
+# (insertar_adjuntos); los que no, al final de la tabla de la prueba (fila_adjuntos) o tras el
+# contexto (parrafos_adjuntos).
+_ADJUNTOS_PENDIENTES: list[dict] = []
+_IDS_OBJETO = itertools.count(1)
+ANCHO_ICONO_CM = 2.4
+
+_TIPO_FORMA = (
+    '<v:shapetype id="_x0000_t75" coordsize="21600,21600" o:spt="75" o:preferrelative="t" '
+    'path="m@4@5l@4@11@9@11@9@5xe" filled="f" stroked="f"><v:stroke joinstyle="miter"/><v:formulas>'
+    + "".join(f'<v:f eqn="{e}"/>' for e in (
+        "if lineDrawn pixelLineWidth 0", "sum @0 1 0", "sum 0 0 @1", "prod @2 1 2", "prod @3 21600 pixelWidth",
+        "prod @3 21600 pixelHeight", "sum @0 0 1", "prod @6 1 2", "prod @7 21600 pixelWidth", "sum @8 21600 0",
+        "prod @7 21600 pixelHeight", "sum @10 21600 0"))
+    + '</v:formulas><v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>'
+    '<o:lock v:ext="edit" aspectratio="t"/></v:shapetype>'
+)
+
+
+def preparar_adjuntos(elemento, base_dir):
+    """Antes de escribir una prueba (su contexto y su tabla) o una sección: los adjuntos que tiene."""
+    _ADJUNTOS_PENDIENTES[:] = [
+        {"archivo": (base_dir / a["archivo"]).resolve(),
+         "vista": (base_dir / a["vista_previa"]).resolve() if a.get("vista_previa") else None,
+         "icono": bool(a.get("icono"))}
+        for a in adj.lista(elemento.get("adjuntos"))]
+
+
+def insertar_adjuntos(destino, item, base_dir):
+    """Los adjuntos que van en un párrafo (su clave `adjuntos`), cada uno en un párrafo de `destino`."""
+    for ruta in adj.referencias(item):
+        archivo = (base_dir / ruta).resolve()
+        adjunto = next((a for a in _ADJUNTOS_PENDIENTES if a["archivo"] == archivo), None)
+        if adjunto is None:                   # no está en la lista del elemento: sin su dibujo
+            adjunto = {"archivo": archivo, "vista": None, "icono": True}
+        else:
+            _ADJUNTOS_PENDIENTES.remove(adjunto)
+        parrafo = destino.add_paragraph()
+        compactar(parrafo)
+        escribir_adjunto(parrafo, adjunto)
+
+
+def fila_adjuntos(t):
+    """Fila «Adjuntos» al final de la tabla de la prueba con los que no han salido en su sitio."""
+    if _ADJUNTOS_PENDIENTES:
+        fila = t.add_row()
+        _escribir_pendientes(fila.cells[0].merge(fila.cells[-1]), primero=True)
+
+
+def parrafos_adjuntos(doc):
+    """Tras el contexto de una sección (o un texto del capítulo), los adjuntos que no han salido en su sitio."""
+    if _ADJUNTOS_PENDIENTES:
+        _escribir_pendientes(doc, primero=False)
+
+
+def _escribir_pendientes(destino, primero):
+    """«Adjuntos:» y cada uno incrustado (con su vista previa o como icono) o, si Word no
+    lo sabe incrustar, con su nombre. `destino` es una celda o el documento."""
+    pendientes = list(_ADJUNTOS_PENDIENTES)
+    _ADJUNTOS_PENDIENTES.clear()
+    p = destino.paragraphs[0] if primero else destino.add_paragraph()
+    compactar(p)
+    p.add_run(f"{ETIQUETAS['adjuntos']}:").bold = True
+    for a in pendientes:
+        parrafo = destino.add_paragraph()
+        compactar(parrafo)
+        escribir_adjunto(parrafo, a)
+
+
+def escribir_adjunto(parrafo, adjunto):
+    """El adjunto incrustado (con su dibujo o con un icono) o, si Word no lo sabe incrustar, su nombre."""
+    archivo = adjunto["archivo"]
+    if not archivo.is_file():
+        print(f"  AVISO: adjunto no encontrado: {archivo}")
+        parrafo.add_run(f"{archivo.name} (no se encuentra)")
+    elif adj.incrustable(archivo):
+        vista = adjunto["vista"] if adjunto["vista"] is not None and adjunto["vista"].is_file() else None
+        incrustar_objeto(parrafo.add_run(), archivo, vista, Cm(ANCHO_IMAGEN_CM), adjunto["icono"])
+    else:
+        parrafo.add_run(archivo.name)
+
+
+def _imagen_de_vista(part, vista):
+    """Relaciona el dibujo con la parte; devuelve (rId, ancho, alto) a su tamaño natural, en EMU."""
+    extension = vista.suffix.lower()
+    if extension in (".emf", ".wmf"):
+        blob = vista.read_bytes()
+        if extension == ".emf" and len(blob) >= 108 and blob[40:44] == b" EMF":
+            izquierda, arriba, derecha, abajo = struct.unpack_from("<4i", blob, 24)   # centésimas de mm
+            escala = 360
+        elif extension == ".wmf" and len(blob) >= 22 and blob[:4] == b"\xd7\xcd\xc6\x9a":   # WMF «placeable»
+            izquierda, arriba, derecha, abajo = struct.unpack_from("<4h", blob, 6)
+            escala = 914400 / (struct.unpack_from("<H", blob, 14)[0] or 1440)            # unidades por pulgada
+        else:
+            raise ValueError(f"Imagen {extension[1:].upper()} inválida: {vista}")
+        tipo = CONTENT_TYPE.X_EMF if extension == ".emf" else CONTENT_TYPE.X_WMF
+        imagen = ImagePart(part.package.next_partname(f"/word/media/image%d{extension}"), tipo, blob)
+        rid = part.relate_to(imagen, RELATIONSHIP_TYPE.IMAGE)
+        return rid, int((derecha - izquierda) * escala), int((abajo - arriba) * escala)
+    rid, imagen = part.get_or_add_image(str(vista))
+    return rid, imagen.width, imagen.height
+
+
+def icono_adjunto(nombre):
+    """PNG con un icono de documento y el nombre del archivo, para un adjunto sin vista previa."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    ancho, alto = 240, 200
+    imagen = Image.new("RGB", (ancho, alto), "white")
+    dibujo = ImageDraw.Draw(imagen)
+    verde = "#" + COLOR_CABECERA
+    dibujo.polygon([(80, 10), (140, 10), (165, 35), (165, 120), (80, 120)], fill="white", outline=verde, width=4)
+    dibujo.polygon([(140, 10), (140, 35), (165, 35)], fill=verde)
+    def fuente(tamaño):
+        try:
+            return ImageFont.load_default(tamaño)
+        except TypeError:                 # Pillow antiguo: una sola fuente, de tamaño fijo
+            return ImageFont.load_default()
+    dibujo.text((122, 80), Path(nombre).suffix[1:].upper()[:4], fill=verde, font=fuente(26), anchor="mm")
+    texto = nombre if len(nombre) <= 30 else nombre[:27] + "…"
+    dibujo.text((ancho / 2, 160), texto, fill="black", font=fuente(15), anchor="mm")
+    salida = io.BytesIO()
+    imagen.save(salida, format="PNG")
+    salida.seek(0)
+    return salida
+
+
+def incrustar_objeto(run, archivo, vista, ancho, icono=False):
+    """El adjunto como objeto incrustado en el párrafo.
+
+    Se ve con su dibujo (el del documento original, a su tamaño, sin pasar de
+    `ancho`) o, sin él, con un icono con el nombre del archivo. Como icono
+    (`icono`, o sin dibujo), un doble clic lo abre en su programa (Excel…);
+    si no, se edita dentro del documento.
+    """
+    extension = archivo.suffix.lower()
+    part = run.part
+    paquete = part.package
+    if extension in adj.PAQUETES:
+        prog_id, tipo = adj.PAQUETES[extension]
+        nombre, relacion = f"/word/embeddings/Adjunto%d{extension}", RELATIONSHIP_TYPE.PACKAGE
+    else:
+        prog_id, tipo = adj.OLE_ANTIGUOS[extension], CONTENT_TYPE.OFC_OLE_OBJECT
+        nombre, relacion = "/word/embeddings/oleObject%d.bin", RELATIONSHIP_TYPE.OLE_OBJECT
+    objeto = Part(paquete.next_partname(nombre), tipo, archivo.read_bytes(), paquete)
+    rid_objeto = part.relate_to(objeto, relacion)
+    if vista is not None:
+        rid_vista, ancho_vista, alto_vista = _imagen_de_vista(part, vista)
+        if ancho_vista <= 0 or alto_vista <= 0:
+            raise ValueError(f"La vista previa tiene dimensiones inválidas: {vista}")
+        ancho = _ancho_limitado(min(ancho, ancho_vista), ancho_vista, alto_vista)
+        alto, aspecto = int(ancho * alto_vista / ancho_vista), "Icon" if icono else "Content"
+    else:
+        rid_vista, _imagen = part.get_or_add_image(icono_adjunto(archivo.name))
+        ancho, alto, aspecto = Cm(ANCHO_ICONO_CM), Cm(ANCHO_ICONO_CM * 200 / 240), "Icon"
+    n = next(_IDS_OBJETO)
+    xml = (
+        f'<w:object {nsdecls("w", "r")} xmlns:v="urn:schemas-microsoft-com:vml" '
+        f'xmlns:o="urn:schemas-microsoft-com:office:office" w:dxaOrig="{int(ancho / 635)}" w:dyaOrig="{int(alto / 635)}">'
+        f'{_TIPO_FORMA}'
+        f'<v:shape id="_x0000_i{1024 + n}" type="#_x0000_t75" style="width:{ancho / 12700:.1f}pt;height:{alto / 12700:.1f}pt" o:ole="">'
+        f'<v:imagedata r:id="{rid_vista}" o:title=""/></v:shape>'
+        f'<o:OLEObject Type="Embed" ProgID="{prog_id}" ShapeID="_x0000_i{1024 + n}" DrawAspect="{aspecto}" '
+        f'ObjectID="_{1700000000 + n}" r:id="{rid_objeto}"/></w:object>'
+    )
+    run._r.append(parse_xml(xml))
+
+
 def escribir_lista(doc, celda, items, numerada, base_dir):
     estilo = "List Number" if numerada else "List Bullet"
     num_id = nueva_numeracion(doc, estilo) if numerada else None
@@ -239,6 +415,7 @@ def escribir_lista(doc, celda, items, numerada, base_dir):
         escribir_inline(p, texto)
         for imagen in imagenes:
             insertar_imagen(celda, base_dir, imagen)
+        insertar_adjuntos(celda, it, base_dir)
 
 
 # ----------------------------------------------------------------------
@@ -289,6 +466,7 @@ def escribir_detalle(celda, items, base_dir, ancho):
         if isinstance(item, dict):
             for imagen in [*(item.get("imagenes") or []), *([item["imagen"]] if item.get("imagen") else [])]:
                 insertar_imagen(celda, base_dir, imagen)
+            insertar_adjuntos(celda, item, base_dir)
 
 
 def unir(valores, separador):
@@ -354,6 +532,8 @@ def tabla_prueba(doc, prueba, base_dir):
         fila = t.add_row()
         celda = fila.cells[0].merge(fila.cells[-1])
         insertar_imagen(celda, base_dir, imagen)
+
+    fila_adjuntos(t)
 
     # Espacio entre tablas
     sep = doc.add_paragraph()
@@ -540,6 +720,7 @@ def escribir_contexto(doc, textos, base_dir=Path(".")):
                     agregar_imagen(p.add_run(), ruta, Cm(ANCHO_IMAGEN_CM))
                 else:
                     print(f"  AVISO: imagen no encontrada: {ruta}")
+            insertar_adjuntos(doc, texto, base_dir)
         else:
             escribir_inline(p, str(texto))
 
@@ -557,11 +738,14 @@ def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
         for el in contenido:
             if "seccion" in el:
                 titulo(doc, el["seccion"], el.get("nivel", 2))
+                preparar_adjuntos(el, base_dir)
                 escribir_contexto(doc, el.get("contexto"), base_dir)
+                parrafos_adjuntos(doc)
             elif "prueba" in el:
                 p = el["prueba"]
                 if p.get("nombre"):
                     titulo(doc, p["nombre"], p.get("nivel") or 3)
+                preparar_adjuntos(p, base_dir)
                 escribir_contexto(doc, p.get("contexto"), base_dir)
                 if p.get("id") in ids:
                     print(f"  AVISO: ID duplicado: {p.get('id')}")
@@ -581,9 +765,13 @@ def escribir_capitulos(doc, capitulos, al_escribir_prueba=None):
                 tabla_requisito(doc, r, base_dir)
                 total += 1
             elif "tabla" in el:
+                preparar_adjuntos(el, base_dir)
                 tabla_informativa(doc, el["tabla"] or {}, base_dir)
+                parrafos_adjuntos(doc)
             elif "texto" in el:
+                preparar_adjuntos(el, base_dir)
                 escribir_contexto(doc, [el["texto"]], base_dir)
+                parrafos_adjuntos(doc)
     return total
 
 

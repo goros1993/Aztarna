@@ -60,7 +60,7 @@ OBLIGATORIOS = ("id", "titulo")
 ORDEN = (
     "nombre", "nivel", "id", "titulo", "descripcion", "parametrizacion", "situacion_inicial", "pasos",
     "maniobra", "automatizable", "entorno", "requisitos", "etiquetas", "fecha", "version",
-    "contexto", "campos_adicionales", "imagenes",
+    "contexto", "campos_adicionales", "imagenes", "adjuntos",
 )
 
 ETIQUETAS = {
@@ -69,6 +69,7 @@ ETIQUETAS = {
     "maniobra": "Maniobra", "automatizable": "Automatizable", "entorno": "Entorno de pruebas",
     "requisitos": "Requisitos", "etiquetas": "Tags", "fecha": "Fecha", "version": "Versión",
     "contexto": "Contexto", "campos_adicionales": "Campos adicionales", "imagenes": "Imágenes",
+    "adjuntos": "Adjuntos",
 }
 
 # Campos que ya no existen. `migrar_prueba` los quita (situacion_final pasa a Ensayo).
@@ -275,7 +276,7 @@ def migrar_prueba(prueba: Any) -> list[tuple[str, str]]:
 def completar(prueba: Any) -> None:
     """Añade, vacíos, los campos del esquema que falten (para que todas las tablas sean iguales)."""
     for clave, valor in prueba_vacia().items():
-        if clave not in prueba and clave not in ("nombre", "nivel", "contexto", "campos_adicionales", "imagenes"):
+        if clave not in prueba and clave not in ("nombre", "nivel", "contexto", "campos_adicionales", "imagenes", "adjuntos"):
             _poner(prueba, clave, valor)
 
 
