@@ -3,6 +3,21 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.1.1
+
+- **Validar ya no salta a otro proyecto.** Al entrar en *Validar* sin nada
+  abierto se recupera la última validación o ejecución usada, pero solo si es
+  de las pruebas abiertas: antes podía abrirse la de otro proyecto (y con ella
+  sus pruebas), p. ej. justo después de importar uno nuevo. Elegirla a mano en
+  *Recientes* sí cambia de proyecto, como antes.
+- **Al abrir otra carpeta de pruebas o importar un proyecto** se deja la
+  validación y la ejecución del anterior (siguen si son de las mismas pruebas).
+  Antes seguían abiertas, y los resultados importados podían enlazarse con las
+  pruebas del proyecto anterior.
+- **Quitar de *Recientes***: cada validación o ejecución reciente tiene una ✕
+  para quitarla de la lista (no borra nada del disco), en los diálogos y en el
+  panel de *Validar*.
+
 ## 1.1.0
 
 Importar poco a poco (también desde Excel), saber dónde estás en el modo

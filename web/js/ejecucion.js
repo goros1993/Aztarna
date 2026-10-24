@@ -342,14 +342,32 @@ function recordarReciente() {
   guardarLocal("ejecuciones-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
-/** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada. */
+function olvidarReciente(carpeta) {
+  guardarLocal("ejecuciones-recientes", JSON.stringify(recientes().filter((r) => r.carpeta !== carpeta)));
+}
+
+/** Al entrar en ejecución: la ejecución que tenga abierta Python o, si no, la última usada
+    de estas pruebas (la de otro proyecto no se abre sola: cambiaría de proyecto). */
 async function recuperarEjecucion() {
   try {
     const actual = await api.ejecucion_estado();
     if (actual) { S.ejecucion = actual; return; }
-    const ultima = recientes()[0];
-    if (ultima) await usarEjecucion(await api.ejecucion_abrir(ultima.carpeta), { silencio: true });
-  } catch (_e) { /* la última ejecución ya no existe: se elegirá otra */ }
+  } catch (_e) { return; }
+  for (const r of recientes()) {
+    try {
+      const abierta = await api.ejecucion_abrir(r.carpeta, true);
+      if (abierta.de_otras_pruebas) continue;
+      await usarEjecucion(abierta, { silencio: true });
+      return;
+    } catch (_e) { /* ya no existe: se prueba la siguiente */ }
+  }
+}
+
+/** Tras abrir otra carpeta de pruebas: Python deja la ejecución y la validación que eran de la anterior. */
+async function sincronizarAbiertas() {
+  S.ejecucion = await api.ejecucion_estado();
+  S.validacion = await api.validacion_estado();
+  pintarModo();
 }
 
 async function usarEjecucion(r, { silencio = false } = {}) {
@@ -399,11 +417,7 @@ async function menuEjecucion() {
   const lista = recientes().filter((r) => !S.ejecucion || r.carpeta !== S.ejecucion.carpeta);
   const cuerpo = h("div", { class: "menu-ejecucion" },
     S.ejecucion ? h("p", {}, "Abierta: ", h("strong", { text: S.ejecucion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.ejecucion.carpeta })) : null,
-    lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
-    lista.map((r) => h("button", {
-      type: "button", class: "btn ghost reciente", title: r.carpeta,
-      onclick: (e) => e.target.closest("dialog").close("reciente:" + r.carpeta),
-    }, h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta }))));
+    listaRecientes(lista, (carpeta, e) => e.target.closest("dialog").close("reciente:" + carpeta), olvidarReciente));
   const r = await dialogo({
     titulo: "Ejecuciones", cuerpo,
     botones: [
@@ -680,9 +694,7 @@ function mostrarPanelEjecucion() {
       h("div", { class: "fila-botones" },
         h("button", { class: "btn", type: "button", onclick: () => nuevaEjecucion(), text: "Nueva ejecución" }),
         h("button", { class: "btn", type: "button", onclick: () => abrirEjecucion(), text: "Abrir ejecución…" })),
-      lista.length ? h("div", { class: "recientes" }, h("p", { class: "muted", text: "Recientes" }),
-        lista.map((r) => h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: () => abrirEjecucion(r.carpeta) },
-          h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta })))) : null));
+      listaRecientes(lista, (carpeta) => abrirEjecucion(carpeta), olvidarReciente)));
     return;
   }
   const c = S.ejecucion;

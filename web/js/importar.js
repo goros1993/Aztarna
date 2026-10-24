@@ -493,7 +493,7 @@ async function ejecutarImportacion() {
   S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
   S.colapsadas.clear(); cacheImagenes.clear(); S.capituloPorModo = {};
   aplicarResumen(r.carpeta);
-  pintarModo();
+  await sincronizarAbiertas();
   await cargarCobertura();
   await cargarNavegacion();
   mostrarVacio();

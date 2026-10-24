@@ -49,9 +49,24 @@ class EditorValidacionApi(EditorEjecucionApi):
     def _estado_validacion(self) -> dict[str, Any]:
         return to_plain(vc.consolidar(self._requiere_validacion(), self._capitulos_validacion()))
 
-    def _abrir_validacion(self, carpeta: Path) -> dict[str, Any]:
+    def _soltar_de_otras_pruebas(self) -> None:
+        super()._soltar_de_otras_pruebas()
+        if self._validacion is not None:
+            pruebas = vc.carpeta_pruebas(self._validacion)
+            if pruebas is None or pruebas.resolve() != self._yaml_dir:
+                self._validacion = None
+
+    def _abrir_validacion(self, carpeta: Path, solo_de_estas_pruebas: bool = False) -> dict[str, Any]:
+        """Abre la validación y su carpeta de pruebas.
+
+        Con `solo_de_estas_pruebas` (al recuperar la última usada) no la abre si es
+        de otras pruebas que las abiertas: no se cambia de proyecto sin pedirlo.
+        """
         validacion = vc.cargar(carpeta)
         pruebas = vc.carpeta_pruebas(validacion)
+        if solo_de_estas_pruebas and self._yaml_dir is not None \
+                and (pruebas is None or pruebas.resolve() != self._pruebas_abiertas()):
+            return {"de_otras_pruebas": True}
         if pruebas is None:
             raise ValueError("No se encuentra la carpeta de pruebas de la validación "
                              f"({validacion['datos'].get('pruebas_yaml')}).")
@@ -69,14 +84,14 @@ class EditorValidacionApi(EditorEjecucionApi):
         return self._estado_validacion() if self._validacion is not None else None
 
     @respuesta
-    def validacion_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
+    def validacion_abrir(self, carpeta: str | None = None, solo_de_estas_pruebas: bool = False) -> dict[str, Any]:
         if carpeta is None:
             elegida = self._dialogo_carpeta()
             if elegida is None:
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
-        return self._abrir_validacion(elegida)
+        return self._abrir_validacion(elegida, solo_de_estas_pruebas)
 
     @respuesta
     def validacion_crear(self, nombre: str, version: str = "", filtro: dict[str, Any] | None = None,

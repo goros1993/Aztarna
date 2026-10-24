@@ -285,6 +285,24 @@ function leerLocal(clave) {
   return Object.prototype.hasOwnProperty.call(PREFS, clave) ? PREFS[clave] : null;
 }
 
+/** Lista «Recientes» ({carpeta, nombre}): cada una se abre con `abrir(carpeta, evento)` y su ✕
+    la quita de la lista con `quitar(carpeta)` (no borra nada del disco). */
+function listaRecientes(lista, abrir, quitar) {
+  if (!lista.length) return null;
+  const caja = h("div", { class: "recientes" }, h("p", { class: "muted", text: "Recientes" }));
+  for (const r of lista) {
+    const fila = h("div", { class: "reciente-fila" },
+      h("button", { type: "button", class: "btn ghost reciente", title: r.carpeta, onclick: (e) => abrir(r.carpeta, e) },
+        h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta })),
+      h("button", {
+        type: "button", class: "btn icono peligro", title: "Quitar de recientes (no borra nada)", "aria-label": `Quitar «${r.nombre}» de recientes`,
+        onclick: () => { quitar(r.carpeta); fila.remove(); if (!caja.querySelector(".reciente-fila")) caja.remove(); },
+      }, icon("x")));
+    caja.appendChild(fila);
+  }
+  return caja;
+}
+
 /* ---- formato de texto en línea ----
    Es el mismo que entiende el exportador a Word (yaml_a_docx.py):
    **negrita**, *cursiva*, [[rojo|texto]], [[#1F4E79|texto]], [[res:amarillo|texto]].

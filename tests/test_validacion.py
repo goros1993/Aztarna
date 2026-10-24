@@ -321,6 +321,24 @@ class ApiTests(unittest.TestCase):
         v = ok(self, otra.validacion_quitar_ejecucion(0))
         self.assertEqual(v["ejecuciones"], [])
 
+    def test_abrir_otro_proyecto_deja_la_validacion_y_la_ejecucion_del_anterior(self):
+        """Al abrir otras pruebas no sigue abierto lo del proyecto anterior, y al recuperar
+        la última usada no se vuelve sola a él (solo si se pide abrirla)."""
+        shutil.copytree(EJEMPLOS, self.tmp / "otro")
+        ok(self, self.api.validacion_crear("V", "", {}, str(self.tmp / "val")))
+        ejecucion = ok(self, self.api.validacion_nueva_ejecucion("T", {"etiquetas": ["regresion"]}, {"entorno_pruebas": "Torre"}))["carpeta"]
+        carpeta = ok(self, self.api.abrir_carpeta(str(self.tmp / "otro")))["carpeta"]
+        self.assertIsNone(ok(self, self.api.validacion_estado()))
+        self.assertIsNone(ok(self, self.api.ejecucion_estado()))
+        self.assertTrue(ok(self, self.api.validacion_abrir(str(self.tmp / "val"), True))["de_otras_pruebas"])
+        self.assertTrue(ok(self, self.api.ejecucion_abrir(ejecucion, True))["de_otras_pruebas"])
+        self.assertEqual(ok(self, self.api.iniciar())["carpeta"], carpeta)      # sigue en el otro proyecto
+        self.assertIsNotNone(ok(self, self.api.validacion_abrir(str(self.tmp / "val")))["carpeta_pruebas"])
+        self.assertNotIn("de_otras_pruebas", ok(self, self.api.ejecucion_abrir(ejecucion, True)))
+        ok(self, self.api.abrir_carpeta(str(self.tmp / "yaml")))                # las mismas pruebas: se quedan
+        self.assertIsNotNone(ok(self, self.api.validacion_estado()))
+        self.assertIsNotNone(ok(self, self.api.ejecucion_estado()))
+
     def test_ejecucion_abierta_por_su_cuenta_se_marca_y_se_puede_anadir(self):
         """Con una validación abierta, una ejecución creada o abierta aparte no cuenta hasta añadirla."""
         ok(self, self.api.validacion_crear("V", "", {}, str(self.tmp / "val")))

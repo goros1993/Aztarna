@@ -596,6 +596,9 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .recientes { margin-top: 22px; display: flex; flex-direction: column; gap: 4px; }
 .reciente { display: flex; flex-direction: column; align-items: flex-start; gap: 0; width: 100%; text-align: left; padding: 6px 10px; }
 .reciente .muted { font-size: 12px; overflow-wrap: anywhere; }
+.reciente-fila { display: flex; align-items: center; gap: 4px; }
+.reciente-fila .reciente { flex: 1; min-width: 0; }
+.menu-ejecucion .recientes { margin-top: 4px; }
 .menu-ejecucion { display: flex; flex-direction: column; gap: 4px; }
 
 /* diálogo de nueva ejecución */

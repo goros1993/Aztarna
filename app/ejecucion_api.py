@@ -121,9 +121,35 @@ class EditorEjecucionApi(EditorApi):
         self._ejecucion = ej.crear(destino, pruebas, nombre, filtro or {}, datos or {}, self._ids_robot(filtro))
         return self._estado()
 
-    def _abrir(self, carpeta: Path) -> dict[str, Any]:
-        """Abre la ejecución y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada)."""
+    def _pruebas_abiertas(self) -> Path | None:
+        """La carpeta de pruebas del proyecto abierto (la vigente, aunque se vean las congeladas de una ejecución cerrada)."""
+        if self._solo_lectura and self._ejecucion is not None:
+            vigente = ej.carpeta_pruebas(self._ejecucion)
+            return vigente.resolve() if vigente is not None else None
+        return self._yaml_dir
+
+    def _es_de_las_pruebas_abiertas(self, ejecucion: dict[str, Any]) -> bool:
+        vigente = ej.carpeta_pruebas(ejecucion) or self._pruebas_en_este_pc(ejecucion)
+        return vigente is not None and vigente.resolve() == self._pruebas_abiertas()
+
+    def _soltar_de_otras_pruebas(self) -> None:
+        super()._soltar_de_otras_pruebas()
+        if self._ejecucion is None:
+            return
+        # Una cerrada se ve con sus pruebas congeladas: al abrir la carpeta de pruebas se deja también.
+        congelada = self._ejecucion["datos"].get("estado") == "cerrada" and ej.carpeta_congelada(self._ejecucion)
+        if congelada or not self._es_de_las_pruebas_abiertas(self._ejecucion):
+            self._ejecucion = None
+
+    def _abrir(self, carpeta: Path, solo_de_estas_pruebas: bool = False) -> dict[str, Any]:
+        """Abre la ejecución y su carpeta de pruebas (la congelada, en solo lectura, si está cerrada).
+
+        Con `solo_de_estas_pruebas` (al recuperar la última usada) no la abre si es
+        de otras pruebas que las abiertas: no se cambia de proyecto sin pedirlo.
+        """
         ejecucion = ej.cargar(carpeta)
+        if solo_de_estas_pruebas and self._yaml_dir is not None and not self._es_de_las_pruebas_abiertas(ejecucion):
+            return {"de_otras_pruebas": True}
         congelada = ej.carpeta_congelada(ejecucion) if ejecucion["datos"].get("estado") == "cerrada" else None
         pruebas = congelada or ej.carpeta_pruebas(ejecucion) or self._pruebas_en_este_pc(ejecucion)
         if pruebas is None:
@@ -150,7 +176,7 @@ class EditorEjecucionApi(EditorApi):
         return self._estado()
 
     @respuesta
-    def ejecucion_abrir(self, carpeta: str | None = None) -> dict[str, Any]:
+    def ejecucion_abrir(self, carpeta: str | None = None, solo_de_estas_pruebas: bool = False) -> dict[str, Any]:
         """Abre una ejecución; si sus pruebas están en otra carpeta, abre también esa carpeta."""
         if carpeta is None:
             elegida = self._dialogo_carpeta()
@@ -158,7 +184,7 @@ class EditorEjecucionApi(EditorApi):
                 return {"cancelado": True}
         else:
             elegida = Path(carpeta)
-        return self._abrir(elegida)
+        return self._abrir(elegida, solo_de_estas_pruebas)
 
     @respuesta
     def ejecucion_reubicar(self, carpeta: str, pruebas: str | None = None) -> dict[str, Any]:

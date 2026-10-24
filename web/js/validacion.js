@@ -22,15 +22,26 @@ function recordarValidacion() {
   guardarLocal("validaciones-recientes", JSON.stringify(lista.slice(0, 8)));
 }
 
-/** Al entrar en el modo: la validación que tenga abierta Python o, si no, la última usada. */
+function olvidarValidacion(carpeta) {
+  guardarLocal("validaciones-recientes", JSON.stringify(recientesValidacion().filter((r) => r.carpeta !== carpeta)));
+}
+
+/** Al entrar en el modo: la validación que tenga abierta Python o, si no, la última usada
+    de estas pruebas (la de otro proyecto no se abre sola: cambiaría de proyecto). */
 async function recuperarValidacion() {
   try {
     const actual = await api.validacion_estado();
     if (actual) { S.validacion = actual; return; }
     if (leerLocal("sin-validacion") === "1") return;
-    const ultima = recientesValidacion()[0];
-    if (ultima) await usarValidacion(await api.validacion_abrir(ultima.carpeta), { silencio: true });
-  } catch (_e) { /* ya no existe: se elegirá otra */ }
+  } catch (_e) { return; }
+  for (const r of recientesValidacion()) {
+    try {
+      const abierta = await api.validacion_abrir(r.carpeta, true);
+      if (abierta.de_otras_pruebas) continue;
+      await usarValidacion(abierta, { silencio: true });
+      return;
+    } catch (_e) { /* ya no existe: se prueba la siguiente */ }
+  }
 }
 
 async function usarValidacion(r, { silencio = false } = {}) {
@@ -83,11 +94,7 @@ async function menuValidacion() {
   const cuerpo = h("div", { class: "menu-ejecucion" },
     h("p", { class: "muted", text: "Una validación agrupa las ejecuciones de una versión (en Automático, Maqueta, Torre…) y da el resultado de cada prueba en cada entorno." }),
     S.validacion ? h("p", {}, "Abierta: ", h("strong", { text: S.validacion.datos.nombre }), h("br"), h("span", { class: "muted", text: S.validacion.carpeta })) : null,
-    lista.length ? h("p", { class: "muted", text: "Recientes" }) : null,
-    lista.map((r) => h("button", {
-      type: "button", class: "btn ghost reciente", title: r.carpeta,
-      onclick: (e) => e.target.closest("dialog").close("reciente:" + r.carpeta),
-    }, h("span", { text: r.nombre }), h("span", { class: "muted", text: r.carpeta }))));
+    listaRecientes(lista, (carpeta, e) => e.target.closest("dialog").close("reciente:" + carpeta), olvidarValidacion));
   const botones = [{ texto: "Cerrar", valor: "", tipo: "ghost" }];
   if (S.validacion) botones.push({ texto: "Trabajar sin validación", valor: "soltar", tipo: "" });
   botones.push({ texto: "Abrir validación…", valor: "abrir", tipo: "" }, { texto: "Nueva validación…", valor: "nueva", tipo: "primary" });

@@ -182,6 +182,7 @@ class EditorImportacionApi(EditorValidacionApi):
                                   mapeo, analisis)
         self._ejecucion = None
         self._load(destino)
+        self._soltar_de_otras_pruebas()        # p. ej., la validación abierta era de otro proyecto
         self._coleccion = "requisitos" if "prueba" not in resultado["carpetas"] and self._req_chapters else "pruebas"
         return {"resultado": resultado, "carpeta": self._summary(), "proyecto": str(destino),
                 "mapeo_guardado": str(guardado) if guardado else None}

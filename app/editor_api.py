@@ -413,6 +413,9 @@ class EditorApi:
             raise ValueError("La posición seleccionada ya no corresponde a una tabla.")
         return chapter, element
 
+    def _soltar_de_otras_pruebas(self) -> None:
+        """Al abrir otra carpeta de pruebas, deja lo que era de la anterior (ejecución, validación)."""
+
     def _load(self, yaml_dir: Path) -> None:
         self._bloqueos.soltar_todos()           # los de la carpeta anterior
         yaml_dir = tests_dir(yaml_dir)          # si se abre el proyecto, su carpeta pruebas/
@@ -699,6 +702,7 @@ class EditorApi:
         if not folder.is_dir():
             raise ValueError("Selecciona una carpeta existente con los capítulos YAML.")
         self._load(folder)
+        self._soltar_de_otras_pruebas()
         return self._summary()
 
     @respuesta
@@ -716,6 +720,7 @@ class EditorApi:
             return {"cancelado": True}
         folder = Path(chosen[0])
         self._load(folder)
+        self._soltar_de_otras_pruebas()
         return self._summary()
 
     @respuesta
