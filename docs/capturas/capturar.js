@@ -385,6 +385,22 @@ const DATOS = process.env.DESTINO || "/home/ana/validacion";
       await boton("Siguiente", "dialog[open]"); await espera(1500);
       await foto("56_excel_mapeo_proyecto");
     },
+
+    async proyecto() {
+      await p.click("#btn-menu");
+      await p.click('[role="menu"] >> text=Nuevo proyecto');
+      await espera();
+      await p.fill("#pedir-texto", "Controlador_B2");
+      await foto("60_nuevo_proyecto");
+      await cerrarDialogo();
+      // Sin el diálogo de carpetas: se crea en DESTINO, como si se hubiera elegido allí.
+      await js(async (ruta) => trasAbrirCarpeta((await window.pywebview.api.crear_proyecto("", ruta)).datos), `${DATOS}/Controlador_B2`);
+      await espera(800);
+      await p.click("#btn-nuevo-capitulo");
+      await espera();
+      await p.fill("#pedir-texto", "Puertas");
+      await foto("61_nuevo_capitulo");
+    },
   };
   await fases[fase]();
   console.log(errores.length ? errores.join("\n") : "SIN ERRORES");

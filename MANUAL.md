@@ -189,6 +189,8 @@ superior.
 
 ### Empezar un proyecto desde cero
 
+![Nuevo proyecto](docs/manual/60_nuevo_proyecto.png)
+
 No hace falta tener un Word para empezar: **⋯ → Nuevo proyecto…** (o el botón
 **Nuevo proyecto** si no hay nada abierto) pide el nombre y la carpeta donde
 crearlo, y crea dentro una carpeta con ese nombre con `pruebas/` y
@@ -197,6 +199,8 @@ crearlo, y crea dentro una carpeta con ese nombre con `pruebas/` y
 que las escribas (ver [Varias personas, entornos y bancos](#varias-personas-entornos-y-bancos)).
 Si abres una carpeta que no tiene pruebas (por ejemplo, la copia recién clonada
 de un repositorio vacío), el editor ofrece crear el proyecto en ella.
+
+![Nuevo capítulo en un proyecto recién creado](docs/manual/61_nuevo_capitulo.png)
 
 Después añade capítulos con **+** junto al desplegable de capítulos (o
 **⋯ → Nuevo capítulo…**) y las secciones y pruebas como en
@@ -238,7 +242,7 @@ en Ubuntu, *Configuración → Apariencia*.
 
 - **Barra superior:** modo (Editar pruebas / Editar requisitos / Validar),
   carpeta de pruebas, en el modo Validar la **ruta** de dónde estás (ver
-  abajo), capítulo, *Robot* (configuración de Robot Framework y número de pruebas
+  abajo), capítulo (con **+** para añadir uno nuevo), *Robot* (configuración de Robot Framework y número de pruebas
   automatizadas), *Recargar* (vuelve a leer los archivos del disco) y el
   menú **⋯** (ver abajo).
 - **Panel izquierdo:** encima, qué se está viendo (*Todas las pruebas* y el
@@ -280,6 +284,10 @@ ejecución › prueba**.
 
 El menú **⋯**, a la derecha de la barra superior, reúne:
 
+- **Nuevo proyecto…**: un proyecto vacío para escribir las pruebas desde cero
+  (ver [Empezar un proyecto desde cero](#empezar-un-proyecto-desde-cero)).
+- **Nuevo capítulo…**: un capítulo vacío al final, de pruebas o de requisitos
+  (lo mismo que el **+** junto al desplegable). No aparece en el modo Validar.
 - **Importar desde Word o Excel…**: pruebas o requisitos de un Word o un
   Excel, o resultados de una ejecución desde Word (ver 7). En el modo
   Validar, solo resultados.
