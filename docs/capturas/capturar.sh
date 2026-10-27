@@ -2,7 +2,7 @@
 # Rehace las capturas del manual (docs/manual/*.png) recorriendo la interfaz real en Chromium.
 #
 # Uso: docs/capturas/capturar.sh [fase…]     (sin fases, todas)
-# Fases: edicion requisitos ejecucion validacion grande resultados excel
+# Fases: edicion requisitos ejecucion validacion grande resultados excel proyecto
 #
 # Necesita el .venv del proyecto y Node con Playwright (npm install -g playwright
 # o PLAYWRIGHT=/ruta/al/módulo). Cada fase copia los ejemplos a DESTINO (por defecto
@@ -14,7 +14,7 @@ REPO=$(cd "$DIR/../.." && pwd)
 export DESTINO=${DESTINO:-/home/ana/validacion}
 export PLAYWRIGHT=${PLAYWRIGHT:-$(npm root -g)/playwright}
 SALIDA=${SALIDA:-$REPO/docs/manual}
-FASES=${*:-edicion requisitos ejecucion validacion grande resultados excel}
+FASES=${*:-edicion requisitos ejecucion validacion grande resultados excel proyecto}
 mkdir -p "$(dirname "$DESTINO")"
 for FASE in $FASES; do
   PUERTO=$((8800 + RANDOM % 100))
