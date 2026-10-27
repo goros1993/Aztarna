@@ -21,6 +21,7 @@ from app import importacion_resultados as ir
 from app import mapeo_importacion as mi
 from app import validacion_core as vc
 from app.editor_api import respuesta, to_plain
+from app.editor_core import create_project
 from app.ejecucion_api import _nombre_carpeta
 from app.validacion_api import EditorValidacionApi
 
@@ -137,6 +138,26 @@ class EditorImportacionApi(EditorValidacionApi):
         if destino.exists() and any(destino.iterdir()):
             raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
         return {"carpeta": str(destino)}
+
+    @respuesta
+    def crear_proyecto(self, nombre: str = "", carpeta: str | None = None) -> dict[str, Any]:
+        """Crea un proyecto vacío (sin importar nada) y lo abre.
+
+        Con `carpeta`, en ella (puede tener otras cosas, pero no un proyecto); si no,
+        en una subcarpeta `nombre` de la que se elija.
+        """
+        if carpeta:
+            destino = Path(carpeta)
+        else:
+            padre = self._dialogo_carpeta()
+            if padre is None:
+                return {"cancelado": True}
+            destino = padre / _nombre_proyecto(nombre)
+            if destino.exists() and any(destino.iterdir()):
+                raise ValueError(f"Ya existe {destino} y no está vacía. Cambia el nombre del proyecto.")
+        self._load(create_project(destino))
+        self._soltar_de_otras_pruebas()
+        return self._summary()
 
     @respuesta
     def importar_ejecutar(self, archivo: str, mapeo: dict[str, Any], modo: str = "nuevo",

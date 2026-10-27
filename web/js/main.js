@@ -99,6 +99,7 @@ function aplicarResumen(resumen) {
   for (const id of ["btn-nueva-prueba", "btn-nueva-seccion", "btn-recargar", "btn-problemas"]) {
     $("#" + id).disabled = !S.capitulos.length;
   }
+  $("#btn-nuevo-capitulo").disabled = !S.carpeta || S.soloLectura || Boolean(S.avisoFormato);
 }
 
 async function cargarNavegacion() {
@@ -160,17 +161,63 @@ async function reabrirSeleccion() {
 async function elegirCarpeta() {
   if (!(await guardia())) return;
   try {
-    const r = await api.elegir_carpeta();
+    let r = await api.elegir_carpeta();
     if (r.cancelado) return;
-    setDirty(false);
-    S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
-    S.colapsadas.clear(); cacheImagenes.clear(); S.capituloPorModo = {};
+    if (r.sin_proyecto) {
+      // Carpeta sin capítulos: se puede empezar ahí un proyecto desde cero.
+      const crear = await confirmar("Esta carpeta no tiene pruebas",
+        `En ${r.carpeta_elegida} no hay ningún proyecto (indice.yaml y capítulos). ¿Crear en ella un proyecto nuevo, vacío, ` +
+        "con sus carpetas pruebas/ y requisitos/?", "Crear proyecto aquí");
+      if (!crear) return;
+      r = await api.crear_proyecto("", r.carpeta_elegida);
+      aviso("Proyecto creado: ya puedes añadir capítulos, secciones y pruebas", "ok");
+    }
+    await trasAbrirCarpeta(r);
+  } catch (e) { fallo(e); }
+}
+
+/** Deja la interfaz con la carpeta (o el proyecto) recién abierta. */
+async function trasAbrirCarpeta(resumen) {
+  setDirty(false);
+  S.capitulo = 0; S.seleccion = null; S.consulta = ""; $("#buscar").value = "";
+  S.colapsadas.clear(); cacheImagenes.clear(); S.capituloPorModo = {};
+  aplicarResumen(resumen);
+  await sincronizarAbiertas();
+  await cargarCobertura();
+  await cargarNavegacion();
+  mostrarVacio();
+  validarEnSegundoPlano();
+}
+
+/** Proyecto nuevo, vacío, sin importar ningún Word: pruebas/ y requisitos/ con un capítulo cada una. */
+async function nuevoProyecto() {
+  if (!(await guardia())) return;
+  const nombre = await pedirTexto("Nuevo proyecto", "Nombre del proyecto", "Elegir dónde crearlo…", {
+    ayuda: "p. ej. Controlador_A1",
+    explicacion: "Se creará una carpeta con este nombre dentro de la que elijas, con pruebas/, requisitos/ y aztarna.yaml (las opciones de Maniobra y Entorno).",
+  });
+  if (!nombre) return;
+  try {
+    const r = await api.crear_proyecto(nombre);
+    if (r.cancelado) return;
+    await trasAbrirCarpeta(r);
+    aviso("Proyecto creado: ya puedes añadir capítulos, secciones y pruebas", "ok");
+  } catch (e) { fallo(e); }
+}
+
+/** Capítulo vacío al final de las pruebas o de los requisitos (según lo que se edite). */
+async function nuevoCapitulo() {
+  if (!S.carpeta || S.soloLectura) return;
+  if (!(await guardia())) return;
+  const nombre = await pedirTexto(enRequisitos() ? "Nuevo capítulo de requisitos" : "Nuevo capítulo de pruebas",
+    "Nombre del capítulo", "Crear capítulo", { explicacion: "Se añade al final, en un archivo YAML propio." });
+  if (!nombre) return;
+  try {
+    const r = await api.crear_capitulo(nombre);
     aplicarResumen(r);
-    await sincronizarAbiertas();
-    await cargarCobertura();
-    await cargarNavegacion();
-    mostrarVacio();
-    validarEnSegundoPlano();
+    $("#sel-capitulo").value = String(r.capitulo);
+    await cambiarCapitulo(String(r.capitulo));
+    aviso(`Capítulo «${nombre}» creado`, "ok");
   } catch (e) { fallo(e); }
 }
 
@@ -349,6 +396,7 @@ function iniciarDivisor() {
 /* ---- arranque ---- */
 function conectar() {
   $("#btn-carpeta").addEventListener("click", elegirCarpeta);
+  $("#btn-nuevo-capitulo").addEventListener("click", nuevoCapitulo);
   $("#sel-capitulo").addEventListener("change", (e) => cambiarCapitulo(e.target.value));
   $("#btn-recargar").addEventListener("click", async () => {
     if (!(await guardia())) return;

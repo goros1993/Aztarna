@@ -35,6 +35,7 @@ from app.editor_core import (
     LIST_FIELDS,
     block_range,
     change_levels,
+    create_chapter,
     delete_section,
     delete_test,
     find_duplicate_id,
@@ -568,6 +569,21 @@ class EditorApi:
         self._coleccion = "requisitos"
         return self._summary()
 
+    @respuesta
+    def crear_capitulo(self, nombre: str) -> dict[str, Any]:
+        """Añade un capítulo vacío al final de la colección activa (pruebas o requisitos)."""
+        self._exigir_escritura()
+        if self._requisitos():
+            if self._req_error:
+                raise ValueError(self._req_error)
+            create_chapter(self._req_dir(), nombre)
+            self._cargar_requisitos()
+        else:
+            create_chapter(self._require_dir(), nombre)
+            self._chapters = read_chapters(self._require_dir())
+            self._mtimes.update({c["path"]: c["path"].stat().st_mtime_ns for c in self._chapters})
+        return {**self._summary(), "capitulo": len(self._activos()) - 1}
+
     # --- acerca de -------------------------------------------------------------
     @respuesta
     def acerca_de(self) -> dict[str, Any]:
@@ -728,6 +744,9 @@ class EditorApi:
         if not chosen:
             return {"cancelado": True}
         folder = Path(chosen[0])
+        if not read_chapters(tests_dir(folder)):
+            # Carpeta sin capítulos (vacía, o con otras cosas): la interfaz ofrece crear ahí un proyecto.
+            return {"sin_proyecto": True, "carpeta_elegida": str(folder.resolve())}
         self._load(folder)
         self._soltar_de_otras_pruebas()
         return self._summary()

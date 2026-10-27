@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+import unicodedata
 from io import StringIO
 from pathlib import Path
 from typing import Any
@@ -90,6 +91,90 @@ def read_chapters(yaml_dir: Path) -> list[dict[str, Any]]:
             raise ValueError(f"{path.name} debe tener un mapa y una lista 'contenido'.")
         chapters.append({"path": path, "data": data})
     return chapters
+
+
+def _slug(texto: str) -> str:
+    sin_tildes = "".join(c for c in unicodedata.normalize("NFD", str(texto)) if unicodedata.category(c) != "Mn")
+    return re.sub(r"\W+", "_", sin_tildes.lower()).strip("_")[:40] or "capitulo"
+
+
+def create_chapter(folder: Path, name: str) -> Path:
+    """Añade un capítulo vacío al final de la carpeta (y de su indice.yaml). Devuelve su archivo.
+
+    Si la carpeta no tenía indice.yaml, se crea con los capítulos que ya había, para no esconderlos.
+    """
+    name = str(name or "").strip()
+    if not name:
+        raise ValueError("Escribe el nombre del capítulo.")
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    yaml = roundtrip_yaml()
+    index_path = folder / "indice.yaml"
+    if index_path.is_file():
+        with index_path.open(encoding="utf-8") as source:
+            index = yaml.load(source)
+        if index is None:
+            index = []
+        if not isinstance(index, list):
+            raise ValueError("indice.yaml debe contener una lista de capítulos.")
+    else:
+        index = [{"capitulo": str(c["data"].get("capitulo") or c["path"].stem), "archivo": c["path"].name}
+                 for c in (read_chapters(folder) if any(folder.glob("*.yaml")) else [])]
+    if any(isinstance(e, dict) and str(e.get("capitulo") or "").strip().lower() == name.lower() for e in index):
+        raise ValueError(f"Ya hay un capítulo «{name}».")
+    numbers = [int(m.group(1)) for e in index if isinstance(e, dict)
+               for m in [re.match(r"^(\d+)_", str(e.get("archivo") or ""))] if m]
+    n = max(numbers + [0]) + 1
+    while (path := folder / f"{n:02d}_{_slug(name)}.yaml").exists():
+        n += 1
+    with path.open("w", encoding="utf-8") as target:
+        yaml.dump({"capitulo": name, "contenido": []}, target)
+    index.append({"capitulo": name, "archivo": path.name})
+    with index_path.open("w", encoding="utf-8") as target:
+        yaml.dump(index, target)
+    formato.marcar_carpeta(folder)
+    return path
+
+
+PLANTILLA_CONFIGURACION = """\
+# Opciones de los campos de las pruebas de este proyecto (ver el manual).
+# Mientras no se escriban, Maniobra no tiene opciones y Entorno usa
+# Automático, Maqueta y Torre. Por ejemplo:
+#
+# opciones:
+#   maniobra: [Simplex, Dúplex]
+#   entorno: [Automático, Maqueta, Torre]
+# equivalencias:          # otras formas de escribirlas al importar un Word
+#   maniobra:
+#     S: Simplex
+#     D: Dúplex
+"""
+
+
+def create_project(folder: Path, configuration: bytes | None = None) -> Path:
+    """Crea un proyecto vacío: aztarna.yaml, pruebas/ y requisitos/ con un primer capítulo cada una.
+
+    `configuration` es el contenido del aztarna.yaml (si no, una plantilla comentada).
+    La carpeta puede existir y tener otras cosas (un README, .git…), pero no un proyecto.
+    Devuelve la carpeta de pruebas.
+    """
+    folder = Path(folder)
+    if folder.exists() and not folder.is_dir():
+        raise ValueError(f"{folder} no es una carpeta.")
+    config = folder / esquema.ARCHIVO_CONFIGURACION
+    ocupados = [p.name for p in (config, folder / esquema.CARPETA_PRUEBAS, folder / esquema.CARPETA_REQUISITOS,
+                                 folder / "indice.yaml") if p.exists()]
+    if ocupados:
+        raise ValueError(f"{folder} ya tiene {', '.join(ocupados)}: ábrela en vez de crear un proyecto nuevo.")
+    folder.mkdir(parents=True, exist_ok=True)
+    if configuration:
+        config.write_bytes(configuration)
+    else:
+        config.write_text(PLANTILLA_CONFIGURACION, encoding="utf-8")
+    tests = folder / esquema.CARPETA_PRUEBAS
+    create_chapter(tests, "Pruebas")
+    create_chapter(folder / esquema.CARPETA_REQUISITOS, "Requisitos")
+    return tests
 
 
 def item_key(element: Any) -> str | None:

@@ -187,6 +187,22 @@ la abrirá en solo lectura y te pedirá que la actualices (no la estropea).
 Para cambiar de carpeta de pruebas, pulsa el botón de la carpeta en la barra
 superior.
 
+### Empezar un proyecto desde cero
+
+No hace falta tener un Word para empezar: **⋯ → Nuevo proyecto…** (o el botón
+**Nuevo proyecto** si no hay nada abierto) pide el nombre y la carpeta donde
+crearlo, y crea dentro una carpeta con ese nombre con `pruebas/` y
+`requisitos/` (cada una con su `indice.yaml` y un primer capítulo vacío) y un
+`aztarna.yaml` con las opciones de *Maniobra* y *Entorno* comentadas, para
+que las escribas (ver [Varias personas, entornos y bancos](#varias-personas-entornos-y-bancos)).
+Si abres una carpeta que no tiene pruebas (por ejemplo, la copia recién clonada
+de un repositorio vacío), el editor ofrece crear el proyecto en ella.
+
+Después añade capítulos con **+** junto al desplegable de capítulos (o
+**⋯ → Nuevo capítulo…**) y las secciones y pruebas como en
+[4.4](#44-crear-pruebas-y-secciones). En *Editar requisitos* el **+** añade
+capítulos de requisitos.
+
 El editor recuerda, de una vez para otra, la carpeta de pruebas, el modo en
 que lo dejaste, la última validación y ejecución, el ejecutor, el ancho del
 panel izquierdo y la última carpeta elegida en los diálogos (que se abren
@@ -446,6 +462,9 @@ el contexto, ver [4.9](#49-tablas-que-no-son-pruebas)). Elige **dónde** crearla
 justo después de la prueba seleccionada, dentro de una sección (al final) o
 al final del capítulo. El nivel de título se calcula solo. Rellena los datos
 y pulsa **Crear prueba** (o **Crear sección**).
+
+Para un capítulo nuevo, pulsa **+** junto al desplegable de capítulos: se
+añade vacío al final, en su propio archivo YAML.
 
 ### 4.5 Reordenar
 
