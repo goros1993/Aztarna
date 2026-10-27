@@ -23,10 +23,12 @@ function mostrar(nodo) {
 function mostrarSinCarpeta() {
   F = null;
   mostrar(h("div", { class: "centro" },
-    h("h2", { text: "Abre una carpeta de YAML" }),
-    h("p", { text: "Elige la carpeta que contiene indice.yaml y los capítulos de pruebas." }),
+    h("h2", { text: "Abre un proyecto o empieza uno" }),
+    h("p", { text: "Abre la carpeta del proyecto (o la que contiene indice.yaml y los capítulos de pruebas), crea uno vacío para escribir las pruebas desde cero o impórtalas de un Word o un Excel." }),
     h("div", { class: "fila-botones" },
-      h("button", { class: "btn primary", type: "button", onclick: elegirCarpeta, text: "Abrir carpeta" }))));
+      h("button", { class: "btn primary", type: "button", onclick: elegirCarpeta, text: "Abrir carpeta" }),
+      h("button", { class: "btn", type: "button", onclick: nuevoProyecto, text: "Nuevo proyecto" }),
+      h("button", { class: "btn", type: "button", onclick: asistenteImportar, text: "Importar desde Word o Excel" }))));
 }
 
 function mostrarVacio() {

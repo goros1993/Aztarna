@@ -3,6 +3,17 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.3.0
+
+- **Proyecto nuevo desde cero**, sin importar ningún Word: **⋯ → Nuevo
+  proyecto…** (o el botón de la pantalla inicial) crea la carpeta con
+  `pruebas/` y `requisitos/` (su `indice.yaml` y un primer capítulo vacío) y un
+  `aztarna.yaml` comentado, y la abre. Al abrir una carpeta sin pruebas (antes
+  daba «No se encontraron capítulos YAML») se ofrece crear el proyecto en ella.
+- **Nuevo capítulo**: botón **+** junto al desplegable de capítulos (y en el
+  menú **⋯**) para añadir un capítulo vacío al final, de pruebas o de
+  requisitos.
+
 ## 1.2.0
 
 - **Adjuntos de las pruebas y las secciones**: archivos (un Excel con datos,

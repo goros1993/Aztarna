@@ -8,6 +8,12 @@ const REPOSITORIO = "https://github.com/goros1993/Aztarna";
 function opcionesMenu() {
   const conCapitulos = S.capitulos.length > 0;
   return [
+    { texto: "Nuevo proyecto…", icono: "folder", accion: nuevoProyecto, ayuda: "Crear un proyecto vacío para escribir las pruebas y los requisitos desde cero" },
+    S.modo === "ejecucion" ? null : {
+      texto: "Nuevo capítulo…", icono: "plus", accion: nuevoCapitulo, desactivada: !S.carpeta || S.soloLectura || Boolean(S.avisoFormato),
+      ayuda: enRequisitos() ? "Añadir un capítulo de requisitos vacío al final" : "Añadir un capítulo de pruebas vacío al final",
+    },
+    "-",
     {
       texto: "Importar desde Word o Excel…", icono: "import", accion: asistenteImportar, desactivada: !importarDisponible(),
       ayuda: importarDisponible() ? "Importar pruebas o requisitos de un Word o un Excel (también los resultados de una ejecución, desde Word)" : "Cambia a Editar pruebas o Editar requisitos para importar",

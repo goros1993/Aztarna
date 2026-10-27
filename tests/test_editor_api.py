@@ -1,6 +1,7 @@
 """Pruebas de la API del editor web (no necesitan interfaz ni pywebview)."""
 import base64
 import io
+import os
 import shutil
 import time
 import unittest
@@ -10,8 +11,9 @@ from tempfile import TemporaryDirectory
 from PIL import Image
 from ruamel.yaml import YAML
 
-from app import editor_api
-from app.editor_core import element_level, move_block
+from app import editor_api, esquema
+from app.editor_core import create_chapter, element_level, move_block, read_chapters
+from app.importacion_api import EditorImportacionApi
 
 EJEMPLOS = Path(__file__).resolve().parent.parent / "ejemplos" / "yaml" / "pruebas"
 
@@ -526,6 +528,59 @@ class CierreTests(unittest.TestCase):
         time.sleep(0.4)
         self.assertTrue(self.ventana.destruida)
         self.assertTrue(self.api._al_cerrar_ventana())  # el cierre ya está aceptado
+
+
+class ProyectoNuevoTests(unittest.TestCase):
+    """Empezar un proyecto desde cero, sin importar ningún Word."""
+
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = Path(self._tmp.name).resolve()
+        anterior = os.environ.get("AZTARNA_AJUSTES")          # los ajustes del PC, en la carpeta temporal
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(lambda: os.environ.__setitem__("AZTARNA_AJUSTES", anterior) if anterior else os.environ.pop("AZTARNA_AJUSTES", None))
+        self.addCleanup(esquema.configurar, None)
+        self.api = EditorImportacionApi(None)
+        ok(self, self.api.iniciar())
+
+    def test_crear_proyecto_vacio_y_escribir_pruebas(self):
+        proyecto = self.tmp / "nuevo"
+        (proyecto / ".git").mkdir(parents=True)               # una carpeta con otras cosas también vale
+        resumen = ok(self, self.api.crear_proyecto("", str(proyecto)))
+        self.assertEqual(resumen["carpeta"], str(proyecto / "pruebas"))
+        self.assertEqual([c["nombre"] for c in resumen["capitulos"]], ["Pruebas"])
+        self.assertTrue(resumen["hay_requisitos"])
+        for archivo in ("aztarna.yaml", "pruebas/indice.yaml", "pruebas/01_pruebas.yaml", "pruebas/formato.yaml",
+                        "requisitos/indice.yaml", "requisitos/01_requisitos.yaml"):
+            self.assertTrue((proyecto / archivo).is_file(), archivo)
+        self.assertEqual(esquema.CONFIGURACION, proyecto / "aztarna.yaml")   # la plantilla comentada se lee bien
+
+        ok(self, self.api.crear_seccion(0, {"tipo": "final"}, "Arranque"))
+        ok(self, self.api.crear_prueba(0, {"tipo": "final"}, {"id": "P-1", "titulo": "Primera"}))
+        resumen = ok(self, self.api.crear_capitulo("Puertas"))
+        self.assertEqual(resumen["capitulo"], 1)
+        self.assertEqual([c["archivo"] for c in resumen["capitulos"]], ["01_pruebas.yaml", "02_puertas.yaml"])
+        ok(self, self.api.crear_prueba(1, {"tipo": "final"}, {"id": "P-2", "titulo": "Segunda"}))
+        self.assertEqual(ok(self, self.api.navegacion(0))[-1]["id"], "P-1")
+
+        ok(self, self.api.coleccion("requisitos"))
+        resumen = ok(self, self.api.crear_capitulo("Seguridad"))
+        self.assertEqual([c["nombre"] for c in resumen["capitulos"]], ["Requisitos", "Seguridad"])
+        with self.assertRaisesRegex(ValueError, "Ya hay un capítulo"):
+            create_chapter(proyecto / "requisitos", "seguridad")
+
+        # Otra vez en la misma carpeta, no: ya tiene un proyecto.
+        self.assertIn("ábrela", self.api.crear_proyecto("", str(proyecto))["error"])
+
+    def test_capitulo_nuevo_en_carpeta_sin_indice_conserva_los_que_habia(self):
+        carpeta = self.tmp / "suelta"
+        carpeta.mkdir()
+        (carpeta / "01_demo.yaml").write_text(CAPITULO, encoding="utf-8")
+        create_chapter(carpeta, "Otro")
+        self.assertEqual([c["path"].name for c in read_chapters(carpeta)], ["01_demo.yaml", "02_otro.yaml"])
+        with self.assertRaisesRegex(ValueError, "nombre"):
+            create_chapter(carpeta, "  ")
 
 
 if __name__ == "__main__":

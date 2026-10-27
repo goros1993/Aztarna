@@ -212,6 +212,26 @@ async function confirmar(titulo, texto, textoBoton, peligro = false) {
   return r === "si";
 }
 
+/** Pide un texto en un diálogo; devuelve el texto (sin espacios a los lados) o null si se cancela. */
+async function pedirTexto(titulo, etiqueta, textoBoton, { valor = "", ayuda = "", explicacion = "" } = {}) {
+  const entrada = h("input", { id: "pedir-texto", type: "text", autocomplete: "off", value: valor, placeholder: ayuda });
+  entrada.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && entrada.value.trim()) { e.preventDefault(); entrada.closest("dialog").close("si"); }
+  });
+  setTimeout(() => { entrada.focus(); entrada.select(); }, 0);
+  const r = await dialogo({
+    titulo,
+    cuerpo: h("div", {}, explicacion ? h("p", { text: explicacion }) : null,
+      h("div", { class: "campo" }, h("label", { for: "pedir-texto", text: etiqueta }), entrada)),
+    botones: [
+      { texto: "Cancelar", valor: "no", tipo: "ghost" },
+      { texto: textoBoton, valor: "si", tipo: "primary" },
+    ],
+  });
+  const texto = entrada.value.trim();
+  return r === "si" && texto ? texto : null;
+}
+
 /* ---- imágenes ---- */
 const cacheImagenes = new Map();
 
