@@ -1379,6 +1379,19 @@ O ninguna prueba cumple el criterio elegido, o hay IDs repetidos o vacíos
 **No me deja cerrar la ejecución.**
 Quedan pruebas pendientes. Ejecútalas o márcalas como *No aplica*.
 
+**«Se han recuperado archivos dañados» o «… está dañado» al abrir una ejecución.**
+Un apagón o un pantallazo azul mientras se guardaba puede dejar
+`ejecucion.yaml`, `resultados.yaml` o `validacion.yaml` vacíos o llenos de
+ceros. Cada vez que se guardan, el editor deja la versión anterior al lado
+(`resultados.yaml.anterior`…); al abrir uno dañado lo aparta como
+`….dañado-<fecha>`, pone en su sitio esa copia y te avisa: revisa los últimos
+resultados, porque puede faltar lo que se guardó justo antes del apagón. Si no
+hay copia sana, no la abre (abrirla vacía borraría los resultados al guardar):
+el aviso dice si queda en la carpeta un guardado interrumpido (`….tmp`) que
+pueda tener la última versión; si no, restáurala de una copia de seguridad (en
+Windows, botón derecho sobre el archivo → «Restaurar versiones anteriores»).
+Las evidencias no se ven afectadas.
+
 **La opción de PDF no está disponible.**
 Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se
 genera igualmente.

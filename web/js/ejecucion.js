@@ -404,6 +404,7 @@ async function usarEjecucion(r, { silencio = false } = {}) {
     validarEnSegundoPlano();
     aviso(`Ejecución «${r.datos.nombre}» abierta`, "ok");
   }
+  await avisarRecuperados(r);
 }
 
 async function abrirEjecucion(carpeta = null) {

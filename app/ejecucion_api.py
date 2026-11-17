@@ -167,7 +167,8 @@ class EditorEjecucionApi(EditorApi):
                 esquema.configurar(ej.carpeta_pruebas(ejecucion))   # cerrada antes de copiar el aztarna.yaml
         self._solo_lectura = solo_lectura
         self._ejecucion = ejecucion
-        return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None}
+        return {**self._estado(), "carpeta_pruebas": self._summary() if cambia_carpeta else None,
+                "recuperados": ejecucion.get("recuperados") or []}
 
     @respuesta
     def ejecucion_editar_datos(self, cambios: dict[str, Any]) -> dict[str, Any]:

@@ -94,11 +94,12 @@ def cargar(carpeta: str | Path) -> dict[str, Any]:
     carpeta = Path(carpeta)
     if not es_validacion(carpeta):
         raise ValueError(f"La carpeta no contiene una validación ({ARCHIVO_VALIDACION}).")
-    datos = ej._leer_yaml(carpeta / ARCHIVO_VALIDACION) or {}
+    recuperados: list[str] = []
+    datos = ej._leer_yaml(carpeta / ARCHIVO_VALIDACION, recuperados) or {}
     if not isinstance(datos, dict):
         raise ValueError(f"{ARCHIVO_VALIDACION} no tiene el formato esperado.")
     datos.setdefault("ejecuciones", [])
-    return {"carpeta": carpeta, "datos": datos}
+    return {"carpeta": carpeta, "datos": datos, "recuperados": recuperados}
 
 
 def guardar(validacion: dict[str, Any]) -> None:
@@ -476,7 +477,14 @@ def consolidar(validacion: dict[str, Any], capitulos: list[dict[str, Any]] | Non
             avisos.append({"tipo": "error", "id": "", "mensaje": f"No se encuentra la ejecución {info['ruta']}."})
             ejecuciones.append({**info, "encontrada": False})
             continue
-        ejecucion = lectura.ejecucion(ruta)
+        try:
+            ejecucion = lectura.ejecucion(ruta)
+        except ej.ArchivoDanado as error:
+            avisos.append({"tipo": "error", "id": "", "mensaje": str(error)})
+            ejecuciones.append({**info, "encontrada": False})
+            continue
+        avisos.extend({"tipo": "aviso", "id": "", "mensaje": f"Ejecución «{ejecucion['datos'].get('nombre', '')}»: {m}"}
+                      for m in ejecucion.get("recuperados") or [])
         d = ejecucion["datos"]
         entorno = str(d.get("entorno_pruebas") or "")
         resumen = ej.resumen(ejecucion, capitulos)

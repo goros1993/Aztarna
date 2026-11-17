@@ -3,6 +3,20 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.3.1
+
+- **Ejecuciones y validaciones a prueba de apagones**: un pantallazo azul o un
+  corte de luz mientras se guardaba podía dejar `ejecucion.yaml`,
+  `resultados.yaml` o `validacion.yaml` vacíos o llenos de ceros. Ahora se
+  vuelcan al disco antes de dar el guardado por hecho, y cada guardado deja la
+  versión anterior al lado (`resultados.yaml.anterior`…). Al abrir un archivo
+  dañado se aparta como `….dañado-<fecha>`, se recupera esa versión anterior y
+  se avisa; si no hay copia sana, no se abre con los resultados vacíos (el
+  siguiente guardado los habría borrado) y se explica cómo recuperarlo. En la
+  validación, una ejecución dañada sale como error en vez de impedir abrirla.
+  Las revisiones de la trazabilidad y los ajustes del PC también se vuelcan al
+  disco al guardar.
+
 ## 1.3.0
 
 - **Proyecto nuevo desde cero**, sin importar ningún Word: **⋯ → Nuevo

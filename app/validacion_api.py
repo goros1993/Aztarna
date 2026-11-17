@@ -75,7 +75,8 @@ class EditorValidacionApi(EditorEjecucionApi):
             self._ejecucion = None           # la ejecución abierta era de otra carpeta de pruebas
             self._load(pruebas)
         self._validacion = validacion
-        return {**self._estado_validacion(), "carpeta_pruebas": self._summary() if cambia else None}
+        return {**self._estado_validacion(), "carpeta_pruebas": self._summary() if cambia else None,
+                "recuperados": validacion.get("recuperados") or []}
 
     # --- abrir, crear, cambiar ---------------------------------------------
     @respuesta

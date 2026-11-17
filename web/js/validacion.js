@@ -63,6 +63,7 @@ async function usarValidacion(r, { silencio = false } = {}) {
     mostrarVacio();
     aviso(`Validación «${r.datos.nombre}» abierta`, "ok");
   }
+  await avisarRecuperados(r);
 }
 
 async function refrescarValidacion() {
