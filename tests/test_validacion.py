@@ -219,6 +219,28 @@ class ConsolidarTests(ValidacionBase):
         self.assertFalse(d["ejecuciones"][0]["encontrada"])
         self.assertEqual(d["avisos"][0]["tipo"], "error")
 
+    def test_ejecucion_danada_por_un_apagon(self):
+        """Con copia anterior se recupera y avisa; sin ella, la validación se abre igual con un error."""
+        c = self.ejecucion("torre", "Torre", ["DEMO-PUER-002"])
+        ej.registrar(c, "DEMO-PUER-002", "ok")
+        resultados = c["carpeta"] / ej.ARCHIVO_RESULTADOS
+        resultados.write_bytes(b"\0" * 50)
+        d = vc.consolidar(self.val)
+        self.assertEqual(self.prueba(d, "DEMO-PUER-002")["entornos"]["Torre"]["estado"], "pendiente")   # el de antes del último guardado
+        self.assertIn("resultados.yaml estaba dañado", " ".join(a["mensaje"] for a in d["avisos"]))
+        resultados.write_bytes(b"\0" * 50)
+        resultados.with_name(resultados.name + ".anterior").unlink()
+        d = vc.consolidar(self.val)
+        self.assertFalse(d["ejecuciones"][0]["encontrada"])
+        self.assertIn("está dañado", d["avisos"][0]["mensaje"])
+
+    def test_validacion_danada_se_recupera(self):
+        vc.editar(self.val, {"version": "2.3.1"})
+        (self.tmp / "validacion" / vc.ARCHIVO_VALIDACION).write_bytes(b"")
+        cargada = vc.cargar(self.tmp / "validacion")
+        self.assertEqual(cargada["datos"]["nombre"], "Validación v2.3")
+        self.assertEqual(len(cargada["recuperados"]), 1)
+
 
 class EjemploTests(unittest.TestCase):
     def test_la_validacion_de_ejemplo(self):

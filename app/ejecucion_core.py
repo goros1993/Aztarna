@@ -18,14 +18,15 @@ import hashlib
 import json
 import os
 import shutil
-import tempfile
+from io import StringIO
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ruamel.yaml.error import YAMLError
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app import adjuntos, esquema, formato, git_pruebas
+from app import adjuntos, escritura, esquema, formato, git_pruebas
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_EJECUCION = "ejecucion.yaml"
@@ -189,21 +190,57 @@ def indice_por_id(capitulos: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 # Lectura y escritura
 # ----------------------------------------------------------------------
 def _escribir_yaml(ruta: Path, datos: Any) -> None:
-    """Escritura atómica: un fallo a mitad no deja el archivo roto."""
-    ruta.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporal = tempfile.mkstemp(dir=ruta.parent, prefix=ruta.name, suffix=".tmp")
+    """Escritura atómica y volcada al disco, guardando antes la versión que había (`.anterior`).
+
+    Así ni un fallo a mitad ni un apagón (un pantallazo azul) dejan el archivo
+    roto, y si aun así se rompe, `_leer_yaml` recupera la versión anterior.
+    """
+    salida = StringIO()
+    roundtrip_yaml().dump(datos, salida)
+    escritura.escribir_texto(ruta, salida.getvalue(), conservar_anterior=True)
+
+
+class ArchivoDanado(ValueError):
+    """Un YAML de la ejecución o la validación está dañado y no hay copia sana con la que recuperarlo."""
+
+
+def _cargar_texto(ruta: Path) -> Any:
+    contenido = ruta.read_bytes()
+    if escritura.danado(contenido):
+        raise ValueError("está vacío o lleno de bytes nulos")
+    return roundtrip_yaml().load(contenido.decode("utf-8"))
+
+
+def _leer_yaml(ruta: Path, recuperados: list[str] | None = None) -> Any:
+    """Lee un YAML de la ejecución o la validación; si está dañado, recupera su versión `.anterior`.
+
+    Lo recuperado se apunta en `recuperados` (mensajes para el usuario). Sin copia
+    sana lanza `ArchivoDanado`: abrirlo vacío haría que el siguiente guardado
+    borrase los resultados para siempre.
+    """
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            roundtrip_yaml().dump(datos, f)
-        os.replace(temporal, ruta)
-    except BaseException:
-        Path(temporal).unlink(missing_ok=True)
-        raise
-
-
-def _leer_yaml(ruta: Path) -> Any:
-    with open(ruta, encoding="utf-8") as f:
-        return roundtrip_yaml().load(f)
+        return _cargar_texto(ruta)
+    except (ValueError, YAMLError) as error:   # UnicodeDecodeError es un ValueError
+        motivo = str(error).splitlines()[0] if str(error) else type(error).__name__
+    anterior = escritura.ruta_anterior(ruta)
+    try:
+        datos = _cargar_texto(anterior)
+    except (OSError, ValueError, YAMLError):
+        datos = None
+    if datos is None:
+        sueltos = escritura.temporales_sueltos(ruta)
+        pista = (f" Hay {'un guardado interrumpido' if len(sueltos) == 1 else 'guardados interrumpidos'} en la carpeta "
+                 f"({', '.join(p.name for p in sueltos)}) que puede tener la última versión: revísalo y, si está bien, "
+                 f"cópialo como {ruta.name}." if sueltos else
+                 " Restáuralo de una copia de seguridad (en Windows, botón derecho → «Restaurar versiones anteriores»).")
+        raise ArchivoDanado(f"{ruta} está dañado ({motivo}), probablemente por un apagón mientras se guardaba, "
+                            f"y no hay una copia anterior sana.{pista}")
+    apartado = escritura.recuperar(ruta)
+    if recuperados is not None:
+        recuperados.append(f"{ruta.name} estaba dañado ({motivo}), probablemente por un apagón mientras se guardaba: "
+                           f"se ha recuperado su versión anterior (puede faltar el último cambio). "
+                           f"El dañado queda como {apartado.name}.")
+    return datos
 
 
 def archivo_datos(carpeta: str | Path) -> Path:
@@ -291,12 +328,13 @@ def cargar(carpeta: str | Path) -> dict[str, Any]:
     if not es_ejecucion(carpeta):
         raise ValueError(f"La carpeta no contiene una ejecución ({ARCHIVO_EJECUCION}).")
     archivo = archivo_datos(carpeta)
-    datos = _leer_yaml(archivo) or {}
+    recuperados: list[str] = []
+    datos = _leer_yaml(archivo, recuperados) or {}
     if not isinstance(datos, dict) or not isinstance(datos.get("pruebas"), list):
         raise ValueError(f"{archivo.name} no tiene el formato esperado (falta 'pruebas').")
     ruta_resultados = carpeta / ARCHIVO_RESULTADOS
-    resultados = _leer_yaml(ruta_resultados) if ruta_resultados.is_file() else None
-    return {"carpeta": carpeta, "datos": datos, "resultados": resultados or {}}
+    resultados = _leer_yaml(ruta_resultados, recuperados) if ruta_resultados.is_file() else None
+    return {"carpeta": carpeta, "datos": datos, "resultados": resultados or {}, "recuperados": recuperados}
 
 
 def guardar(ejecucion: dict[str, Any]) -> None:

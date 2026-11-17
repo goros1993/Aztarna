@@ -25,12 +25,10 @@ import argparse
 import csv
 import hashlib
 import json
-import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
-from app import esquema
+from app import escritura, esquema
 from app.editor_core import items_in_chapter, normalize_level, read_chapters, requirements_dir, roundtrip_yaml, tests_dir
 
 ESTADOS = ("cubierto", "sin_cobertura", "no_aplica")
@@ -98,10 +96,7 @@ def guardar_revisiones(carpeta_req: Path, revisiones: dict[str, Any]) -> None:
             ruta.unlink()
         return
     texto = CABECERA_REVISIONES + _a_texto(dict(sorted(revisiones.items())))
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=ruta.parent, prefix=".revisiones.",
-                                     suffix=".tmp", delete=False) as temporal:
-        temporal.write(texto)
-    os.replace(temporal.name, ruta)
+    escritura.escribir_texto(ruta, texto)
 
 
 def _a_texto(valor: Any) -> str:

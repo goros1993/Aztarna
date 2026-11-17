@@ -201,6 +201,18 @@ function dialogo({ titulo, cuerpo, botones, ancho = false }) {
   });
 }
 
+/** Si al abrir una ejecución o validación se recuperó algún YAML dañado (un apagón al guardar), lo explica. */
+async function avisarRecuperados(r) {
+  if (!r || !r.recuperados || !r.recuperados.length) return;
+  await dialogo({
+    titulo: "Se han recuperado archivos dañados",
+    cuerpo: h("div", {},
+      r.recuperados.map((m) => h("p", { text: m })),
+      h("p", { class: "muted", text: "Revisa los últimos resultados antes de seguir: lo que se guardó justo antes del apagón puede faltar." })),
+    botones: [{ texto: "Entendido", valor: "ok", tipo: "primary" }],
+  });
+}
+
 async function confirmar(titulo, texto, textoBoton, peligro = false) {
   const r = await dialogo({
     titulo, cuerpo: texto,

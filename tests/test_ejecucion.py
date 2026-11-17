@@ -369,6 +369,63 @@ def ok(testcase, respuesta):
     return respuesta["datos"]
 
 
+class ApagonTests(EjecucionBase):
+    """Un apagón (un pantallazo azul) a mitad de guardar deja el YAML con ceros, vacío o cortado."""
+
+    def setUp(self):
+        super().setUp()
+        self.ejecucion = self.crear()
+        ej.registrar(self.ejecucion, "DEMO-LLAM-001", "ok")
+        ej.registrar(self.ejecucion, "DEMO-LLAM-002", "no_ok", incidencia="BUG-9")
+        self.resultados = self.carpeta / ej.ARCHIVO_RESULTADOS
+
+    def test_guardar_conserva_la_version_anterior_y_no_deja_temporales(self):
+        anterior = self.resultados.with_name(self.resultados.name + ".anterior")
+        self.assertIn("DEMO-LLAM-001", anterior.read_text(encoding="utf-8"))
+        self.assertNotIn("DEMO-LLAM-002", anterior.read_text(encoding="utf-8"))
+        self.assertEqual(list(self.carpeta.glob("*.tmp")), [])
+
+    def test_resultados_danados_se_recuperan_de_la_version_anterior(self):
+        for danado in (b"\0" * 300, b"", "DEMO-LLAM-001:\n  estado: ok\n  ejecutor: [sin cerrar".encode()):
+            with self.subTest(danado=danado[:10]):
+                ej.registrar(self.ejecucion, "DEMO-LLAM-002", "no_ok", incidencia="BUG-9")
+                self.resultados.write_bytes(danado)
+                cargada = ej.cargar(self.carpeta)
+                self.assertEqual(ej.estado_de(cargada, "DEMO-LLAM-001"), "ok")      # lo de antes del último guardado
+                self.assertEqual(len(cargada["recuperados"]), 1)
+                self.assertIn("resultados.yaml estaba dañado", cargada["recuperados"][0])
+                self.assertTrue(list(self.carpeta.glob("resultados.yaml.dañado-*")))
+                self.assertEqual(ej.cargar(self.carpeta)["recuperados"], [])        # ya está en su sitio
+                for apartado in self.carpeta.glob("resultados.yaml.dañado-*"):
+                    apartado.unlink()
+
+    def test_ejecucion_danada_se_recupera(self):
+        ej.editar_datos(self.ejecucion, {"objeto": "FW 2.4"})
+        archivo = ej.archivo_datos(self.carpeta)
+        archivo.write_bytes(b"\0" * archivo.stat().st_size)
+        cargada = ej.cargar(self.carpeta)
+        self.assertEqual(len(cargada["datos"]["pruebas"]), len(self.ejecucion["datos"]["pruebas"]))
+        self.assertIn("ejecucion.yaml estaba dañado", cargada["recuperados"][0])
+
+    def test_sin_copia_sana_no_se_abre_vacia(self):
+        """Abrirla con los resultados vacíos haría que el siguiente guardado los borrase para siempre."""
+        self.resultados.write_bytes(b"\0" * 100)
+        self.resultados.with_name(self.resultados.name + ".anterior").unlink()
+        with self.assertRaisesRegex(ej.ArchivoDanado, "resultados.yaml está dañado"):
+            ej.cargar(self.carpeta)
+        (self.carpeta / ".resultados.yaml.x1.tmp").write_text("a medias", encoding="utf-8")
+        with self.assertRaisesRegex(ej.ArchivoDanado, "guardado interrumpido"):
+            ej.cargar(self.carpeta)
+
+    def test_al_abrir_por_api_se_avisa_de_lo_recuperado(self):
+        anterior = os.environ.get("AZTARNA_AJUSTES")
+        os.environ["AZTARNA_AJUSTES"] = str(self.tmp / "ajustes.json")
+        self.addCleanup(lambda: os.environ.__setitem__("AZTARNA_AJUSTES", anterior) if anterior else os.environ.pop("AZTARNA_AJUSTES", None))
+        self.resultados.write_bytes(b"\0" * 100)
+        estado = ok(self, EditorEjecucionApi().ejecucion_abrir(str(self.carpeta)))
+        self.assertEqual(len(estado["recuperados"]), 1)
+
+
 class ApiTests(EjecucionBase):
     def setUp(self):
         super().setUp()

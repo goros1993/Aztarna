@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 from typing import Any
 
+from app import escritura
+
 
 def archivo() -> Path:
     personalizado = os.environ.get("AZTARNA_AJUSTES")
@@ -34,9 +36,6 @@ def guardar(cambios: dict[str, Any]) -> None:
     ruta = archivo()
     datos = {**leer(), **cambios}
     try:
-        ruta.parent.mkdir(parents=True, exist_ok=True)
-        temporal = ruta.with_suffix(".tmp")
-        temporal.write_text(json.dumps(datos, ensure_ascii=False, indent=1), encoding="utf-8")
-        os.replace(temporal, ruta)
+        escritura.escribir_texto(ruta, json.dumps(datos, ensure_ascii=False, indent=1))
     except OSError:
         pass  # no poder guardar los ajustes no debe impedir trabajar
