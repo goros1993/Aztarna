@@ -236,6 +236,7 @@ textarea { resize: none; overflow: hidden; line-height: 1.45; display: block; wi
 .bloque-cab h3 { margin: 0; font-size: 14.5px; font-weight: 650; }
 .bloque-cab .ayuda { margin: 0; flex: 1; font-size: 12.5px; color: var(--ink-3); min-width: 200px; }
 .bloque-cab .btn { margin-left: auto; align-self: center; }
+.bloque-cab .btn + .btn { margin-left: -6px; }   /* varios botones: juntos a la derecha */
 
 .rejilla { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px 14px; padding-bottom: 14px; }
 .campo { display: flex; flex-direction: column; gap: 4px; grid-column: span 2; min-width: 0; }
@@ -619,6 +620,11 @@ ol.lectura .vineta { flex: none; min-width: 22px; color: var(--ink-3); text-alig
 .vista-seleccion ul { margin: 0; padding: 0; list-style: none; max-height: 180px; overflow: auto; font-size: 13px; border: 1px solid var(--rule); border-radius: 4px; }
 .vista-seleccion li { padding: 3px 8px; border-bottom: 1px solid var(--rule); }
 .vista-seleccion .tid { font: 12px var(--mono); color: var(--ink-2); }
+.anadir-pruebas input[type=search] { width: 100%; margin: 4px 0 8px; }
+.lista-anadir { max-height: 340px; overflow: auto; border: 1px solid var(--rule); border-radius: 4px; }
+.grupo-anadir h4 { margin: 0; padding: 6px 8px 3px; font-size: 12px; color: var(--ink-2); background: var(--paper); position: sticky; top: 0; }
+.fila-anadir { display: flex; gap: 8px; align-items: baseline; padding: 3px 8px; border-bottom: 1px solid var(--rule); font-size: 13px; cursor: pointer; }
+.fila-anadir .tid { font: 12px var(--mono); color: var(--ink-2); white-space: nowrap; }
 .casilla { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); cursor: pointer; }
 .panel-ejecucion .acciones { flex-wrap: wrap; }
 .origen-panel { margin: 14px 18px 0; padding: 8px 12px; border-radius: 4px; background: var(--accent-soft); color: var(--ink); font-size: 13px; line-height: 1.4; }

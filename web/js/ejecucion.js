@@ -714,7 +714,7 @@ function mostrarPanelEjecucion() {
         ESTADOS.map((e) => h("td", { class: "num" + (t[e] ? " e-txt-" + e : ""), text: t[e] ? String(t[e]) : "·" })));
     })));
   const criterio = Object.entries(d.seleccion || {}).map(([k, v]) => (k === "solo_ids" ? `${[].concat(v).length} pruebas elegidas una a una`
-    : k === "importado_de" ? `resultados importados de ${v}` : `${k}: ${[].concat(v).join(", ")}`)).join(" · ") || "todas las pruebas";
+    : k === "importado_de" ? `resultados importados de ${v}` : `${{ incluir_ids: "además", excluir_ids: "salvo" }[k] || k}: ${[].concat(v).join(", ")}`)).join(" · ") || "todas las pruebas";
   const problemas = r.problemas.length
     ? h("ul", { class: "lista-problemas en-panel" }, r.problemas.map((p) => h("li", { title: p.id ? "Ir a la prueba" : "", onclick: () => { if (p.id) irAPruebaEjecucion(p.id); } },
       h("span", { class: "sev " + p.tipo }), h("span", { class: "donde", text: p.id || "ejecución" }), h("span", { text: p.mensaje }))))
@@ -750,7 +750,8 @@ function mostrarPanelEjecucion() {
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Ejecución" }),
         c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: editarDatosEjecucion, text: "Cambiar datos…", title: "Qué se prueba, entorno de pruebas, banco y responsable" }),
-        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: resincronizar, text: "Resincronizar", title: "Añadir las pruebas nuevas que cumplen el criterio" })),
+        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: resincronizar, text: "Resincronizar", title: "Añadir las pruebas nuevas que cumplen el criterio" }),
+        c.cerrada ? null : h("button", { class: "btn ghost peq", type: "button", onclick: anadirPruebasEjecucion, text: "Añadir pruebas…", title: "Añadir pruebas elegidas una a una, aunque no cumplan el criterio" })),
       d.entorno_pruebas ? null : h("p", { class: "aviso-panel", text: "Esta ejecución no indica su entorno de pruebas (Automático, Maqueta o Torre): en la validación de la versión sus resultados no contarán para ningún entorno. Indícalo con «Cambiar datos…»." }),
       h("dl", { class: "datos-ejecucion" },
         h("dt", { text: "Entorno de pruebas" }), h("dd", { text: d.entorno_pruebas || "(sin indicar)" }),
@@ -893,6 +894,53 @@ async function resincronizar() {
     const { añadidas, ya_no_cumplen: fuera } = r.cambios;
     aviso(añadidas.length ? `Añadidas: ${añadidas.join(", ")}` : "No hay pruebas nuevas que cumplan el criterio", "ok");
     if (fuera.length) aviso(`Ya no cumplen el criterio (se mantienen): ${fuera.join(", ")}`);
+    pintarModo();
+    await cargarNavegacion();
+    mostrarVacio();
+  } catch (e) { fallo(e); }
+}
+
+/** Añade a la ejecución abierta pruebas elegidas una a una (aunque no cumplan su criterio). */
+async function anadirPruebasEjecucion() {
+  let fuera;
+  try { fuera = await api.ejecucion_pruebas_fuera(); } catch (e) { fallo(e); return; }
+  if (!fuera.length) { aviso("Todas las pruebas de la carpeta ya están en la ejecución", "ok"); return; }
+  const nombres = Object.fromEntries(S.capitulos.map((c) => [c.archivo, c.nombre]));
+  const elegidas = new Set();
+  const contador = h("p", { class: "muted" });
+  const lista = h("div", { class: "lista-anadir" });
+  const buscar = h("input", { type: "search", class: "peq", placeholder: "Buscar ID o título…", autocomplete: "off", "aria-label": "Buscar ID o título" });
+  const pintarContador = () => { contador.textContent = elegidas.size ? `${plural(elegidas.size, "prueba elegida", "pruebas elegidas")}; entrarán pendientes.` : "Marca las pruebas que quieres añadir."; };
+  const pintar = () => {
+    const q = buscar.value.trim().toLowerCase();
+    const visibles = fuera.filter((p) => !q || p.id.toLowerCase().includes(q) || p.titulo.toLowerCase().includes(q));
+    const grupos = new Map();
+    for (const p of visibles) {
+      if (!grupos.has(p.archivo)) grupos.set(p.archivo, []);
+      grupos.get(p.archivo).push(p);
+    }
+    lista.replaceChildren(...(visibles.length ? [...grupos].map(([archivo, pruebas]) => h("div", { class: "grupo-anadir" },
+      h("h4", { text: nombres[archivo] || archivo }),
+      pruebas.map((p) => h("label", { class: "fila-anadir" },
+        h("input", { type: "checkbox", checked: elegidas.has(p.id), onchange: (e) => { if (e.target.checked) elegidas.add(p.id); else elegidas.delete(p.id); pintarContador(); } }),
+        h("span", { class: "tid", text: p.id }), h("span", { text: p.titulo })))))
+      : [h("p", { class: "muted", text: "Ninguna prueba coincide con la búsqueda." })]));
+  };
+  buscar.addEventListener("input", debounce(pintar, 120));
+  pintar();
+  pintarContador();
+  const cuerpo = h("div", { class: "anadir-pruebas" },
+    h("p", { text: "Pruebas de la carpeta que no están en la ejecución. Las que marques entran pendientes, aunque no cumplan el criterio (quedan apuntadas en él con «además»)." }),
+    buscar, lista, contador);
+  const r = await dialogo({
+    titulo: `Añadir pruebas a «${S.ejecucion.datos.nombre}»`, cuerpo, ancho: true,
+    botones: [{ texto: "Cancelar", valor: "no", tipo: "ghost" }, { texto: "Añadir", valor: "si", tipo: "primary" }],
+  });
+  if (r !== "si" || !elegidas.size) return;
+  try {
+    const e = await api.ejecucion_anadir_pruebas([...elegidas]);
+    S.ejecucion = e;
+    aviso(`Añadidas: ${e.cambios.añadidas.join(", ")}`, "ok");
     pintarModo();
     await cargarNavegacion();
     mostrarVacio();

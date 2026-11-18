@@ -236,6 +236,36 @@ class CicloTests(EjecucionBase):
         self.assertEqual(cambios["añadidas"], ["DEMO-DIAG-001"])
         self.assertIn("DEMO-DIAG-001", ej.ids_de(ej.cargar(self.carpeta)))
 
+    def test_anadir_pruebas_que_no_cumplen_el_criterio(self):
+        ejecucion = self.crear({"etiquetas": ["regresion"], "excluir_ids": ["DEMO-MANT-001", "DEMO-VAR-001"]})
+        ej.registrar(ejecucion, "DEMO-LLAM-001", "ok")
+        cambios = ej.anadir_pruebas(ejecucion, self.capitulos(), ["DEMO-DIAG-001", "DEMO-VAR-001", "DEMO-LLAM-001", "DEMO-DIAG-001"])
+        self.assertEqual(cambios["añadidas"], ["DEMO-DIAG-001", "DEMO-VAR-001"])        # sin repetir ni la que ya estaba
+        cargada = ej.cargar(self.carpeta)
+        self.assertEqual(ej.ids_de(cargada)[-2:], ["DEMO-DIAG-001", "DEMO-VAR-001"])
+        self.assertEqual(ej.estado_de(cargada, "DEMO-DIAG-001"), "pendiente")
+        self.assertEqual(ej.estado_de(cargada, "DEMO-LLAM-001"), "ok")
+        seleccion = cargada["datos"]["seleccion"]
+        self.assertEqual(list(seleccion["incluir_ids"]), ["DEMO-DIAG-001", "DEMO-VAR-001"])
+        self.assertEqual(list(seleccion["excluir_ids"]), ["DEMO-MANT-001"])
+        self.assertIn("además: DEMO-DIAG-001, DEMO-VAR-001", ej.texto_criterio(seleccion))
+        self.assertEqual(ej.resincronizar(cargada, self.capitulos())["añadidas"], [])  # resincronizar las respeta
+
+    def test_anadir_pruebas_rechaza_lo_que_no_vale(self):
+        ejecucion = self.crear()
+        with self.assertRaisesRegex(ValueError, "ya en la ejecución"):
+            ej.anadir_pruebas(ejecucion, self.capitulos(), ["DEMO-LLAM-001", " "])
+        with self.assertRaisesRegex(ValueError, "DEMO-NO-999"):
+            ej.anadir_pruebas(ejecucion, self.capitulos(), ["DEMO-DIAG-001", "DEMO-NO-999"])
+        self.assertNotIn("DEMO-DIAG-001", ej.ids_de(ej.cargar(self.carpeta)))       # no ha cambiado nada
+
+    def test_anadir_pruebas_a_una_elegida_una_a_una(self):
+        ejecucion = self.crear({"solo_ids": ["DEMO-LLAM-001"]})
+        ej.anadir_pruebas(ejecucion, self.capitulos(), ["DEMO-DIAG-001"])
+        cargada = ej.cargar(self.carpeta)
+        self.assertEqual(ej.ids_de(cargada), ["DEMO-LLAM-001", "DEMO-DIAG-001"])
+        self.assertEqual(list(cargada["datos"]["seleccion"]["solo_ids"]), ["DEMO-LLAM-001", "DEMO-DIAG-001"])
+
     def test_cerrar_exige_que_no_quede_nada_pendiente_y_bloquea_cambios(self):
         ejecucion = self.crear({"etiquetas": ["manual"]})
         with self.assertRaisesRegex(ValueError, "pendientes"):
@@ -486,6 +516,16 @@ class ApiTests(EjecucionBase):
         self.assertEqual(estado["carpeta_pruebas"]["carpeta"], str(self.pruebas.resolve()))
         self.assertEqual(estado["resumen"]["total"], 4)
         self.assertIsNone(ok(self, otra.ejecucion_abrir(str(self.carpeta)))["carpeta_pruebas"])
+
+    def test_anadir_pruebas_por_api(self):
+        self.crear_por_api()
+        fuera = [p["id"] for p in ok(self, self.api.ejecucion_pruebas_fuera())]
+        self.assertIn("DEMO-DIAG-001", fuera)
+        self.assertNotIn("DEMO-LLAM-001", fuera)
+        estado = ok(self, self.api.ejecucion_anadir_pruebas(["DEMO-DIAG-001"]))
+        self.assertEqual(estado["cambios"]["añadidas"], ["DEMO-DIAG-001"])
+        self.assertEqual(estado["resumen"]["totales"]["pendiente"], 5)
+        self.assertNotIn("DEMO-DIAG-001", [p["id"] for p in ok(self, self.api.ejecucion_pruebas_fuera())])
 
     def test_la_ejecucion_de_ejemplo_abre_sin_avisos(self):
         ejemplo = Path(__file__).resolve().parent.parent / "ejemplos" / "ejecuciones" / "regresion_v2.3"
