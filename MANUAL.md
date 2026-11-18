@@ -732,7 +732,15 @@ la barra superior → *Nueva ejecución…*).
    `2026-11-03_Regresión_v2.4`).
 
 La lista de pruebas queda fijada al crearla. Si después alguien etiqueta otra
-prueba, entra con **Resincronizar** (en el resumen).
+prueba (o crea una nueva que cumple el criterio), entra con **Resincronizar**
+(en el resumen, bloque *Ejecución*). Para meter pruebas que **no** cumplen el
+criterio, **Añadir pruebas…** (al lado): lista las pruebas de la carpeta que
+no están en la ejecución, con un buscador por ID o título; las que marques
+entran pendientes, al final, y quedan apuntadas en el criterio («además: …»,
+también en el informe), así que *Resincronizar* las respeta. Solo se puede
+mientras la ejecución está abierta. Si la ejecución es de una validación y la
+prueba no cumple el criterio de la validación, el resumen avisa de que su
+resultado no cuenta en ella.
 
 ### 6.3 Abrir una ejecución
 

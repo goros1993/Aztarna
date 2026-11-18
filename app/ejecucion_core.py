@@ -132,6 +132,10 @@ def cumple_filtro(prueba: dict[str, Any], archivo: str, filtro: dict[str, Any],
     return True
 
 
+# Cómo se llaman en el informe las partes del criterio que no son una ficha.
+NOMBRES_CRITERIO = {"incluir_ids": "además", "excluir_ids": "salvo"}
+
+
 def texto_criterio(seleccion: dict[str, Any] | None) -> str:
     """El criterio de selección en una línea, para el informe."""
     partes = []
@@ -140,6 +144,8 @@ def texto_criterio(seleccion: dict[str, Any] | None) -> str:
             partes.append(f"{len(_lista(v))} pruebas elegidas una a una")
         elif k == "importado_de":
             partes.append(f"resultados importados de {v}")
+        elif k in NOMBRES_CRITERIO:
+            partes.append(f"{NOMBRES_CRITERIO[k]}: {', '.join(_lista(v))}")
         else:
             partes.append(f"{k}: {', '.join(map(str, v)) if isinstance(v, list) else v}")
     return "; ".join(partes) or "todas las pruebas"
@@ -574,6 +580,37 @@ def resincronizar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]],
     if nuevas:
         guardar(ejecucion)
     return {"añadidas": [i["id"] for i in nuevas], "ya_no_cumplen": sorted(actuales - seleccionados)}
+
+
+def anadir_pruebas(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]], ids: list[str],
+                   ids_robot: set[str] | None = None) -> dict[str, list[str]]:
+    """Añade a la ejecución abierta pruebas elegidas una a una, aunque no cumplan su criterio.
+
+    Se apuntan en el criterio (`incluir_ids`, o `solo_ids` si la ejecución se
+    eligió una a una), para que el informe diga la verdad y «Resincronizar» las
+    respete, y se quitan de `excluir_ids`. Entran pendientes, al final.
+    """
+    _exigir_abierta(ejecucion)
+    actuales = set(ids_de(ejecucion))
+    pedidas = [i for i in dict.fromkeys(str(i or "").strip() for i in ids or []) if i and i not in actuales]
+    if not pedidas:
+        raise ValueError("Elige alguna prueba que no esté ya en la ejecución.")
+    existentes = indice_por_id(capitulos)
+    faltan = [i for i in pedidas if i not in existentes]
+    if faltan:
+        raise ValueError(f"No hay ninguna prueba con ID {', '.join(faltan)} en la carpeta de pruebas.")
+    datos = ejecucion["datos"]
+    if not isinstance(datos.get("seleccion"), dict):
+        datos["seleccion"] = {}
+    seleccion = datos["seleccion"]
+    clave = "solo_ids" if seleccion.get("solo_ids") else "incluir_ids"
+    seleccion[clave] = _lista(seleccion.get(clave)) + [i for i in pedidas if i not in _lista(seleccion.get(clave))]
+    excluidas = [i for i in _lista(seleccion.get("excluir_ids")) if i not in pedidas]
+    if excluidas:
+        seleccion["excluir_ids"] = excluidas
+    else:
+        seleccion.pop("excluir_ids", None)
+    return resincronizar(ejecucion, capitulos, ids_robot)
 
 
 def filtrar_contenido(contenido: list[Any], ids: set[str]) -> list[Any]:

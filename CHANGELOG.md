@@ -3,6 +3,16 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.3.2
+
+- **Añadir pruebas a una ejecución abierta**: botón **Añadir pruebas…** en el
+  resumen de la ejecución (junto a *Resincronizar*), con las pruebas de la
+  carpeta que no están en ella, un buscador por ID o título y casillas. Entran
+  pendientes aunque no cumplan el criterio, que las apunta («además: …», en el
+  resumen y en el informe) para que *Resincronizar* las respete.
+- Los botones de la cabecera de un bloque van juntos a la derecha (antes se
+  repartían por la fila).
+
 ## 1.3.1
 
 - **Ejecuciones y validaciones a prueba de apagones**: un pantallazo azul o un

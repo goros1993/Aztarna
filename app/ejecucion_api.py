@@ -387,6 +387,23 @@ class EditorEjecucionApi(EditorApi):
         return {**self._estado(), "importacion": datos}
 
     @respuesta
+    def ejecucion_pruebas_fuera(self) -> list[dict[str, str]]:
+        """Pruebas de la carpeta abierta que no están en la ejecución (para «Añadir pruebas…»)."""
+        dentro = set(ej.ids_de(self._requiere_ejecucion()))
+        return [
+            {"id": item["id"], "archivo": item["archivo"],
+             "titulo": str(item["prueba"].get("titulo") or item["prueba"].get("nombre") or "")}
+            for item in ej.seleccionar(self._chapters, {}) if item["id"] and item["id"] not in dentro
+        ]
+
+    @respuesta
+    def ejecucion_anadir_pruebas(self, ids: list[str]) -> dict[str, Any]:
+        """Añade a la ejecución abierta las pruebas elegidas, aunque no cumplan su criterio."""
+        ejecucion = self._requiere_ejecucion()
+        cambios = ej.anadir_pruebas(ejecucion, self._chapters, ids, self._ids_robot(ejecucion["datos"].get("seleccion")))
+        return {**self._estado(), "cambios": cambios}
+
+    @respuesta
     def ejecucion_resincronizar(self) -> dict[str, Any]:
         ejecucion = self._requiere_ejecucion()
         cambios = ej.resincronizar(ejecucion, self._chapters, self._ids_robot(ejecucion["datos"].get("seleccion")))
