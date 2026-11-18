@@ -3,7 +3,7 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
-## 1.4.0
+## 1.3.2
 
 - **Añadir pruebas a una ejecución abierta**: botón **Añadir pruebas…** en el
   resumen de la ejecución (junto a *Resincronizar*), con las pruebas de la
