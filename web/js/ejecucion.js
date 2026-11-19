@@ -963,8 +963,10 @@ function listaLectura(items, numerada) {
   return h("ol", { class: "lectura" }, filas.map((f) => {
     if (f.forma === "tabla") return h("li", { class: "con-tabla" }, h("div", {}, vistaTabla(f.tabla)));
     if (f.forma === "parametro") {
+      // Cada valor por separado: el de la pasada que se está apuntando se resalta (ver resaltarPasada).
       return h("li", {}, h("span", { class: "vineta", text: "•" }),
-        h("div", {}, h("strong", { text: `${f.parametro}: ` }), f.valores.join(" / ")));
+        h("div", {}, h("strong", { text: `${f.parametro}: ` }), f.valores.flatMap((v, k) => [
+          k ? " / " : null, h("span", { class: "valor-param", dataset: { parametro: f.parametro, valor: v }, text: v })])));
     }
     const marca = numerada && !f.nivel ? `${++n}.` : f.nivel ? "–" : "•";
     return h("li", { style: { "--nivel": String(f.nivel) } },
@@ -972,6 +974,28 @@ function listaLectura(items, numerada) {
       h("div", {}, textoConFormato(f.texto),
         f.imagenes.length ? h("div", { class: "imagenes" }, f.imagenes.map((ruta) => miniatura(ruta, null))) : null));
   }));
+}
+
+/** La parametrización en la ficha de lectura, con las repeticiones al final. */
+function parametrizacionLectura(el) {
+  const lista = listaLectura(el.parametrizacion, false);
+  const repeticiones = Number(el.repeticiones) || 1;
+  if (repeticiones <= 1) return lista;
+  const linea = h("li", {}, h("span", { class: "vineta", text: "•" }),
+    h("div", {}, h("strong", { text: "Repeticiones: " }), String(repeticiones), h("span", { class: "repeticion-actual" })));
+  if (lista.tagName === "OL") { lista.appendChild(linea); return lista; }
+  return h("ol", { class: "lectura" }, linea);
+}
+
+/** Resalta en la ficha de la prueba los valores de la pasada que se está apuntando (y su repetición). */
+function resaltarPasada() {
+  const p = R && R.pasada ? R.pasadas.find((x) => x.clave === R.pasada) : null;
+  document.querySelectorAll(".vista-ejecucion .valor-param").forEach((el) => {
+    el.classList.toggle("actual", Boolean(p && p.configuracion.some(([n, v]) => n === el.dataset.parametro && v === el.dataset.valor)));
+  });
+  document.querySelectorAll(".vista-ejecucion .repeticion-actual").forEach((el) => {
+    el.textContent = p && p.repeticiones > 1 ? ` · ahora la ${p.repeticion}.ª` : "";
+  });
 }
 
 function fichaPrueba(el) {
@@ -989,8 +1013,7 @@ function fichaPrueba(el) {
       aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
     el.descripcion ? bloque("Descripción", h("p", {}, textoConFormato(String(el.descripcion)))) : null,
     aLista(el.contexto).length ? bloque("Contexto", listaLectura(el.contexto, false)) : null,
-    aLista(el.parametrizacion).length || Number(el.repeticiones) > 1 ? bloque("Parametrización", listaLectura(
-      [...aLista(el.parametrizacion), ...(Number(el.repeticiones) > 1 ? [{ parametro: "Repeticiones", valores: [String(el.repeticiones)] }] : [])], false)) : null,
+    aLista(el.parametrizacion).length || Number(el.repeticiones) > 1 ? bloque("Parametrización", parametrizacionLectura(el)) : null,
     bloque("Situación inicial", listaLectura(el.situacion_inicial, false)),
     bloque("Ensayo", listaLectura(el.pasos, true)),
     extras.length ? bloque("Campos adicionales", h("dl", { class: "extras-lectura" }, extras.map(([k, v]) => [
@@ -1050,6 +1073,7 @@ async function mostrarEnEjecucion(datos) {
       h("span", { class: "chip-estado grande e-" + R.agregado, id: "estado-cabecera", text: ESTADO_TXT[R.agregado],
         title: R.pasadas.length ? "Resultado de la prueba: sale de sus pasadas" : null })),
     h("div", { class: "columnas-ejecucion" }, fichaPrueba(el), panelResultado())));
+  resaltarPasada();
 }
 
 /** «Editar esta prueba»: la abre en Editar pruebas (no con las pruebas congeladas de una ejecución cerrada). */
@@ -1198,7 +1222,7 @@ function panelResultado() {
         h("button", { class: "btn primary", type: "button", onclick: guardarYSiguiente, title: "Ctrl+Intro", text: "Guardar y siguiente" })),
     ]);
   }
-  R.pintar = pintar;
+  R.pintar = () => { pintar(); resaltarPasada(); };
   pintar();
   if (!bloqueada) {
     panel.addEventListener("paste", (e) => {

@@ -886,7 +886,9 @@ valores o con repeticiones (ver
 panel el bloque **Pasadas**: una fila por configuración (*Velocidad nominal:
 1,0 · Carga en cabina: 50 %*) y una casilla por repetición, del color de su
 resultado. La pasada elegida (recuadrada) es la que se apunta: resultado,
-observaciones, incidencia, evidencias e historial son de esa pasada. Al
+observaciones, incidencia, evidencias e historial son de esa pasada. En la
+parametrización de la prueba, a la izquierda, se resaltan sus valores (y en
+*Repeticiones*, cuál toca). Al
 abrir la prueba se elige la primera pendiente, y **Guardar y siguiente**
 salta a la siguiente pasada pendiente de la prueba y, cuando no quedan, a la
 siguiente prueba.

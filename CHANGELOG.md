@@ -21,7 +21,8 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   por pasada (configuración × repetición) y cada pasada su resultado, notas,
   evidencias e historial. La prueba es OK solo si todas sus pasadas lo son,
   NO OK en cuanto falla una; la ejecución no se cierra con pasadas
-  pendientes; *Guardar y siguiente* recorre las pasadas pendientes. El
+  pendientes; *Guardar y siguiente* recorre las pasadas pendientes. En la
+  ficha de la prueba se resaltan los valores de la pasada que se apunta. El
   resumen da el avance por pasadas y el informe, el resultado de cada una.
 - En el Word, los parámetros salen como «**Parámetro:** v1 / v2» y las
   repeticiones como «**Repeticiones:** N», y vuelven a serlo al importarlo.
