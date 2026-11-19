@@ -14,7 +14,9 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   repetirla o cambiar la configuración.
 - **Catálogo de parámetros**: un Excel o CSV del proyecto (clave `parametros`
   del `aztarna.yaml`) con los parámetros del configurador, dónde se tocan,
-  qué son y qué valores admiten. El editor los propone al escribir (con su
+  qué son y qué valores admiten. Solo la columna del parámetro es
+  obligatoria; las demás van al gusto (las que no se reconocen se enseñan tal
+  cual, como «Valor por defecto: 1,0»). El editor los propone al escribir (con su
   ubicación) y el panel de problemas avisa de los parámetros o valores que no
   están en él. Ejemplo en `ejemplos/yaml/parametros.csv`.
 - **Pasadas en la ejecución**: la prueba tiene una rejilla con una casilla

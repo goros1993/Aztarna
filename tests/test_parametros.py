@@ -90,6 +90,7 @@ class CatalogoTests(unittest.TestCase):
         self.assertEqual(velocidad["ubicacion"], "Accionamiento › Perfil › Vnom")
         self.assertEqual(velocidad["valores"], ["0,5", "1,0", "1,6", "2,5"])
         self.assertEqual(velocidad["unidad"], "m/s")
+        self.assertEqual(velocidad["otros"], [["Valor por defecto", "1,0"]])
 
     def test_excel_con_titulo_encima_y_columnas_en_otro_orden(self):
         libro = Workbook()
@@ -101,12 +102,25 @@ class CatalogoTests(unittest.TestCase):
         libro.save(self.tmp / "catalogo.xlsx")
         self.assertEqual(parametros.leer_catalogo(self.tmp / "catalogo.xlsx"),
                          [{"parametro": "Número de paradas", "ubicacion": "Instalación", "descripcion": "",
-                           "valores": ["4", "8"], "unidad": ""}])
+                           "valores": ["4", "8"], "unidad": "", "otros": []}])
 
-    def test_sin_columna_parametro(self):
-        (self.tmp / "malo.csv").write_text("A;B\n1;2\n", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "Parámetro"):
-            parametros.leer_catalogo(self.tmp / "malo.csv")
+    def test_otras_columnas_se_conservan_tal_cual(self):
+        (self.tmp / "c.csv").write_text("Nombre en el configurador;Parámetro;Valor por defecto;Módulo\n"
+                                        "Vnom;Velocidad nominal;1,0;\n", encoding="utf-8")
+        p = parametros.leer_catalogo(self.tmp / "c.csv")[0]
+        self.assertEqual((p["parametro"], p["otros"]),
+                         ("Velocidad nominal", [["Nombre en el configurador", "Vnom"], ["Valor por defecto", "1,0"]]))
+
+    def test_sin_columna_parametro_vale_la_primera(self):
+        (self.tmp / "d.csv").write_text("\nSeñal;Rango\nT_puertas;2..8 s\n", encoding="utf-8")
+        self.assertEqual(parametros.leer_catalogo(self.tmp / "d.csv"),
+                         [{"parametro": "T_puertas", "ubicacion": "", "descripcion": "", "valores": [], "unidad": "",
+                           "otros": [["Rango", "2..8 s"]]}])
+
+    def test_vacio(self):
+        (self.tmp / "vacio.csv").write_text("\n;\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "vacío"):
+            parametros.leer_catalogo(self.tmp / "vacio.csv")
 
     def test_aztarna_yaml_indica_el_catalogo(self):
         try:

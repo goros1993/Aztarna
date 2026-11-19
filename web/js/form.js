@@ -655,6 +655,8 @@ function notaParametro(fila) {
     if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
     if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
     if (cat.unidad) partes.push(h("span", { class: "muted", text: `Unidad: ${cat.unidad}` }));
+    // Las demás columnas del catálogo, tal cual («Valor por defecto: 1,0»).
+    for (const [columna, valor] of cat.otros || []) partes.push(h("span", {}, h("span", { class: "muted", text: `${columna}: ` }), valor));
     const fuera = cat.valores.length ? fila.valores.filter((v) => !cat.valores.some((c) => claveNombre(c) === claveNombre(v))) : [];
     if (fuera.length) partes.push(h("span", { class: "aviso-parametro", text: `${fuera.join(", ")}: no ${fuera.length === 1 ? "es un valor" : "son valores"} del catálogo` }));
   } else if (AYUDA_PARAMETROS.catalogo.length) {

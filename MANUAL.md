@@ -496,12 +496,21 @@ ser parámetros y repeticiones. Cómo se pasan en una ejecución: ver
 [6.5](#65-pasar-una-prueba).
 
 **El catálogo de parámetros** es un Excel (`.xlsx`) o un CSV del proyecto con
-una fila por parámetro y las columnas **Parámetro** (obligatoria),
-**Ubicación** (dónde está en el configurador), **Descripción**, **Valores**
-(los admitidos, separados por `;`) y **Unidad**; la primera fila con una
-columna *Parámetro* es la cabecera, así que puede tener un título encima. Se
-indica en el `aztarna.yaml` del proyecto, con la ruta relativa a él, y va a
-Git con las pruebas:
+una fila por parámetro. La única columna obligatoria es la del **Parámetro**
+(su nombre); las demás son al gusto y en cualquier orden:
+
+- estas se reconocen por su nombre (sin importar mayúsculas ni tildes) y
+  tienen uso propio: **Ubicación** (o *Dónde*, *Configurador*, *Ruta*: dónde
+  está en el configurador), **Descripción**, **Valores** (los admitidos,
+  separados por `;` o en líneas; vacía, cualquier valor vale) y **Unidad**;
+- cualquier otra (*Valor por defecto*, *Nombre en el configurador*,
+  *Módulo*…) se enseña tal cual debajo del parámetro, como «Valor por
+  defecto: 1,0».
+
+La cabecera es la primera fila con una columna *Parámetro*, así que puede
+haber un título encima; si ninguna columna se llama así, el parámetro es la
+primera columna. Se indica en el `aztarna.yaml` del proyecto, con la ruta
+relativa a él, y va a Git con las pruebas:
 
 ```yaml
 parametros: parametros.xlsx
