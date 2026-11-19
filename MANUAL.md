@@ -323,6 +323,10 @@ prueba el panel del resultado se pone encima de la prueba.
   Redmine…) con `{id}` donde va el número, por ejemplo
   `https://jira.empresa.com/browse/{id}`. Así las incidencias de los
   resultados (`BUG-123`) se abren con un clic.
+- **Del proyecto abierto** (solo para ver): qué `aztarna.yaml` usa y qué
+  catálogo de parámetros ha cargado (cuántos parámetros o, si no ha podido,
+  por qué), con **Mostrar** para abrir su carpeta. Se cambian en el
+  `aztarna.yaml` del proyecto.
 
 **Esperas.** Lo que tarda (abrir una validación grande, generar un informe,
 importar) muestra una ruleta con el tiempo que lleva. Si una espera pasa de
@@ -515,6 +519,11 @@ relativa a él, y va a Git con las pruebas:
 ```yaml
 parametros: parametros.xlsx
 ```
+
+Debajo de la parametrización (y en **⋯ → Ajustes**) se ve qué catálogo ha
+cargado y cuántos parámetros tiene, o por qué no ha podido. Del Excel se lee
+la hoja que tenga la columna *Parámetro* (si ninguna, la primera); un Excel
+antiguo (`.xls`) hay que guardarlo como `.xlsx` o CSV.
 
 El panel de problemas avisa de los parámetros que no están en el catálogo,
 de los valores que no admite, de los parámetros repetidos o sin valores y de
@@ -1494,6 +1503,21 @@ el aviso dice si queda en la carpeta un guardado interrumpido (`….tmp`) que
 pueda tener la última versión; si no, restáurala de una copia de seguridad (en
 Windows, botón derecho sobre el archivo → «Restaurar versiones anteriores»).
 Las evidencias no se ven afectadas.
+
+**No se carga el catálogo de parámetros.**
+Mira en **⋯ → Ajustes** (o debajo de la parametrización de una prueba) qué
+`aztarna.yaml` usa el proyecto y qué dice del catálogo:
+
+- *El proyecto no tiene aztarna.yaml*: créalo en la carpeta del proyecto
+  (junto a `pruebas/`) o, en una carpeta de pruebas suelta, dentro de ella.
+- *Sin catálogo*: añade `parametros: parametros.xlsx` a ese `aztarna.yaml`
+  (la ruta es relativa a él; una ruta de Windows va sin comillas o entre
+  comillas simples) y pulsa **Recargar**.
+- *No se encuentra…* o *falta…*: la ruta no es la del archivo, el Excel es
+  `.xls` o ninguna hoja tiene una fila de cabecera con *Parámetro*.
+
+Hace falta la versión 1.4.0 o posterior (**⋯ → Acerca de**): las anteriores
+no conocen la clave `parametros` y dan error al leer el `aztarna.yaml`.
 
 **La opción de PDF no está disponible.**
 Instala LibreOffice (o, en Windows, Microsoft Word). El documento de Word se

@@ -1109,3 +1109,9 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .nombre-parametro .sugerencias-fichas { min-width: min(480px, 80vw); }
 .nombre-parametro .sugerencias-fichas .opcion > span:first-child { white-space: nowrap; }
 .nombre-parametro .sugerencias-fichas .usos { overflow: hidden; text-overflow: ellipsis; }
+.estado-catalogo { flex-basis: 100%; font-size: 12px; color: var(--ink-3); }
+.estado-catalogo.con-error { color: var(--warn); font-weight: 600; }
+/* Ajustes: configuración del proyecto abierto */
+.config-proyecto { border-top: 1px solid var(--rule); padding-top: 10px; margin-top: 4px; }
+.fila-config { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.ruta-config { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }

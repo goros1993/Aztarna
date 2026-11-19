@@ -225,16 +225,38 @@ def clave_nombre(texto: Any) -> str:
     return re.sub(r"[\W_]+", "", sin).lower()
 
 
+def _texto_celda(valor: Any) -> str:
+    """Una celda de Excel como se ve: 4 y no 4.0, 0,5 y no 0.5."""
+    if valor is None:
+        return ""
+    if isinstance(valor, bool):
+        return "Sí" if valor else "No"
+    if isinstance(valor, float):
+        return (str(int(valor)) if valor.is_integer() else f"{valor:g}").replace(".", ",")
+    return str(valor).strip()
+
+
+def _tiene_cabecera(filas: list[list[str]]) -> bool:
+    return any(clave_nombre(c) in COLUMNAS["parametro"] for fila in filas for c in fila)
+
+
 def _filas(ruta: Path) -> list[list[str]]:
     if ruta.suffix.lower() in (".xlsx", ".xlsm"):
         from openpyxl import load_workbook
 
         libro = load_workbook(ruta, read_only=True, data_only=True)
         try:
-            hoja = libro.worksheets[0]
-            return [["" if c is None else str(c).strip() for c in fila] for fila in hoja.iter_rows(values_only=True)]
+            hojas = []
+            for hoja in libro.worksheets:
+                if hasattr(hoja, "reset_dimensions"):
+                    hoja.reset_dimensions()      # algunos programas guardan mal el tamaño de la hoja
+                hojas.append([[_texto_celda(c) for c in fila] for fila in hoja.iter_rows(values_only=True)])
         finally:
             libro.close()
+        # La hoja con una columna «Parámetro»; si ninguna la tiene, la primera.
+        return next((h for h in hojas if _tiene_cabecera(h)), hojas[0] if hojas else [])
+    if ruta.suffix.lower() == ".xls":
+        raise ValueError(f"{ruta.name}: es un Excel antiguo (.xls); guárdalo como .xlsx o como CSV.")
     if ruta.suffix.lower() in (".csv", ".txt"):
         texto = ruta.read_text(encoding="utf-8-sig")
         try:

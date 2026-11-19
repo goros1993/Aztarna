@@ -104,6 +104,25 @@ class CatalogoTests(unittest.TestCase):
                          [{"parametro": "Número de paradas", "ubicacion": "Instalación", "descripcion": "",
                            "valores": ["4", "8"], "unidad": "", "otros": []}])
 
+    def test_excel_en_otra_hoja_y_con_numeros(self):
+        libro = Workbook()
+        libro.active.title = "Portada"
+        libro.active.append(["Catálogo del configurador DEMO-A1"])
+        hoja = libro.create_sheet("Parámetros")
+        hoja.append(["Parámetro", "Valores", "Valor por defecto", "Activo"])
+        hoja.append(["Velocidad nominal", "0,5; 1,0", 1.0, True])
+        hoja.append(["Número de paradas", 8, 0.5, None])
+        libro.save(self.tmp / "hojas.xlsx")
+        catalogo = parametros.leer_catalogo(self.tmp / "hojas.xlsx")
+        self.assertEqual([(p["parametro"], p["valores"], p["otros"]) for p in catalogo],
+                         [("Velocidad nominal", ["0,5", "1,0"], [["Valor por defecto", "1"], ["Activo", "Sí"]]),
+                          ("Número de paradas", ["8"], [["Valor por defecto", "0,5"]])])
+
+    def test_excel_antiguo(self):
+        (self.tmp / "viejo.xls").write_bytes(b"\xd0\xcf")
+        with self.assertRaisesRegex(ValueError, "guárdalo como .xlsx"):
+            parametros.leer_catalogo(self.tmp / "viejo.xls")
+
     def test_otras_columnas_se_conservan_tal_cual(self):
         (self.tmp / "c.csv").write_text("Nombre en el configurador;Parámetro;Valor por defecto;Módulo\n"
                                         "Vnom;Velocidad nominal;1,0;\n", encoding="utf-8")
