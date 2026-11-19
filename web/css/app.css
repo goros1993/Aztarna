@@ -1063,21 +1063,27 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .btn.e-no_ok-btn { border-color: var(--st-no_ok); color: var(--st-no_ok); }
 
 /* Parámetros de la parametrización: qué se toca y con qué valores (form.js) */
-.elemento-parametro .contenido { padding: 4px 0 6px; }
-.rejilla-parametro { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(220px, 3fr); gap: 8px 12px; align-items: start; }
-.rejilla-parametro .campo { margin: 0; }
-.rejilla-parametro .campo > label { font-size: 11.5px; color: var(--ink-3); }
-.nombre-parametro input { width: 100%; font-weight: 600; }
-.nota-parametro { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+.elemento-parametro .contenido { padding: 3px 0 5px; }
+.tarjeta-parametro { border: 1px solid var(--rule); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--paper); padding: 6px 10px 7px; }
+.elemento-parametro:hover .tarjeta-parametro, .elemento-parametro:focus-within .tarjeta-parametro { border-color: var(--rule-strong); border-left-color: var(--accent); }
+.rejilla-parametro { display: grid; grid-template-columns: auto minmax(160px, 260px) minmax(0, 1fr); gap: 8px; align-items: center; }
+.rejilla-parametro .campo { grid-column: auto; margin: 0; gap: 0; }
+.rejilla-parametro .campo > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.icono-parametro { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.icono-parametro .ico { width: 15px; height: 15px; }
+.nombre-parametro input { width: 100%; font-weight: 650; border-color: transparent; background: transparent; padding-left: 4px; }
+.nombre-parametro input:hover, .nombre-parametro input:focus { border-color: var(--rule-strong); background: var(--paper); }
+.rejilla-parametro .fichas { min-height: 32px; }
+.nota-parametro { display: flex; flex-wrap: wrap; gap: 3px 14px; margin: 5px 0 0 34px; font-size: 12.5px; color: var(--ink-2); }
 .nota-parametro:empty { display: none; }
-.nota-parametro .ubicacion { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 12px; }
-.nota-parametro .ubicacion .ico { width: 13px; height: 13px; }
+.nota-parametro .ubicacion, .info-parametro .ubicacion { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.nota-parametro .ubicacion .ico, .info-parametro .ubicacion .ico { width: 13px; height: 13px; }
 .nota-parametro .aviso-parametro { color: var(--warn); }
 .pie-parametrizacion { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule); font-size: 13px; }
 .pie-parametrizacion label { font-weight: 600; }
 .pie-parametrizacion input { width: 70px; }
 .pie-parametrizacion .resumen-pasadas { margin-left: auto; color: var(--ink-2); }
-@media (max-width: 700px) { .rejilla-parametro { grid-template-columns: 1fr; } .pie-parametrizacion .resumen-pasadas { margin-left: 0; } }
+@media (max-width: 700px) { .rejilla-parametro { grid-template-columns: auto 1fr; } .rejilla-parametro .campo:last-child { grid-column: 1 / -1; } .nota-parametro { margin-left: 0; } .pie-parametrizacion .resumen-pasadas { margin-left: 0; } }
 
 /* Pasadas de una prueba en la ejecución (configuraciones × repeticiones) */
 .bloque-pasadas .cab-panel .muted { font-size: 12px; margin-left: auto; }
@@ -1096,3 +1102,10 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 /* En la ficha de la prueba: los valores de la pasada que se está apuntando */
 .valor-param.actual { background: var(--accent-soft); color: var(--accent); font-weight: 650; padding: 0 5px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--accent); }
 .repeticion-actual { color: var(--accent); font-weight: 650; }
+/* Parámetros en la ficha de lectura (ejecución y validación) */
+.parametro-lectura .vineta .ico { width: 13px; height: 13px; color: var(--accent); vertical-align: -2px; }
+.info-parametro { display: flex; flex-wrap: wrap; gap: 1px 12px; font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+.info-parametro:empty { display: none; }
+.nombre-parametro .sugerencias-fichas { min-width: min(480px, 80vw); }
+.nombre-parametro .sugerencias-fichas .opcion > span:first-child { white-space: nowrap; }
+.nombre-parametro .sugerencias-fichas .usos { overflow: hidden; text-overflow: ellipsis; }

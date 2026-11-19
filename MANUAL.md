@@ -897,7 +897,9 @@ panel el bloque **Pasadas**: una fila por configuración (*Velocidad nominal:
 resultado. La pasada elegida (recuadrada) es la que se apunta: resultado,
 observaciones, incidencia, evidencias e historial son de esa pasada. En la
 parametrización de la prueba, a la izquierda, se resaltan sus valores (y en
-*Repeticiones*, cuál toca). Al
+*Repeticiones*, cuál toca), y debajo de cada parámetro sale lo que dice de él
+el catálogo: dónde se toca en el configurador, su descripción, su unidad y
+las demás columnas. Al
 abrir la prueba se elige la primera pendiente, y **Guardar y siguiente**
 salta a la siguiente pasada pendiente de la prueba y, cuando no quedan, a la
 siguiente prueba.

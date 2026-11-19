@@ -964,9 +964,11 @@ function listaLectura(items, numerada) {
     if (f.forma === "tabla") return h("li", { class: "con-tabla" }, h("div", {}, vistaTabla(f.tabla)));
     if (f.forma === "parametro") {
       // Cada valor por separado: el de la pasada que se está apuntando se resalta (ver resaltarPasada).
-      return h("li", {}, h("span", { class: "vineta", text: "•" }),
+      return h("li", { class: "parametro-lectura" }, h("span", { class: "vineta" }, icon("parametro")),
         h("div", {}, h("strong", { text: `${f.parametro}: ` }), f.valores.flatMap((v, k) => [
-          k ? " / " : null, h("span", { class: "valor-param", dataset: { parametro: f.parametro, valor: v }, text: v })])));
+          k ? " / " : null, h("span", { class: "valor-param", dataset: { parametro: f.parametro, valor: v }, text: v })]),
+          // Lo que dice el catálogo (dónde se toca…): se completa al tenerlo (ver completarInfoParametros).
+          h("div", { class: "info-parametro", dataset: { parametro: f.parametro } })));
     }
     const marca = numerada && !f.nivel ? `${++n}.` : f.nivel ? "–" : "•";
     return h("li", { style: { "--nivel": String(f.nivel) } },
@@ -981,7 +983,7 @@ function parametrizacionLectura(el) {
   const lista = listaLectura(el.parametrizacion, false);
   const repeticiones = Number(el.repeticiones) || 1;
   if (repeticiones <= 1) return lista;
-  const linea = h("li", {}, h("span", { class: "vineta", text: "•" }),
+  const linea = h("li", { class: "parametro-lectura" }, h("span", { class: "vineta" }, icon("reload")),
     h("div", {}, h("strong", { text: "Repeticiones: " }), String(repeticiones), h("span", { class: "repeticion-actual" })));
   if (lista.tagName === "OL") { lista.appendChild(linea); return lista; }
   return h("ol", { class: "lectura" }, linea);
@@ -1007,7 +1009,7 @@ function fichaPrueba(el) {
   const extras = Object.entries(el.campos_adicionales || {});
   const bloque = (titulo, contenido) => h("section", { class: "bloque" }, h("div", { class: "bloque-cab" }, h("h3", { text: titulo })), contenido);
   // Compacta: los datos en una línea y los bloques juntos, para ver de una un ensayo de 20-30 pasos.
-  return h("div", { class: "ficha-prueba compacta" },
+  const ficha = h("div", { class: "ficha-prueba compacta" },
     meta.length || aLista(el.etiquetas).length ? h("div", { class: "meta-linea" },
       meta.map(([k, v]) => h("span", { class: "meta-item" }, h("span", { class: "k", text: k }), h("span", { class: "v", text: String(v) }))),
       aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
@@ -1022,6 +1024,16 @@ function fichaPrueba(el) {
         : typeof v === "object" && v !== null ? h("pre", { text: JSON.stringify(v, null, 2) }) : textoConFormato(String(v ?? ""))),
     ]))) : null,
     aLista(el.imagenes).length ? bloque("Imágenes", h("div", { class: "imagenes" }, aLista(el.imagenes).map((ruta) => miniatura(String(ruta), null)))) : null);
+  if (ficha.querySelector(".info-parametro")) ayudaParametros().then(() => completarInfoParametros(ficha));
+  return ficha;
+}
+
+/** Debajo de cada parámetro de la ficha, lo que dice de él el catálogo (ubicación, descripción, unidad…). */
+function completarInfoParametros(raiz) {
+  for (const el of raiz.querySelectorAll(".info-parametro")) {
+    const cat = delCatalogo(el.dataset.parametro);
+    el.replaceChildren(...(cat ? infoCatalogo(cat) : []));
+  }
 }
 
 /* ---- panel de resultado ---- */

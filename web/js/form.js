@@ -536,13 +536,14 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
     const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
       lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila)); },
-      placeholder: "Añadir valor…", completo: true,
+      placeholder: fila.valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…", completo: false,
       sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
     });
     const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila));
     const li = h("li", { class: "elemento elemento-parametro" },
       asa,
-      h("div", { class: "contenido" }, h("div", { class: "rejilla-parametro" }, nombre, valores), nota),
+      h("div", { class: "contenido" }, h("div", { class: "tarjeta-parametro" },
+        h("div", { class: "rejilla-parametro" }, h("span", { class: "icono-parametro", title: "Parámetro" }, icon("parametro")), nombre, valores), nota)),
       h("div", { class: "herramientas" },
         botonIcono("up", "Subir (Alt+↑)", () => mover(i, -1)),
         botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
@@ -646,17 +647,24 @@ function valoresSugeridos(nombre) {
   return lista;
 }
 
+/** Lo que dice el catálogo de un parámetro: ubicación en el configurador, descripción, unidad y las demás columnas. */
+function infoCatalogo(cat) {
+  const partes = [];
+  if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
+  if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
+  if (cat.unidad) partes.push(h("span", {}, h("span", { class: "muted", text: "Unidad: " }), cat.unidad));
+  // Las demás columnas del catálogo, tal cual («Valor por defecto: 1,0»).
+  for (const [columna, valor] of cat.otros || []) partes.push(h("span", {}, h("span", { class: "muted", text: `${columna}: ` }), valor));
+  return partes;
+}
+
 /** Ubicación en el configurador, descripción y avisos del parámetro de una fila. */
 function notaParametro(fila) {
   if (!fila.parametro.trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
   const cat = delCatalogo(fila.parametro);
   const partes = [];
   if (cat) {
-    if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
-    if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
-    if (cat.unidad) partes.push(h("span", { class: "muted", text: `Unidad: ${cat.unidad}` }));
-    // Las demás columnas del catálogo, tal cual («Valor por defecto: 1,0»).
-    for (const [columna, valor] of cat.otros || []) partes.push(h("span", {}, h("span", { class: "muted", text: `${columna}: ` }), valor));
+    partes.push(...infoCatalogo(cat));
     const fuera = cat.valores.length ? fila.valores.filter((v) => !cat.valores.some((c) => claveNombre(c) === claveNombre(v))) : [];
     if (fuera.length) partes.push(h("span", { class: "aviso-parametro", text: `${fuera.join(", ")}: no ${fuera.length === 1 ? "es un valor" : "son valores"} del catálogo` }));
   } else if (AYUDA_PARAMETROS.catalogo.length) {
@@ -717,7 +725,7 @@ function campoNombreParametro(fila, alElegir) {
     cerrar();
     entrada.blur();
   }
-  return h("div", { class: "campo con-sugerencias nombre-parametro" }, h("label", { text: "Parámetro" }), entrada, lista);
+  return h("div", { class: "campo con-sugerencias nombre-parametro" }, entrada, lista);
 }
 
 /** Pie de la parametrización: repeticiones y cuántas pasadas tendrá la prueba en la ejecución. */
