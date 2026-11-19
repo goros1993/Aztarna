@@ -1061,3 +1061,35 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .triaje .fila-botones { display: flex; flex-wrap: wrap; gap: 6px; }
 .btn.e-ok-btn { border-color: var(--st-ok); color: var(--st-ok); }
 .btn.e-no_ok-btn { border-color: var(--st-no_ok); color: var(--st-no_ok); }
+
+/* Parámetros de la parametrización: qué se toca y con qué valores (form.js) */
+.elemento-parametro .contenido { padding: 4px 0 6px; }
+.rejilla-parametro { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(220px, 3fr); gap: 8px 12px; align-items: start; }
+.rejilla-parametro .campo { margin: 0; }
+.rejilla-parametro .campo > label { font-size: 11.5px; color: var(--ink-3); }
+.nombre-parametro input { width: 100%; font-weight: 600; }
+.nota-parametro { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 12.5px; color: var(--ink-2); }
+.nota-parametro:empty { display: none; }
+.nota-parametro .ubicacion { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 12px; }
+.nota-parametro .ubicacion .ico { width: 13px; height: 13px; }
+.nota-parametro .aviso-parametro { color: var(--warn); }
+.pie-parametrizacion { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rule); font-size: 13px; }
+.pie-parametrizacion label { font-weight: 600; }
+.pie-parametrizacion input { width: 70px; }
+.pie-parametrizacion .resumen-pasadas { margin-left: auto; color: var(--ink-2); }
+@media (max-width: 700px) { .rejilla-parametro { grid-template-columns: 1fr; } .pie-parametrizacion .resumen-pasadas { margin-left: 0; } }
+
+/* Pasadas de una prueba en la ejecución (configuraciones × repeticiones) */
+.bloque-pasadas .cab-panel .muted { font-size: 12px; margin-left: auto; }
+.tabla-pasadas { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.tabla-pasadas th { text-align: left; font-weight: 500; color: var(--ink-2); padding: 3px 10px 3px 0; white-space: nowrap; vertical-align: middle; }
+.tabla-pasadas td { padding: 3px 0; width: 100%; }
+.casillas { display: flex; flex-wrap: wrap; gap: 4px; }
+.casilla-pasada { min-width: 28px; height: 26px; padding: 0 6px; border-radius: 5px; border: 1px solid var(--st-pendiente); background: var(--paper); color: var(--ink-2); font: 600 12px var(--sans, inherit); cursor: pointer; }
+.casilla-pasada.e-ok { background: var(--st-ok-soft); border-color: var(--st-ok); color: var(--st-ok); }
+.casilla-pasada.e-no_ok { background: var(--st-no_ok-soft); border-color: var(--st-no_ok); color: var(--st-no_ok); }
+.casilla-pasada.e-bloqueada { background: var(--st-bloqueada-soft); border-color: var(--st-bloqueada); color: var(--st-bloqueada); }
+.casilla-pasada.e-no_aplica { background: var(--st-no_aplica-soft); border-color: var(--st-no_aplica); color: var(--st-no_aplica); }
+.casilla-pasada.actual { outline: 2px solid var(--accent); outline-offset: 1px; }
+.casilla-pasada:disabled { cursor: default; }
+.pasada-actual { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }

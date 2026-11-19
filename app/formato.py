@@ -21,7 +21,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-FORMATO = 1
+FORMATO = 2
 ARCHIVO = "formato.yaml"
 
 

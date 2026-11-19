@@ -47,6 +47,11 @@ function mostrarVacio() {
 const aLista = (x) => (Array.isArray(x) ? x : x === null || x === undefined || x === "" ? [] : [x]);
 
 function filaDesde(item) {
+  if (item && typeof item === "object" && !Array.isArray(item) && "parametro" in item) {
+    // Parámetro de la parametrización: qué se toca y con qué valores (ver app/parametros.py).
+    return { texto: "", imagenes: [], nivel: 0, forma: "parametro", extra: {},
+      parametro: String(item.parametro ?? ""), valores: aLista(item.valores).map(String).filter((v) => v.trim()) };
+  }
   if (item && typeof item === "object" && !Array.isArray(item) && item.tabla && typeof item.tabla === "object") {
     return { texto: "", imagenes: [], nivel: 0, forma: "tabla", extra: {}, tabla: valoresDeTabla(item.tabla) };
   }
@@ -65,6 +70,7 @@ function filaDesde(item) {
 function filasAPlano(filas) {
   return filas.map((f) => {
     if (f.forma === "tabla") return { tabla: { ...f.tabla.resto, filas: tablaAPlano(f.tabla.filas) } };
+    if (f.forma === "parametro") return { parametro: f.parametro.trim(), valores: [...f.valores] };
     const mapa = f.forma === "map" || f.imagenes.length || f.nivel || Object.keys(f.extra).length;
     if (!mapa) return f.texto;
     const o = { texto: f.texto };
@@ -109,6 +115,7 @@ function valoresDePrueba(el = {}) {
   const v = {};
   for (const k of CAMPOS_TEXTO) v[k] = el[k] === null || el[k] === undefined ? "" : String(el[k]);
   for (const k of LISTAS) v[k] = aLista(el[k]).map(filaDesde);
+  v.repeticiones = el.repeticiones === null || el.repeticiones === undefined ? "" : String(el.repeticiones);
   v.campos_adicionales = extrasDesde(el.campos_adicionales);
   v.imagenes = aLista(el.imagenes).map(String);
   v.adjuntos = listaAdjuntos(el.adjuntos);
@@ -132,7 +139,7 @@ function serializar(clave) {
 
 function recogerCambios() {
   const claves = F.modo === "nueva" && F.tipo === "prueba"
-    ? [...CAMPOS_TEXTO, ...LISTAS, ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes", "adjuntos"]
+    ? [...CAMPOS_TEXTO, ...LISTAS, "repeticiones", ...MULTIPLES.filter((k) => k !== "criterio_validacion"), ...TEXTOS, "campos_adicionales", "imagenes", "adjuntos"]
     : F.modo === "nueva" && F.tipo === "requisito" ? [...REQ_CAMPOS_TEXTO, ...REQ_LISTAS, ...REQ_MULTIPLES, "campos_adicionales"]
       : [...F.cambios];
   return Object.fromEntries(claves.map((k) => [k, serializar(k)]));
@@ -241,8 +248,11 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
  * [{texto, usos}]) propone, al entrar y al escribir, los valores ya usados en
  * otras pruebas: ↑ ↓ para elegir, Intro o Tab para añadir, Esc para cerrar.
  */
-function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false, decorar = null } = {}) {
-  const valores = F.valores[clave];
+function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false, decorar = null,
+  lista: propia = null, alCambiar = null, placeholder = "Añadir…" } = {}) {
+  // Con `lista` y `alCambiar` edita esa lista (los valores de un parámetro) en vez de F.valores[clave].
+  const valores = propia || F.valores[clave];
+  const cambio = () => (alCambiar ? alCambiar() : tocar(clave));
   const id = "f-" + clave;
   const fichas = h("div", { class: "fichas" });
   const lista = h("div", { class: "sugerencias-fichas", role: "listbox", hidden: true });
@@ -250,7 +260,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
   let usadas = [], opciones = [], activa = -1;
   const entrada = h("input", {
     id, type: "text", autocomplete: "off",
-    placeholder: "Añadir…", "aria-label": `Añadir a ${etiqueta}`,
+    placeholder, "aria-label": `Añadir a ${etiqueta}`,
     onkeydown: (e) => {
       if (!lista.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
         e.preventDefault();
@@ -262,7 +272,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
         e.preventDefault(); e.stopPropagation(); cerrar();
       } else if ((e.key === "Enter" || (conComas && e.key === ",")) && entrada.value.trim()) { e.preventDefault(); añadir(entrada.value); }
       else if (e.key === "Enter") e.preventDefault();
-      else if (e.key === "Backspace" && !entrada.value && valores.length) { valores.pop(); tocar(clave); pintar(); }
+      else if (e.key === "Backspace" && !entrada.value && valores.length) { valores.pop(); cambio(); pintar(); }
     },
     oninput: () => { if (conComas && entrada.value.includes(",")) añadir(entrada.value); else proponer(); },
     onfocus: () => proponer(),
@@ -291,7 +301,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
       if (!valores.includes(parte)) valores.push(parte);
     }
     entrada.value = "";
-    tocar(clave);
+    cambio();
     pintar();
     if (enfocar) { entrada.focus(); proponer(); }
   }
@@ -302,7 +312,7 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
         d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
         h("button", {
         type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar ${t}`,
-        onclick: () => { valores.splice(i, 1); tocar(clave); pintar(); entrada.focus(); },
+        onclick: () => { valores.splice(i, 1); cambio(); pintar(); entrada.focus(); },
       }, "×"));
     }), entrada);
   }
@@ -443,8 +453,9 @@ function aceptarArchivos(el, destino, alCambiar) {
 /* ---- editor de listas (contexto, situaciones, pasos) ---- */
 let filaArrastrada = null;
 
-function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = false } = {}) {
+function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = false, conParametros = false } = {}) {
   const filas = F.valores[clave];
+  const pie = conParametros ? pieParametrizacion() : null;
   const conKeywords = clave !== "contexto" && hayKeywords();
   if (conKeywords) ayuda = (ayuda ? ayuda + " " : "") + "Al escribir se proponen las keywords de Robot.";
   const lista = h("ol", { class: "lista" + (numerada ? " numerada" : "") });
@@ -454,6 +465,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     lista.replaceChildren();
     if (!filas.length) lista.appendChild(h("li", { class: "vacio", text: "Sin elementos." }));
     filas.forEach((fila, i) => lista.appendChild(crearFila(fila, i)));
+    if (pie) pie.actualizar();
     const areas = lista.querySelectorAll(".editable");
     if (enfocar !== null && areas[enfocar]) areas[enfocar].controlFormato.alFinal();   // sin esperar al siguiente fotograma
   }
@@ -517,8 +529,31 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     });
   }
 
+  /** Parámetro: qué se toca (con la ayuda del catálogo) y los valores con los que se pasa la prueba. */
+  function crearFilaParametro(fila, i) {
+    const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
+    const nombre = campoNombreParametro(fila, () => { if (pie) pie.actualizar(); pintar(); });
+    const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
+    const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
+      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila)); },
+      placeholder: "Añadir valor…", completo: true,
+      sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
+    });
+    const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila));
+    const li = h("li", { class: "elemento elemento-parametro" },
+      asa,
+      h("div", { class: "contenido" }, h("div", { class: "rejilla-parametro" }, nombre, valores), nota),
+      h("div", { class: "herramientas" },
+        botonIcono("up", "Subir (Alt+↑)", () => mover(i, -1)),
+        botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
+        botonIcono("trash", "Quitar el parámetro", () => quitar(i), "peligro")));
+    arrastrable(li, asa, fila, i);
+    return li;
+  }
+
   function crearFila(fila, i) {
     if (fila.forma === "tabla") return crearFilaTabla(fila, i);
+    if (fila.forma === "parametro") return crearFilaParametro(fila, i);
     let sugerencias = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
@@ -570,10 +605,141 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
       conTablas ? h("button", {
         class: "btn ghost peq", type: "button", title: "Tabla que no es una prueba (historial, parámetros…)",
         onclick: () => { filas.push({ ...nuevaFila(), forma: "tabla", tabla: tablaNueva(), nueva: true }); tocar(clave); pintar(); },
-      }, icon("table"), "Tabla") : null),
-    lista);
+      }, icon("table"), "Tabla") : null,
+      conParametros ? h("button", {
+        class: "btn ghost peq", type: "button", title: "Parámetro que se toca y valores con los que hay que pasar la prueba",
+        onclick: () => {
+          filas.push({ ...nuevaFila(), forma: "parametro", parametro: "", valores: [] });
+          tocar(clave); pintar();
+          const campos = lista.querySelectorAll(".nombre-parametro input");
+          if (campos.length) campos[campos.length - 1].focus();
+        },
+      }, icon("parametro"), "Parámetro") : null),
+    lista,
+    pie);
   pintar();
+  // Con el catálogo ya cargado, las notas de los parámetros (ubicación, descripción) se completan.
+  const formulario = F;
+  if (conParametros) ayudaParametros(true).then(() => { if (F === formulario && !lista.contains(document.activeElement)) pintar(); });
   return bloque;
+}
+
+/* ---- parámetros de la parametrización (ver app/parametros.py) ---- */
+let promesaAyudaParametros = null;
+let AYUDA_PARAMETROS = { catalogo: [], usados: [], archivo: null, error: null };
+/** El catálogo de parámetros del proyecto y los parámetros ya usados (se vuelve a pedir en cada formulario). */
+function ayudaParametros(recargar = false) {
+  if (recargar || !promesaAyudaParametros) {
+    promesaAyudaParametros = api.parametros_ayuda().then((a) => (AYUDA_PARAMETROS = a), () => AYUDA_PARAMETROS);
+  }
+  return promesaAyudaParametros;
+}
+const claveNombre = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g, "").toLowerCase();
+const delCatalogo = (nombre) => AYUDA_PARAMETROS.catalogo.find((p) => claveNombre(p.parametro) === claveNombre(nombre)) || null;
+
+/** Valores que proponer para un parámetro: los del catálogo y los que ya usan otras pruebas. */
+function valoresSugeridos(nombre) {
+  const cat = delCatalogo(nombre);
+  const uso = AYUDA_PARAMETROS.usados.find((u) => claveNombre(u.parametro) === claveNombre(nombre));
+  const lista = (cat ? cat.valores : []).map((v) => ({ texto: v, usos: 0, detalle: "catálogo" }));
+  for (const v of uso ? uso.valores : []) if (!lista.some((x) => x.texto === v)) lista.push({ texto: v, usos: 0, detalle: "usado" });
+  return lista;
+}
+
+/** Ubicación en el configurador, descripción y avisos del parámetro de una fila. */
+function notaParametro(fila) {
+  if (!fila.parametro.trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
+  const cat = delCatalogo(fila.parametro);
+  const partes = [];
+  if (cat) {
+    if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
+    if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
+    if (cat.unidad) partes.push(h("span", { class: "muted", text: `Unidad: ${cat.unidad}` }));
+    const fuera = cat.valores.length ? fila.valores.filter((v) => !cat.valores.some((c) => claveNombre(c) === claveNombre(v))) : [];
+    if (fuera.length) partes.push(h("span", { class: "aviso-parametro", text: `${fuera.join(", ")}: no ${fuera.length === 1 ? "es un valor" : "son valores"} del catálogo` }));
+  } else if (AYUDA_PARAMETROS.catalogo.length) {
+    partes.push(h("span", { class: "aviso-parametro", text: "No está en el catálogo de parámetros." }));
+  }
+  if (fila.valores.length > 1) partes.push(h("span", { class: "muted", text: `${fila.valores.length} valores: una pasada con cada uno` }));
+  return partes;
+}
+
+/** Nombre del parámetro, con las sugerencias del catálogo (ubicación al lado) y de los ya usados. */
+function campoNombreParametro(fila, alElegir) {
+  const lista = h("div", { class: "sugerencias-fichas", role: "listbox", hidden: true });
+  const formulario = F;
+  let opciones = [], activa = -1, alEntrar = fila.parametro;
+  const norm = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const entrada = h("input", {
+    type: "text", value: fila.parametro, autocomplete: "off", placeholder: "Parámetro (p. ej. Número de paradas)",
+    "aria-label": "Parámetro",
+    oninput: () => { fila.parametro = entrada.value; tocar("parametrizacion"); proponer(); },
+    onfocus: () => { alEntrar = fila.parametro; ayudaParametros().then(proponer); },
+    // Al salir, se repinta la fila (nota, valores propuestos) solo si cambió y el formulario sigue abierto.
+    onblur: () => setTimeout(() => { cerrar(); if (F === formulario && fila.parametro !== alEntrar) alElegir(); }, 150),
+    onkeydown: (e) => {
+      if (!lista.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        activa = (activa + (e.key === "ArrowDown" ? 1 : opciones.length - 1 + (activa < 0 ? 1 : 0))) % opciones.length;
+        pintarLista();
+      } else if (!lista.hidden && (e.key === "Enter" || e.key === "Tab") && activa >= 0) {
+        e.preventDefault(); elegir(opciones[activa].parametro);
+      } else if (e.key === "Escape" && !lista.hidden) { e.preventDefault(); e.stopPropagation(); cerrar(); }
+      else if (e.key === "Enter") { e.preventDefault(); entrada.blur(); }
+    },
+  });
+  function proponer() {
+    const escrito = norm(entrada.value.trim());
+    const todas = [...AYUDA_PARAMETROS.catalogo.map((p) => ({ parametro: p.parametro, detalle: p.ubicacion || p.descripcion || "catálogo" }))];
+    for (const u of AYUDA_PARAMETROS.usados) {
+      if (!todas.some((t) => claveNombre(t.parametro) === claveNombre(u.parametro))) todas.push({ parametro: u.parametro, detalle: plural(u.usos, "prueba", "pruebas") });
+    }
+    opciones = todas.filter((o) => claveNombre(o.parametro) !== claveNombre(entrada.value) || !escrito)
+      .filter((o) => !escrito || norm(o.parametro + " " + o.detalle).includes(escrito))
+      .sort((a, b) => (escrito ? norm(b.parametro).startsWith(escrito) - norm(a.parametro).startsWith(escrito) : 0))
+      .slice(0, 10);
+    activa = escrito && opciones.length ? 0 : -1;
+    pintarLista();
+  }
+  function pintarLista() {
+    lista.replaceChildren(...opciones.map((o, i) => h("div", {
+      class: "opcion" + (i === activa ? " activa" : ""), role: "option", "aria-selected": String(i === activa),
+      onmousedown: (e) => e.preventDefault(), onclick: () => elegir(o.parametro),
+    }, h("span", { text: o.parametro }), h("span", { class: "usos", text: o.detalle }))));
+    lista.hidden = !opciones.length || document.activeElement !== entrada;
+  }
+  function cerrar() { lista.hidden = true; opciones = []; activa = -1; }
+  function elegir(nombre) {
+    entrada.value = nombre;
+    if (fila.parametro !== nombre) { fila.parametro = nombre; tocar("parametrizacion"); }
+    cerrar();
+    entrada.blur();
+  }
+  return h("div", { class: "campo con-sugerencias nombre-parametro" }, h("label", { text: "Parámetro" }), entrada, lista);
+}
+
+/** Pie de la parametrización: repeticiones y cuántas pasadas tendrá la prueba en la ejecución. */
+function pieParametrizacion() {
+  const resumen = h("span", { class: "resumen-pasadas" });
+  const entrada = h("input", {
+    id: "f-repeticiones", type: "number", min: "1", max: "100", step: "1", placeholder: "1", value: F.valores.repeticiones,
+    oninput: (e) => { F.valores.repeticiones = e.target.value; tocar("repeticiones"); actualizar(); },
+  });
+  const formulario = F;
+  function actualizar() {
+    if (F !== formulario) return;
+    const variables = F.valores.parametrizacion.filter((f) => f.forma === "parametro" && f.valores.length > 1);
+    const configs = variables.reduce((n, f) => n * f.valores.length, 1);
+    const rep = Math.max(parseInt(F.valores.repeticiones, 10) || 1, 1);
+    const total = configs * rep;
+    const partes = [variables.length ? plural(configs, "configuración", "configuraciones") : "", rep > 1 ? plural(rep, "repetición", "repeticiones") : ""].filter(Boolean);
+    resumen.textContent = total > 1 ? `En la ejecución: ${plural(total, "pasada", "pasadas")} (${partes.join(" × ")}), cada una con su resultado.` : "En la ejecución se pasa una vez.";
+  }
+  const pie = h("div", { class: "pie-parametrizacion" },
+    h("label", { for: "f-repeticiones", text: "Repeticiones" }), entrada,
+    h("span", { class: "muted", text: "veces cada configuración" }), resumen);
+  pie.actualizar = actualizar;
+  return pie;
 }
 
 /* ---- campos adicionales ---- */
@@ -773,7 +939,8 @@ function cuerpoPrueba(ubicacion) {
       campoArea("descripcion", "Descripción"))));
   append(cont, [
     editorLista("contexto", "Contexto", { ayuda: "Texto y tablas que aparecen antes de la tabla de la prueba.", conTablas: true }),
-    editorLista("parametrizacion", "Parametrización"),
+    editorLista("parametrizacion", "Parametrización", { conParametros: true,
+      ayuda: "Texto o parámetros: el parámetro que se toca y sus valores. Con varios valores, la prueba se pasa con cada uno (y con todas las combinaciones)." }),
     editorLista("situacion_inicial", "Situación inicial"),
     editorLista("pasos", "Ensayo", { numerada: true, ayuda: "Pulsa Enter para añadir otro paso; Mayús+Enter inserta un salto de línea." }),
     h("section", { class: "bloque", "aria-label": "Clasificación" },

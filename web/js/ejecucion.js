@@ -667,7 +667,8 @@ async function siguientePendiente(desdeId = null) {
   const lista = S.ejecucion ? S.ejecucion.resumen.pruebas : [];
   const inicio = desdeId ? lista.findIndex((p) => p.id === desdeId) : -1;
   const orden = [...lista.slice(inicio + 1), ...lista.slice(0, inicio + 1)];
-  const siguiente = orden.find((p) => p.estado === "pendiente" && p.archivo);
+  const aMedias = (p) => p.pasadas && p.pasadas.hechas < p.pasadas.total;     // con pasadas sin hacer
+  const siguiente = orden.find((p) => (p.estado === "pendiente" || aMedias(p)) && p.archivo);
   if (!siguiente) {
     aviso("No quedan pruebas pendientes", "ok");
     S.seleccion = null;
@@ -737,7 +738,7 @@ function mostrarPanelEjecucion() {
       c.cerrada || !r.totales.pendiente ? null : h("button", { class: "btn primary", type: "button", onclick: () => siguientePendiente(), text: "Siguiente pendiente" })),
     h("section", { class: "bloque" },
       h("div", { class: "bloque-cab" }, h("h3", { text: "Avance" }),
-        h("p", { class: "ayuda", text: `${r.ejecutadas} de ${r.total} ejecutadas (${r.progreso} %) · inicio ${String(d.inicio || "").replace("T", " ")}${d.fin ? " · fin " + String(d.fin).replace("T", " ") : ""}` })),
+        h("p", { class: "ayuda", text: `${r.ejecutadas} de ${r.total} ejecutadas (${r.progreso} %)${r.pasadas ? ` · ${r.pasadas.hechas} de ${r.pasadas.total} pasadas de las pruebas que se repiten` : ""} · inicio ${String(d.inicio || "").replace("T", " ")}${d.fin ? " · fin " + String(d.fin).replace("T", " ") : ""}` })),
       barra,
       h("div", { class: "tarjetas" },
         tarjeta("OK", r.totales.ok, `${r.porcentaje_ok} % de las que aplican`, "e-ok"),
@@ -789,6 +790,7 @@ async function importarRobot(ruta = null) {
       lista("Tests de Robot sin etiqueta id:", plan.sin_id),
       lista("IDs que no existen en las pruebas", plan.inexistentes, "atencion"),
       lista("IDs que no están en esta ejecución", plan.fuera_de_ejecucion),
+      lista("Pruebas que se pasan varias veces (sus pasadas se apuntan a mano)", plan.con_pasadas || [], "atencion"),
       lista("Pruebas de la ejecución sin resultado en este archivo (siguen como están)", plan.sin_robot));
     const r = await dialogo({
       titulo: "Importar resultados de Robot Framework", cuerpo, ancho: true,
@@ -955,11 +957,15 @@ function textoConFormato(texto, clase = "") {
 }
 
 function listaLectura(items, numerada) {
-  const filas = aLista(items).map(filaDesde).filter((f) => f.texto || f.imagenes.length || f.forma === "tabla");
+  const filas = aLista(items).map(filaDesde).filter((f) => f.texto || f.imagenes.length || f.forma === "tabla" || f.forma === "parametro");
   if (!filas.length) return h("p", { class: "muted", text: "—" });
   let n = 0;
   return h("ol", { class: "lectura" }, filas.map((f) => {
     if (f.forma === "tabla") return h("li", { class: "con-tabla" }, h("div", {}, vistaTabla(f.tabla)));
+    if (f.forma === "parametro") {
+      return h("li", {}, h("span", { class: "vineta", text: "•" }),
+        h("div", {}, h("strong", { text: `${f.parametro}: ` }), f.valores.join(" / ")));
+    }
     const marca = numerada && !f.nivel ? `${++n}.` : f.nivel ? "–" : "•";
     return h("li", { style: { "--nivel": String(f.nivel) } },
       h("span", { class: "vineta", text: marca }),
@@ -983,7 +989,8 @@ function fichaPrueba(el) {
       aLista(el.etiquetas).map((t) => h("span", { class: "ficha", text: t }))) : null,
     el.descripcion ? bloque("Descripción", h("p", {}, textoConFormato(String(el.descripcion)))) : null,
     aLista(el.contexto).length ? bloque("Contexto", listaLectura(el.contexto, false)) : null,
-    aLista(el.parametrizacion).length ? bloque("Parametrización", listaLectura(el.parametrizacion, false)) : null,
+    aLista(el.parametrizacion).length || Number(el.repeticiones) > 1 ? bloque("Parametrización", listaLectura(
+      [...aLista(el.parametrizacion), ...(Number(el.repeticiones) > 1 ? [{ parametro: "Repeticiones", valores: [String(el.repeticiones)] }] : [])], false)) : null,
     bloque("Situación inicial", listaLectura(el.situacion_inicial, false)),
     bloque("Ensayo", listaLectura(el.pasos, true)),
     extras.length ? bloque("Campos adicionales", h("dl", { class: "extras-lectura" }, extras.map(([k, v]) => [
@@ -1027,20 +1034,21 @@ async function mostrarEnEjecucion(datos) {
   const info = await api.ejecucion_resultado(id);
   const res = info.resultado;
   R = {
-    id, original: res.estado || "pendiente", estado: res.estado || "pendiente",
-    observaciones: String(res.observaciones || ""), incidencia: String(res.incidencia || ""),
-    evidencias: aLista(res.evidencias).map(String),
-    ejecutor: String(res.ejecutor || leerLocal("ejecutor") || S.ejecucion.datos.responsable || ""),
-    intentos: aLista(res.intentos), fecha: res.fecha, cambiada: info.prueba_cambiada, enLaEjecucion: info.en_ejecucion,
-    origen: res.origen || "",
+    id, agregado: res.estado || "pendiente", cambiada: info.prueba_cambiada, enLaEjecucion: info.en_ejecucion,
+    pasadas: aLista(info.pasadas), pasada: null,
   };
+  // Una prueba que se pasa varias veces se apunta pasada a pasada: empieza por la primera pendiente.
+  const vigentes = R.pasadas.filter((p) => !p.fuera);
+  const elegida = vigentes.find((p) => p.resultado.estado === "pendiente") || vigentes[0];
+  cargarResultado(elegida ? elegida.resultado : res, elegida ? elegida.clave : null);
   mostrar(h("div", { class: "vista-ejecucion" },
     h("div", { class: "acciones" },
       h("span", { class: "placa" }, h("span", { class: "texto-placa", text: id || "(sin ID)" })),
       h("div", { class: "titulo" }, h("span", { class: "nombre", text: el.titulo || el.nombre || "" }),
         el.nombre && el.titulo ? h("span", { class: "ruta", text: el.nombre }) : null),
       botonEditarPrueba(id),
-      h("span", { class: "chip-estado grande e-" + R.original, id: "estado-cabecera", text: ESTADO_TXT[R.original] })),
+      h("span", { class: "chip-estado grande e-" + R.agregado, id: "estado-cabecera", text: ESTADO_TXT[R.agregado],
+        title: R.pasadas.length ? "Resultado de la prueba: sale de sus pasadas" : null })),
     h("div", { class: "columnas-ejecucion" }, fichaPrueba(el), panelResultado())));
 }
 
@@ -1075,9 +1083,60 @@ function restoDeLaValidacion(id) {
     filas.length ? h("ul", { class: "historial-entorno" }, filas) : h("p", { class: "muted", text: "Ninguna otra ejecución de la validación la incluye." }));
 }
 
+/** Pone en R (el resultado en edición) el de la prueba o el de una de sus pasadas. */
+function cargarResultado(res, clave) {
+  Object.assign(R, {
+    pasada: clave, original: res.estado || "pendiente", estado: res.estado || "pendiente",
+    observaciones: String(res.observaciones || ""), incidencia: String(res.incidencia || ""),
+    evidencias: aLista(res.evidencias).map(String),
+    ejecutor: String(res.ejecutor || leerLocal("ejecutor") || S.ejecucion.datos.responsable || ""),
+    intentos: aLista(res.intentos), fecha: res.fecha, origen: res.origen || "", guardadas: null,
+  });
+}
+
+/** Rejilla de las pasadas de la prueba: una fila por configuración y una casilla por repetición. */
+function bloquePasadas(alElegir) {
+  if (!R.pasadas.length) return null;
+  const vigentes = R.pasadas.filter((p) => !p.fuera);
+  const hechas = vigentes.filter((p) => p.resultado.estado !== "pendiente").length;
+  const filas = new Map();
+  for (const p of vigentes) {
+    const config = p.configuracion.map(([n, v]) => `${n}: ${v}`).join(" · ");
+    if (!filas.has(config)) filas.set(config, []);
+    filas.get(config).push(p);
+  }
+  const casilla = (p) => {
+    const estado = p.resultado.estado || "pendiente";
+    const actual = p.clave === R.pasada;
+    const marca = p.repeticiones > 1 ? String(p.repeticion) : (estado === "pendiente" ? "·" : ESTADO_TXT[estado]);
+    return h("button", {
+      type: "button", class: `casilla-pasada e-${estado}${actual ? " actual" : ""}`, "aria-pressed": String(actual),
+      title: `${p.texto || "Pasada"}: ${ESTADO_TXT[estado]}`, onclick: () => { if (!actual) alElegir(p); },
+    }, marca);
+  };
+  const fuera = R.pasadas.filter((p) => p.fuera);
+  return h("div", { class: "seccion-panel bloque-pasadas" },
+    h("div", { class: "cab-panel" }, h("h3", { text: "Pasadas" }),
+      h("span", { class: "muted", text: `${hechas} de ${vigentes.length} hechas · todas deben ser OK` })),
+    h("table", { class: "tabla-pasadas" }, h("tbody", {}, [...filas].map(([config, lista]) => h("tr", {},
+      config ? h("th", { scope: "row", text: config }) : null,
+      h("td", {}, h("div", { class: "casillas" }, lista.map(casilla))))))),
+    fuera.length ? h("p", { class: "muted", text: `Resultados de pasadas que la prueba ya no tiene (no cuentan): ${fuera.map((p) => p.clave).join(", ")}.` }) : null,
+    R.pasada ? h("p", { class: "pasada-actual" }, "Apuntando: ", h("strong", { text: (vigentes.find((p) => p.clave === R.pasada) || {}).texto || R.pasada })) : null);
+}
+
 function panelResultado() {
   const panel = h("aside", { class: "panel-resultado", "aria-label": "Resultado de la prueba" });
   const bloqueada = cerrada() || !R.enLaEjecucion;
+  async function elegirPasada(p) {
+    if (!(await guardia())) return;
+    setDirty(false);
+    // Si se guardó la pasada anterior, la ficha se ha vuelto a pintar: se elige en la nueva.
+    if (!R) return;
+    const nueva = R.pasadas.find((x) => x.clave === p.clave) || p;
+    cargarResultado(nueva.resultado, nueva.clave);
+    R.pintar();
+  }
   function pintar() {
     const botones = ESTADOS.filter((e) => e !== "pendiente").map((e, i) => h("button", {
       type: "button", class: "estado-btn e-" + e, "aria-pressed": String(R.estado === e), disabled: bloqueada,
@@ -1100,8 +1159,9 @@ function panelResultado() {
         h("div", { class: "cab-panel" }, h("h3", {}, icon("robot"), " Tests de Robot")), listaTestsRobot(R.id)) : null,
       R.cambiada ? avisoCambiada("La prueba ha cambiado después de ejecutarse. Revisa si hay que repetirla.",
         bloqueada ? null : darPorRevisadaEnEjecucion) : null,
+      bloquePasadas(elegirPasada),
       h("div", { class: "seccion-panel" },
-        h("div", { class: "cab-panel" }, h("h3", { text: "Resultado" }),
+        h("div", { class: "cab-panel" }, h("h3", { text: R.pasada ? "Resultado de la pasada" : "Resultado" }),
           R.estado !== "pendiente" && !bloqueada ? h("button", {
             type: "button", class: "enlace", text: "Volver a pendiente", title: "Deshace el último resultado (tecla 0)",
             onclick: () => cambiarEstado("pendiente"),
@@ -1221,13 +1281,14 @@ async function guardarResultado() {
     return true;
   }
   try {
-    S.ejecucion = await api.ejecucion_registrar(R.id, R.estado, R.observaciones, R.incidencia, R.evidencias, R.ejecutor);
+    S.ejecucion = await api.ejecucion_registrar(R.id, R.estado, R.observaciones, R.incidencia, R.evidencias, R.ejecutor, R.pasada);
     if (R.ejecutor.trim()) guardarLocal("ejecutor", R.ejecutor.trim());
     setDirty(false);
     pintarModo();
     const indice = S.seleccion && S.seleccion.indice;
     await cargarNavegacion();
-    aviso(`${R.id}: ${ESTADO_TXT[R.estado]}`, "ok");
+    const pasada = R.pasada ? R.pasadas.find((p) => p.clave === R.pasada) : null;
+    aviso(`${R.id}${pasada && pasada.texto ? ` (${pasada.texto})` : ""}: ${ESTADO_TXT[R.estado]}`, "ok");
     if (indice !== null && S.nodos.some((n) => n.indice === indice)) {
       S.seleccion = null;
       await seleccionar("prueba", indice);
@@ -1242,7 +1303,11 @@ async function guardarResultado() {
 async function guardarYSiguiente() {
   if (!R) return;
   const id = R.id;
-  if (await guardarResultado()) await siguientePendiente(id);
+  if (!(await guardarResultado())) return;
+  // Con pasadas pendientes se queda en la prueba (ya muestra la siguiente pasada pendiente).
+  const p = S.ejecucion && S.ejecucion.resumen.pruebas.find((x) => x.id === id);
+  if (p && p.pasadas && p.pasadas.hechas < p.pasadas.total && R && R.id === id) return;
+  await siguientePendiente(id);
 }
 
 /* ---- arranque ---- */

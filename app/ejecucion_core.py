@@ -26,7 +26,7 @@ from typing import Any
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from app import adjuntos, escritura, esquema, formato, git_pruebas
+from app import adjuntos, escritura, esquema, formato, git_pruebas, parametros
 from app.editor_core import read_chapters, roundtrip_yaml, section_end_index, tests_dir, tests_in_chapter
 
 ARCHIVO_EJECUCION = "ejecucion.yaml"
@@ -452,41 +452,36 @@ def estado_de(ejecucion: dict[str, Any], test_id: str) -> str:
     return str(resultado.get("estado")) if resultado else "pendiente"
 
 
-def registrar(ejecucion: dict[str, Any], test_id: str, estado: str, *,
-              observaciones: str = "", incidencia: str = "", evidencias: list[str] | None = None,
-              ejecutor: str = "", huella_actual: str = "", fecha: str | None = None,
-              origen: str = "", guardar_ahora: bool = True) -> dict[str, Any]:
-    """Apunta el resultado de una prueba. El resultado anterior pasa al historial.
+def estado_pasada(ejecucion: dict[str, Any], test_id: str, clave: str) -> str:
+    pasada = ((ejecucion["resultados"].get(test_id) or {}).get("pasadas") or {}).get(clave)
+    return str(pasada.get("estado")) if pasada else "pendiente"
 
-    `fecha` permite indicar cuándo se ejecutó (por defecto, ahora) y `origen`
-    de dónde viene el resultado si no es manual (por ejemplo, «robot»). Con
-    `guardar_ahora=False` no se escribe el archivo (para apuntar muchos y guardar una vez).
+
+def _apuntar(contenedor: Any, clave: str, estado: str, *, observaciones: str, incidencia: str,
+             evidencias: list[str] | None, ejecutor: str, huella_actual: str, fecha: str | None,
+             origen: str) -> dict[str, Any] | None:
+    """Apunta un resultado en `contenedor[clave]` (una prueba o una pasada); el anterior pasa al historial.
+
+    «pendiente» deshace el último resultado (si había historial, se recupera).
+    Devuelve el resultado que queda (None si ninguno).
     """
-    _exigir_abierta(ejecucion)
-    if test_id not in ids_de(ejecucion):
-        raise ValueError(f"La prueba {test_id} no forma parte de esta ejecución.")
-    if estado not in ESTADOS:
-        raise ValueError(f"Estado no válido: {estado}.")
-    resultados = ejecucion["resultados"]
-    anterior = resultados.get(test_id)
+    anterior = contenedor.get(clave)
     if estado == "pendiente":
-        # Volver a pendiente deshace el último resultado (si había historial, se recupera).
         if anterior:
             intentos = list(anterior.get("intentos") or [])
             if intentos:
                 recuperado = dict(intentos.pop())
                 if intentos:
                     recuperado["intentos"] = intentos
-                resultados[test_id] = recuperado
+                contenedor[clave] = recuperado
             else:
-                del resultados[test_id]
-        guardar(ejecucion)
-        return resultados.get(test_id) or {"estado": "pendiente"}
+                del contenedor[clave]
+        return contenedor.get(clave)
     nuevo: dict[str, Any] = {"estado": estado, "fecha": fecha or ahora()}
-    for clave, valor in (("ejecutor", ejecutor), ("origen", origen), ("huella", huella_actual),
-                         ("observaciones", observaciones), ("incidencia", incidencia)):
+    for nombre, valor in (("ejecutor", ejecutor), ("origen", origen), ("huella", huella_actual),
+                          ("observaciones", observaciones), ("incidencia", incidencia)):
         if str(valor or "").strip():
-            nuevo[clave] = str(valor).strip()
+            nuevo[nombre] = str(valor).strip()
     if "\n" in str(nuevo.get("observaciones", "")):
         nuevo["observaciones"] = LiteralScalarString(nuevo["observaciones"])   # legible en el YAML
     if evidencias:
@@ -502,19 +497,89 @@ def registrar(ejecucion: dict[str, Any], test_id: str, estado: str, *,
             intentos.append(previo)          # otro resultado: el anterior queda en el historial
         if intentos:
             nuevo["intentos"] = intentos
-    resultados[test_id] = nuevo
-    if guardar_ahora:
-        guardar(ejecucion)
+    contenedor[clave] = nuevo
     return nuevo
 
 
+def agregar_pasadas(ejecucion: dict[str, Any], test_id: str, esperadas: list[str] | None = None,
+                    huella_actual: str = "") -> None:
+    """Pone al día el resultado de una prueba a partir del de sus pasadas (ver parametros.estado_agregado).
+
+    `esperadas` son las claves de las pasadas que tiene ahora la prueba (las que
+    faltan cuentan como pendientes); sin ellas, las que tengan resultado. El
+    resultado de la prueba guarda la fecha y el ejecutor de la última pasada.
+    """
+    resultados = ejecucion["resultados"]
+    pasadas = (resultados.get(test_id) or {}).get("pasadas") or {}
+    if not pasadas:
+        resultados.pop(test_id, None)
+        return
+    claves = list(esperadas) if esperadas else list(pasadas)
+    estados = [str((pasadas.get(c) or {}).get("estado") or "pendiente") for c in claves]
+    ultima = max(pasadas.values(), key=lambda r: str(r.get("fecha") or ""))
+    agregado: dict[str, Any] = {"estado": parametros.estado_agregado(estados), "fecha": str(ultima.get("fecha") or ahora())}
+    if ultima.get("ejecutor"):
+        agregado["ejecutor"] = str(ultima["ejecutor"])
+    huella_prueba = huella_actual or str((resultados.get(test_id) or {}).get("huella") or "")
+    if huella_prueba:
+        agregado["huella"] = huella_prueba
+    agregado["pasadas"] = pasadas
+    resultados[test_id] = agregado
+
+
+def registrar(ejecucion: dict[str, Any], test_id: str, estado: str, *,
+              observaciones: str = "", incidencia: str = "", evidencias: list[str] | None = None,
+              ejecutor: str = "", huella_actual: str = "", fecha: str | None = None,
+              origen: str = "", guardar_ahora: bool = True,
+              pasada: str | None = None, pasadas_esperadas: list[str] | None = None) -> dict[str, Any]:
+    """Apunta el resultado de una prueba (o de una de sus `pasada`s). El resultado anterior pasa al historial.
+
+    `fecha` permite indicar cuándo se ejecutó (por defecto, ahora) y `origen`
+    de dónde viene el resultado si no es manual (por ejemplo, «robot»). Con
+    `guardar_ahora=False` no se escribe el archivo (para apuntar muchos y guardar una vez).
+
+    Una prueba con pasadas (varios valores en sus parámetros o repeticiones, ver
+    app/parametros.py) se apunta pasada a pasada: `pasada` es su clave y
+    `pasadas_esperadas`, las de la prueba; el resultado de la prueba sale de ellas.
+    """
+    _exigir_abierta(ejecucion)
+    if test_id not in ids_de(ejecucion):
+        raise ValueError(f"La prueba {test_id} no forma parte de esta ejecución.")
+    if estado not in ESTADOS:
+        raise ValueError(f"Estado no válido: {estado}.")
+    resultados = ejecucion["resultados"]
+    datos = dict(observaciones=observaciones, incidencia=incidencia, evidencias=evidencias, ejecutor=ejecutor,
+                 fecha=fecha, origen=origen)
+    if pasada is None:
+        if (resultados.get(test_id) or {}).get("pasadas") or pasadas_esperadas:
+            raise ValueError(f"La prueba {test_id} se pasa varias veces: apunta el resultado de cada pasada.")
+        quedan = _apuntar(resultados, test_id, estado, huella_actual=huella_actual, **datos)
+    else:
+        if pasadas_esperadas is not None and pasada not in pasadas_esperadas:
+            raise ValueError(f"La prueba {test_id} no tiene la pasada «{pasada}».")
+        if test_id in resultados and "pasadas" not in resultados[test_id]:
+            raise ValueError(f"La prueba {test_id} tiene un resultado de una sola pasada: vuelve a ponerla pendiente antes.")
+        if test_id not in resultados:
+            resultados[test_id] = {"estado": "pendiente", "pasadas": {}}
+        _apuntar(resultados[test_id]["pasadas"], pasada, estado, huella_actual="", **datos)
+        agregar_pasadas(ejecucion, test_id, pasadas_esperadas, huella_actual)
+        quedan = ((resultados.get(test_id) or {}).get("pasadas") or {}).get(pasada)
+    if guardar_ahora:
+        guardar(ejecucion)
+    return quedan or {"estado": "pendiente"}
+
+
 def editar_notas(ejecucion: dict[str, Any], test_id: str, *, observaciones: str | None = None,
-                 incidencia: str | None = None, evidencias: list[str] | None = None) -> dict[str, Any]:
-    """Corrige observaciones, incidencia o evidencias del resultado vigente sin crear otro intento."""
+                 incidencia: str | None = None, evidencias: list[str] | None = None,
+                 pasada: str | None = None) -> dict[str, Any]:
+    """Corrige observaciones, incidencia o evidencias del resultado vigente (de la prueba o de una pasada) sin crear otro intento."""
     _exigir_abierta(ejecucion)
     resultado = ejecucion["resultados"].get(test_id)
+    if pasada is not None:
+        resultado = ((resultado or {}).get("pasadas") or {}).get(pasada)
     if not resultado:
-        raise ValueError("Apunta primero un resultado para esta prueba.")
+        raise ValueError("Apunta primero un resultado para esta prueba." if pasada is None
+                         else "Apunta primero un resultado para esta pasada.")
     for clave, valor in (("observaciones", observaciones), ("incidencia", incidencia)):
         if valor is None:
             continue
@@ -690,6 +755,18 @@ def cerrar(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> None:
             f"Quedan {len(pendientes)} pruebas pendientes ({', '.join(pendientes[:5])}"
             f"{'…' if len(pendientes) > 5 else ''}). Ejecútalas o márcalas como «No aplica»."
         )
+    # Una prueba con una pasada NO OK ya es NO OK, pero cada ejecución hace todas las pasadas.
+    por_id = indice_por_id(capitulos)
+    a_medias = []
+    for test_id in ids_de(ejecucion):
+        claves = parametros.claves_pasadas(por_id[test_id]["prueba"]) if test_id in por_id else []
+        hechas = (ejecucion["resultados"].get(test_id) or {}).get("pasadas") or {}
+        faltan = [c for c in claves if str((hechas.get(c) or {}).get("estado") or "pendiente") == "pendiente"]
+        if faltan:
+            a_medias.append(f"{test_id} ({len(faltan)})")
+    if a_medias:
+        raise ValueError(f"Quedan pasadas pendientes en {', '.join(a_medias[:5])}{'…' if len(a_medias) > 5 else ''}. "
+                         "Ejecútalas o márcalas como «No aplica».")
     congelar(ejecucion, capitulos)
     if capitulos:
         version = git_pruebas.estado(capitulos[0]["path"].parent)
@@ -740,6 +817,7 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
     por_capitulo: dict[str, dict[str, int]] = {}
     problemas: list[dict[str, str]] = []
     pruebas = []
+    pasadas_total = pasadas_hechas = 0
     for entrada in ejecucion["datos"]["pruebas"]:
         test_id = str(entrada["id"])
         estado = estado_de(ejecucion, test_id)
@@ -747,6 +825,11 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
         totales[estado] += 1
         encontrada = por_id.get(test_id)
         cambiada = False
+        claves = parametros.claves_pasadas(encontrada["prueba"]) if encontrada else list(resultado.get("pasadas") or {})
+        de_pasadas = resultado.get("pasadas") or {}
+        hechas = sum(1 for c in claves if str((de_pasadas.get(c) or {}).get("estado") or "pendiente") != "pendiente")
+        pasadas_total += len(claves)
+        pasadas_hechas += hechas
         if not encontrada:
             problemas.append({"id": test_id, "tipo": "error",
                               "mensaje": "La prueba ya no existe en los YAML de pruebas."})
@@ -761,9 +844,18 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
                 cambiada = True
                 problemas.append({"id": test_id, "tipo": "aviso",
                                   "mensaje": "La prueba ha cambiado después de ejecutarse."})
-        if estado in ("no_ok", "bloqueada") and not str(resultado.get("observaciones") or "").strip():
+        if de_pasadas:
+            for clave, r in de_pasadas.items():
+                e = str(r.get("estado") or "")
+                if e in ("no_ok", "bloqueada") and not str(r.get("observaciones") or "").strip():
+                    problemas.append({"id": test_id, "tipo": "aviso",
+                                      "mensaje": f"Pasada «{clave}»: {ESTADOS_VISIBLES[e]} sin observaciones."})
+        elif estado in ("no_ok", "bloqueada") and not str(resultado.get("observaciones") or "").strip():
             problemas.append({"id": test_id, "tipo": "aviso",
                               "mensaje": f"Resultado {ESTADOS_VISIBLES[estado]} sin observaciones."})
+        if resultado and not de_pasadas and claves and estado != "pendiente":
+            problemas.append({"id": test_id, "tipo": "aviso", "mensaje":
+                              "La prueba se pasa ahora varias veces, pero tiene un único resultado: vuelve a ponerla pendiente y apunta cada pasada."})
         por_capitulo.setdefault(capitulo, {e: 0 for e in ESTADOS})[estado] += 1
         pruebas.append({
             "id": test_id, "estado": estado, "titulo": titulo, "capitulo": capitulo,
@@ -771,6 +863,7 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
             "indice": encontrada["indice"] if encontrada else None,
             "intentos": len(resultado.get("intentos") or []) + (1 if resultado else 0),
             "cambiada": cambiada,
+            "pasadas": {"total": len(claves), "hechas": hechas} if claves else None,
         })
     for clave, cuando in (("git", "se creó"), ("git_cierre", "se cerró")):
         version = ejecucion["datos"].get(clave) or {}
@@ -791,4 +884,6 @@ def resumen(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]]) -> dict[
         "por_capitulo": por_capitulo,
         "problemas": problemas,
         "pruebas": pruebas,
+        # Avance de las pruebas que se pasan varias veces (None si no hay ninguna).
+        "pasadas": {"total": pasadas_total, "hechas": pasadas_hechas} if pasadas_total else None,
     }

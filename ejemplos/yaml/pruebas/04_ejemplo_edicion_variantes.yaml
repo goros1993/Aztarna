@@ -70,7 +70,13 @@ contenido:
     id: DEMO-VAR-001
     titulo: El controlador completa 1000 viajes sin errores
     descripcion: Prueba larga que procede de un formulario con campos de duración y ciclos.
-    parametrizacion: []
+    parametrizacion:
+    - Generador de tráfico en modo «hora punta».
+    - parametro: Velocidad nominal
+      valores: ['1,0', '1,6']
+    - parametro: Carga en cabina
+      valores: [50 %]
+    repeticiones: 3
     situacion_inicial:
     - Generador de tráfico configurado con llamadas aleatorias.
     pasos:

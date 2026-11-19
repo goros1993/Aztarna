@@ -3,6 +3,35 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.4.0
+
+- **Una prueba, varias pasadas**: la *Parametrización* admite, además de
+  líneas de texto, **parámetros**: el parámetro que se toca y los valores con
+  los que hay que pasar la prueba (botón **Parámetro**). Con varios valores
+  (o varios parámetros), la prueba se pasa con cada uno y con todas las
+  combinaciones; el campo nuevo **Repeticiones** dice cuántas veces se pasa
+  cada configuración. Ya no hace falta duplicar la especificación para
+  repetirla o cambiar la configuración.
+- **Catálogo de parámetros**: un Excel o CSV del proyecto (clave `parametros`
+  del `aztarna.yaml`) con los parámetros del configurador, dónde se tocan,
+  qué son y qué valores admiten. El editor los propone al escribir (con su
+  ubicación) y el panel de problemas avisa de los parámetros o valores que no
+  están en él. Ejemplo en `ejemplos/yaml/parametros.csv`.
+- **Pasadas en la ejecución**: la prueba tiene una rejilla con una casilla
+  por pasada (configuración × repetición) y cada pasada su resultado, notas,
+  evidencias e historial. La prueba es OK solo si todas sus pasadas lo son,
+  NO OK en cuanto falla una; la ejecución no se cierra con pasadas
+  pendientes; *Guardar y siguiente* recorre las pasadas pendientes. El
+  resumen da el avance por pasadas y el informe, el resultado de cada una.
+- En el Word, los parámetros salen como «**Parámetro:** v1 / v2» y las
+  repeticiones como «**Repeticiones:** N», y vuelven a serlo al importarlo.
+  Los resultados de Robot y de un Word importado no se apuntan aún en pruebas
+  con pasadas (la vista previa las lista).
+- **Formato de datos 2**: las carpetas de pruebas, ejecuciones y validaciones
+  que guarde esta versión se abren en solo lectura con versiones anteriores
+  del programa, que no entienden los parámetros ni las pasadas. Conviene que
+  todo el equipo se actualice a la vez.
+
 ## 1.3.2
 
 - **Añadir pruebas a una ejecución abierta**: botón **Añadir pruebas…** en el

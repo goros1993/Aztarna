@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import parametros
 
 PREFIJO_ID = "id:"
 EJECUTOR = "Robot Framework"
@@ -171,11 +172,15 @@ def plan(ejecucion: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[
         for test_id in test["ids"]:
             por_id.setdefault(test_id, []).append(test)
 
-    resultados = []
+    resultados, con_pasadas = [], []
+    pruebas_yaml = ej.indice_por_id(capitulos)
     for test_id in ej.ids_de(ejecucion):            # en el orden de la ejecución
         tests = [t for t in por_id.get(test_id, []) if t["estado"] in ESTADO_ROBOT]
         estado = estado_consolidado([t["estado"] for t in tests])
         if estado is None:
+            continue
+        if test_id in pruebas_yaml and parametros.claves_pasadas(pruebas_yaml[test_id]["prueba"]):
+            con_pasadas.append(test_id)           # se pasa varias veces: de momento, sus pasadas se apuntan a mano
             continue
         finales = [t["fin"] for t in tests if t["fin"]]
         anterior = ejecucion["resultados"].get(test_id) or {}
@@ -202,7 +207,8 @@ def plan(ejecucion: dict[str, Any], robot: dict[str, Any], capitulos: list[dict[
         "sin_id": sin_id,
         "fuera_de_ejecucion": fuera,
         "inexistentes": inexistentes,
-        "sin_robot": [i for i in ej.ids_de(ejecucion) if i not in cubiertos],
+        "sin_robot": [i for i in ej.ids_de(ejecucion) if i not in cubiertos and i not in con_pasadas],
+        "con_pasadas": con_pasadas,
     }
 
 
