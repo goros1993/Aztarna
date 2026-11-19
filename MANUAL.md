@@ -83,7 +83,7 @@ El editor trabaja con cuatro cosas distintas:
 
 ```text
 proyecto/
-├── aztarna.yaml   opciones de maniobra y entorno del proyecto
+├── aztarna.yaml   opciones de maniobra y entorno y catálogo de parámetros del proyecto
 ├── pruebas/       indice.yaml, un archivo por capítulo e imagenes/
 └── requisitos/    indice.yaml y un archivo por capítulo
 ```
@@ -461,6 +461,58 @@ No es obligatorio: un paso puede seguir siendo texto libre. Pero si las
 pruebas nuevas se escriben con las keywords, el tester y Robot hacen
 exactamente los mismos pasos, y será más fácil automatizarlas.
 
+#### Parámetros y repeticiones: una prueba, varias pasadas
+
+Una prueba que hay que pasar varias veces (5 veces igual, o a varias
+velocidades) se escribe **una sola vez**, sin copiarla: en vez de duplicar la
+especificación (y los errores al copiar), se dice en su *Parametrización* qué
+se toca y con qué valores, y en la ejecución tendrá una **pasada** por cada
+uno.
+
+![Parámetros de una prueba con sus valores y repeticiones](docs/manual/62_parametros.png)
+
+- **Parámetro** (botón junto a *Añadir* en *Parametrización*) añade una fila
+  con el **parámetro** que se toca (por ejemplo, *Velocidad nominal*) y sus
+  **valores** (`0,5`, `1,0`, `1,6`; **Intro** añade cada uno, la × lo quita).
+  Al escribir el parámetro se proponen los del **catálogo de parámetros** del
+  proyecto, con **dónde se toca en el configurador**; al elegirlo, debajo se
+  ven su ubicación, su descripción y su unidad, y al escribir los valores se
+  proponen los que admite (y los que ya usan otras pruebas). Las líneas de
+  texto de siempre siguen valiendo para lo que no es un parámetro.
+
+  ![El catálogo propone el parámetro con su ubicación](docs/manual/63_parametros_catalogo.png)
+- Un parámetro con **un valor** es fijo (se configura así para toda la
+  prueba). Con **varios valores**, la prueba se pasa con cada uno; con varios
+  parámetros de varios valores, con **todas las combinaciones** (3
+  velocidades × 2 cargas = 6 configuraciones).
+- **Repeticiones** (debajo de la parametrización): cuántas veces se pasa
+  cada configuración sin cambiar nada (5 repeticiones × 6 configuraciones =
+  30 pasadas). Al lado se ve cuántas pasadas tendrá la prueba en la
+  ejecución.
+
+En el Word, cada parámetro sale como «**Velocidad nominal:** 0,5 / 1,0 / 1,6»
+y las repeticiones como «**Repeticiones:** 5»; al importar ese Word vuelven a
+ser parámetros y repeticiones. Cómo se pasan en una ejecución: ver
+[6.5](#65-pasar-una-prueba).
+
+**El catálogo de parámetros** es un Excel (`.xlsx`) o un CSV del proyecto con
+una fila por parámetro y las columnas **Parámetro** (obligatoria),
+**Ubicación** (dónde está en el configurador), **Descripción**, **Valores**
+(los admitidos, separados por `;`) y **Unidad**; la primera fila con una
+columna *Parámetro* es la cabecera, así que puede tener un título encima. Se
+indica en el `aztarna.yaml` del proyecto, con la ruta relativa a él, y va a
+Git con las pruebas:
+
+```yaml
+parametros: parametros.xlsx
+```
+
+El panel de problemas avisa de los parámetros que no están en el catálogo,
+de los valores que no admite, de los parámetros repetidos o sin valores y de
+las pruebas con más de 500 pasadas. Sin catálogo también se pueden escribir
+parámetros (se proponen los que ya usan otras pruebas). Ver
+`ejemplos/yaml/parametros.csv` en el repositorio de la herramienta.
+
 ### 4.4 Crear pruebas y secciones
 
 ![Nueva prueba](docs/manual/04_nueva_prueba.png)
@@ -825,6 +877,35 @@ ocupan el resto del panel (también se pueden estirar por la esquina):
 
 Si una prueba se editó después de ejecutarla, el panel avisa por si hay que
 repetirla. *Volver a pendiente* deshace el último resultado.
+
+![Pasadas de una prueba en la ejecución](docs/manual/64_pasadas.png)
+
+**Pruebas que se pasan varias veces.** Una prueba con parámetros de varios
+valores o con repeticiones (ver
+[4.3](#parámetros-y-repeticiones-una-prueba-varias-pasadas)) tiene en el
+panel el bloque **Pasadas**: una fila por configuración (*Velocidad nominal:
+1,0 · Carga en cabina: 50 %*) y una casilla por repetición, del color de su
+resultado. La pasada elegida (recuadrada) es la que se apunta: resultado,
+observaciones, incidencia, evidencias e historial son de esa pasada. Al
+abrir la prueba se elige la primera pendiente, y **Guardar y siguiente**
+salta a la siguiente pasada pendiente de la prueba y, cuando no quedan, a la
+siguiente prueba.
+
+El resultado de la prueba (arriba a la derecha, en el árbol y en la
+validación) sale de sus pasadas: **OK** solo si **todas** son OK (o No
+aplica); **NO OK** en cuanto una falla; **Bloqueada** si alguna no se pudo
+pasar; **pendiente** mientras falte alguna. Cada ejecución hace todas las
+pasadas de sus pruebas: no se puede cerrar con pasadas pendientes. Los
+totales cuentan pruebas, y el resumen dice además cuántas pasadas van
+hechas. En el informe, debajo de cada prueba sale el resultado de cada
+pasada.
+
+Si se cambian los valores o las repeticiones de una prueba ya ejecutada, la
+prueba sale como cambiada; las pasadas nuevas quedan pendientes y los
+resultados de las que ya no existen se ven, pero no cuentan. Los resultados
+de Robot y los de un Word importado no se apuntan en pruebas con pasadas
+(todavía): la vista previa de la importación las lista para apuntarlas a
+mano.
 
 Si la ejecución forma parte de una validación, al final del panel **En el
 resto de la validación** dice cómo está la prueba en la versión y qué
@@ -1342,6 +1423,7 @@ opciones:
   entorno: [Automático, Maqueta, Torre]
 equivalencias:            # otras formas de escribirlas en un Word que se importa
   maniobra: {S: Simplex, D: Dúplex}
+parametros: parametros.xlsx   # catálogo de parámetros (ver 4.3), opcional
 ```
 
 Sin ese archivo, Maniobra no tiene opciones y Entorno usa Automático, Maqueta

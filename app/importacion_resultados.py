@@ -30,6 +30,7 @@ from typing import Any
 from docx import Document
 
 from app import ejecucion_core as ej
+from app import parametros
 from app import importacion as imp
 from migracion import convertir as cv
 
@@ -293,13 +294,18 @@ def importar(ruta: str | Path, mapeo: dict[str, Any], carpeta: str | Path, prueb
     filtro = {"importado_de": Path(ruta).name, "solo_ids": [r["id"] for r in resultados]}
     ejecucion = ej.crear(carpeta, pruebas, nombre, filtro, datos or {})
     huellas = {p["id"]: p["huella"] for p in ejecucion["datos"]["pruebas"]}
-    apuntados = 0
+    por_id = ej.indice_por_id(capitulos)
+    apuntados, con_pasadas = 0, []
     for r in resultados:
         if r["estado"] == SIN_RESULTADO:
+            continue
+        if r["id"] in por_id and parametros.claves_pasadas(por_id[r["id"]]["prueba"]):
+            con_pasadas.append(r["id"])           # ahora se pasa varias veces: sus pasadas se apuntan a mano
             continue
         ej.registrar(ejecucion, r["id"], r["estado"], observaciones=r["observaciones"], incidencia=r["incidencia"],
                      ejecutor=r["ejecutor"] or str((datos or {}).get("responsable") or ""), huella_actual=huellas.get(r["id"], ""),
                      fecha=leer_fecha(r["fecha"]) if r["fecha"] else None, origen="word", guardar_ahora=False)
         apuntados += 1
     ej.guardar(ejecucion)
-    return {"ejecucion": ejecucion, "pruebas": len(resultados), "con_resultado": apuntados, "avisos": len(preparado["avisos"])}
+    return {"ejecucion": ejecucion, "pruebas": len(resultados), "con_resultado": apuntados, "avisos": len(preparado["avisos"]),
+            "con_pasadas": con_pasadas}

@@ -10,3 +10,6 @@ equivalencias:
   maniobra:
     S: Simplex
     D: Dúplex
+# Catálogo de parámetros: qué se puede tocar en el configurador (dónde está y
+# qué valores admite). El editor lo propone al escribir la parametrización.
+parametros: parametros.csv

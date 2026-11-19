@@ -22,6 +22,7 @@ from app import ajustes
 from app import ejecucion_core as ej
 from app import esquema
 from app import git_pruebas
+from app import parametros
 from app import robot_core
 from app.editor_api import EditorApi, respuesta, to_plain
 
@@ -237,26 +238,40 @@ class EditorEjecucionApi(EditorApi):
         resultado = to_plain(ejecucion["resultados"].get(test_id) or {"estado": "pendiente"})
         prueba = self._prueba(test_id)
         ejecutada = resultado.get("huella")
+        guardadas = resultado.get("pasadas") or {}
+        pasadas = [{"clave": p["clave"], "texto": p["texto"], "repeticion": p["repeticion"],
+                    "repeticiones": p["repeticiones"], "configuracion": [list(c) for c in p["configuracion"]],
+                    "resultado": guardadas.get(p["clave"]) or {"estado": "pendiente"}}
+                   for p in parametros.pasadas(prueba)] if prueba is not None else []
+        esperadas = {p["clave"] for p in pasadas}
+        # Resultados de pasadas que la prueba ya no tiene (se quitó un valor): se enseñan, pero no cuentan.
+        pasadas += [{"clave": c, "texto": c, "fuera": True, "resultado": r} for c, r in guardadas.items() if c not in esperadas]
         return {
             "resultado": resultado,
             "en_ejecucion": test_id in ej.ids_de(ejecucion),
             "prueba_cambiada": bool(prueba is not None and ejecutada and ejecutada != ej.huella(prueba)),
+            "pasadas": pasadas,
         }
 
     @respuesta
     def ejecucion_registrar(self, test_id: str, estado: str, observaciones: str = "", incidencia: str = "",
-                            evidencias: list[str] | None = None, ejecutor: str = "") -> dict[str, Any]:
-        """Guarda el resultado. Con el mismo estado solo se corrigen las notas (sin otro intento)."""
+                            evidencias: list[str] | None = None, ejecutor: str = "",
+                            pasada: str | None = None) -> dict[str, Any]:
+        """Guarda el resultado (de la prueba o de una de sus pasadas). Con el mismo estado solo se corrigen las notas (sin otro intento)."""
         ejecucion = self._requiere_ejecucion()
-        actual = ej.estado_de(ejecucion, test_id)
+        prueba = self._prueba(test_id)
+        esperadas = parametros.claves_pasadas(prueba) if prueba is not None else None
+        if pasada is None and esperadas:
+            raise ValueError(f"La prueba {test_id} se pasa varias veces: elige la pasada.")
+        actual = ej.estado_de(ejecucion, test_id) if pasada is None else ej.estado_pasada(ejecucion, test_id, pasada)
         if estado == actual and actual != "pendiente":
             ej.editar_notas(ejecucion, test_id, observaciones=observaciones, incidencia=incidencia,
-                            evidencias=list(evidencias or []))
+                            evidencias=list(evidencias or []), pasada=pasada)
         else:
-            prueba = self._prueba(test_id)
             ej.registrar(ejecucion, test_id, estado, observaciones=observaciones, incidencia=incidencia,
                          evidencias=list(evidencias or []), ejecutor=ejecutor,
-                         huella_actual=ej.huella(prueba) if prueba is not None else "")
+                         huella_actual=ej.huella(prueba) if prueba is not None else "",
+                         pasada=pasada, pasadas_esperadas=(esperadas or None) if pasada is not None else None)
         return self._estado()
 
     @respuesta

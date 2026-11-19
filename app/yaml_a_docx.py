@@ -32,7 +32,7 @@ from docx.shared import Cm, Pt, RGBColor
 from ruamel.yaml import YAML
 
 from app import adjuntos as adj
-from app import firma
+from app import firma, parametros
 from app.esquema import AUTOMATIZABLE_VISIBLE, ETIQUETAS, REQ_ETIQUETAS
 from app.editor_core import NOT_CHAPTERS
 
@@ -498,7 +498,7 @@ def tabla_prueba(doc, prueba, base_dir):
     etiqueta_valor(fusionar(1, 0, 2), ETIQUETAS["descripcion"], prueba.get("descripcion"))
 
     # Fila 2: parametrización
-    etiqueta_lista(fusionar(2, 0, 2), True, ETIQUETAS["parametrizacion"], prueba.get("parametrizacion"), doc, base_dir)
+    etiqueta_lista(fusionar(2, 0, 2), True, ETIQUETAS["parametrizacion"], parametros.lineas_documento(prueba), doc, base_dir)
 
     # Fila 3: situación inicial y ensayo (numerado)
     c = fusionar(3, 0, 2)

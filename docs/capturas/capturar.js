@@ -386,6 +386,38 @@ const DATOS = process.env.DESTINO || "/home/ana/validacion";
       await foto("56_excel_mapeo_proyecto");
     },
 
+    async parametros() {
+      // DEMO-VAR-001: dos velocidades, una carga fija y 3 repeticiones (6 pasadas).
+      const ci = await js(() => S.capitulos.findIndex((c) => c.archivo.startsWith("04_")));
+      await capitulo(ci);
+      await fila("DEMO-VAR-001");
+      const verParametrizacion = () => js(() => { [...document.querySelectorAll(".bloque h3")].find((x) => x.textContent === "Parametrización").scrollIntoView(); document.querySelector(".principal").scrollTop -= 60; });
+      await verParametrizacion();
+      await foto("62_parametros");
+      await p.locator('section[aria-label="Parametrización"] .bloque-cab button').nth(1).click();
+      await espera(300);
+      await p.keyboard.type("puert");
+      await verParametrizacion();
+      await foto("63_parametros_catalogo");
+      await js(() => { setDirty(false); });
+      // Una ejecución con DEMO-VAR-001 y unas pasadas apuntadas.
+      const carpeta = `${DATOS}/ejecuciones/2026-11-18_Resistencia_v2.4`;
+      await api("ejecucion_crear", "Resistencia v2.4", { etiquetas: ["resistencia"] },
+        { objeto: "Firmware 2.4.0-rc1", entorno_pruebas: "Automático", entorno: "Banco HIL nº 2", responsable: "Ana Pérez" }, carpeta);
+      const pasada = (v, n, estado, obs = "", inc = "") => api("ejecucion_registrar", "DEMO-VAR-001", estado, obs, inc, [], "Ana Pérez",
+        `Velocidad nominal: ${v} #${n}`);
+      await pasada("1,0", 1, "ok");
+      await pasada("1,0", 2, "ok");
+      await pasada("1,0", 3, "ok");
+      await pasada("1,6", 1, "no_ok", "Alarma E12 (sobrevelocidad) en el viaje 612.", "BUG-214");
+      await p.click("#modo-ejecucion");
+      await espera(800);
+      await js((c) => { abrirEjecucion(c); }, carpeta);
+      await espera(1500);
+      await js(() => { irAPruebaEjecucion("DEMO-VAR-001"); });
+      await foto("64_pasadas", { espera: 1500 });
+    },
+
     async proyecto() {
       await p.click("#btn-menu");
       await p.click('[role="menu"] >> text=Nuevo proyecto');

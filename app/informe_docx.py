@@ -24,6 +24,7 @@ from docx.shared import Pt, RGBColor
 from app import ejecucion_core as ej
 from app import firma
 from app import git_pruebas
+from app import parametros
 from app import yaml_a_docx as yd
 
 COLOR_ESTADO = {"ok": "2B7A4B", "no_ok": "B3261E", "bloqueada": "9A5B00", "no_aplica": "6B7B85", "pendiente": "72838D"}
@@ -171,6 +172,40 @@ def _etiqueta(p, etiqueta: str, valor: str) -> None:
     yd.escribir_inline(p, valor)
 
 
+def _escribir_pasadas(tabla, ejecucion: dict[str, Any], prueba: dict[str, Any], resultado: dict[str, Any]) -> None:
+    """Una prueba que se pasa varias veces: el resultado de cada pasada (con sus notas y evidencias)."""
+    pasadas = parametros.pasadas(prueba)
+    if not pasadas:
+        return
+    guardadas = resultado.get("pasadas") or {}
+    hechas = sum(1 for p in pasadas if str((guardadas.get(p["clave"]) or {}).get("estado") or "pendiente") != "pendiente")
+    celda, p = _fila(tabla)
+    p.add_run(f"Pasadas ({hechas} de {len(pasadas)} hechas; la prueba es OK si todas lo son):").bold = True
+    for pasada in pasadas:
+        r = guardadas.get(pasada["clave"]) or {}
+        estado = str(r.get("estado") or "pendiente")
+        q = celda.add_paragraph(style="List Bullet")
+        yd.compactar(q)
+        q.add_run(f"{pasada['texto']}: ")
+        run = q.add_run(ej.ESTADOS_VISIBLES.get(estado, estado))
+        run.bold = True
+        run.font.color.rgb = RGBColor.from_string(COLOR_ESTADO.get(estado, "000000"))
+        detalles = [_fecha(r.get("fecha")), str(r.get("ejecutor") or ""), str(r.get("incidencia") or "")]
+        if any(detalles):
+            q.add_run("   (" + " · ".join(d for d in detalles if d) + ")")
+        if str(r.get("observaciones") or "").strip():
+            q.add_run(": ")
+            yd.escribir_inline(q, str(r["observaciones"]))
+        otras = []
+        for ruta in [str(e) for e in r.get("evidencias") or []]:
+            if Path(ruta).suffix.lower() in EXTENSIONES_IMAGEN:
+                yd.insertar_imagen(celda, ejecucion["carpeta"], ruta)
+            else:
+                otras.append(Path(ruta).name)
+        if otras:
+            q.add_run(f" — archivos en la carpeta de la ejecución: {', '.join(otras)}")
+
+
 def escribir_resultado(tabla, ejecucion: dict[str, Any], prueba: dict[str, Any]) -> None:
     test_id = str(prueba.get("id") or "").strip()
     resultado = ejecucion["resultados"].get(test_id) or {}
@@ -190,6 +225,7 @@ def escribir_resultado(tabla, ejecucion: dict[str, Any], prueba: dict[str, Any])
         _, p = _fila(tabla)
         run = p.add_run("Aviso: la prueba se modificó después de ejecutarse; el texto de arriba es el actual.")
         run.italic = True
+    _escribir_pasadas(tabla, ejecucion, prueba, resultado)
     if str(resultado.get("observaciones") or "").strip():
         _, p = _fila(tabla)
         _etiqueta(p, "Observaciones", str(resultado["observaciones"]))

@@ -59,6 +59,11 @@ herramientas está en el [README](README.md) y en el [manual](MANUAL.md).
   todo, ruleta y caché de lectura (`app/lectura.py`).
 - **Nombre: Aztarna** (versión 1.0.0): ventana, barra, ejecutable
   (`Aztarna.exe`), carpeta de ajustes, documentación y repositorio.
+- **Parámetros, repeticiones y pasadas** (1.4.0, `app/parametros.py`):
+  parámetros con valores en la parametrización, catálogo de parámetros del
+  proyecto (Excel/CSV), repeticiones, una pasada por combinación y repetición
+  en la ejecución, resultado de la prueba a partir de sus pasadas, informe y
+  Word de ida y vuelta.
 
 ## Siguientes pasos
 
@@ -86,6 +91,9 @@ Sin issue todavía:
 | Repartir una ejecución entre varias personas (asignar pruebas y filtro «Mis pendientes») | medio | decidir si hace falta |
 | Primera apertura de una validación grande en red (unos 4 s en local con 1000 pruebas): leer los YAML más rápido si se nota | pequeño | medirlo en la red |
 | Validación de una versión: integrada en `main`; quedan los puntos «por comprobar» de más abajo al usarla con datos reales | — | usarla |
+| Pasadas: importar resultados de Robot por pasada (etiqueta del parámetro y su valor en el test, varias ejecuciones del mismo test como repeticiones) y desde un Word de resultados; hoy esas pruebas se apuntan a mano | medio | cómo se escriben los tests de Robot parametrizados |
+| Pasadas: CSV de resultados con una fila por pasada; filtro «con pasadas pendientes» en el árbol | pequeño | — |
+| Catálogo de parámetros: generarlo desde lo que exporte el configurador; que la Situación inicial o los pasos puedan citar el valor de la pasada | medio | un export real del configurador |
 
 ### Decisiones abiertas
 

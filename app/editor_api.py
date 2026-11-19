@@ -29,7 +29,7 @@ from typing import Any, Callable
 
 from ruamel.yaml.error import YAMLError
 
-from app import adjuntos, ajustes, bloqueos, esquema, formato, trazabilidad
+from app import adjuntos, ajustes, bloqueos, esquema, formato, parametros, trazabilidad
 from app.editor_core import (
     ALLOWED_IMAGE_EXTENSIONS,
     LIST_FIELDS,
@@ -162,6 +162,13 @@ def _clean_item(item: Any) -> Any:
         return item.strip()
     if not isinstance(item, dict):
         raise ValueError("Cada elemento de una lista debe ser texto o un mapa.")
+    if parametros.es_parametro(item):
+        # Parámetro de la parametrización: el parámetro y sus valores (ver app/parametros.py).
+        limpio: dict[str, Any] = {"parametro": str(item.get("parametro") or "").strip()}
+        valores = list(dict.fromkeys(parametros.valores_de(item)))
+        if valores:
+            limpio["valores"] = valores
+        return limpio
     if "tabla" in item:
         # Tabla dentro del contexto (historial, parámetros…): se conserva con sus demás claves (motivo).
         tabla = item["tabla"] if isinstance(item["tabla"], dict) else {}
@@ -196,7 +203,8 @@ def _clean_list(items: Any, field: str) -> list[Any]:
         cleaned = _clean_item(item)
         empty_text = isinstance(cleaned, str) and not cleaned
         empty_map = (isinstance(cleaned, dict) and not cleaned.get("texto") and not cleaned.get("imagenes")
-                     and not cleaned.get("adjuntos") and "tabla" not in cleaned)
+                     and not cleaned.get("adjuntos") and "tabla" not in cleaned
+                     and not (parametros.es_parametro(cleaned) and (cleaned["parametro"] or cleaned.get("valores"))))
         if not (empty_text or empty_map):
             result.append(cleaned)
     return result
@@ -301,9 +309,24 @@ def clean_test_changes(changes: dict[str, Any]) -> dict[str, Any]:
             cleaned[field] = _clean_tags(value)
         elif field == "nivel":
             cleaned[field] = normalize_level(value)
+        elif field == "repeticiones":
+            cleaned[field] = _clean_repeticiones(value)
         else:
             raise ValueError(f"Campo desconocido: {field}")
     return cleaned
+
+
+def _clean_repeticiones(value: Any) -> int | None:
+    """Número de veces que hay que pasar la prueba; None (se quita el campo) si es una."""
+    if value in (None, ""):
+        return None
+    try:
+        n = int(str(value).strip())
+    except ValueError:
+        raise ValueError("«Repeticiones» debe ser un número.") from None
+    if not 1 <= n <= parametros.MAX_REPETICIONES:
+        raise ValueError(f"«Repeticiones» debe estar entre 1 y {parametros.MAX_REPETICIONES}.")
+    return None if n == 1 else n
 
 
 def clean_requirement_changes(changes: dict[str, Any]) -> dict[str, Any]:
@@ -334,18 +357,29 @@ def clean_requirement_changes(changes: dict[str, Any]) -> dict[str, Any]:
     return cleaned
 
 
-def apply_changes(target: Any, changes: dict[str, Any]) -> None:
+def apply_changes(target: Any, changes: dict[str, Any], orden: tuple[str, ...] = ()) -> None:
     """Aplica cambios sobre un mapa ruamel tocando solo lo que difiere.
 
     Un campo ausente cuyo nuevo valor es vacío no se añade, para no ensuciar
-    los ficheros con claves vacías.
+    los ficheros con claves vacías. Con `orden`, un campo nuevo se pone tras el
+    anterior que ya tenga (no al final).
     """
     for key, value in changes.items():
+        if value is None:                     # quitar el campo (repeticiones: 1)
+            if key in target:
+                del target[key]
+            continue
         if key in target:
             if to_plain(target[key]) != value:
                 target[key] = value
         elif value not in EMPTY:
-            target[key] = value
+            anteriores = orden[:orden.index(key)] if key in orden else ()
+            claves = list(target)
+            posicion = max((claves.index(k) + 1 for k in anteriores if k in claves), default=None)
+            if posicion is not None and hasattr(target, "insert"):
+                target.insert(posicion, key, value)
+            else:
+                target[key] = value
 
 
 # ----------------------------------------------------------------------
@@ -923,6 +957,46 @@ class EditorApi:
             "configuracion": str(esquema.CONFIGURACION) if esquema.CONFIGURACION else None,
         }
 
+    def _catalogo_parametros(self) -> tuple[list[dict[str, Any]], str | None]:
+        """El catálogo de parámetros del proyecto (en caché mientras no cambie) y el error al leerlo, si lo hay."""
+        ruta = esquema.CATALOGO_PARAMETROS
+        if ruta is None:
+            return [], None
+        try:
+            firma = (str(ruta), ruta.stat().st_mtime_ns)
+        except OSError:
+            return [], f"No se encuentra el catálogo de parámetros {ruta} (clave «parametros» del aztarna.yaml)."
+        guardado = getattr(self, "_cache_parametros", None)
+        if guardado and guardado[0] == firma:
+            return guardado[1], guardado[2]
+        try:
+            catalogo, error = parametros.leer_catalogo(ruta), None
+        except ValueError as e:
+            catalogo, error = [], str(e)
+        self._cache_parametros = (firma, catalogo, error)
+        return catalogo, error
+
+    @respuesta
+    def parametros_ayuda(self) -> dict[str, Any]:
+        """Para escribir la parametrización: el catálogo de parámetros y los que ya usan las pruebas (con sus valores)."""
+        catalogo, error = self._catalogo_parametros()
+        usados: dict[str, dict[str, Any]] = {}
+        for chapter in self._chapters:
+            for _index, test in tests_in_chapter(chapter):
+                for p in parametros.parametros_de(test):
+                    if not p["parametro"]:
+                        continue
+                    uso = usados.setdefault(parametros.clave_nombre(p["parametro"]),
+                                            {"parametro": p["parametro"], "valores": [], "usos": 0})
+                    uso["usos"] += 1
+                    uso["valores"].extend(v for v in p["valores"] if v not in uso["valores"])
+        return {
+            "catalogo": catalogo,
+            "archivo": str(esquema.CATALOGO_PARAMETROS) if esquema.CATALOGO_PARAMETROS else None,
+            "error": error,
+            "usados": sorted(usados.values(), key=lambda u: (-u["usos"], u["parametro"].lower())),
+        }
+
     @respuesta
     def etiquetas_uso(self) -> list[dict[str, Any]]:
         """Etiquetas usadas y en cuántas pruebas, las más usadas primero (para proponerlas)."""
@@ -1014,7 +1088,7 @@ class EditorApi:
         changes.pop("nivel", None)
         if "id" in changes:
             self._check_id(changes["id"], (chapter["path"], indice))
-        apply_changes(element["prueba"], changes)
+        apply_changes(element["prueba"], changes, esquema.ORDEN)
         self._persist(chapter)
         return {"indice": indice}
 
@@ -1592,6 +1666,8 @@ class EditorApi:
         base = self._require_dir()
         issues: list[dict[str, Any]] = []
         catalogo = {str(r.get("id") or "").strip() for c in self._req_chapters for _i, r in items_in_chapter(c, "requisito")}
+        lista_parametros, error_parametros = self._catalogo_parametros()
+        catalogo_parametros = parametros.indice_catalogo(lista_parametros)
 
         def add(kind: str, chapter_index: int, index: int | None, test_id: str, message: str) -> None:
             issues.append({
@@ -1599,6 +1675,9 @@ class EditorApi:
                 "id": test_id, "mensaje": message,
                 "archivo": self._chapters[chapter_index]["path"].name,
             })
+
+        if error_parametros and self._chapters:
+            add("aviso", 0, None, "", error_parametros)
 
         seen: dict[str, list[tuple[int, int]]] = {}
         for ci, chapter in enumerate(self._chapters):
@@ -1654,6 +1733,8 @@ class EditorApi:
                     add("aviso", ci, index, test_id,
                         f"Campos que ya no existen: {', '.join(obsoletos)}. Vuelve a importar el Word o quítalos en la vista YAML.")
                 self._check_context_tables(add, ci, index, test_id, test.get("contexto"))
+                for severidad, mensaje in parametros.problemas(test, catalogo_parametros):
+                    add(severidad, ci, index, test_id, mensaje)
                 level = test.get("nivel")
                 if level is not None and (not isinstance(level, int) or not 1 <= level <= 6):
                     add("aviso", ci, index, test_id, f"Nivel fuera del rango 1-6: {level}.")

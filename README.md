@@ -23,6 +23,10 @@ están en el [CHANGELOG](CHANGELOG.md) y el trabajo pendiente, en
   en varias pruebas a la vez y buscar y reemplazar en todo el proyecto. Varias
   personas pueden trabajar en la misma carpeta: cada capítulo lo edita una a
   la vez.
+- **Una prueba, varias pasadas.** En la parametrización se indican los
+  parámetros que se tocan (con la ayuda de un catálogo del configurador) y sus
+  valores, y cuántas repeticiones: la prueba se escribe una vez y en la
+  ejecución tiene una pasada por combinación y repetición.
 - **Trazabilidad.** Qué pruebas cubren cada requisito, qué requisitos se
   quedan sin cubrir y cuáles han cambiado y tienen pruebas por revisar. Matriz
   exportable.
@@ -160,7 +164,8 @@ prueba sigue `plantillas/tabla_prueba.docx`:
 |---|---|---|
 | `id`, `titulo` | ID \| Título | texto, obligatorios |
 | `descripcion` | Descripción | texto |
-| `parametrizacion`, `situacion_inicial` | Parametrización, Situación inicial | listas |
+| `parametrizacion`, `situacion_inicial` | Parametrización, Situación inicial | listas (en la parametrización, también `{parametro, valores}`) |
+| `repeticiones` | Parametrización («Repeticiones: N») | número, si es más de 1 |
 | `pasos` | Ensayo | lista numerada |
 | `maniobra`, `entorno` | Maniobra, Entorno de pruebas | varias opciones (las del proyecto) |
 | `automatizable` | Automatizable | si, no, corto, medio, largo o hecho |
@@ -185,7 +190,13 @@ opciones:
   entorno: [Automático, Maqueta, Torre]
 equivalencias:                 # otras formas de escribirlas en el Word
   maniobra: {S: Simplex, D: Dúplex}
+parametros: parametros.xlsx    # catálogo de parámetros (opcional, ver app/parametros.py)
 ```
+
+El catálogo de parámetros es un Excel o CSV con las columnas Parámetro,
+Ubicación, Descripción, Valores (separados por `;`) y Unidad; el editor
+propone sus parámetros al escribir la parametrización. Ejemplo en
+`ejemplos/yaml/parametros.csv`.
 
 Sin el archivo, maniobra no tiene opciones y entorno usa Automático, Maqueta
 y Torre (con A, M y T como equivalencias). Al comparar no cuentan las

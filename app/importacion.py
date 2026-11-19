@@ -45,7 +45,7 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from ruamel.yaml import YAML
 
-from app import adjuntos, esquema, formato
+from app import adjuntos, esquema, formato, parametros
 from migracion import convertir as cv
 from migracion.ids_duplicados import _ID_VALIDO, _siguiente
 
@@ -510,6 +510,10 @@ class _Lector:
                 extras[nombre] = ", ".join(descartados)
 
         if self.tipo == "prueba":
+            if d.get("parametrizacion"):
+                d["parametrizacion"], repeticiones = parametros.desde_documento(d["parametrizacion"])
+                if repeticiones and repeticiones > 1:
+                    d["repeticiones"] = repeticiones
             for campo, normalizar in (("entorno", esquema.normalizar_entorno), ("maniobra", esquema.normalizar_maniobra)):
                 if campo in d:
                     d[campo], descartados = normalizar(d[campo])

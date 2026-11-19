@@ -58,7 +58,7 @@ OBLIGATORIOS = ("id", "titulo")
 
 # Orden de las claves en el YAML.
 ORDEN = (
-    "nombre", "nivel", "id", "titulo", "descripcion", "parametrizacion", "situacion_inicial", "pasos",
+    "nombre", "nivel", "id", "titulo", "descripcion", "parametrizacion", "repeticiones", "situacion_inicial", "pasos",
     "maniobra", "automatizable", "entorno", "requisitos", "etiquetas", "fecha", "version",
     "contexto", "campos_adicionales", "imagenes", "adjuntos",
 )
@@ -69,7 +69,7 @@ ETIQUETAS = {
     "maniobra": "Maniobra", "automatizable": "Automatizable", "entorno": "Entorno de pruebas",
     "requisitos": "Requisitos", "etiquetas": "Tags", "fecha": "Fecha", "version": "Versión",
     "contexto": "Contexto", "campos_adicionales": "Campos adicionales", "imagenes": "Imágenes",
-    "adjuntos": "Adjuntos",
+    "adjuntos": "Adjuntos", "repeticiones": "Repeticiones",
 }
 
 # Campos que ya no existen. `migrar_prueba` los quita (situacion_final pasa a Ensayo).
@@ -92,7 +92,7 @@ def prueba_vacia() -> dict[str, Any]:
     """Prueba nueva con todos los campos del esquema, vacíos."""
     vacia: dict[str, Any] = {"nombre": "", "nivel": 3}
     for clave in ORDEN:
-        if clave in vacia:
+        if clave in vacia or clave == "repeticiones":     # sin repeticiones: se pasa una vez
             continue
         if clave in CAMPOS_TEXTO:
             vacia[clave] = ""
@@ -288,6 +288,7 @@ def completar(prueba: Any) -> None:
 #       entorno: [Automático, Maqueta, Torre]
 #     equivalencias:                  # otras formas de escribirlas en el Word
 #       maniobra: {S: Simplex, D: Dúplex}
+#     parametros: parametros.xlsx      # catálogo de parámetros (ver app/parametros.py)
 #
 # Va en la carpeta del proyecto (junto a pruebas/ y requisitos/) o, en una
 # carpeta de pruebas suelta, dentro de ella. Un campo que no aparece conserva sus
@@ -296,6 +297,8 @@ def completar(prueba: Any) -> None:
 ARCHIVO_CONFIGURACION = "aztarna.yaml"
 # El aztarna.yaml que se está usando (None: las opciones de partida) y su contenido.
 CONFIGURACION: Path | None = None
+# El catálogo de parámetros (clave `parametros` del aztarna.yaml, relativa a él), si lo hay.
+CATALOGO_PARAMETROS: Path | None = None
 _CONTENIDO_CONFIGURACION: bytes = b""
 
 
@@ -308,7 +311,7 @@ def archivo_configuracion(carpeta_pruebas: str | Path) -> Path | None:
     return next((c for c in candidatos if c.is_file()), None)
 
 
-def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[str, dict[str, str]]]:
+def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[str, dict[str, str]], Path | None]:
     from ruamel.yaml import YAML
     from ruamel.yaml.error import YAMLError
 
@@ -317,8 +320,13 @@ def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[st
             datos = YAML(typ="safe").load(f) or {}
     except (OSError, YAMLError) as error:
         raise ValueError(f"No se puede leer {ruta}: {error}") from error
-    if not isinstance(datos, dict) or set(datos) - {"opciones", "equivalencias"}:
-        raise ValueError(f"{ruta}: solo admite «opciones» y «equivalencias».")
+    if not isinstance(datos, dict) or set(datos) - {"opciones", "equivalencias", "parametros"}:
+        raise ValueError(f"{ruta}: solo admite «opciones», «equivalencias» y «parametros».")
+    catalogo = None
+    if datos.get("parametros"):
+        if not isinstance(datos["parametros"], str):
+            raise ValueError(f"{ruta}: «parametros» es la ruta del catálogo de parámetros (un Excel o CSV).")
+        catalogo = (ruta.parent / datos["parametros"]).resolve()
     opciones, equivalencias = {}, {}
     for campo, valores in (datos.get("opciones") or {}).items():
         if campo not in OPCIONES_BASE:
@@ -335,7 +343,7 @@ def _leer_configuracion(ruta: Path) -> tuple[dict[str, tuple[str, ...]], dict[st
             if str(opcion) not in validas:
                 raise ValueError(f"{ruta}: la equivalencia «{forma}» lleva a «{opcion}», que no es una opción de «{campo}».")
         equivalencias[campo] = {str(k): str(v) for k, v in pares.items()}
-    return opciones, equivalencias
+    return opciones, equivalencias, catalogo
 
 
 def configurar(carpeta_pruebas: str | Path | None) -> Path | None:
@@ -344,11 +352,11 @@ def configurar(carpeta_pruebas: str | Path | None) -> Path | None:
     También admite la ruta del propio archivo. Devuelve el archivo leído. Un archivo
     mal escrito da ValueError y deja las opciones como estaban.
     """
-    global CONFIGURACION, _CONTENIDO_CONFIGURACION
+    global CONFIGURACION, CATALOGO_PARAMETROS, _CONTENIDO_CONFIGURACION
     ruta = None
     if carpeta_pruebas is not None:
         ruta = Path(carpeta_pruebas) if Path(carpeta_pruebas).is_file() else archivo_configuracion(carpeta_pruebas)
-    opciones, equivalencias = _leer_configuracion(ruta) if ruta else ({}, {})
+    opciones, equivalencias, catalogo = _leer_configuracion(ruta) if ruta else ({}, {}, None)
     for campo, base in OPCIONES_BASE.items():
         OPCIONES_MULTIPLES[campo] = opciones.get(campo, base)
         if campo in equivalencias:
@@ -356,6 +364,7 @@ def configurar(carpeta_pruebas: str | Path | None) -> Path | None:
         else:
             EQUIVALENCIAS[campo] = {k: v for k, v in EQUIVALENCIAS_BASE[campo].items() if v in OPCIONES_MULTIPLES[campo]}
     CONFIGURACION = ruta
+    CATALOGO_PARAMETROS = catalogo
     _CONTENIDO_CONFIGURACION = ruta.read_bytes() if ruta else b""
     return ruta
 

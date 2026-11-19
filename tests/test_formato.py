@@ -58,7 +58,7 @@ class Formato(unittest.TestCase):
         self.assertFalse(r["ok"])
         self.assertIn("actualiza el programa", r["error"])
         self.assertEqual((self.pruebas / "01_ejemplo_basico.yaml").read_text(encoding="utf-8"), antes)
-        self.assertIn("formato: 2", (self.pruebas / formato.ARCHIVO).read_text(encoding="utf-8"))   # no se baja
+        self.assertIn(f"formato: {formato.FORMATO + 1}", (self.pruebas / formato.ARCHIVO).read_text(encoding="utf-8"))   # no se baja
         # También si la más nueva es la de requisitos.
         self.subir(self.pruebas, 1)
         self.subir(self.tmp / "yaml" / "requisitos")

@@ -148,6 +148,8 @@ PLANTILLA_CONFIGURACION = """\
 #   maniobra:
 #     S: Simplex
 #     D: Dúplex
+# parametros: parametros.xlsx   # catálogo de parámetros: Excel o CSV con las
+#                               # columnas Parámetro, Ubicación, Descripción y Valores
 """
 
 
