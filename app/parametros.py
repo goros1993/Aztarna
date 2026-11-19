@@ -249,12 +249,26 @@ def _separar_valores(texto: str) -> list[str]:
     return [v.strip() for v in re.split(r"[;\n|]", texto) if v.strip()]
 
 
-def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
-    """Parámetros del catálogo: [{parametro, ubicacion, descripcion, valores, unidad}].
+def _columnas(claves: list[str]) -> dict[str, int | None]:
+    """Columna de cada dato que se reconoce (por orden de preferencia de sus nombres)."""
+    posicion: dict[str, int | None] = {}
+    usadas: set[int] = set()
+    for campo, nombres in COLUMNAS.items():
+        posicion[campo] = next((i for nombre in nombres for i, c in enumerate(claves) if c == nombre and i not in usadas), None)
+        if posicion[campo] is not None:
+            usadas.add(posicion[campo])
+    return posicion
 
-    La primera fila con una columna «Parámetro» es la cabecera; las demás
-    columnas que se reconocen (Ubicación, Descripción, Valores, Unidad) son
-    opcionales. Los valores van separados por «;» (o en líneas).
+
+def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
+    """Parámetros del catálogo: [{parametro, ubicacion, descripcion, valores, unidad, otros}].
+
+    La cabecera es la primera fila con una columna «Parámetro» (o, si ninguna la
+    tiene, la primera fila con algo, y el parámetro es su primera columna). Las
+    demás columnas son opcionales y van en cualquier orden: Ubicación,
+    Descripción, Valores (separados por «;» o en líneas) y Unidad se reconocen
+    por su nombre; las que tengan otro nombre van en `otros` como
+    [[columna, valor], …], para enseñarlas tal cual.
     """
     ruta = Path(ruta)
     try:
@@ -265,23 +279,30 @@ def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
     for n, fila in enumerate(filas):
         claves = [clave_nombre(c) for c in fila]
         if any(c in COLUMNAS["parametro"] for c in claves):
-            cabecera = n
-            for campo, nombres in COLUMNAS.items():
-                posicion[campo] = next((i for i, c in enumerate(claves) if c in nombres), None)
+            cabecera, posicion = n, _columnas(claves)
             break
     if cabecera is None:
-        raise ValueError(f"{ruta.name}: falta la columna «Parámetro» en el catálogo de parámetros.")
+        # Sin columna «Parámetro»: la primera fila con algo es la cabecera y el parámetro, su primera columna.
+        cabecera = next((n for n, fila in enumerate(filas) if any(c.strip() for c in fila)), None)
+        if cabecera is None:
+            raise ValueError(f"{ruta.name}: el catálogo de parámetros está vacío.")
+        primera = next(i for i, c in enumerate(filas[cabecera]) if c.strip())
+        claves = [clave_nombre(c) if i != primera else "parametro" for i, c in enumerate(filas[cabecera])]
+        posicion = _columnas(claves)
+    reconocidas = {i for i in posicion.values() if i is not None}
+    otras = [(i, c.strip()) for i, c in enumerate(filas[cabecera]) if i not in reconocidas and c.strip()]
     catalogo, vistos = [], set()
     for fila in filas[cabecera + 1:]:
-        def celda(campo: str) -> str:
-            i = posicion.get(campo)
+        def celda(i: int | None) -> str:
             return fila[i].strip() if i is not None and i < len(fila) else ""
-        nombre = celda("parametro")
+        nombre = celda(posicion.get("parametro"))
         if not nombre or clave_nombre(nombre) in vistos:
             continue
         vistos.add(clave_nombre(nombre))
-        catalogo.append({"parametro": nombre, "ubicacion": celda("ubicacion"), "descripcion": celda("descripcion"),
-                         "valores": _separar_valores(celda("valores")), "unidad": celda("unidad")})
+        catalogo.append({"parametro": nombre, "ubicacion": celda(posicion.get("ubicacion")),
+                         "descripcion": celda(posicion.get("descripcion")),
+                         "valores": _separar_valores(celda(posicion.get("valores"))), "unidad": celda(posicion.get("unidad")),
+                         "otros": [[columna, celda(i)] for i, columna in otras if celda(i)]})
     return catalogo
 
 

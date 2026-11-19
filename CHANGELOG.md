@@ -14,14 +14,18 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   repetirla o cambiar la configuración.
 - **Catálogo de parámetros**: un Excel o CSV del proyecto (clave `parametros`
   del `aztarna.yaml`) con los parámetros del configurador, dónde se tocan,
-  qué son y qué valores admiten. El editor los propone al escribir (con su
+  qué son y qué valores admiten. Solo la columna del parámetro es
+  obligatoria; las demás van al gusto (las que no se reconocen se enseñan tal
+  cual, como «Valor por defecto: 1,0»). El editor los propone al escribir (con su
   ubicación) y el panel de problemas avisa de los parámetros o valores que no
   están en él. Ejemplo en `ejemplos/yaml/parametros.csv`.
 - **Pasadas en la ejecución**: la prueba tiene una rejilla con una casilla
   por pasada (configuración × repetición) y cada pasada su resultado, notas,
   evidencias e historial. La prueba es OK solo si todas sus pasadas lo son,
   NO OK en cuanto falla una; la ejecución no se cierra con pasadas
-  pendientes; *Guardar y siguiente* recorre las pasadas pendientes. El
+  pendientes; *Guardar y siguiente* recorre las pasadas pendientes. En la
+  ficha de la prueba se resaltan los valores de la pasada que se apunta, y
+  cada parámetro lleva debajo lo que dice de él el catálogo (dónde se toca…). El
   resumen da el avance por pasadas y el informe, el resultado de cada una.
 - En el Word, los parámetros salen como «**Parámetro:** v1 / v2» y las
   repeticiones como «**Repeticiones:** N», y vuelven a serlo al importarlo.

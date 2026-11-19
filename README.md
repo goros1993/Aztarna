@@ -193,9 +193,11 @@ equivalencias:                 # otras formas de escribirlas en el Word
 parametros: parametros.xlsx    # catálogo de parámetros (opcional, ver app/parametros.py)
 ```
 
-El catálogo de parámetros es un Excel o CSV con las columnas Parámetro,
-Ubicación, Descripción, Valores (separados por `;`) y Unidad; el editor
-propone sus parámetros al escribir la parametrización. Ejemplo en
+El catálogo de parámetros es un Excel o CSV con una fila por parámetro: la
+columna Parámetro es obligatoria; Ubicación, Descripción, Valores (separados
+por `;`) y Unidad se reconocen por su nombre, y cualquier otra columna se
+enseña tal cual. El editor propone sus parámetros al escribir la
+parametrización. Ejemplo en
 `ejemplos/yaml/parametros.csv`.
 
 Sin el archivo, maniobra no tiene opciones y entorno usa Automático, Maqueta
