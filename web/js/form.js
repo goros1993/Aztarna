@@ -621,7 +621,13 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
   pintar();
   // Con el catálogo ya cargado, las notas de los parámetros (ubicación, descripción) se completan.
   const formulario = F;
-  if (conParametros) ayudaParametros(true).then(() => { if (F === formulario && !lista.contains(document.activeElement)) pintar(); });
+  if (conParametros) {
+    ayudaParametros(true).then(() => {
+      if (F !== formulario) return;
+      pie.pintarCatalogo();
+      if (!lista.contains(document.activeElement)) pintar();
+    });
+  }
   return bloque;
 }
 
@@ -745,10 +751,22 @@ function pieParametrizacion() {
     const partes = [variables.length ? plural(configs, "configuración", "configuraciones") : "", rep > 1 ? plural(rep, "repetición", "repeticiones") : ""].filter(Boolean);
     resumen.textContent = total > 1 ? `En la ejecución: ${plural(total, "pasada", "pasadas")} (${partes.join(" × ")}), cada una con su resultado.` : "En la ejecución se pasa una vez.";
   }
+  const catalogo = h("div", { class: "estado-catalogo" });
   const pie = h("div", { class: "pie-parametrizacion" },
     h("label", { for: "f-repeticiones", text: "Repeticiones" }), entrada,
-    h("span", { class: "muted", text: "veces cada configuración" }), resumen);
+    h("span", { class: "muted", text: "veces cada configuración" }), resumen, catalogo);
   pie.actualizar = actualizar;
+  /** Qué catálogo de parámetros se usa (o por qué no se puede usar), para que se vea sin abrir el panel de problemas. */
+  pie.pintarCatalogo = () => {
+    const a = AYUDA_PARAMETROS;
+    const nombre = a.archivo ? a.archivo.split(/[\\/]/).pop() : "";
+    catalogo.className = "estado-catalogo" + (a.error ? " con-error" : "");
+    catalogo.replaceChildren(a.error ? h("span", { text: `Catálogo de parámetros: ${a.error}` })
+      : a.archivo ? h("span", { title: a.archivo, text: `Catálogo de parámetros: ${nombre} · ${plural(a.catalogo.length, "parámetro", "parámetros")}` })
+        : h("span", { title: a.configuracion || "", text: a.configuracion
+          ? "Sin catálogo de parámetros: añade «parametros: archivo.xlsx» al aztarna.yaml del proyecto y pulsa Recargar."
+          : "Sin catálogo de parámetros: el proyecto no tiene aztarna.yaml (ver el manual, 4.3)." }));
+  };
   return pie;
 }
 

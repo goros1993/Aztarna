@@ -181,7 +181,8 @@ async function abrirAjustes() {
     campo("aj-versiones", "Carpeta con la última versión del programa", AJUSTES.carpeta_versiones, { ejemplo: "\\\\servidor\\pruebas\\programa",
       texto: "Donde se publican Aztarna.exe y version.txt. Al abrir el editor, avisa si allí hay una versión más nueva que la tuya." }, elegir),
     campo("aj-incidencias", "Dirección de las incidencias", AJUSTES.url_incidencias, { ejemplo: "https://jira.empresa.com/browse/{id}",
-      texto: "Con {id} donde va el número. Las incidencias (BUG-123…) de los resultados se abren con un clic." }));
+      texto: "Con {id} donde va el número. Las incidencias (BUG-123…) de los resultados se abren con un clic." }),
+    await configuracionDelProyecto());
   const r = await dialogo({ titulo: "Ajustes de este PC", cuerpo, ancho: true,
     botones: [{ texto: "Cancelar", valor: "", tipo: "ghost" }, { texto: "Guardar", valor: "si", tipo: "primary" }] });
   if (r !== "si") return;
@@ -195,6 +196,27 @@ async function abrirAjustes() {
     aviso("Ajustes guardados", "ok");
     comprobarVersion();
   } catch (e) { fallo(e); }
+}
+
+/** En Ajustes: qué aztarna.yaml y qué catálogo de parámetros usa el proyecto abierto (solo para ver; se cambian en el aztarna.yaml). */
+async function configuracionDelProyecto() {
+  if (!S.carpeta) return null;
+  let a;
+  try { a = await ayudaParametros(true); } catch (_e) { return null; }
+  const ruta = (texto, archivo) => h("div", { class: "fila-config" },
+    h("span", { class: "ruta-config", text: texto, title: archivo || "" }),
+    archivo ? h("button", { type: "button", class: "btn peq", text: "Mostrar", onclick: () => api.mostrar_en_carpeta(archivo).catch(fallo) }) : null);
+  const estado = a.error
+    ? h("span", { class: "estado-catalogo con-error", text: a.error })
+    : a.archivo ? h("span", { class: "ayuda", text: `Cargado: ${plural(a.catalogo.length, "parámetro", "parámetros")}. El editor los propone al escribir la parametrización.` })
+      : h("span", { class: "ayuda", text: a.configuracion
+        ? "Sin catálogo: añade «parametros: archivo.xlsx» (o .csv, con la ruta relativa al aztarna.yaml) y pulsa Recargar."
+        : "El proyecto no tiene aztarna.yaml: créalo en su carpeta (junto a pruebas/) con «parametros: archivo.xlsx»." });
+  return h("div", { class: "campo completo config-proyecto" },
+    h("label", { text: "Del proyecto abierto (se cambia en su aztarna.yaml)" }),
+    ruta(a.configuracion ? `aztarna.yaml: ${a.configuracion}` : "aztarna.yaml: no tiene", a.configuracion),
+    ruta(a.archivo ? `Catálogo de parámetros: ${a.archivo}` : "Catálogo de parámetros: ninguno", a.archivo && !a.error ? a.archivo : null),
+    estado);
 }
 
 /* ---- versión nueva publicada ---- */

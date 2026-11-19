@@ -993,6 +993,7 @@ class EditorApi:
         return {
             "catalogo": catalogo,
             "archivo": str(esquema.CATALOGO_PARAMETROS) if esquema.CATALOGO_PARAMETROS else None,
+            "configuracion": str(esquema.CONFIGURACION) if esquema.CONFIGURACION else None,
             "error": error,
             "usados": sorted(usados.values(), key=lambda u: (-u["usos"], u["parametro"].lower())),
         }
