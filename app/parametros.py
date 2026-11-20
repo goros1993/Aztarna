@@ -53,8 +53,13 @@ def valores_de(elemento: Any) -> list[str]:
 
 
 def parametros_de(prueba: dict[str, Any]) -> list[dict[str, Any]]:
-    """[{parametro, valores}] de la parametrización de la prueba, en su orden."""
-    return [{"parametro": str(e.get("parametro") or "").strip(), "valores": valores_de(e)}
+    """[{parametro, valores, ubicacion}] de la parametrización de la prueba, en su orden.
+
+    `ubicacion` es dónde se toca el parámetro en esta prueba, elegida entre las
+    del catálogo cuando tiene varias ("" si no se eligió: valen todas).
+    """
+    return [{"parametro": str(e.get("parametro") or "").strip(), "valores": valores_de(e),
+             "ubicacion": str(e.get("ubicacion") or "").strip()}
             for e in prueba.get("parametrizacion") or [] if es_parametro(e)]
 
 
@@ -73,13 +78,18 @@ def texto_parametro(elemento: dict[str, Any]) -> str:
 
 
 def lineas_documento(prueba: dict[str, Any]) -> list[Any]:
-    """La parametrización para el Word: cada parámetro como «**Parámetro:** v1 / v2» y, al final, las repeticiones."""
+    """La parametrización para el Word: cada parámetro como «**Parámetro:** v1 / v2» (con la ubicación
+    elegida, «**Parámetro** (ubicación): v1 / v2») y, al final, las repeticiones."""
     lineas: list[Any] = []
     for elemento in prueba.get("parametrizacion") or []:
         if es_parametro(elemento):
             nombre = str(elemento.get("parametro") or "").strip()
-            valores = valores_de(elemento)
-            lineas.append(f"**{nombre}:** {' / '.join(valores)}" if valores else f"**{nombre}**")
+            valores = " / ".join(valores_de(elemento))
+            ubicacion = str(elemento.get("ubicacion") or "").strip()
+            if ubicacion:
+                lineas.append(f"**{nombre}** ({ubicacion}): {valores}".rstrip())
+            else:
+                lineas.append(f"**{nombre}:** {valores}" if valores else f"**{nombre}**")
         else:
             lineas.append(elemento)
     repeticiones = repeticiones_de(prueba)
@@ -89,6 +99,7 @@ def lineas_documento(prueba: dict[str, Any]) -> list[Any]:
 
 
 _LINEA_PARAMETRO = re.compile(r"^\*\*(?P<nombre>[^*:\n]+?):\*\*[ \t]*(?P<valores>[^\n]*?)\s*$")
+_LINEA_PARAMETRO_UBICACION = re.compile(r"^\*\*(?P<nombre>[^*\n]+?)\*\*[ \t]*\((?P<ubicacion>[^\n]+)\):[ \t]*(?P<valores>[^\n]*?)\s*$")
 
 
 def desde_documento(items: list[Any]) -> tuple[list[Any], int | None]:
@@ -97,6 +108,12 @@ def desde_documento(items: list[Any]) -> tuple[list[Any], int | None]:
     salida: list[Any] = []
     repeticiones = None
     for item in items or []:
+        con_ubicacion = _LINEA_PARAMETRO_UBICACION.match(item) if isinstance(item, str) else None
+        if con_ubicacion:
+            salida.append({"parametro": con_ubicacion["nombre"].strip(),
+                           "valores": [v.strip() for v in con_ubicacion["valores"].split(" / ") if v.strip()],
+                           "ubicacion": con_ubicacion["ubicacion"].strip()})
+            continue
         coincide = _LINEA_PARAMETRO.match(item) if isinstance(item, str) else None
         if not coincide:
             salida.append(item)
@@ -172,12 +189,16 @@ def problemas(prueba: dict[str, Any], catalogo: dict[str, dict[str, Any]] | None
             del_catalogo = catalogo.get(clave)
             if del_catalogo is None:
                 salida.append(("aviso", f"El parámetro «{p['parametro']}» no está en el catálogo de parámetros."))
-            elif del_catalogo["valores"]:
-                admitidos = {clave_nombre(v) for v in del_catalogo["valores"]}
-                fuera = [v for v in p["valores"] if clave_nombre(v) not in admitidos]
-                if fuera:
-                    salida.append(("aviso", f"«{p['parametro']}»: {', '.join(fuera)} no "
-                                            f"{'es un valor' if len(fuera) == 1 else 'son valores'} del catálogo."))
+            else:
+                if del_catalogo["valores"]:
+                    admitidos = {clave_nombre(v) for v in del_catalogo["valores"]}
+                    fuera = [v for v in p["valores"] if clave_nombre(v) not in admitidos]
+                    if fuera:
+                        salida.append(("aviso", f"«{p['parametro']}»: {', '.join(fuera)} no "
+                                                f"{'es un valor' if len(fuera) == 1 else 'son valores'} del catálogo."))
+                ubicaciones = del_catalogo.get("ubicaciones") or []
+                if p["ubicacion"] and ubicaciones and clave_nombre(p["ubicacion"]) not in {clave_nombre(u) for u in ubicaciones}:
+                    salida.append(("aviso", f"«{p['parametro']}»: la ubicación «{p['ubicacion']}» no está en el catálogo."))
     valor = prueba.get("repeticiones")
     if valor not in (None, ""):
         try:
@@ -271,6 +292,20 @@ def _separar_valores(texto: str) -> list[str]:
     return [v.strip() for v in re.split(r"[;\n|]", texto) if v.strip()]
 
 
+def _es_ubicacion(clave: str) -> bool:
+    """Columnas de ubicación: «Ubicación», «Ubicación 2», «Dónde 1»… (puede haber varias)."""
+    return re.fullmatch(r"(?:%s|ubicaciones)\d*" % "|".join(COLUMNAS["ubicacion"]), clave) is not None
+
+
+def _separar_ubicaciones(textos: list[str]) -> list[str]:
+    ubicaciones: list[str] = []
+    for texto in textos:
+        for u in re.split(r"[;\n]", texto):
+            if u.strip() and u.strip() not in ubicaciones:
+                ubicaciones.append(u.strip())
+    return ubicaciones
+
+
 def _columnas(claves: list[str]) -> dict[str, int | None]:
     """Columna de cada dato que se reconoce (por orden de preferencia de sus nombres)."""
     posicion: dict[str, int | None] = {}
@@ -283,14 +318,17 @@ def _columnas(claves: list[str]) -> dict[str, int | None]:
 
 
 def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
-    """Parámetros del catálogo: [{parametro, ubicacion, descripcion, valores, unidad, otros}].
+    """Parámetros del catálogo: [{parametro, ubicaciones, ubicacion, descripcion, valores, unidad, otros}].
 
     La cabecera es la primera fila con una columna «Parámetro» (o, si ninguna la
     tiene, la primera fila con algo, y el parámetro es su primera columna). Las
     demás columnas son opcionales y van en cualquier orden: Ubicación,
     Descripción, Valores (separados por «;» o en líneas) y Unidad se reconocen
     por su nombre; las que tengan otro nombre van en `otros` como
-    [[columna, valor], …], para enseñarlas tal cual.
+    [[columna, valor], …], para enseñarlas tal cual. Un parámetro puede tocarse
+    en varios sitios: varias ubicaciones separadas por «;» (o en líneas) o en
+    varias columnas de ubicación («Ubicación», «Ubicación 2»…); `ubicacion` es
+    la primera.
     """
     ruta = Path(ruta)
     try:
@@ -311,7 +349,8 @@ def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
         primera = next(i for i, c in enumerate(filas[cabecera]) if c.strip())
         claves = [clave_nombre(c) if i != primera else "parametro" for i, c in enumerate(filas[cabecera])]
         posicion = _columnas(claves)
-    reconocidas = {i for i in posicion.values() if i is not None}
+    columnas_ubicacion = [i for i, c in enumerate(claves) if _es_ubicacion(c) and i != posicion.get("parametro")]
+    reconocidas = {i for i in posicion.values() if i is not None} | set(columnas_ubicacion)
     otras = [(i, c.strip()) for i, c in enumerate(filas[cabecera]) if i not in reconocidas and c.strip()]
     catalogo, vistos = [], set()
     for fila in filas[cabecera + 1:]:
@@ -321,7 +360,8 @@ def leer_catalogo(ruta: str | Path) -> list[dict[str, Any]]:
         if not nombre or clave_nombre(nombre) in vistos:
             continue
         vistos.add(clave_nombre(nombre))
-        catalogo.append({"parametro": nombre, "ubicacion": celda(posicion.get("ubicacion")),
+        ubicaciones = _separar_ubicaciones([celda(i) for i in columnas_ubicacion])
+        catalogo.append({"parametro": nombre, "ubicaciones": ubicaciones, "ubicacion": ubicaciones[0] if ubicaciones else "",
                          "descripcion": celda(posicion.get("descripcion")),
                          "valores": _separar_valores(celda(posicion.get("valores"))), "unidad": celda(posicion.get("unidad")),
                          "otros": [[columna, celda(i)] for i, columna in otras if celda(i)]})

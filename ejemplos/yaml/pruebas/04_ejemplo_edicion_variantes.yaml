@@ -74,6 +74,7 @@ contenido:
     - Generador de tráfico en modo «hora punta».
     - parametro: Velocidad nominal
       valores: ['1,0', '1,6']
+      ubicacion: Accionamiento › Perfil › Vnom
     - parametro: Carga en cabina
       valores: [50 %]
     repeticiones: 3

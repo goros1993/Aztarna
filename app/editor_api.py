@@ -168,6 +168,8 @@ def _clean_item(item: Any) -> Any:
         valores = list(dict.fromkeys(parametros.valores_de(item)))
         if valores:
             limpio["valores"] = valores
+        if str(item.get("ubicacion") or "").strip():
+            limpio["ubicacion"] = str(item["ubicacion"]).strip()   # dónde se toca, si el catálogo da varias
         return limpio
     if "tabla" in item:
         # Tabla dentro del contexto (historial, parámetros…): se conserva con sus demás claves (motivo).

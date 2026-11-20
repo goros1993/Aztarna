@@ -3,6 +3,25 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.4.1
+
+- **Parámetros con varias ubicaciones**: en el catálogo de parámetros, un
+  parámetro que se toca en varios sitios lleva sus ubicaciones separadas por
+  `;` (o en líneas) o en varias columnas de ubicación («Ubicación»,
+  «Ubicación 2»…). En la prueba, un desplegable debajo del parámetro elige
+  dónde se toca en esa prueba; sin elegir, la ficha las enseña todas. La
+  elegida se guarda en la prueba (`ubicacion`), sale en el Word
+  («**Parámetro** (ubicación): v1 / v2», que vuelve a leerse al importarlo) y
+  en la ficha de la prueba al pasarla; el panel de problemas avisa si ya no
+  está en el catálogo.
+- **Valores del catálogo a la vista**: el cuadro de valores de cada
+  parámetro enseña todos los que admite el catálogo, en su orden: los
+  elegidos, rellenos (la × los quita), y los demás con borde discontinuo (un
+  clic los añade). Al final se pueden seguir escribiendo valores que no
+  están en el catálogo.
+- Conviene que todo el equipo se actualice: la 1.4.0 pierde la ubicación
+  elegida si se guarda la prueba con ella.
+
 ## 1.4.0
 
 - **Una prueba, varias pasadas**: la *Parametrización* admite, además de

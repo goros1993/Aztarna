@@ -478,6 +478,9 @@ uno.
 - **Parámetro** (botón junto a *Añadir* en *Parametrización*) añade una fila
   con el **parámetro** que se toca (por ejemplo, *Velocidad nominal*) y sus
   **valores** (`0,5`, `1,0`, `1,6`; **Intro** añade cada uno, la × lo quita).
+  Si el catálogo da los valores que admite, salen todos dentro del cuadro de
+  valores: los elegidos, rellenos (la × los quita), y los demás con borde
+  discontinuo (un clic los añade).
   Al escribir el parámetro se proponen los del **catálogo de parámetros** del
   proyecto, con **dónde se toca en el configurador**; al elegirlo, debajo se
   ven su ubicación, su descripción y su unidad, y al escribir los valores se
@@ -507,6 +510,12 @@ una fila por parámetro. La única columna obligatoria es la del **Parámetro**
   tienen uso propio: **Ubicación** (o *Dónde*, *Configurador*, *Ruta*: dónde
   está en el configurador), **Descripción**, **Valores** (los admitidos,
   separados por `;` o en líneas; vacía, cualquier valor vale) y **Unidad**;
+- un parámetro que se toca en **varios sitios** lleva sus ubicaciones
+  separadas por `;` (o en líneas) o en varias columnas de ubicación
+  (*Ubicación*, *Ubicación 2*…). En la prueba, un desplegable debajo del
+  parámetro elige dónde se toca en esa prueba; si no se elige, al pasarla se
+  ven todas. La elegida sale también en el Word: «**Velocidad nominal**
+  (Accionamiento › Perfil › Vnom): 1,0 / 1,6»;
 - cualquier otra (*Valor por defecto*, *Nombre en el configurador*,
   *Módulo*…) se enseña tal cual debajo del parámetro, como «Valor por
   defecto: 1,0».

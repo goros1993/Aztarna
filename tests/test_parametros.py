@@ -73,6 +73,19 @@ class ModeloTests(unittest.TestCase):
                                  {"parametro": "Carga", "valores": ["50 %"]}, "Un **dato:** suelto"])
         self.assertEqual(repeticiones, 4)
 
+    def test_ubicacion_elegida(self):
+        prueba = {"parametrizacion": [{**VELOCIDAD, "ubicacion": "Banco › Velocidad"}]}
+        lineas = parametros.lineas_documento(prueba)
+        self.assertEqual(lineas, ["**Velocidad nominal** (Banco › Velocidad): 0,5 / 1,0 / 1,6"])
+        self.assertEqual(parametros.desde_documento(lineas)[0], prueba["parametrizacion"])
+        catalogo = parametros.indice_catalogo([{"parametro": "Velocidad nominal", "valores": [],
+                                                "ubicaciones": ["Accionamiento › Vnom", "Banco › Velocidad"]}])
+        self.assertEqual(parametros.problemas(prueba, catalogo), [])
+        prueba["parametrizacion"][0]["ubicacion"] = "Otro sitio"
+        self.assertIn("«Otro sitio» no está en el catálogo", parametros.problemas(prueba, catalogo)[0][1])
+        self.assertEqual(clean_test_changes({"parametrizacion": [{"parametro": "V", "valores": ["1"], "ubicacion": " B "}]}),
+                         {"parametrizacion": [{"parametro": "V", "valores": ["1"], "ubicacion": "B"}]})
+
     def test_lineas_para_el_documento(self):
         self.assertEqual(parametros.lineas_documento({"parametrizacion": ["Texto", VELOCIDAD], "repeticiones": 5}),
                          ["Texto", "**Velocidad nominal:** 0,5 / 1,0 / 1,6", "**Repeticiones:** 5"])
@@ -101,7 +114,7 @@ class CatalogoTests(unittest.TestCase):
         hoja.append([None, None, None])
         libro.save(self.tmp / "catalogo.xlsx")
         self.assertEqual(parametros.leer_catalogo(self.tmp / "catalogo.xlsx"),
-                         [{"parametro": "Número de paradas", "ubicacion": "Instalación", "descripcion": "",
+                         [{"parametro": "Número de paradas", "ubicaciones": ["Instalación"], "ubicacion": "Instalación", "descripcion": "",
                            "valores": ["4", "8"], "unidad": "", "otros": []}])
 
     def test_excel_en_otra_hoja_y_con_numeros(self):
@@ -123,6 +136,14 @@ class CatalogoTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "guárdalo como .xlsx"):
             parametros.leer_catalogo(self.tmp / "viejo.xls")
 
+    def test_varias_ubicaciones(self):
+        (self.tmp / "u.csv").write_text('Parámetro;Ubicación;Ubicación 2;Dónde\n'
+                                        'Vnom;"A › B; C";D;\n'
+                                        'Carga;E;;E\n', encoding="utf-8")
+        catalogo = parametros.leer_catalogo(self.tmp / "u.csv")
+        self.assertEqual([(p["ubicaciones"], p["ubicacion"], p["otros"]) for p in catalogo],
+                         [(["A › B", "C", "D"], "A › B", []), (["E"], "E", [])])
+
     def test_otras_columnas_se_conservan_tal_cual(self):
         (self.tmp / "c.csv").write_text("Nombre en el configurador;Parámetro;Valor por defecto;Módulo\n"
                                         "Vnom;Velocidad nominal;1,0;\n", encoding="utf-8")
@@ -133,7 +154,7 @@ class CatalogoTests(unittest.TestCase):
     def test_sin_columna_parametro_vale_la_primera(self):
         (self.tmp / "d.csv").write_text("\nSeñal;Rango\nT_puertas;2..8 s\n", encoding="utf-8")
         self.assertEqual(parametros.leer_catalogo(self.tmp / "d.csv"),
-                         [{"parametro": "T_puertas", "ubicacion": "", "descripcion": "", "valores": [], "unidad": "",
+                         [{"parametro": "T_puertas", "ubicaciones": [], "ubicacion": "", "descripcion": "", "valores": [], "unidad": "",
                            "otros": [["Rango", "2..8 s"]]}])
 
     def test_vacio(self):

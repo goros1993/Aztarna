@@ -50,7 +50,8 @@ function filaDesde(item) {
   if (item && typeof item === "object" && !Array.isArray(item) && "parametro" in item) {
     // Parámetro de la parametrización: qué se toca y con qué valores (ver app/parametros.py).
     return { texto: "", imagenes: [], nivel: 0, forma: "parametro", extra: {},
-      parametro: String(item.parametro ?? ""), valores: aLista(item.valores).map(String).filter((v) => v.trim()) };
+      parametro: String(item.parametro ?? ""), valores: aLista(item.valores).map(String).filter((v) => v.trim()),
+      ubicacion: String(item.ubicacion ?? "") };
   }
   if (item && typeof item === "object" && !Array.isArray(item) && item.tabla && typeof item.tabla === "object") {
     return { texto: "", imagenes: [], nivel: 0, forma: "tabla", extra: {}, tabla: valoresDeTabla(item.tabla) };
@@ -70,7 +71,9 @@ function filaDesde(item) {
 function filasAPlano(filas) {
   return filas.map((f) => {
     if (f.forma === "tabla") return { tabla: { ...f.tabla.resto, filas: tablaAPlano(f.tabla.filas) } };
-    if (f.forma === "parametro") return { parametro: f.parametro.trim(), valores: [...f.valores] };
+    if (f.forma === "parametro") {
+      return { parametro: f.parametro.trim(), valores: [...f.valores], ...(f.ubicacion.trim() ? { ubicacion: f.ubicacion.trim() } : {}) };
+    }
     const mapa = f.forma === "map" || f.imagenes.length || f.nivel || Object.keys(f.extra).length;
     if (!mapa) return f.texto;
     const o = { texto: f.texto };
@@ -249,7 +252,9 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
  * otras pruebas: ↑ ↓ para elegir, Intro o Tab para añadir, Esc para cerrar.
  */
 function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false, decorar = null,
-  lista: propia = null, alCambiar = null, placeholder = "Añadir…" } = {}) {
+  lista: propia = null, alCambiar = null, placeholder = "Añadir…", posibles = null } = {}) {
+  // `posibles` (función): valores que se enseñan siempre dentro del cuadro, en su orden; los que no
+  // están elegidos, con borde discontinuo, y un clic los añade (los valores de un parámetro del catálogo).
   // Con `lista` y `alCambiar` edita esa lista (los valores de un parámetro) en vez de F.valores[clave].
   const valores = propia || F.valores[clave];
   const cambio = () => (alCambiar ? alCambiar() : tocar(clave));
@@ -282,7 +287,8 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
   function proponer() {
     if (!usadas.length) { cerrar(); return; }
     const escrito = norm(entrada.value.trim());
-    opciones = usadas.filter((u) => !valores.includes(u.texto) && (!escrito || norm(u.texto + " " + (u.detalle || "")).includes(escrito)))
+    const aLaVista = posibles ? posibles() : [];
+    opciones = usadas.filter((u) => !valores.includes(u.texto) && !aLaVista.includes(u.texto) && (!escrito || norm(u.texto + " " + (u.detalle || "")).includes(escrito)))
       .sort((a, b) => (escrito ? norm(b.texto).startsWith(escrito) - norm(a.texto).startsWith(escrito) : 0) || b.usos - a.usos)
       .slice(0, 8);
     activa = escrito && opciones.length ? 0 : -1;
@@ -305,18 +311,31 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
     pintar();
     if (enfocar) { entrada.focus(); proponer(); }
   }
-  function pintar() {
-    fichas.replaceChildren(...valores.map((t, i) => {
-      const d = decorar ? decorar(t) : {};
-      return h("span", { class: "ficha " + (d.clase || ""), title: d.title || null },
-        d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
-        h("button", {
+  const ficha = (t) => {
+    const d = decorar ? decorar(t) : {};
+    return h("span", { class: "ficha " + (d.clase || ""), title: d.title || null },
+      d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
+      h("button", {
         type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar ${t}`,
-        onclick: () => { valores.splice(i, 1); cambio(); pintar(); entrada.focus(); },
+        onclick: () => { valores.splice(valores.indexOf(t), 1); cambio(); pintar(); entrada.focus(); },
       }, "×"));
-    }), entrada);
+  };
+  function pintar() {
+    if (!posibles) { fichas.replaceChildren(...valores.map(ficha), entrada); return; }
+    // Todos los posibles en su orden (elegidos o por elegir) y, detrás, los elegidos que no son de la lista.
+    const lista = posibles();
+    const igual = (a, b) => claveNombre(a) === claveNombre(b);
+    const elegido = (p) => valores.find((v) => igual(v, p));
+    const orden = (x) => { const k = lista.findIndex((p) => igual(p, x)); return k < 0 ? lista.length : k; };
+    fichas.replaceChildren(
+      ...lista.map((p) => (elegido(p) ? ficha(elegido(p)) : h("button", {
+        type: "button", class: "ficha por-elegir", text: p, title: `Pasar también con ${p}`,
+        onclick: () => { valores.push(p); valores.sort((a, b) => orden(a) - orden(b)); cambio(); pintar(); },
+      }))),
+      ...valores.filter((v) => !lista.some((p) => igual(p, v))).map(ficha),
+      entrada);
   }
-  if (decorar) fichas.repintar = pintar;      // las marcas dependen de datos que llegan después
+  if (decorar || posibles) fichas.repintar = pintar;      // las marcas (o los posibles) dependen de datos que llegan después
   pintar();
   if (sugerir) sugerir().then((l) => { usadas = l; if (document.activeElement === entrada) proponer(); }, () => {});
   return h("div", { class: "campo con-sugerencias" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
@@ -535,11 +554,12 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const nombre = campoNombreParametro(fila, () => { if (pie) pie.actualizar(); pintar(); });
     const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
     const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
-      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila)); },
-      placeholder: fila.valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…", completo: false,
+      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); },
+      placeholder: fila.valores.length || (delCatalogo(fila.parametro) || { valores: [] }).valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…",
+      completo: false, posibles: () => (delCatalogo(fila.parametro) || { valores: [] }).valores,
       sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
     });
-    const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila));
+    const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila, cambiado));
     const li = h("li", { class: "elemento elemento-parametro" },
       asa,
       h("div", { class: "contenido" }, h("div", { class: "tarjeta-parametro" },
@@ -654,9 +674,13 @@ function valoresSugeridos(nombre) {
 }
 
 /** Lo que dice el catálogo de un parámetro: ubicación en el configurador, descripción, unidad y las demás columnas. */
-function infoCatalogo(cat) {
+function infoCatalogo(cat, elegida = "", { ubicaciones = true } = {}) {
   const partes = [];
-  if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
+  // La ubicación elegida en la prueba o, si no se eligió, todas las del catálogo.
+  const sitios = elegida ? [elegida] : (cat.ubicaciones || (cat.ubicacion ? [cat.ubicacion] : []));
+  if (ubicaciones) {
+    for (const u of sitios) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), u));
+  }
   if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
   if (cat.unidad) partes.push(h("span", {}, h("span", { class: "muted", text: "Unidad: " }), cat.unidad));
   // Las demás columnas del catálogo, tal cual («Valor por defecto: 1,0»).
@@ -665,12 +689,27 @@ function infoCatalogo(cat) {
 }
 
 /** Ubicación en el configurador, descripción y avisos del parámetro de una fila. */
-function notaParametro(fila) {
+function notaParametro(fila, alCambiar = null) {
   if (!fila.parametro.trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
   const cat = delCatalogo(fila.parametro);
   const partes = [];
   if (cat) {
-    partes.push(...infoCatalogo(cat));
+    const sitios = cat.ubicaciones || [];
+    const elegidaVale = !fila.ubicacion || sitios.some((u) => claveNombre(u) === claveNombre(fila.ubicacion));
+    if (sitios.length > 1 || (fila.ubicacion && !elegidaVale)) {
+      // Se toca en varios sitios: dónde en esta prueba (sin elegir, valen todos).
+      const opciones = [...sitios, ...(elegidaVale ? [] : [fila.ubicacion])];
+      partes.push(h("label", { class: "elegir-ubicacion", title: "Dónde se toca el parámetro en esta prueba" }, icon("engranaje"),
+        h("select", {
+          "aria-label": `Dónde se toca ${fila.parametro}`,
+          onchange: (e) => { fila.ubicacion = e.target.value; if (alCambiar) alCambiar(); },
+        }, h("option", { value: "", text: `En cualquiera de sus ${sitios.length} ubicaciones`, selected: !fila.ubicacion }),
+        opciones.map((u) => h("option", { value: u, text: u, selected: claveNombre(u) === claveNombre(fila.ubicacion) })))));
+      if (!elegidaVale) partes.push(h("span", { class: "aviso-parametro", text: "Esa ubicación ya no está en el catálogo" }));
+      partes.push(...infoCatalogo(cat, "", { ubicaciones: false }));
+    } else {
+      partes.push(...infoCatalogo(cat));
+    }
     const fuera = cat.valores.length ? fila.valores.filter((v) => !cat.valores.some((c) => claveNombre(c) === claveNombre(v))) : [];
     if (fuera.length) partes.push(h("span", { class: "aviso-parametro", text: `${fuera.join(", ")}: no ${fuera.length === 1 ? "es un valor" : "son valores"} del catálogo` }));
   } else if (AYUDA_PARAMETROS.catalogo.length) {
