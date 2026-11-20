@@ -1118,10 +1118,6 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .elegir-ubicacion { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
 .elegir-ubicacion .ico { width: 13px; height: 13px; }
 .elegir-ubicacion select { font: 12px var(--mono); color: var(--accent); padding: 1px 4px; min-height: 0; height: 24px; border-color: var(--rule-strong); max-width: 100%; }
-/* Valores que admite el catálogo, a la vista (un clic los pone o los quita) */
-.admite-parametro { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0 0 34px; font-size: 12.5px; }
-.admite-parametro[hidden] { display: none; }
-.ficha-valor { border: 1px dashed var(--rule-strong); background: transparent; color: var(--ink-2); border-radius: 12px; padding: 1px 10px; font-size: 12.5px; cursor: pointer; min-height: 0; }
-.ficha-valor:hover { border-color: var(--accent); color: var(--accent); }
-.ficha-valor.elegido { border-style: solid; border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-@media (max-width: 700px) { .admite-parametro { margin-left: 0; } }
+/* Valores del catálogo dentro del cuadro de valores: los no elegidos, con borde discontinuo (un clic los añade) */
+.ficha.por-elegir { border: 1px dashed var(--rule-strong); background: transparent; color: var(--ink-3); font-weight: 400; cursor: pointer; padding: 1px 9px; }
+.ficha.por-elegir:hover { border-color: var(--accent); color: var(--accent); }

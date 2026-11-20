@@ -252,7 +252,9 @@ function campoTexto(clave, etiqueta, { ancho = false, completo = false, mono = f
  * otras pruebas: ↑ ↓ para elegir, Intro o Tab para añadir, Esc para cerrar.
  */
 function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = null, completo = true, ancho = false, decorar = null,
-  lista: propia = null, alCambiar = null, placeholder = "Añadir…" } = {}) {
+  lista: propia = null, alCambiar = null, placeholder = "Añadir…", posibles = null } = {}) {
+  // `posibles` (función): valores que se enseñan siempre dentro del cuadro, en su orden; los que no
+  // están elegidos, con borde discontinuo, y un clic los añade (los valores de un parámetro del catálogo).
   // Con `lista` y `alCambiar` edita esa lista (los valores de un parámetro) en vez de F.valores[clave].
   const valores = propia || F.valores[clave];
   const cambio = () => (alCambiar ? alCambiar() : tocar(clave));
@@ -285,7 +287,8 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
   function proponer() {
     if (!usadas.length) { cerrar(); return; }
     const escrito = norm(entrada.value.trim());
-    opciones = usadas.filter((u) => !valores.includes(u.texto) && (!escrito || norm(u.texto + " " + (u.detalle || "")).includes(escrito)))
+    const aLaVista = posibles ? posibles() : [];
+    opciones = usadas.filter((u) => !valores.includes(u.texto) && !aLaVista.includes(u.texto) && (!escrito || norm(u.texto + " " + (u.detalle || "")).includes(escrito)))
       .sort((a, b) => (escrito ? norm(b.texto).startsWith(escrito) - norm(a.texto).startsWith(escrito) : 0) || b.usos - a.usos)
       .slice(0, 8);
     activa = escrito && opciones.length ? 0 : -1;
@@ -308,18 +311,31 @@ function campoFichas(clave, etiqueta, { ayuda = "", conComas = false, sugerir = 
     pintar();
     if (enfocar) { entrada.focus(); proponer(); }
   }
-  function pintar() {
-    fichas.replaceChildren(...valores.map((t, i) => {
-      const d = decorar ? decorar(t) : {};
-      return h("span", { class: "ficha " + (d.clase || ""), title: d.title || null },
-        d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
-        h("button", {
+  const ficha = (t) => {
+    const d = decorar ? decorar(t) : {};
+    return h("span", { class: "ficha " + (d.clase || ""), title: d.title || null },
+      d.onclick ? h("button", { type: "button", class: "ir", text: t, title: d.title || null, onclick: d.onclick }) : t,
+      h("button", {
         type: "button", class: "quitar", title: `Quitar «${t}»`, "aria-label": `Quitar ${t}`,
-        onclick: () => { valores.splice(i, 1); cambio(); pintar(); entrada.focus(); },
+        onclick: () => { valores.splice(valores.indexOf(t), 1); cambio(); pintar(); entrada.focus(); },
       }, "×"));
-    }), entrada);
+  };
+  function pintar() {
+    if (!posibles) { fichas.replaceChildren(...valores.map(ficha), entrada); return; }
+    // Todos los posibles en su orden (elegidos o por elegir) y, detrás, los elegidos que no son de la lista.
+    const lista = posibles();
+    const igual = (a, b) => claveNombre(a) === claveNombre(b);
+    const elegido = (p) => valores.find((v) => igual(v, p));
+    const orden = (x) => { const k = lista.findIndex((p) => igual(p, x)); return k < 0 ? lista.length : k; };
+    fichas.replaceChildren(
+      ...lista.map((p) => (elegido(p) ? ficha(elegido(p)) : h("button", {
+        type: "button", class: "ficha por-elegir", text: p, title: `Pasar también con ${p}`,
+        onclick: () => { valores.push(p); valores.sort((a, b) => orden(a) - orden(b)); cambio(); pintar(); },
+      }))),
+      ...valores.filter((v) => !lista.some((p) => igual(p, v))).map(ficha),
+      entrada);
   }
-  if (decorar) fichas.repintar = pintar;      // las marcas dependen de datos que llegan después
+  if (decorar || posibles) fichas.repintar = pintar;      // las marcas (o los posibles) dependen de datos que llegan después
   pintar();
   if (sugerir) sugerir().then((l) => { usadas = l; if (document.activeElement === entrada) proponer(); }, () => {});
   return h("div", { class: "campo con-sugerencias" + (completo ? " completo" : "") + (ancho ? " ancho" : "") },
@@ -538,17 +554,16 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const nombre = campoNombreParametro(fila, () => { if (pie) pie.actualizar(); pintar(); });
     const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
     const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
-      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); admite.repintar(); },
-      placeholder: fila.valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…", completo: false,
+      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); },
+      placeholder: fila.valores.length || (delCatalogo(fila.parametro) || { valores: [] }).valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…",
+      completo: false, posibles: () => (delCatalogo(fila.parametro) || { valores: [] }).valores,
       sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
     });
     const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila, cambiado));
-    // Los valores que admite el catálogo, siempre a la vista: un clic los pone o los quita.
-    const admite = valoresDelCatalogo(fila, () => { cambiado(); pintar(); });
     const li = h("li", { class: "elemento elemento-parametro" },
       asa,
       h("div", { class: "contenido" }, h("div", { class: "tarjeta-parametro" },
-        h("div", { class: "rejilla-parametro" }, h("span", { class: "icono-parametro", title: "Parámetro" }, icon("parametro")), nombre, valores), admite, nota)),
+        h("div", { class: "rejilla-parametro" }, h("span", { class: "icono-parametro", title: "Parámetro" }, icon("parametro")), nombre, valores), nota)),
       h("div", { class: "herramientas" },
         botonIcono("up", "Subir (Alt+↑)", () => mover(i, -1)),
         botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
@@ -656,35 +671,6 @@ function valoresSugeridos(nombre) {
   const lista = (cat ? cat.valores : []).map((v) => ({ texto: v, usos: 0, detalle: "catálogo" }));
   for (const v of uso ? uso.valores : []) if (!lista.some((x) => x.texto === v)) lista.push({ texto: v, usos: 0, detalle: "usado" });
   return lista;
-}
-
-/** Fichas con los valores que admite el catálogo para el parámetro de una fila (los elegidos, marcados). */
-function valoresDelCatalogo(fila, alCambiar) {
-  const caja = h("div", { class: "admite-parametro" });
-  caja.repintar = () => {
-    const cat = delCatalogo(fila.parametro);
-    const posibles = cat ? cat.valores : [];
-    caja.hidden = !posibles.length;
-    caja.replaceChildren(h("span", { class: "muted", text: "Admite:" }), ...posibles.map((v) => {
-      const i = fila.valores.findIndex((x) => claveNombre(x) === claveNombre(v));
-      return h("button", {
-        type: "button", class: "ficha-valor" + (i >= 0 ? " elegido" : ""), "aria-pressed": String(i >= 0),
-        title: i >= 0 ? `Quitar ${v}` : `Pasar la prueba también con ${v}`, text: v,
-        onclick: () => {
-          if (i >= 0) fila.valores.splice(i, 1);
-          else {
-            // En el orden del catálogo; los que no son del catálogo, al final.
-            const orden = (x) => { const k = posibles.findIndex((p) => claveNombre(p) === claveNombre(x)); return k < 0 ? posibles.length : k; };
-            fila.valores.push(v);
-            fila.valores.sort((a, b) => orden(a) - orden(b));
-          }
-          alCambiar();
-        },
-      });
-    }));
-  };
-  caja.repintar();
-  return caja;
 }
 
 /** Lo que dice el catálogo de un parámetro: ubicación en el configurador, descripción, unidad y las demás columnas. */

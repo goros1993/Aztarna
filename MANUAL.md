@@ -478,8 +478,9 @@ uno.
 - **Parámetro** (botón junto a *Añadir* en *Parametrización*) añade una fila
   con el **parámetro** que se toca (por ejemplo, *Velocidad nominal*) y sus
   **valores** (`0,5`, `1,0`, `1,6`; **Intro** añade cada uno, la × lo quita).
-  Si el catálogo da los valores que admite, salen debajo («Admite:»): un
-  clic pone o quita cada uno (los elegidos, rellenos).
+  Si el catálogo da los valores que admite, salen todos dentro del cuadro de
+  valores: los elegidos, rellenos (la × los quita), y los demás con borde
+  discontinuo (un clic los añade).
   Al escribir el parámetro se proponen los del **catálogo de parámetros** del
   proyecto, con **dónde se toca en el configurador**; al elegirlo, debajo se
   ven su ubicación, su descripción y su unidad, y al escribir los valores se

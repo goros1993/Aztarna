@@ -14,10 +14,11 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   («**Parámetro** (ubicación): v1 / v2», que vuelve a leerse al importarlo) y
   en la ficha de la prueba al pasarla; el panel de problemas avisa si ya no
   está en el catálogo.
-- **Valores del catálogo a la vista**: bajo cada parámetro, la línea
-  «Admite:» enseña todos los valores que admite el catálogo; un clic los pone
-  o los quita (los elegidos, rellenos). Se pueden seguir escribiendo valores
-  que no están en el catálogo.
+- **Valores del catálogo a la vista**: el cuadro de valores de cada
+  parámetro enseña todos los que admite el catálogo, en su orden: los
+  elegidos, rellenos (la × los quita), y los demás con borde discontinuo (un
+  clic los añade). Al final se pueden seguir escribiendo valores que no
+  están en el catálogo.
 - Conviene que todo el equipo se actualice: la 1.4.0 pierde la ubicación
   elegida si se guarda la prueba con ella.
 
