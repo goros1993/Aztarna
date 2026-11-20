@@ -968,7 +968,7 @@ function listaLectura(items, numerada) {
         h("div", {}, h("strong", { text: `${f.parametro}: ` }), f.valores.flatMap((v, k) => [
           k ? " / " : null, h("span", { class: "valor-param", dataset: { parametro: f.parametro, valor: v }, text: v })]),
           // Lo que dice el catálogo (dónde se toca…): se completa al tenerlo (ver completarInfoParametros).
-          h("div", { class: "info-parametro", dataset: { parametro: f.parametro } })));
+          h("div", { class: "info-parametro", dataset: { parametro: f.parametro, ubicacion: f.ubicacion || "" } })));
     }
     const marca = numerada && !f.nivel ? `${++n}.` : f.nivel ? "–" : "•";
     return h("li", { style: { "--nivel": String(f.nivel) } },
@@ -1031,8 +1031,9 @@ function fichaPrueba(el) {
 /** Debajo de cada parámetro de la ficha, lo que dice de él el catálogo (ubicación, descripción, unidad…). */
 function completarInfoParametros(raiz) {
   for (const el of raiz.querySelectorAll(".info-parametro")) {
-    const cat = delCatalogo(el.dataset.parametro);
-    el.replaceChildren(...(cat ? infoCatalogo(cat) : []));
+    // Dónde se toca: la ubicación elegida en la prueba o, si no se eligió, todas las del catálogo.
+    const cat = delCatalogo(el.dataset.parametro) || { ubicaciones: [], otros: [] };
+    el.replaceChildren(...infoCatalogo(cat, el.dataset.ubicacion || ""));
   }
 }
 

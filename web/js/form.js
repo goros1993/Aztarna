@@ -50,7 +50,8 @@ function filaDesde(item) {
   if (item && typeof item === "object" && !Array.isArray(item) && "parametro" in item) {
     // Parámetro de la parametrización: qué se toca y con qué valores (ver app/parametros.py).
     return { texto: "", imagenes: [], nivel: 0, forma: "parametro", extra: {},
-      parametro: String(item.parametro ?? ""), valores: aLista(item.valores).map(String).filter((v) => v.trim()) };
+      parametro: String(item.parametro ?? ""), valores: aLista(item.valores).map(String).filter((v) => v.trim()),
+      ubicacion: String(item.ubicacion ?? "") };
   }
   if (item && typeof item === "object" && !Array.isArray(item) && item.tabla && typeof item.tabla === "object") {
     return { texto: "", imagenes: [], nivel: 0, forma: "tabla", extra: {}, tabla: valoresDeTabla(item.tabla) };
@@ -70,7 +71,9 @@ function filaDesde(item) {
 function filasAPlano(filas) {
   return filas.map((f) => {
     if (f.forma === "tabla") return { tabla: { ...f.tabla.resto, filas: tablaAPlano(f.tabla.filas) } };
-    if (f.forma === "parametro") return { parametro: f.parametro.trim(), valores: [...f.valores] };
+    if (f.forma === "parametro") {
+      return { parametro: f.parametro.trim(), valores: [...f.valores], ...(f.ubicacion.trim() ? { ubicacion: f.ubicacion.trim() } : {}) };
+    }
     const mapa = f.forma === "map" || f.imagenes.length || f.nivel || Object.keys(f.extra).length;
     if (!mapa) return f.texto;
     const o = { texto: f.texto };
@@ -535,11 +538,11 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const nombre = campoNombreParametro(fila, () => { if (pie) pie.actualizar(); pintar(); });
     const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
     const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
-      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila)); },
+      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); },
       placeholder: fila.valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…", completo: false,
       sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
     });
-    const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila));
+    const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila, cambiado));
     const li = h("li", { class: "elemento elemento-parametro" },
       asa,
       h("div", { class: "contenido" }, h("div", { class: "tarjeta-parametro" },
@@ -654,9 +657,13 @@ function valoresSugeridos(nombre) {
 }
 
 /** Lo que dice el catálogo de un parámetro: ubicación en el configurador, descripción, unidad y las demás columnas. */
-function infoCatalogo(cat) {
+function infoCatalogo(cat, elegida = "", { ubicaciones = true } = {}) {
   const partes = [];
-  if (cat.ubicacion) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), cat.ubicacion));
+  // La ubicación elegida en la prueba o, si no se eligió, todas las del catálogo.
+  const sitios = elegida ? [elegida] : (cat.ubicaciones || (cat.ubicacion ? [cat.ubicacion] : []));
+  if (ubicaciones) {
+    for (const u of sitios) partes.push(h("span", { class: "ubicacion", title: "Dónde se toca en el configurador" }, icon("engranaje"), u));
+  }
   if (cat.descripcion) partes.push(h("span", { text: cat.descripcion }));
   if (cat.unidad) partes.push(h("span", {}, h("span", { class: "muted", text: "Unidad: " }), cat.unidad));
   // Las demás columnas del catálogo, tal cual («Valor por defecto: 1,0»).
@@ -665,12 +672,27 @@ function infoCatalogo(cat) {
 }
 
 /** Ubicación en el configurador, descripción y avisos del parámetro de una fila. */
-function notaParametro(fila) {
+function notaParametro(fila, alCambiar = null) {
   if (!fila.parametro.trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
   const cat = delCatalogo(fila.parametro);
   const partes = [];
   if (cat) {
-    partes.push(...infoCatalogo(cat));
+    const sitios = cat.ubicaciones || [];
+    const elegidaVale = !fila.ubicacion || sitios.some((u) => claveNombre(u) === claveNombre(fila.ubicacion));
+    if (sitios.length > 1 || (fila.ubicacion && !elegidaVale)) {
+      // Se toca en varios sitios: dónde en esta prueba (sin elegir, valen todos).
+      const opciones = [...sitios, ...(elegidaVale ? [] : [fila.ubicacion])];
+      partes.push(h("label", { class: "elegir-ubicacion", title: "Dónde se toca el parámetro en esta prueba" }, icon("engranaje"),
+        h("select", {
+          "aria-label": `Dónde se toca ${fila.parametro}`,
+          onchange: (e) => { fila.ubicacion = e.target.value; if (alCambiar) alCambiar(); },
+        }, h("option", { value: "", text: `En cualquiera de sus ${sitios.length} ubicaciones`, selected: !fila.ubicacion }),
+        opciones.map((u) => h("option", { value: u, text: u, selected: claveNombre(u) === claveNombre(fila.ubicacion) })))));
+      if (!elegidaVale) partes.push(h("span", { class: "aviso-parametro", text: "Esa ubicación ya no está en el catálogo" }));
+      partes.push(...infoCatalogo(cat, "", { ubicaciones: false }));
+    } else {
+      partes.push(...infoCatalogo(cat));
+    }
     const fuera = cat.valores.length ? fila.valores.filter((v) => !cat.valores.some((c) => claveNombre(c) === claveNombre(v))) : [];
     if (fuera.length) partes.push(h("span", { class: "aviso-parametro", text: `${fuera.join(", ")}: no ${fuera.length === 1 ? "es un valor" : "son valores"} del catálogo` }));
   } else if (AYUDA_PARAMETROS.catalogo.length) {

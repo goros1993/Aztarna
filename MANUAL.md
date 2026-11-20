@@ -507,6 +507,12 @@ una fila por parámetro. La única columna obligatoria es la del **Parámetro**
   tienen uso propio: **Ubicación** (o *Dónde*, *Configurador*, *Ruta*: dónde
   está en el configurador), **Descripción**, **Valores** (los admitidos,
   separados por `;` o en líneas; vacía, cualquier valor vale) y **Unidad**;
+- un parámetro que se toca en **varios sitios** lleva sus ubicaciones
+  separadas por `;` (o en líneas) o en varias columnas de ubicación
+  (*Ubicación*, *Ubicación 2*…). En la prueba, un desplegable debajo del
+  parámetro elige dónde se toca en esa prueba; si no se elige, al pasarla se
+  ven todas. La elegida sale también en el Word: «**Velocidad nominal**
+  (Accionamiento › Perfil › Vnom): 1,0 / 1,6»;
 - cualquier otra (*Valor por defecto*, *Nombre en el configurador*,
   *Módulo*…) se enseña tal cual debajo del parámetro, como «Valor por
   defecto: 1,0».

@@ -1,6 +1,6 @@
 Parámetro;Ubicación;Descripción;Valores;Unidad;Valor por defecto
 Número de paradas;Instalación › Paradas › Número;Plantas a las que da servicio la cabina.;"2; 4; 8; 16";;4
-Velocidad nominal;Accionamiento › Perfil › Vnom;Velocidad máxima de viaje.;"0,5; 1,0; 1,6; 2,5";m/s;1,0
+Velocidad nominal;"Accionamiento › Perfil › Vnom; Banco › Simulador de tráfico › Velocidad";Velocidad máxima de viaje.;"0,5; 1,0; 1,6; 2,5";m/s;1,0
 Carga en cabina;Banco › Simulador de carga;Carga simulada respecto a la nominal.;"0 %; 50 %; 100 %; 110 %";%;0 %
 Tiempo de puertas abiertas;Puertas › Temporizadores › T_abiertas;Tiempo que la puerta queda abierta tras llegar a planta.;"2; 4; 8";s;4
 Modo de maniobra;Maniobra › Modo;Selección colectiva de la maniobra.;"Simplex; Dúplex";;Simplex
