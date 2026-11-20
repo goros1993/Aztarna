@@ -538,15 +538,17 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const nombre = campoNombreParametro(fila, () => { if (pie) pie.actualizar(); pintar(); });
     const cambiado = () => { tocar(clave); if (pie) pie.actualizar(); };
     const valores = campoFichas(`param-${clave}-${i}`, "Valores", {
-      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); },
+      lista: fila.valores, alCambiar: () => { cambiado(); nota.replaceChildren(...notaParametro(fila, cambiado)); admite.repintar(); },
       placeholder: fila.valores.length ? "Otro valor…" : "Valores: escribe uno y pulsa Intro…", completo: false,
       sugerir: () => ayudaParametros().then(() => valoresSugeridos(fila.parametro)),
     });
     const nota = h("div", { class: "nota-parametro" }, ...notaParametro(fila, cambiado));
+    // Los valores que admite el catálogo, siempre a la vista: un clic los pone o los quita.
+    const admite = valoresDelCatalogo(fila, () => { cambiado(); pintar(); });
     const li = h("li", { class: "elemento elemento-parametro" },
       asa,
       h("div", { class: "contenido" }, h("div", { class: "tarjeta-parametro" },
-        h("div", { class: "rejilla-parametro" }, h("span", { class: "icono-parametro", title: "Parámetro" }, icon("parametro")), nombre, valores), nota)),
+        h("div", { class: "rejilla-parametro" }, h("span", { class: "icono-parametro", title: "Parámetro" }, icon("parametro")), nombre, valores), admite, nota)),
       h("div", { class: "herramientas" },
         botonIcono("up", "Subir (Alt+↑)", () => mover(i, -1)),
         botonIcono("down", "Bajar (Alt+↓)", () => mover(i, 1)),
@@ -654,6 +656,35 @@ function valoresSugeridos(nombre) {
   const lista = (cat ? cat.valores : []).map((v) => ({ texto: v, usos: 0, detalle: "catálogo" }));
   for (const v of uso ? uso.valores : []) if (!lista.some((x) => x.texto === v)) lista.push({ texto: v, usos: 0, detalle: "usado" });
   return lista;
+}
+
+/** Fichas con los valores que admite el catálogo para el parámetro de una fila (los elegidos, marcados). */
+function valoresDelCatalogo(fila, alCambiar) {
+  const caja = h("div", { class: "admite-parametro" });
+  caja.repintar = () => {
+    const cat = delCatalogo(fila.parametro);
+    const posibles = cat ? cat.valores : [];
+    caja.hidden = !posibles.length;
+    caja.replaceChildren(h("span", { class: "muted", text: "Admite:" }), ...posibles.map((v) => {
+      const i = fila.valores.findIndex((x) => claveNombre(x) === claveNombre(v));
+      return h("button", {
+        type: "button", class: "ficha-valor" + (i >= 0 ? " elegido" : ""), "aria-pressed": String(i >= 0),
+        title: i >= 0 ? `Quitar ${v}` : `Pasar la prueba también con ${v}`, text: v,
+        onclick: () => {
+          if (i >= 0) fila.valores.splice(i, 1);
+          else {
+            // En el orden del catálogo; los que no son del catálogo, al final.
+            const orden = (x) => { const k = posibles.findIndex((p) => claveNombre(p) === claveNombre(x)); return k < 0 ? posibles.length : k; };
+            fila.valores.push(v);
+            fila.valores.sort((a, b) => orden(a) - orden(b));
+          }
+          alCambiar();
+        },
+      });
+    }));
+  };
+  caja.repintar();
+  return caja;
 }
 
 /** Lo que dice el catálogo de un parámetro: ubicación en el configurador, descripción, unidad y las demás columnas. */
