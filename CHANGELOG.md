@@ -12,7 +12,9 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   Perfil › Vnom)». Un parámetro con varias ubicaciones sale una vez por cada
   una. Si el catálogo da sus valores posibles, después se elige el valor, que
   se escribe con su unidad («…: 1,6 m/s»); *Sin valor* o **Esc** lo dejan sin
-  él. (#27)
+  él. Se guarda como texto (también en el Word); al pasar la prueba, la ficha
+  enseña cada cita como una pastilla con el parámetro, dónde se toca y el
+  valor. (#27)
 
 ## 1.4.1
 

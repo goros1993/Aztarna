@@ -520,6 +520,12 @@ sin haber escrito nada) deja solo el parámetro.
 
 ![Después, sus valores](docs/manual/66_parametro_valor.png)
 
+En el YAML y en el Word la cita es texto normal. Al pasar la prueba, la ficha
+la reconoce (si el parámetro y la ubicación están en el catálogo) y la
+enseña como una pastilla: el parámetro en negrita, dónde se toca y el valor
+(ver la Situación inicial de la captura de [6.5](#65-pasar-una-prueba)); al
+pasar el ratón, su descripción.
+
 **El catálogo de parámetros** es un Excel (`.xlsx`) o un CSV del proyecto con
 una fila por parámetro. La única columna obligatoria es la del **Parámetro**
 (su nombre); las demás son al gusto y en cualquier orden:

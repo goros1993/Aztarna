@@ -1126,3 +1126,10 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 .sugerencias-param .param-ubicacion { display: flex; align-items: center; gap: 4px; font: 12px var(--mono); color: var(--accent); }
 .sugerencias-param .param-ubicacion .ico { width: 12px; height: 12px; }
 .sugerencias-param .kw.sin-valor .kw-nombre { font-weight: 400; font-style: italic; color: var(--ink-3); }
+/* Ficha de la prueba: citas «Parámetro (ubicación): valor» escritas con «@» (fluyen como texto) */
+.cita-parametro { display: inline; padding: 1px 6px; margin: 0 1px; border-radius: 5px; background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.cita-parametro .ico { width: 12px; height: 12px; color: var(--accent); vertical-align: -1px; margin-right: 4px; }
+.cita-parametro strong { font-weight: 650; white-space: nowrap; }
+.cita-ubicacion { font: 12px var(--mono); color: var(--accent); margin-left: 6px; }
+.cita-valor { font-weight: 700; color: var(--accent); margin-left: 6px; white-space: nowrap; }
+.cita-valor::before { content: "= "; font-weight: 400; color: var(--ink-3); }
