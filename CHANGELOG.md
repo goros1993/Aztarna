@@ -3,6 +3,15 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.4.2
+
+- **`@` para citar un parámetro** en los textos de la prueba (situación
+  inicial, ensayo, parametrización…): al escribir `@` y parte del nombre, de la
+  ubicación o de la descripción, se proponen los parámetros del catálogo y se
+  escribe el elegido con dónde se toca: «Velocidad nominal (Accionamiento ›
+  Perfil › Vnom)». Un parámetro con varias ubicaciones sale una vez por cada
+  una. (#27)
+
 ## 1.4.1
 
 - **Parámetros con varias ubicaciones**: en el catálogo de parámetros, un

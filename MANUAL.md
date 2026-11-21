@@ -502,6 +502,16 @@ y las repeticiones como «**Repeticiones:** 5»; al importar ese Word vuelven a
 ser parámetros y repeticiones. Cómo se pasan en una ejecución: ver
 [6.5](#65-pasar-una-prueba).
 
+**Citar un parámetro en un paso: `@`.** En los textos de la prueba (situación
+inicial, ensayo, parametrización…) escribe `@` y parte del nombre, de la
+ubicación o de la descripción de un parámetro: se abre la lista del catálogo
+(**↑ / ↓**, **Intro** o **Tab** para elegir, **Esc** para cerrarla) y al
+elegir se escribe el parámetro con dónde se toca, como «Velocidad nominal
+(Accionamiento › Perfil › Vnom)». Un parámetro con varias ubicaciones sale
+una vez por cada una, para elegir la que toca en ese paso.
+
+![«@» propone los parámetros del catálogo con su ubicación](docs/manual/65_parametro_arroba.png)
+
 **El catálogo de parámetros** es un Excel (`.xlsx`) o un CSV del proyecto con
 una fila por parámetro. La única columna obligatoria es la del **Parámetro**
 (su nombre); las demás son al gusto y en cualquier orden:

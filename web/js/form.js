@@ -575,12 +575,17 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
   function crearFila(fila, i) {
     if (fila.forma === "tabla") return crearFilaTabla(fila, i);
     if (fila.forma === "parametro") return crearFilaParametro(fila, i);
-    let sugerencias = null;
+    let sugerencias = null, conArroba = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
-      alCambiar: (texto) => { fila.texto = texto; tocar(clave); if (sugerencias) sugerencias.actualizar(texto); },
+      alCambiar: (texto) => {
+        fila.texto = texto; tocar(clave);
+        if (conArroba && conArroba.actualizar()) return;      // escribiendo «@…»: la lista de parámetros, no la de keywords
+        if (sugerencias) sugerencias.actualizar(texto);
+      },
       onkeydown: (e) => {
         if (e.isComposing) return;
+        if (conArroba && conArroba.tecla(e)) return;
         if (sugerencias && sugerencias.tecla(e)) return;
         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertar(i + 1); }
         else if (e.key === "Backspace" && !fila.texto && !fila.imagenes.length && !referencias(fila).length && filas.length) { e.preventDefault(); quitar(i); }
@@ -603,6 +608,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
     const contenido = h("div", { class: "contenido" }, editor, miniaturas, enlaces);
     if (conKeywords) sugerencias = sugerenciasKeywords(editor.querySelector(".editable"), contenido, fila.texto);
+    if (F.tipo === "prueba") conArroba = sugerenciasParametros(editor.querySelector(".editable"));
     const li = h("li", { class: "elemento", style: { "--nivel": String(fila.nivel) } },
       asa,
       contenido,
@@ -663,6 +669,83 @@ function ayudaParametros(recargar = false) {
 }
 const claveNombre = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g, "").toLowerCase();
 const delCatalogo = (nombre) => AYUDA_PARAMETROS.catalogo.find((p) => claveNombre(p.parametro) === claveNombre(nombre)) || null;
+
+/**
+ * «@» en un texto de la prueba (pasos, situación inicial…): busca en el catálogo de parámetros
+ * y escribe «Parámetro (ubicación)». Un parámetro con varias ubicaciones sale una vez por cada
+ * una, para elegir dónde. Devuelve {actualizar() → true si la lista está abierta, tecla(e)}.
+ */
+function sugerenciasParametros(area) {
+  const lista = h("div", { class: "sugerencias-kw sugerencias-param", role: "listbox", hidden: true });
+  area.parentElement.after(lista);
+  let opciones = [], activa = 0, desde = -1, hasta = -1;
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  function cerrar() { lista.hidden = true; opciones = []; desde = -1; }
+  function buscar(consulta) {
+    const palabras = norm(consulta).split(/\s+/).filter(Boolean);
+    const salida = [];
+    for (const p of AYUDA_PARAMETROS.catalogo) {
+      const sitios = (p.ubicaciones && p.ubicaciones.length) ? p.ubicaciones : [""];
+      for (const u of sitios) {
+        const donde = norm(`${p.parametro} ${u} ${p.descripcion || ""}`);
+        if (palabras.every((w) => donde.includes(w))) salida.push({ parametro: p.parametro, ubicacion: u, descripcion: p.descripcion || "", varias: sitios.length > 1 });
+      }
+    }
+    // Primero los que empiezan por lo escrito.
+    const inicio = norm(consulta).trim();
+    return salida.sort((a, b) => (inicio ? norm(b.parametro).startsWith(inicio) - norm(a.parametro).startsWith(inicio) : 0)).slice(0, 12);
+  }
+  function pintar() {
+    lista.replaceChildren(
+      h("div", { class: "cab-sugerencias", text: "Parámetros del catálogo · Intro escribe el parámetro y dónde se toca" }),
+      ...opciones.map((o, i) => h("div", {
+        class: "kw" + (i === activa ? " activa" : ""), role: "option", "aria-selected": String(i === activa),
+        onmousedown: (e) => e.preventDefault(), onclick: () => elegir(o),
+      },
+        h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.parametro }),
+          o.varias ? h("span", { class: "kw-args", text: "varias ubicaciones" }) : null),
+        o.ubicacion ? h("div", { class: "param-ubicacion" }, icon("engranaje"), o.ubicacion) : null,
+        o.descripcion ? h("div", { class: "kw-doc", text: o.descripcion }) : null)));
+    lista.hidden = !opciones.length;
+    const activo = lista.children[activa + 1];
+    if (activo) activo.scrollIntoView({ block: "nearest" });
+  }
+  function elegir(o) {
+    const texto = o.ubicacion ? `${o.parametro} (${o.ubicacion})` : o.parametro;
+    const [a, b] = [desde, hasta];
+    cerrar();
+    area.controlFormato.sustituir(a, b, texto);
+  }
+  function actualizar() {
+    const antes = document.activeElement === area ? area.controlFormato.antesDelCursor() : null;
+    // «@» al principio o tras un espacio o un signo de apertura, y lo escrito desde él (sin saltos de línea).
+    const m = antes === null ? null : /(^|[\s(«"'¿¡])@([^@\n]{0,40})$/.exec(antes);
+    if (!m || !AYUDA_PARAMETROS.catalogo.length) { cerrar(); return false; }
+    desde = antes.length - m[2].length - 1;
+    hasta = antes.length;
+    opciones = buscar(m[2]);
+    activa = 0;
+    pintar();
+    return !lista.hidden;
+  }
+  function tecla(e) {
+    if (lista.hidden) return false;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      activa = (activa + (e.key === "ArrowDown" ? 1 : opciones.length - 1)) % opciones.length;
+      pintar();
+    } else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
+      elegir(opciones[activa]);
+    } else if (e.key === "Escape") {
+      cerrar();
+    } else return false;
+    e.preventDefault();
+    e.stopPropagation();
+    return true;
+  }
+  area.addEventListener("blur", () => setTimeout(cerrar, 120));
+  ayudaParametros();
+  return { actualizar, tecla };
+}
 
 /** Valores que proponer para un parámetro: los del catálogo y los que ya usan otras pruebas. */
 function valoresSugeridos(nombre) {
