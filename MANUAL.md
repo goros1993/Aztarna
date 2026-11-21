@@ -512,6 +512,14 @@ una vez por cada una, para elegir la que toca en ese paso.
 
 ![«@» propone los parámetros del catálogo con su ubicación](docs/manual/65_parametro_arroba.png)
 
+Si el catálogo da los valores que admite el parámetro, al elegirlo se escribe
+«Parámetro (ubicación): » y se abre una segunda lista con sus valores (lo que
+escribas la filtra). Al elegir uno se escribe con su unidad: «Velocidad
+nominal (Accionamiento › Perfil › Vnom): 1,6 m/s». **Sin valor** (o **Esc**
+sin haber escrito nada) deja solo el parámetro.
+
+![Después, sus valores](docs/manual/66_parametro_valor.png)
+
 **El catálogo de parámetros** es un Excel (`.xlsx`) o un CSV del proyecto con
 una fila por parámetro. La única columna obligatoria es la del **Parámetro**
 (su nombre); las demás son al gusto y en cualquier orden:

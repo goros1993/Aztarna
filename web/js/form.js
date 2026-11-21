@@ -673,14 +673,17 @@ const delCatalogo = (nombre) => AYUDA_PARAMETROS.catalogo.find((p) => claveNombr
 /**
  * «@» en un texto de la prueba (pasos, situación inicial…): busca en el catálogo de parámetros
  * y escribe «Parámetro (ubicación)». Un parámetro con varias ubicaciones sale una vez por cada
- * una, para elegir dónde. Devuelve {actualizar() → true si la lista está abierta, tecla(e)}.
+ * una, para elegir dónde. Si el catálogo da sus valores posibles, después se elige el valor
+ * («…: 1,6 m/s»); lo que se escribe tras los dos puntos filtra la lista.
+ * Devuelve {actualizar() → true si hay una lista abierta, tecla(e)}.
  */
 function sugerenciasParametros(area) {
   const lista = h("div", { class: "sugerencias-kw sugerencias-param", role: "listbox", hidden: true });
   area.parentElement.after(lista);
   let opciones = [], activa = 0, desde = -1, hasta = -1;
+  let valor = null;              // eligiendo el valor: {param, desde} (desde: dónde empieza el valor en el texto)
   const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  function cerrar() { lista.hidden = true; opciones = []; desde = -1; }
+  function cerrar() { lista.hidden = true; opciones = []; desde = -1; valor = null; }
   function buscar(consulta) {
     const palabras = norm(consulta).split(/\s+/).filter(Boolean);
     const salida = [];
@@ -688,36 +691,71 @@ function sugerenciasParametros(area) {
       const sitios = (p.ubicaciones && p.ubicaciones.length) ? p.ubicaciones : [""];
       for (const u of sitios) {
         const donde = norm(`${p.parametro} ${u} ${p.descripcion || ""}`);
-        if (palabras.every((w) => donde.includes(w))) salida.push({ parametro: p.parametro, ubicacion: u, descripcion: p.descripcion || "", varias: sitios.length > 1 });
+        if (palabras.every((w) => donde.includes(w))) salida.push({ param: p, ubicacion: u, varias: sitios.length > 1 });
       }
     }
     // Primero los que empiezan por lo escrito.
     const inicio = norm(consulta).trim();
-    return salida.sort((a, b) => (inicio ? norm(b.parametro).startsWith(inicio) - norm(a.parametro).startsWith(inicio) : 0)).slice(0, 12);
+    return salida.sort((a, b) => (inicio ? norm(b.param.parametro).startsWith(inicio) - norm(a.param.parametro).startsWith(inicio) : 0)).slice(0, 12);
   }
+  /** El valor con su unidad, si el catálogo la da y el valor no la lleva ya («1,6» → «1,6 m/s»; «50 %» se queda). */
+  const conUnidad = (v, unidad) => (unidad && !norm(v).endsWith(norm(unidad)) ? `${v} ${unidad}` : v);
   function pintar() {
+    const cabecera = valor
+      ? `Valor de «${valor.param.parametro}» · Intro lo escribe · Esc, sin valor`
+      : "Parámetros del catálogo · Intro escribe el parámetro y dónde se toca";
     lista.replaceChildren(
-      h("div", { class: "cab-sugerencias", text: "Parámetros del catálogo · Intro escribe el parámetro y dónde se toca" }),
+      h("div", { class: "cab-sugerencias", text: cabecera }),
       ...opciones.map((o, i) => h("div", {
-        class: "kw" + (i === activa ? " activa" : ""), role: "option", "aria-selected": String(i === activa),
+        class: "kw" + (i === activa ? " activa" : "") + (o.sinValor ? " sin-valor" : ""), role: "option", "aria-selected": String(i === activa),
         onmousedown: (e) => e.preventDefault(), onclick: () => elegir(o),
-      },
-        h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.parametro }),
-          o.varias ? h("span", { class: "kw-args", text: "varias ubicaciones" }) : null),
+      }, valor
+        ? h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.sinValor ? "Sin valor" : conUnidad(o.valor, valor.param.unidad) }))
+        : [h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.param.parametro }),
+          o.varias ? h("span", { class: "kw-args", text: "varias ubicaciones" }) : null,
+          o.param.valores.length ? h("span", { class: "kw-args", text: `${o.param.valores.length} valores` }) : null),
         o.ubicacion ? h("div", { class: "param-ubicacion" }, icon("engranaje"), o.ubicacion) : null,
-        o.descripcion ? h("div", { class: "kw-doc", text: o.descripcion }) : null)));
+        o.param.descripcion ? h("div", { class: "kw-doc", text: o.param.descripcion }) : null])));
     lista.hidden = !opciones.length;
     const activo = lista.children[activa + 1];
     if (activo) activo.scrollIntoView({ block: "nearest" });
   }
   function elegir(o) {
-    const texto = o.ubicacion ? `${o.parametro} (${o.ubicacion})` : o.parametro;
+    if (valor) {
+      const cursor = (area.controlFormato.antesDelCursor() || "").length;
+      const inicio = valor.desde;
+      const unidad = valor.param.unidad;
+      cerrar();
+      // Sin valor: se quitan también los «: » que se escribieron con el parámetro.
+      if (o.sinValor) area.controlFormato.sustituir(inicio - 2, Math.max(cursor, inicio), "");
+      else area.controlFormato.sustituir(inicio, Math.max(cursor, inicio), conUnidad(o.valor, unidad));
+      return;
+    }
+    const texto = o.ubicacion ? `${o.param.parametro} (${o.ubicacion})` : o.param.parametro;
     const [a, b] = [desde, hasta];
     cerrar();
-    area.controlFormato.sustituir(a, b, texto);
+    if (o.param.valores.length) {
+      // Se escribe «Parámetro (ubicación): » y se abre la lista de sus valores.
+      valor = { param: o.param, desde: a + texto.length + 2 };
+      area.controlFormato.sustituir(a, b, texto + ": ");
+      actualizar();
+    } else {
+      area.controlFormato.sustituir(a, b, texto);
+    }
+  }
+  function actualizarValor(antes) {
+    // Fuera del valor (se ha borrado hacia atrás o hay un salto de línea): se deja de proponer.
+    if (antes === null || antes.length < valor.desde || antes.slice(valor.desde).includes("\n") || antes.length - valor.desde > 30) { cerrar(); return false; }
+    const escrito = norm(antes.slice(valor.desde)).trim();
+    opciones = [...valor.param.valores.filter((v) => !escrito || norm(v).includes(escrito)).map((v) => ({ valor: v })),
+      ...(escrito ? [] : [{ sinValor: true }])];
+    activa = 0;
+    pintar();
+    return !lista.hidden;
   }
   function actualizar() {
     const antes = document.activeElement === area ? area.controlFormato.antesDelCursor() : null;
+    if (valor) return actualizarValor(antes);
     // «@» al principio o tras un espacio o un signo de apertura, y lo escrito desde él (sin saltos de línea).
     const m = antes === null ? null : /(^|[\s(«"'¿¡])@([^@\n]{0,40})$/.exec(antes);
     if (!m || !AYUDA_PARAMETROS.catalogo.length) { cerrar(); return false; }
@@ -736,7 +774,10 @@ function sugerenciasParametros(area) {
     } else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
       elegir(opciones[activa]);
     } else if (e.key === "Escape") {
-      cerrar();
+      // Esc al elegir el valor sin haber escrito nada: el parámetro se queda sin valor.
+      const antes = area.controlFormato.antesDelCursor();
+      if (valor && antes !== null && antes.length === valor.desde) elegir({ sinValor: true });
+      else cerrar();
     } else return false;
     e.preventDefault();
     e.stopPropagation();

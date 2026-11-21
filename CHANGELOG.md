@@ -10,7 +10,9 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   ubicación o de la descripción, se proponen los parámetros del catálogo y se
   escribe el elegido con dónde se toca: «Velocidad nominal (Accionamiento ›
   Perfil › Vnom)». Un parámetro con varias ubicaciones sale una vez por cada
-  una. (#27)
+  una. Si el catálogo da sus valores posibles, después se elige el valor, que
+  se escribe con su unidad («…: 1,6 m/s»); *Sin valor* o **Esc** lo dejan sin
+  él. (#27)
 
 ## 1.4.1
 

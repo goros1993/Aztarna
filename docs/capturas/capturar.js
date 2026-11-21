@@ -409,6 +409,8 @@ const DATOS = process.env.DESTINO || "/home/ana/validacion";
       await p.keyboard.type(" Antes, ajustar @veloc", { delay: 20 });
       await js(() => { [...document.querySelectorAll(".bloque h3")].find((x) => x.textContent === "Situación inicial").scrollIntoView(); document.querySelector(".principal").scrollTop -= 90; });
       await foto("65_parametro_arroba");
+      await p.keyboard.press("Enter");
+      await foto("66_parametro_valor");
       await p.keyboard.press("Escape");
       await js(() => { setDirty(false); });
       // Una ejecución con DEMO-VAR-001 y unas pasadas apuntadas.
