@@ -1024,8 +1024,52 @@ function fichaPrueba(el) {
         : typeof v === "object" && v !== null ? h("pre", { text: JSON.stringify(v, null, 2) }) : textoConFormato(String(v ?? ""))),
     ]))) : null,
     aLista(el.imagenes).length ? bloque("Imágenes", h("div", { class: "imagenes" }, aLista(el.imagenes).map((ruta) => miniatura(String(ruta), null)))) : null);
-  if (ficha.querySelector(".info-parametro")) ayudaParametros().then(() => completarInfoParametros(ficha));
+  // Con el catálogo: lo que dice de cada parámetro y las citas «Parámetro (ubicación): valor» de los pasos.
+  ayudaParametros().then(() => { completarInfoParametros(ficha); resaltarCitas(ficha); });
   return ficha;
+}
+
+/** Escapa un texto para usarlo dentro de una expresión regular. */
+const escaparRegex = (t) => String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Las citas de parámetros del catálogo que escribe «@» en los pasos («Parámetro (ubicación)» y,
+ * si sigue, «: valor») se ven como una pastilla: el parámetro, dónde se toca y el valor. El texto
+ * guardado no cambia (en el Word y en el YAML sigue siendo texto).
+ */
+function resaltarCitas(raiz) {
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const conUnidad = (v, unidad) => (unidad && !norm(v).endsWith(norm(unidad)) ? `${v} ${unidad}` : v);
+  const patrones = [];
+  for (const p of AYUDA_PARAMETROS.catalogo) {
+    const valores = p.valores.flatMap((v) => [conUnidad(v, p.unidad), v]).sort((a, b) => b.length - a.length);
+    const valor = valores.length ? `(?::\\s*(${valores.map(escaparRegex).join("|")})(?![\\w,]))?` : "";
+    for (const u of p.ubicaciones || []) {
+      patrones.push({ p, u, re: new RegExp(`${escaparRegex(p.parametro)} \\(${escaparRegex(u)}\\)${valor}`) });
+    }
+  }
+  if (!patrones.length) return;
+  const nodos = [];
+  const paseo = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  for (let n = paseo.nextNode(); n; n = paseo.nextNode()) if (n.parentElement.closest(".fmt-texto")) nodos.push(n);
+  for (let nodo of nodos) {
+    for (;;) {
+      // La cita que empieza antes en lo que queda del nodo.
+      let mejor = null;
+      for (const pat of patrones) {
+        const m = pat.re.exec(nodo.data);
+        if (m && (!mejor || m.index < mejor.m.index || (m.index === mejor.m.index && m[0].length > mejor.m[0].length))) mejor = { m, ...pat };
+      }
+      if (!mejor) break;
+      const resto = nodo.splitText(mejor.m.index);
+      const despues = resto.splitText(mejor.m[0].length);
+      resto.replaceWith(h("span", { class: "cita-parametro", title: [mejor.p.descripcion, mejor.p.unidad ? `Unidad: ${mejor.p.unidad}` : ""].filter(Boolean).join(" · ") || null },
+        icon("engranaje"), h("strong", { text: mejor.p.parametro }),
+        h("span", { class: "cita-ubicacion", text: mejor.u }),
+        mejor.m[1] ? h("span", { class: "cita-valor", text: mejor.m[1] }) : null));
+      nodo = despues;
+    }
+  }
 }
 
 /** Debajo de cada parámetro de la ficha, lo que dice de él el catálogo (ubicación, descripción, unidad…). */

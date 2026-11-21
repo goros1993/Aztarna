@@ -575,12 +575,17 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
   function crearFila(fila, i) {
     if (fila.forma === "tabla") return crearFilaTabla(fila, i);
     if (fila.forma === "parametro") return crearFilaParametro(fila, i);
-    let sugerencias = null;
+    let sugerencias = null, conArroba = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
-      alCambiar: (texto) => { fila.texto = texto; tocar(clave); if (sugerencias) sugerencias.actualizar(texto); },
+      alCambiar: (texto) => {
+        fila.texto = texto; tocar(clave);
+        if (conArroba && conArroba.actualizar()) return;      // escribiendo «@…»: la lista de parámetros, no la de keywords
+        if (sugerencias) sugerencias.actualizar(texto);
+      },
       onkeydown: (e) => {
         if (e.isComposing) return;
+        if (conArroba && conArroba.tecla(e)) return;
         if (sugerencias && sugerencias.tecla(e)) return;
         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertar(i + 1); }
         else if (e.key === "Backspace" && !fila.texto && !fila.imagenes.length && !referencias(fila).length && filas.length) { e.preventDefault(); quitar(i); }
@@ -603,6 +608,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
     const contenido = h("div", { class: "contenido" }, editor, miniaturas, enlaces);
     if (conKeywords) sugerencias = sugerenciasKeywords(editor.querySelector(".editable"), contenido, fila.texto);
+    if (F.tipo === "prueba") conArroba = sugerenciasParametros(editor.querySelector(".editable"));
     const li = h("li", { class: "elemento", style: { "--nivel": String(fila.nivel) } },
       asa,
       contenido,
@@ -663,6 +669,124 @@ function ayudaParametros(recargar = false) {
 }
 const claveNombre = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[\W_]+/g, "").toLowerCase();
 const delCatalogo = (nombre) => AYUDA_PARAMETROS.catalogo.find((p) => claveNombre(p.parametro) === claveNombre(nombre)) || null;
+
+/**
+ * «@» en un texto de la prueba (pasos, situación inicial…): busca en el catálogo de parámetros
+ * y escribe «Parámetro (ubicación)». Un parámetro con varias ubicaciones sale una vez por cada
+ * una, para elegir dónde. Si el catálogo da sus valores posibles, después se elige el valor
+ * («…: 1,6 m/s»); lo que se escribe tras los dos puntos filtra la lista.
+ * Devuelve {actualizar() → true si hay una lista abierta, tecla(e)}.
+ */
+function sugerenciasParametros(area) {
+  const lista = h("div", { class: "sugerencias-kw sugerencias-param", role: "listbox", hidden: true });
+  area.parentElement.after(lista);
+  let opciones = [], activa = 0, desde = -1, hasta = -1;
+  let valor = null;              // eligiendo el valor: {param, desde} (desde: dónde empieza el valor en el texto)
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  function cerrar() { lista.hidden = true; opciones = []; desde = -1; valor = null; }
+  function buscar(consulta) {
+    const palabras = norm(consulta).split(/\s+/).filter(Boolean);
+    const salida = [];
+    for (const p of AYUDA_PARAMETROS.catalogo) {
+      const sitios = (p.ubicaciones && p.ubicaciones.length) ? p.ubicaciones : [""];
+      for (const u of sitios) {
+        const donde = norm(`${p.parametro} ${u} ${p.descripcion || ""}`);
+        if (palabras.every((w) => donde.includes(w))) salida.push({ param: p, ubicacion: u, varias: sitios.length > 1 });
+      }
+    }
+    // Primero los que empiezan por lo escrito.
+    const inicio = norm(consulta).trim();
+    return salida.sort((a, b) => (inicio ? norm(b.param.parametro).startsWith(inicio) - norm(a.param.parametro).startsWith(inicio) : 0)).slice(0, 12);
+  }
+  /** El valor con su unidad, si el catálogo la da y el valor no la lleva ya («1,6» → «1,6 m/s»; «50 %» se queda). */
+  const conUnidad = (v, unidad) => (unidad && !norm(v).endsWith(norm(unidad)) ? `${v} ${unidad}` : v);
+  function pintar() {
+    const cabecera = valor
+      ? `Valor de «${valor.param.parametro}» · Intro lo escribe · Esc, sin valor`
+      : "Parámetros del catálogo · Intro escribe el parámetro y dónde se toca";
+    lista.replaceChildren(
+      h("div", { class: "cab-sugerencias", text: cabecera }),
+      ...opciones.map((o, i) => h("div", {
+        class: "kw" + (i === activa ? " activa" : "") + (o.sinValor ? " sin-valor" : ""), role: "option", "aria-selected": String(i === activa),
+        onmousedown: (e) => e.preventDefault(), onclick: () => elegir(o),
+      }, valor
+        ? h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.sinValor ? "Sin valor" : conUnidad(o.valor, valor.param.unidad) }))
+        : [h("div", { class: "kw-linea" }, h("span", { class: "kw-nombre", text: o.param.parametro }),
+          o.varias ? h("span", { class: "kw-args", text: "varias ubicaciones" }) : null,
+          o.param.valores.length ? h("span", { class: "kw-args", text: `${o.param.valores.length} valores` }) : null),
+        o.ubicacion ? h("div", { class: "param-ubicacion" }, icon("engranaje"), o.ubicacion) : null,
+        o.param.descripcion ? h("div", { class: "kw-doc", text: o.param.descripcion }) : null])));
+    lista.hidden = !opciones.length;
+    const activo = lista.children[activa + 1];
+    if (activo) activo.scrollIntoView({ block: "nearest" });
+  }
+  function elegir(o) {
+    if (valor) {
+      const cursor = (area.controlFormato.antesDelCursor() || "").length;
+      const inicio = valor.desde;
+      const unidad = valor.param.unidad;
+      cerrar();
+      // Sin valor: se quitan también los «: » que se escribieron con el parámetro.
+      if (o.sinValor) area.controlFormato.sustituir(inicio - 2, Math.max(cursor, inicio), "");
+      else area.controlFormato.sustituir(inicio, Math.max(cursor, inicio), conUnidad(o.valor, unidad));
+      return;
+    }
+    const texto = o.ubicacion ? `${o.param.parametro} (${o.ubicacion})` : o.param.parametro;
+    const [a, b] = [desde, hasta];
+    cerrar();
+    if (o.param.valores.length) {
+      // Se escribe «Parámetro (ubicación): » y se abre la lista de sus valores.
+      valor = { param: o.param, desde: a + texto.length + 2 };
+      area.controlFormato.sustituir(a, b, texto + ": ");
+      actualizar();
+    } else {
+      area.controlFormato.sustituir(a, b, texto);
+    }
+  }
+  function actualizarValor(antes) {
+    // Fuera del valor (se ha borrado hacia atrás o hay un salto de línea): se deja de proponer.
+    if (antes === null || antes.length < valor.desde || antes.slice(valor.desde).includes("\n") || antes.length - valor.desde > 30) { cerrar(); return false; }
+    const escrito = norm(antes.slice(valor.desde)).trim();
+    opciones = [...valor.param.valores.filter((v) => !escrito || norm(v).includes(escrito)).map((v) => ({ valor: v })),
+      ...(escrito ? [] : [{ sinValor: true }])];
+    activa = 0;
+    pintar();
+    return !lista.hidden;
+  }
+  function actualizar() {
+    const antes = document.activeElement === area ? area.controlFormato.antesDelCursor() : null;
+    if (valor) return actualizarValor(antes);
+    // «@» al principio o tras un espacio o un signo de apertura, y lo escrito desde él (sin saltos de línea).
+    const m = antes === null ? null : /(^|[\s(«"'¿¡])@([^@\n]{0,40})$/.exec(antes);
+    if (!m || !AYUDA_PARAMETROS.catalogo.length) { cerrar(); return false; }
+    desde = antes.length - m[2].length - 1;
+    hasta = antes.length;
+    opciones = buscar(m[2]);
+    activa = 0;
+    pintar();
+    return !lista.hidden;
+  }
+  function tecla(e) {
+    if (lista.hidden) return false;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      activa = (activa + (e.key === "ArrowDown" ? 1 : opciones.length - 1)) % opciones.length;
+      pintar();
+    } else if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
+      elegir(opciones[activa]);
+    } else if (e.key === "Escape") {
+      // Esc al elegir el valor sin haber escrito nada: el parámetro se queda sin valor.
+      const antes = area.controlFormato.antesDelCursor();
+      if (valor && antes !== null && antes.length === valor.desde) elegir({ sinValor: true });
+      else cerrar();
+    } else return false;
+    e.preventDefault();
+    e.stopPropagation();
+    return true;
+  }
+  area.addEventListener("blur", () => setTimeout(cerrar, 120));
+  ayudaParametros();
+  return { actualizar, tecla };
+}
 
 /** Valores que proponer para un parámetro: los del catálogo y los que ya usan otras pruebas. */
 function valoresSugeridos(nombre) {

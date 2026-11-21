@@ -734,6 +734,19 @@ function editorFormato({ valor = "", alCambiar = () => {}, id, etiqueta, onkeydo
       area.focus();
       aplicar(nuevos, [a ?? nuevos.length, b ?? a ?? nuevos.length], "otro");
     },
+    /** Texto plano desde el principio hasta el cursor (null si hay algo seleccionado o el foco está fuera). */
+    antesDelCursor() {
+      const sel = seleccionEn(area);
+      if (!sel || sel[0] !== sel[1]) return null;
+      return caracteres.slice(0, sel[0]).map((c) => c.c).join("");
+    },
+    /** Cambia los caracteres [a, b) por `texto` (con el formato de lo que había) y deja el cursor detrás. */
+    sustituir(a, b, texto) {
+      const f = formatoEn(a);
+      const nuevos = [...texto].map((c) => ({ c, ...f }));
+      area.focus();
+      aplicar([...caracteres.slice(0, a), ...nuevos, ...caracteres.slice(b)], [a + nuevos.length, a + nuevos.length], "otro");
+    },
     alMoverCursor() {
       const sel = seleccionEn(area);
       if (pendiente && (!sel || sel[0] !== pendienteEn || sel[1] !== pendienteEn)) pendiente = null;

@@ -80,6 +80,7 @@ contenido:
     repeticiones: 3
     situacion_inicial:
     - Generador de tráfico configurado con llamadas aleatorias.
+    - 'Ajustar Velocidad nominal (Accionamiento › Perfil › Vnom) al valor de la pasada y Carga en cabina (Banco › Simulador de carga): 50 %.'
     pasos:
     - Lanzar el generador de tráfico.
     - Dejarlo funcionando hasta completar 1000 viajes.
