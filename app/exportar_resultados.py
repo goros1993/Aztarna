@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from app import ejecucion_core as ej
+from app import parametros
 from app import validacion_core as vc
 
 
@@ -35,16 +36,37 @@ def _fecha(valor: Any) -> str:
 
 
 def csv_ejecucion(ejecucion: dict[str, Any], capitulos: list[dict[str, Any]], salida: str | Path) -> Path:
-    """Una fila por prueba: resultado, fecha, ejecutor, observaciones, incidencia, evidencias e intentos."""
+    """Una fila por prueba: resultado, fecha, ejecutor, observaciones, incidencia, evidencias e intentos.
+
+    Una prueba que se pasa varias veces (ver app/parametros.py) lleva debajo una
+    fila por pasada, con su resultado y sus notas; en su fila, la columna Pasada
+    dice cuántas van hechas.
+    """
     resumen = ej.resumen(ejecucion, capitulos)
+    por_id = ej.indice_por_id(capitulos)
     filas = []
+
+    def fila(p: dict[str, Any], pasada: str, estado: str, r: dict[str, Any], cambiada: str) -> list[Any]:
+        return [p["capitulo"], p["id"], p["titulo"], pasada, ej.ESTADOS_VISIBLES.get(estado, estado),
+                _fecha(r.get("fecha")) if estado != "pendiente" else "", r.get("ejecutor"), r.get("observaciones"),
+                r.get("incidencia"), len(r.get("evidencias") or []), len(r.get("intentos") or []), cambiada]
+
     for p in resumen["pruebas"]:
         r = ejecucion["resultados"].get(p["id"]) or {}
-        filas.append([p["capitulo"], p["id"], p["titulo"], ej.ESTADOS_VISIBLES[p["estado"]], _fecha(r.get("fecha")),
-                      r.get("ejecutor"), r.get("observaciones"), r.get("incidencia"), len(r.get("evidencias") or []),
-                      len(r.get("intentos") or []), "sí" if p["cambiada"] else ""])
-    return _escribir(salida, ["Capítulo", "ID", "Título", "Resultado", "Fecha", "Ejecutor", "Observaciones", "Incidencia",
-                              "Evidencias", "Intentos anteriores", "Cambiada después de ejecutarse"], filas)
+        prueba = por_id[p["id"]]["prueba"] if p["id"] in por_id else None
+        pasadas = parametros.pasadas(prueba) if prueba is not None else []
+        guardadas = r.get("pasadas") or {}
+        resumen_pasadas = f"toda la prueba ({p['pasadas']['hechas']} de {p['pasadas']['total']} pasadas hechas)" if p.get("pasadas") else ""
+        filas.append(fila(p, resumen_pasadas, p["estado"], r, "sí" if p["cambiada"] else ""))
+        for pasada in pasadas:
+            rp = guardadas.get(pasada["clave"]) or {}
+            filas.append(fila(p, pasada["texto"], str(rp.get("estado") or "pendiente"), rp, ""))
+        # Resultados de pasadas que la prueba ya no tiene (se quitó un valor): se ven, pero no cuentan.
+        for clave, rp in guardadas.items():
+            if clave not in {x["clave"] for x in pasadas}:
+                filas.append(fila(p, f"{clave} (ya no está en la prueba; no cuenta)", str(rp.get("estado") or "pendiente"), rp, ""))
+    return _escribir(salida, ["Capítulo", "ID", "Título", "Pasada", "Resultado", "Fecha", "Ejecutor", "Observaciones",
+                              "Incidencia", "Evidencias", "Intentos anteriores", "Cambiada después de ejecutarse"], filas)
 
 
 def csv_validacion(consolidado: dict[str, Any], salida: str | Path) -> Path:

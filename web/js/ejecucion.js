@@ -39,6 +39,8 @@ function pintarModo() {
   pintarFranja();
   pintarTituloLateral();
   pintarVolver();
+  // «Con pasadas pendientes» es de una ejecución (en la validación no hay pasadas que apuntar).
+  $("#filtro-estado").querySelector('option[value="con_pasadas"]').hidden = !S.ejecucion;
   $("#filtro-estado").value = S.filtroEstado;
   etiquetarCapitulos();
 }
@@ -308,6 +310,32 @@ async function darPorRevisadaEnEjecucion() {
   } catch (e) { fallo(e); }
 }
 
+/** Avance de las pasadas de una prueba de la ejecución abierta ({total, hechas}) o null si se pasa una vez. */
+function pasadasDe(id) {
+  const p = S.ejecucion && S.ejecucion.resumen.pruebas.find((x) => x.id === id);
+  return p && p.pasadas ? p.pasadas : null;
+}
+/** Pruebas de la ejecución con alguna pasada sin hacer (aunque ya sean NO OK por otra pasada). */
+const pruebasConPasadasPendientes = () => new Set(S.ejecucion
+  ? S.ejecucion.resumen.pruebas.filter((p) => p.pasadas && p.pasadas.hechas < p.pasadas.total).map((p) => p.id) : []);
+
+/** Si una prueba (del resumen de la ejecución) entra en el filtro del árbol. */
+function cumpleFiltroEstado(id, estado) {
+  if (!S.filtroEstado) return true;
+  if (S.filtroEstado === "cambiada") return pruebasCambiadas().has(id);
+  if (S.filtroEstado === "por_triar") return pruebasPorTriar().has(id);
+  if (S.filtroEstado === "con_pasadas") return pruebasConPasadasPendientes().has(id);
+  return estado === S.filtroEstado;
+}
+
+/** En el árbol, junto a una prueba que se pasa varias veces: «4/6» pasadas hechas. */
+function marcaPasadas(id) {
+  const p = pasadasDe(id);
+  if (!p) return null;
+  return h("span", { class: "marca-pasadas" + (p.hechas === p.total ? " completas" : ""),
+    title: `${p.hechas} de ${p.total} pasadas hechas`, text: `${p.hechas}/${p.total}` });
+}
+
 /** En ejecución el árbol solo muestra las pruebas de la ejecución (y las secciones que las contienen). */
 function filtrarNodosEjecucion(nodos) {
   if (!S.ejecucion && !S.validacion) return [];
@@ -316,9 +344,7 @@ function filtrarNodosEjecucion(nodos) {
   const quedan = new Set();
   for (const n of nodos) {
     if (n.tipo !== "prueba" || !estados.has(n.id)) continue;
-    if (S.filtroEstado === "cambiada" ? !pruebasCambiadas().has(n.id)
-      : S.filtroEstado === "por_triar" ? !pruebasPorTriar().has(n.id)
-        : S.filtroEstado && estados.get(n.id) !== S.filtroEstado) continue;
+    if (!cumpleFiltroEstado(n.id, estados.get(n.id))) continue;
     quedan.add(n.indice);
     for (let p = n.padre; p !== null && p !== undefined; p = padres.get(p)) quedan.add(p);
   }
@@ -636,7 +662,7 @@ async function irAPruebaEjecucion(id) {
   if (!p || !p.archivo) { aviso(`La prueba ${id} ya no está en los YAML de pruebas`, "error"); return; }
   const ci = S.capitulos.findIndex((c) => c.archivo === p.archivo);
   if (ci < 0) return;
-  if (S.filtroEstado && p.estado !== S.filtroEstado) { S.filtroEstado = ""; $("#filtro-estado").value = ""; }
+  if (!cumpleFiltroEstado(p.id, p.estado)) { S.filtroEstado = ""; $("#filtro-estado").value = ""; }
   if (ci !== S.capitulo || S.consulta) {
     S.capitulo = ci;
     $("#sel-capitulo").value = String(ci);

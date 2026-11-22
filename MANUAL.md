@@ -952,7 +952,9 @@ aplica); **NO OK** en cuanto una falla; **Bloqueada** si alguna no se pudo
 pasar; **pendiente** mientras falte alguna. Cada ejecución hace todas las
 pasadas de sus pruebas: no se puede cerrar con pasadas pendientes. Los
 totales cuentan pruebas, y el resumen dice además cuántas pasadas van
-hechas. En el informe, debajo de cada prueba sale el resultado de cada
+hechas. En el árbol, cada prueba con pasadas lleva su avance («4/6»), y el
+filtro **Con pasadas pendientes** deja las que tienen alguna sin hacer,
+aunque ya sean NO OK por otra pasada (el filtro *Pendientes* no las enseña). En el informe, debajo de cada prueba sale el resultado de cada
 pasada.
 
 Si se cambian los valores o las repeticiones de una prueba ya ejecutada, la
@@ -1214,7 +1216,10 @@ muchas pruebas). Mientras quede alguna ejecución abierta sale como
 **Resultados en Excel.** En el mismo diálogo, **Resultados en Excel (CSV)…**
 guarda una fila por prueba con su resultado en cada entorno, la ejecución,
 la fecha, el ejecutor, las observaciones y la incidencia. Se abre con Excel
-(en una ejecución sale el mismo botón en su informe).
+(en una ejecución sale el mismo botón en su informe). En el de una
+ejecución, una prueba que se pasa varias veces lleva debajo una fila por
+pasada (columna *Pasada*), con su resultado, observaciones e incidencia, para
+ver en Excel en qué configuración falló.
 
 **Trabajar sin validación.** Botón de la validación → **Trabajar sin
 validación**: el modo vuelve a funcionar solo con ejecuciones sueltas.

@@ -136,7 +136,7 @@ class CsvYTendencia(unittest.TestCase):
             ruta = er.csv_ejecucion(ejecucion, ej.capitulos_de(ejecucion), Path(tmp) / "ej.csv")
             with open(ruta, encoding="utf-8-sig", newline="") as f:
                 filas = list(csv.reader(f, delimiter=";"))
-            self.assertEqual(filas[0][3], "Resultado")
+            self.assertEqual(filas[0][3:5], ["Pasada", "Resultado"])
             self.assertEqual(len(filas), 1 + len(ejecucion["datos"]["pruebas"]))
 
     def test_tendencia(self):
