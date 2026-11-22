@@ -3,6 +3,16 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.4.3
+
+- **Marca de parámetros en el editor**: los textos de la prueba que citan
+  parámetros del catálogo («Parámetro (ubicación): valor», los que escribe
+  `@`) llevan un engranaje a la derecha, con el número si citan varios; al
+  pasar el ratón se ve cuáles. Como el robot de los pasos que son keywords.
+- `@` también en la **Descripción** de la prueba.
+- Corregido: en el campo *Parámetro* de la parametrización, la sugerencia
+  desaparecía al escribir el nombre completo.
+
 ## 1.4.2
 
 - **`@` para citar un parámetro** en los textos de la prueba (situación
