@@ -16,6 +16,13 @@ cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
   enseña cada cita como una pastilla con el parámetro, dónde se toca y el
   valor. (#27)
 
+- **Pasadas en el árbol y en el CSV**: en el árbol de la ejecución, cada
+  prueba con pasadas lleva su avance («4/6») y el filtro nuevo **Con pasadas
+  pendientes** deja las que tienen alguna sin hacer, aunque ya sean NO OK por
+  otra pasada. El CSV de resultados de una ejecución lleva, debajo de cada
+  prueba que se pasa varias veces, una fila por pasada (columna *Pasada*) con
+  su resultado, observaciones e incidencia.
+
 ## 1.4.1
 
 - **Parámetros con varias ubicaciones**: en el catálogo de parámetros, un

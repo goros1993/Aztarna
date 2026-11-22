@@ -318,6 +318,24 @@ class EjecucionTests(unittest.TestCase):
         celda = next(p for p in vc.consolidar(val)["pruebas"] if p["id"] == "DEMO-NIV-001")["entornos"]["Torre"]
         self.assertEqual(celda["estado"], "ok")
 
+    def test_csv_con_una_fila_por_pasada(self):
+        import csv
+        from app import exportar_resultados as er
+        self.apuntar(self.claves[0], "ok", ejecutor="Ana")
+        self.apuntar(self.claves[3], "no_ok", observaciones="Desnivel de 7 mm", incidencia="BUG-31")
+        ruta = er.csv_ejecucion(self.ejecucion, read_chapters(self.pruebas), self.tmp / "r.csv")
+        with open(ruta, encoding="utf-8-sig", newline="") as f:
+            filas = list(csv.DictReader(f, delimiter=";"))
+        niv = [f for f in filas if f["ID"] == "DEMO-NIV-001"]
+        self.assertEqual(len(niv), 1 + 6)
+        self.assertEqual((niv[0]["Pasada"], niv[0]["Resultado"]), ("toda la prueba (2 de 6 pasadas hechas)", "NO OK"))
+        fallo = niv[1 + 3]
+        self.assertEqual((fallo["Pasada"], fallo["Resultado"], fallo["Observaciones"], fallo["Incidencia"]),
+                         (parametros.pasadas(self.prueba)[3]["texto"], "NO OK", "Desnivel de 7 mm", "BUG-31"))
+        self.assertEqual((niv[2]["Resultado"], niv[2]["Fecha"]), ("Pendiente", ""))
+        llam = [f for f in filas if f["ID"] == "DEMO-LLAM-001"]
+        self.assertEqual([f["Pasada"] for f in llam], [""])          # se pasa una vez: una sola fila
+
     def test_robot_deja_fuera_las_pruebas_con_pasadas(self):
         from app import robot_core
         robot = {"generador": "Robot", "tests": [{"nombre": "Nivelar", "ids": ["DEMO-NIV-001"], "estado": "PASS",
