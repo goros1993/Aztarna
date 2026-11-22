@@ -502,8 +502,8 @@ y las repeticiones como «**Repeticiones:** 5»; al importar ese Word vuelven a
 ser parámetros y repeticiones. Cómo se pasan en una ejecución: ver
 [6.5](#65-pasar-una-prueba).
 
-**Citar un parámetro en un paso: `@`.** En los textos de la prueba (situación
-inicial, ensayo, parametrización…) escribe `@` y parte del nombre, de la
+**Citar un parámetro en un paso: `@`.** En los textos de la prueba
+(descripción, situación inicial, ensayo, parametrización…) escribe `@` y parte del nombre, de la
 ubicación o de la descripción de un parámetro: se abre la lista del catálogo
 (**↑ / ↓**, **Intro** o **Tab** para elegir, **Esc** para cerrarla) y al
 elegir se escribe el parámetro con dónde se toca, como «Velocidad nominal
@@ -520,6 +520,8 @@ sin haber escrito nada) deja solo el parámetro.
 
 ![Después, sus valores](docs/manual/66_parametro_valor.png)
 
+En el editor, un texto que cita parámetros del catálogo lleva un engranaje a
+la derecha (con el número, si cita varios); al pasar el ratón se ve cuáles.
 En el YAML y en el Word la cita es texto normal. Al pasar la prueba, la ficha
 la reconoce (si el parámetro y la ubicación están en el catálogo) y la
 enseña como una pastilla: el parámetro en negrita, dónde se toca y el valor

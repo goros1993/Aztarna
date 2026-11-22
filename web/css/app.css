@@ -1136,3 +1136,11 @@ dialog.buscar-global input[type=search] { width: 100%; font-size: 15px; padding:
 /* Árbol de la ejecución: pasadas hechas de una prueba que se pasa varias veces */
 .marca-pasadas { flex: none; font: 600 11px var(--mono); color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 0 6px; line-height: 17px; }
 .marca-pasadas.completas { color: var(--ink-3); background: transparent; box-shadow: inset 0 0 0 1px var(--rule-strong); }
+/* Editor: marca en los textos que citan parámetros del catálogo (como el robot de las keywords) */
+.con-marcas { position: relative; }
+.editable.con-citas { padding-right: 34px; }
+.editable.con-citas.con-keyword { padding-right: 58px; }
+.marca-citas { position: absolute; top: 7px; right: 7px; display: inline-flex; align-items: center; gap: 1px; color: var(--accent); cursor: help; font: 600 11px var(--mono); }
+.marca-citas[hidden] { display: none; }
+.marca-citas.junto-a-robot { right: 30px; }
+.marca-citas .ico { width: 15px; height: 15px; }

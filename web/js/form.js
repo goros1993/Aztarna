@@ -384,12 +384,20 @@ function campoSelect(clave, etiqueta, opciones) {
 
 function campoArea(clave, etiqueta) {
   const id = "f-" + clave;
+  // En la descripción de una prueba también vale «@» para citar un parámetro, con su marca.
+  let conArroba = null, citas = null;
   const editor = editorFormato({
     id, etiqueta, valor: F.valores[clave],
-    alCambiar: (texto) => { F.valores[clave] = texto; tocar(clave); },
+    alCambiar: (texto) => { F.valores[clave] = texto; tocar(clave); if (citas) citas.actualizar(texto); if (conArroba) conArroba.actualizar(); },
+    onkeydown: (e) => { if (!e.isComposing && conArroba) conArroba.tecla(e); },
   });
+  const caja = h("div", { class: "con-marcas" }, editor);
+  if (F.tipo === "prueba") {
+    conArroba = sugerenciasParametros(editor.querySelector(".editable"));
+    citas = marcaCitas(editor.querySelector(".editable"), caja);
+  }
   return h("div", { class: "campo completo" },
-    h("label", { for: id, text: etiqueta, onclick: () => $("#" + id).controlFormato.alFinal() }), editor);
+    h("label", { for: id, text: etiqueta, onclick: () => $("#" + id).controlFormato.alFinal() }), caja);
 }
 
 function mostrarErrorCampo(clave, mensaje) {
@@ -575,13 +583,14 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
   function crearFila(fila, i) {
     if (fila.forma === "tabla") return crearFilaTabla(fila, i);
     if (fila.forma === "parametro") return crearFilaParametro(fila, i);
-    let sugerencias = null, conArroba = null;
+    let sugerencias = null, conArroba = null, citas = null;
     const editor = editorFormato({
       valor: fila.texto, etiqueta: `${titulo}, elemento ${i + 1}`,
       alCambiar: (texto) => {
         fila.texto = texto; tocar(clave);
+        if (citas) citas.actualizar(texto);
         if (conArroba && conArroba.actualizar()) return;      // escribiendo «@…»: la lista de parámetros, no la de keywords
-        if (sugerencias) sugerencias.actualizar(texto);
+        if (sugerencias) { sugerencias.actualizar(texto); if (citas) citas.actualizar(texto); }
       },
       onkeydown: (e) => {
         if (e.isComposing) return;
@@ -608,7 +617,10 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
     const asa = h("span", { class: "asa", title: "Arrastra para reordenar" }, h("span", { class: "n" }), icon("grip"));
     const contenido = h("div", { class: "contenido" }, editor, miniaturas, enlaces);
     if (conKeywords) sugerencias = sugerenciasKeywords(editor.querySelector(".editable"), contenido, fila.texto);
-    if (F.tipo === "prueba") conArroba = sugerenciasParametros(editor.querySelector(".editable"));
+    if (F.tipo === "prueba") {
+      conArroba = sugerenciasParametros(editor.querySelector(".editable"));
+      citas = marcaCitas(editor.querySelector(".editable"), contenido);
+    }
     const li = h("li", { class: "elemento", style: { "--nivel": String(fila.nivel) } },
       asa,
       contenido,
@@ -788,6 +800,60 @@ function sugerenciasParametros(area) {
   return { actualizar, tecla };
 }
 
+/* ---- citas de parámetros en los textos («Parámetro (ubicación): valor», las que escribe «@») ---- */
+let cachePatronesCitas = { catalogo: null, patrones: [] };
+/** Expresiones que reconocen las citas de cada parámetro y ubicación del catálogo (con su valor, si lo lleva). */
+function patronesCitas() {
+  if (cachePatronesCitas.catalogo === AYUDA_PARAMETROS.catalogo) return cachePatronesCitas.patrones;
+  const escapar = (t) => String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const conUnidad = (v, unidad) => (unidad && !norm(v).endsWith(norm(unidad)) ? `${v} ${unidad}` : v);
+  const patrones = [];
+  for (const p of AYUDA_PARAMETROS.catalogo) {
+    const valores = p.valores.flatMap((v) => [conUnidad(v, p.unidad), v]).sort((a, b) => b.length - a.length);
+    const valor = valores.length ? `(?::\\s*(${valores.map(escapar).join("|")})(?![\\w,]))?` : "";
+    for (const u of p.ubicaciones || []) {
+      patrones.push({ p, u, re: new RegExp(`${escapar(p.parametro)} \\(${escapar(u)}\\)${valor}`, "g") });
+    }
+  }
+  cachePatronesCitas = { catalogo: AYUDA_PARAMETROS.catalogo, patrones };
+  return patrones;
+}
+
+/** Citas de parámetros en un texto plano: [{p, u, valor, inicio, fin}], en orden y sin solaparse. */
+function citasEn(texto) {
+  const todas = [];
+  for (const pat of patronesCitas()) {
+    pat.re.lastIndex = 0;
+    for (const m of String(texto).matchAll(pat.re)) todas.push({ p: pat.p, u: pat.u, valor: m[1] || "", inicio: m.index, fin: m.index + m[0].length });
+  }
+  todas.sort((a, b) => a.inicio - b.inicio || b.fin - a.fin);
+  const salida = [];
+  for (const c of todas) if (!salida.length || c.inicio >= salida[salida.length - 1].fin) salida.push(c);
+  return salida;
+}
+
+/**
+ * Marca (un engranaje con el número) en un texto del editor que cita parámetros del catálogo,
+ * como el robot de los pasos que son keywords; al pasar el ratón, cuáles. Devuelve {actualizar(texto)}.
+ */
+function marcaCitas(area, contenedor) {
+  const marca = h("span", { class: "marca-citas", hidden: true }, icon("engranaje"), h("span", { class: "n" }));
+  contenedor.append(marca);
+  function actualizar(texto) {
+    const plano = marcasACaracteres(texto ?? area.controlFormato.valor).map((c) => c.c).join("");
+    const citas = citasEn(plano);
+    marca.hidden = !citas.length;
+    area.classList.toggle("con-citas", citas.length > 0);
+    // Con la marca del robot (paso que es una keyword), a su izquierda.
+    marca.classList.toggle("junto-a-robot", area.classList.contains("con-keyword"));
+    marca.querySelector(".n").textContent = citas.length > 1 ? String(citas.length) : "";
+    marca.title = citas.length ? "Cita parámetros del catálogo:\n" + citas.map((c) => `• ${c.p.parametro} (${c.u})${c.valor ? " = " + c.valor : ""}`).join("\n") : "";
+  }
+  ayudaParametros().then(() => actualizar());
+  return { actualizar };
+}
+
 /** Valores que proponer para un parámetro: los del catálogo y los que ya usan otras pruebas. */
 function valoresSugeridos(nombre) {
   const cat = delCatalogo(nombre);
@@ -873,8 +939,8 @@ function campoNombreParametro(fila, alElegir) {
     for (const u of AYUDA_PARAMETROS.usados) {
       if (!todas.some((t) => claveNombre(t.parametro) === claveNombre(u.parametro))) todas.push({ parametro: u.parametro, detalle: plural(u.usos, "prueba", "pruebas") });
     }
-    opciones = todas.filter((o) => claveNombre(o.parametro) !== claveNombre(entrada.value) || !escrito)
-      .filter((o) => !escrito || norm(o.parametro + " " + o.detalle).includes(escrito))
+    // El que coincide del todo con lo escrito también se propone (antes desaparecía al completarlo).
+    opciones = todas.filter((o) => !escrito || norm(o.parametro + " " + o.detalle).includes(escrito))
       .sort((a, b) => (escrito ? norm(b.parametro).startsWith(escrito) - norm(a.parametro).startsWith(escrito) : 0))
       .slice(0, 10);
     activa = escrito && opciones.length ? 0 : -1;

@@ -1055,8 +1055,6 @@ function fichaPrueba(el) {
   return ficha;
 }
 
-/** Escapa un texto para usarlo dentro de una expresión regular. */
-const escaparRegex = (t) => String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * Las citas de parámetros del catálogo que escribe «@» en los pasos («Parámetro (ubicación)» y,
@@ -1064,16 +1062,7 @@ const escaparRegex = (t) => String(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  * guardado no cambia (en el Word y en el YAML sigue siendo texto).
  */
 function resaltarCitas(raiz) {
-  const norm = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const conUnidad = (v, unidad) => (unidad && !norm(v).endsWith(norm(unidad)) ? `${v} ${unidad}` : v);
-  const patrones = [];
-  for (const p of AYUDA_PARAMETROS.catalogo) {
-    const valores = p.valores.flatMap((v) => [conUnidad(v, p.unidad), v]).sort((a, b) => b.length - a.length);
-    const valor = valores.length ? `(?::\\s*(${valores.map(escaparRegex).join("|")})(?![\\w,]))?` : "";
-    for (const u of p.ubicaciones || []) {
-      patrones.push({ p, u, re: new RegExp(`${escaparRegex(p.parametro)} \\(${escaparRegex(u)}\\)${valor}`) });
-    }
-  }
+  const patrones = patronesCitas();
   if (!patrones.length) return;
   const nodos = [];
   const paseo = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
@@ -1083,6 +1072,7 @@ function resaltarCitas(raiz) {
       // La cita que empieza antes en lo que queda del nodo.
       let mejor = null;
       for (const pat of patrones) {
+        pat.re.lastIndex = 0;
         const m = pat.re.exec(nodo.data);
         if (m && (!mejor || m.index < mejor.m.index || (m.index === mejor.m.index && m[0].length > mejor.m[0].length))) mejor = { m, ...pat };
       }
