@@ -72,7 +72,9 @@ function filasAPlano(filas) {
   return filas.map((f) => {
     if (f.forma === "tabla") return { tabla: { ...f.tabla.resto, filas: tablaAPlano(f.tabla.filas) } };
     if (f.forma === "parametro") {
-      return { parametro: f.parametro.trim(), valores: [...f.valores], ...(f.ubicacion.trim() ? { ubicacion: f.ubicacion.trim() } : {}) };
+      // Sin dar por hecho que la fila tenga todos los campos (una fila nueva o de una versión anterior).
+      const nombre = String(f.parametro || "").trim(), ubicacion = String(f.ubicacion || "").trim();
+      return { parametro: nombre, valores: [...(f.valores || [])], ...(ubicacion ? { ubicacion } : {}) };
     }
     const mapa = f.forma === "map" || f.imagenes.length || f.nivel || Object.keys(f.extra).length;
     if (!mapa) return f.texto;
@@ -648,7 +650,7 @@ function editorLista(clave, titulo, { numerada = false, ayuda = "", conTablas = 
       conParametros ? h("button", {
         class: "btn ghost peq", type: "button", title: "Parámetro que se toca y valores con los que hay que pasar la prueba",
         onclick: () => {
-          filas.push({ ...nuevaFila(), forma: "parametro", parametro: "", valores: [] });
+          filas.push({ ...nuevaFila(), forma: "parametro", parametro: "", valores: [], ubicacion: "" });
           tocar(clave); pintar();
           const campos = lista.querySelectorAll(".nombre-parametro input");
           if (campos.length) campos[campos.length - 1].focus();
@@ -880,7 +882,7 @@ function infoCatalogo(cat, elegida = "", { ubicaciones = true } = {}) {
 
 /** Ubicación en el configurador, descripción y avisos del parámetro de una fila. */
 function notaParametro(fila, alCambiar = null) {
-  if (!fila.parametro.trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
+  if (!String(fila.parametro || "").trim()) return [h("span", { class: "muted", text: "Escribe el parámetro o elígelo del catálogo." })];
   const cat = delCatalogo(fila.parametro);
   const partes = [];
   if (cat) {
