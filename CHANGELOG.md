@@ -3,6 +3,12 @@
 Qué trae cada versión. La versión está en `app/__init__.py` (`__version__`) y
 cada versión publicada lleva su etiqueta de Git (`v0.8.0`…).
 
+## 1.4.4
+
+- Corregido: al guardar una prueba con un parámetro recién añadido con el
+  botón **Parámetro** salía el error «Cannot read properties of undefined
+  (reading 'trim')» y no se guardaba (desde la 1.4.1).
+
 ## 1.4.3
 
 - **Marca de parámetros en el editor**: los textos de la prueba que citan
